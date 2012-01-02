@@ -58,13 +58,13 @@ around describe => sub {
     return $out;
 };
 
-sub can_use {
-    my ($self, $user) = @_;
+around can_use => sub {
+    my ($orig, $self, $user) = @_;
     if ($self->user_id) {
-        return $self->can_use($user);
+        return 1 if $self->user->can_use($user);
     }
-    return 0;
-}
+    return $orig->($self, $user);
+};
 
 around postable_params => sub {
     my ($orig, $self) = @_;
