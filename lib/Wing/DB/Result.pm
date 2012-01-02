@@ -42,7 +42,7 @@ sub object_name {
 
 sub object_type {
     my $self = shift;
-    return lc($self->name);    
+    return lc($self->object_name);    
 }
 
 sub describe {
