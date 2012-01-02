@@ -207,6 +207,7 @@ hook before_error_init => sub {
         };
         $error->{code} = 500;
     }
+    delete $error->{exception};
 };
 
 register_plugin;

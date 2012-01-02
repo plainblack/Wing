@@ -19,20 +19,37 @@ sub register_field {
     
     # add field to postable params
     if (exists $options->{edit}) {
-        if ($options->{edit} eq 'postable' || $options->{edit} eq 'required') {
+        if ($options->{edit} ~~ [qw(postable required unique)]) {
             $class->meta->add_around_method_modifier(postable_params => sub {
                 my ($orig, $self) = @_;
                 my $params = $orig->($self);
                 push @$params, $field;
                 return $params;
             });
-            if ($options->{edit} eq 'required') {
+
+            # make required
+            if ($options->{edit} ~~ [qw(required unique)]) {
                 $class->meta->add_around_method_modifier(required_params => sub {
                     my ($orig, $self) = @_;
                     my $params = $orig->($self);
                     push @$params, $field;
                     return $params;
                 });
+
+                # make unique
+                if ($options->{edit} eq 'unique') {
+                    $class->add_unique_constraint([$field]);
+                    $class->meta->add_before_method_modifier($field => sub {
+                        my ($self, $value) = @_;
+                        if (scalar(@_) > 1) {
+                            my $criteria = { $field => $value };
+                            if ($self->in_storage) {
+                                $criteria->{id} = { '!=' => $self->id };
+                            }
+                            ouch(443, $field.' not available.', $field) if $self->result_source->schema->resultset($class)->search($criteria)->count;
+                        }
+                    });
+                }
             }
         }
         elsif ($options->{edit} eq 'admin') {
@@ -45,7 +62,7 @@ sub register_field {
         }
     }
     
-    # validation
+    # range validation
     if (exists $options->{range}) {
         if (ref $options->{range} ne 'ARRAY') {
             ouch 500, 'Range for "'.$field.'" must be specified with an array reference.';
@@ -57,6 +74,42 @@ sub register_field {
                 my $max = $options->{range}[1];
                 unless ($value >= $min && $value <= $max) {
                     ouch 442, $field.' must be between '.$min.' and '.$max.'.', $field;
+                }
+            }
+        });
+    }
+
+    # enumerated validation
+    if (exists $options->{options}) {
+        if (ref $options->{options} ne 'ARRAY') {
+            ouch 500, 'Options for "'.$field.'" must be specified with an array reference.';
+        }
+        $class->meta->add_method( $field.'_options' => sub {
+            my $self = shift;
+            return $options->{options};
+        });
+        $class->meta->add_around_method_modifier(field_options => sub {
+            my ($orig, $self) = @_;
+            my $existing = $orig->($self);
+            $existing->{$field} = $options->{options};
+            if (exists $options->{_options}) {
+                if (ref $options->{_options} ne 'HASH') {
+                    ouch 500, 'Human readable options for "'.$field.'" must be specified with a hash reference.';
+                }
+                $existing->{'_'.$field} = $options->{_options};
+            }
+            else {
+                foreach my $option (@{$options->{options}}) {
+                    $existing->{'_'.$field}{$option} = $option;
+                }
+            }
+            return $existing;
+        });
+        $class->meta->add_before_method_modifier($field => sub {
+            my ($self, $value) = @_;
+            if (scalar(@_) > 1) {
+                unless ($value ~~ $options->{options}) {
+                    ouch 442, $field.' must be one of: '.join(', ', @{$options->{options}}), $field;
                 }
             }
         });
@@ -94,7 +147,7 @@ sub register_field {
         $dup->$field($self->$field()) unless $options->{no_duplicate};
         return $dup;
     });
-    
+
 }
 
 1;
