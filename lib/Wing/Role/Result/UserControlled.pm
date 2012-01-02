@@ -56,7 +56,7 @@ around describe => sub {
 
 around can_use => sub {
     my ($orig, $self, $user) = @_;
-    return 1 if $self->can_use($user);
+    return 1 if $self->user->can_use($user);
     return $orig->($self, $user);
 };
 
