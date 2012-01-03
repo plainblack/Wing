@@ -52,7 +52,7 @@ sub describe {
         object_type => $self->object_type,
         object_name => $self->object_name,
     };
-    if ($options{include_private}) {
+    if (eval { $self->can_use($options{current_user}) } ) {
         $out->{date_created} = DateTime::Format::RFC3339->new->format_datetime($self->date_created);
         $out->{date_updated} = DateTime::Format::RFC3339->new->format_datetime($self->date_updated);
     }
@@ -88,7 +88,7 @@ sub admin_postable_params {
 }
 
 sub can_use {
-    return 0;
+    ouch(450, 'Insufficient privileges.');
 }
 
 sub verify_creation_params {

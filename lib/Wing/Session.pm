@@ -128,7 +128,7 @@ sub describe {
         object_type => 'session',
         user_id     => $self->user_id,
     };
-    if ($options{include_private}) {
+    if (exists $options{current_user} && defined $options{current_user} && $options{current_user} eq $self->user_id) {
         $out->{extended} = $self->extended;
         $out->{ip_address} = $self->ip_address;
         $out->{sso} = $self->sso;

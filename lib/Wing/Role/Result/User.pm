@@ -1,6 +1,5 @@
-package Wing::DB::Result::User;
+package Wing::Role::Result::User;
 
-use Moose;
 use Wing::Perl;
 use Wing::Session;
 use Crypt::Eksblowfish::Bcrypt;
@@ -9,52 +8,55 @@ use Encode ();
 use DateTime;
 use Data::GUID;
 use Ouch;
-extends 'Wing::DB::Result';
+use Moose::Role;
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::DateTimeField';
 
-__PACKAGE__->table('users');
-__PACKAGE__->register_fields(
-    username                => {
-        dbic    => { data_type => 'varchar', size => 30, is_nullable => 0 },
-        view    => 'private',
-        edit    => 'unique',
-    },
-    real_name               => {
-        dbic    => { data_type => 'varchar', size => 255, is_nullable => 1 },
-        view    => 'private',
-        edit    => 'postable',
-    },
-    email                   => {
-        dbic    => { data_type => 'varchar', size => 255, is_nullable => 1 },
-        view    => 'private',
-        edit    => 'unique',
-    },
-    use_as_display_name     => {
-        dbic    => { data_type => 'varchar', size => 10, is_nullable => 1, default_value => 'username' },
-        view    => 'private',
-        edit    => 'postable',
-        options => [qw(username real_name email)],
-        _options=> { username => 'Username', real_name => 'Real Name', email => 'Email Address' },
-    },
-    password                => {
-        dbic    => { data_type => 'char', size => 50 },
-    },
-    password_type           => {
-        dbic    => { data_type => 'varchar', size => 10, is_nullable => 0, default_value => 'bcrypt' },
-    },
-    admin                   => {
-        dbic    => { data_type => 'tinyint', default_value => 0 },
-        view    => 'private',
-        edit    => 'admin',
-    },
-);
-__PACKAGE__->register_datetime_field(
-    last_login  => {
-        view            => 'private',
-        set_on_create   => 1,
-    }
-);
+around table => sub {
+    my ($orig, $class, $table) = @_;
+    $orig->($class, $table);
+    $class->register_fields(
+        username                => {
+            dbic    => { data_type => 'varchar', size => 30, is_nullable => 0 },
+            view    => 'private',
+            edit    => 'unique',
+        },
+        real_name               => {
+            dbic    => { data_type => 'varchar', size => 255, is_nullable => 1 },
+            view    => 'private',
+            edit    => 'postable',
+        },
+        email                   => {
+            dbic    => { data_type => 'varchar', size => 255, is_nullable => 1 },
+            view    => 'private',
+            edit    => 'unique',
+        },
+        use_as_display_name     => {
+            dbic    => { data_type => 'varchar', size => 10, is_nullable => 1, default_value => 'username' },
+            view    => 'private',
+            edit    => 'postable',
+            options => [qw(username real_name email)],
+            _options=> { username => 'Username', real_name => 'Real Name', email => 'Email Address' },
+        },
+        password                => {
+            dbic    => { data_type => 'char', size => 50 },
+        },
+        password_type           => {
+            dbic    => { data_type => 'varchar', size => 10, is_nullable => 0, default_value => 'bcrypt' },
+        },
+        admin                   => {
+            dbic    => { data_type => 'tinyint', default_value => 0 },
+            view    => 'private',
+            edit    => 'admin',
+        },
+    );
+    $class->register_datetime_field(
+        last_login  => {
+            view            => 'private',
+            set_on_create   => 1,
+        }
+    );
+};
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
@@ -130,11 +132,11 @@ sub encrypt {
     );
 }
 
-sub can_use {
-    my ($self, $user) = @_;
-    ouch(450, 'Insufficient privileges.') unless defined $user && ($user->id eq $self->id || $user->is_admin);
-    return 1;
-}
+around can_use => sub {
+    my ($orig, $self, $user) = @_;
+    return 1 if defined $user && ($user->id eq $self->id || $user->is_admin);
+    return $orig->($self, $user);
+};
 
 before verify_posted_params => sub {
     my ($self, $params, $current_user) = @_;
@@ -163,7 +165,4 @@ has current_session => (
     predicate           => 'has_current_session',
 );
 
-
-no Moose;
-__PACKAGE__->meta->make_immutable(inline_constructor => 0);
-
+1;

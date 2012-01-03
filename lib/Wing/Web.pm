@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Ouch;
 use Dancer ':syntax';
+use Wing::Session;
 use Dancer::Plugin;
 use DateTime::Format::Strptime;
 use DateTime::Format::RFC3339;
@@ -72,7 +73,7 @@ register fetch_object => sub {
 
 register format_list => sub {
     my ($result_set, %options) = @_;
-    $options{include_private} = 1;
+    $options{current_user} = eval{ get_user_by_session_id() };
     my $page_number = $options{page_number} || params->{page_number} || 1;
     my $items_per_page = $options{items_per_page} || params->{items_per_page} || 25;
     $items_per_page = ($items_per_page < 1 || $items_per_page > 100 ) ? 25 : $items_per_page;

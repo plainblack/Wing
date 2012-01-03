@@ -1,26 +1,27 @@
-package Wing::DB::Result::Site;
+package Wing::Role::Result::Site;
 
-use Moose;
 use Wing::Perl;
 use Ouch;
-extends 'Wing::DB::Result';
+use Moose::Role;
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::Shortname';
 with 'Wing::Role::Result::Hostname';
 with 'Wing::Role::Result::UserControlled';
 
-__PACKAGE__->table('sites');
-
-__PACKAGE__->register_fields(
-    name    => {
-        dbic    => { data_type => 'varchar', size => 30, is_nullable => 0 },
-        view    => 'public',
-        edit    => 'required',
-    },
-    trashed                 => {
-        dbic    => { data_type => 'tinyint', default_value => 0 },
-    },
-);
+around table => sub {
+    my ($orig, $class, $table) = @_;
+    $orig->($class, $table);
+    $class->register_fields(
+        name    => {
+            dbic    => { data_type => 'varchar', size => 30, is_nullable => 0 },
+            view    => 'public',
+            edit    => 'required',
+        },
+        trashed                 => {
+            dbic    => { data_type => 'tinyint', default_value => 0 },
+        },
+    );
+};
 
 around sqlt_deploy_hook => sub {
     my ($orig, $self, $sqlt_table) = @_;
@@ -69,7 +70,4 @@ sub destroy_database {
     $dbh->do("drop database if exists ".$dbh->quote_identifier($self->shortname));
 }
 
-
-no Moose;
-__PACKAGE__->meta->make_immutable(inline_constructor => 0);
-
+1;
