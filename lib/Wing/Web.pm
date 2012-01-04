@@ -21,7 +21,7 @@ register get_session => sub {
     }
     return undef unless $session_id;
     return $session_id if (ref $session_id eq 'Wing::Session');
-    my $session = Wing::Session->new(id => $session_id, db => vars->{site_db}, cache => MobRaterManager->cache);
+    my $session = Wing::Session->new(id => $session_id, db => vars->{site_db});
     if ($session->user_id) {
         $session->extend;
         return $session;
@@ -137,7 +137,7 @@ register template_vars => sub {
         my ($date_string, $format) = @_;
         return DateTime::Format::Strptime->new(pattern => $format)->format_datetime(DateTime::Format::RFC3339->new->parse_datetime($date_string));
     };
-    $vars{system_alert_message} = MobRaterManager->cache->get('system_alert_message');
+    $vars{system_alert_message} = Wing->cache->get('system_alert_message');
     return \%vars;
 };
 

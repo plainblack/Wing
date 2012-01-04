@@ -19,7 +19,7 @@ register get_session => sub {
         ouch 441, 'session_id is required', 'session_id';
     }
     return $session_id if (ref $session_id eq 'Wing::Session');
-    my $session = Wing::Session->new( id => $session_id, db => vars->{site_db}, cache => MobRaterManager->cache );
+    my $session = Wing::Session->new( id => $session_id, db => vars->{site_db} );
     if ($session->user_id) {
         $session->extend;
         return $session;
@@ -34,7 +34,7 @@ register get_user_by_session_id => sub {
     return $session if (ref $session =~ m/DB::Result::User$/);
     my $user = $session->user;
     if (defined $user) {
-        my $max = MobRaterManager->config->get('rpc_limit') || 30;
+        my $max = Wing->config->get('rpc_limit') || 30;
         if ($user->rpc_count > $max) {
             ouch 452, 'Slow down! You are only allowed to make ('.$max.') requests per minute to the server.', $max;
         }

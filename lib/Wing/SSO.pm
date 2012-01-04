@@ -9,11 +9,6 @@ has db => (
     required    => 1,
 );
 
-has cache => (
-    is          => 'ro',
-    required    => 1,
-);
-
 has id => (
     is      => 'ro',
     lazy    => 1,
@@ -24,7 +19,7 @@ has id => (
 
 sub BUILD {
     my $self = shift;
-    my $data = $self->cache->get('sso'.$self->id);
+    my $data = Wing->cache->get('sso'.$self->id);
     if (defined $data && ref $data eq 'HASH') {
         $self->user_id($data->{user_id});
         $self->ip_address($data->{ip_address});
@@ -85,13 +80,13 @@ has user => (
 
 sub delete {
     my $self = shift;
-    $self->cache->remove('sso'.$self->id);
+    Wing->cache->remove('sso'.$self->id);
     return $self;
 }
 
 sub store {
     my $self = shift;
-    $self->cache->set(
+    Wing->cache->set(
         'sso'.$self->id,
         { user_id => $self->user_id, api_key_id => $self->api_key_id, postback_uri => $self->postback_uri, ip_address => $self->ip_address },
         { expires_in => 60 * 60 },

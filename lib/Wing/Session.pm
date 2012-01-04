@@ -11,11 +11,6 @@ has db => (
     required    => 1,
 );
 
-has cache => (
-    is          => 'ro',
-    required    => 1,
-);
-
 has id => (
     is      => 'ro',
     lazy    => 1,
@@ -26,7 +21,7 @@ has id => (
 
 sub BUILD {
     my $self = shift;
-    my $session_data = $self->cache->get('session'.$self->id);
+    my $session_data = Wing->cache->get('session'.$self->id);
     if (defined $session_data && ref $session_data eq 'HASH') {
         $self->user_id($session_data->{user_id});
         $self->extended($session_data->{extended});
@@ -82,7 +77,7 @@ has user => (
 sub extend {
     my $self = shift;
     $self->extended( $self->extended + 1 );
-    $self->cache->set(
+    Wing->cache->set(
         'session'.$self->id,
         {
             user_id     => $self->user_id,
@@ -98,7 +93,7 @@ sub extend {
 
 sub is_human {
     my $self = shift;
-    if ($self->cache->get($self->id.'_is_human')) {
+    if (Wing->cache->get($self->id.'_is_human')) {
         return 1;
     }
     ouch 455, 'Must verify humanity.';
@@ -106,7 +101,7 @@ sub is_human {
 
 sub end {
     my $self = shift;
-    $self->cache->remove('session'.$self->id);
+    Wing->cache->remove('session'.$self->id);
     return $self;
 }
 

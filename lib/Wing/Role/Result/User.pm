@@ -74,7 +74,7 @@ sub start_session {
     my ($self, $options) = @_;
     $self->last_login(DateTime->now);
     $self->update;
-    return Wing::Session->new(db => $self->result_source->schema, cache => MobRaterManager->cache)->start($self, $options);
+    return Wing::Session->new(db => $self->result_source->schema)->start($self, $options);
 }
 
 sub display_name {
@@ -155,8 +155,8 @@ has rpc_count => (
     default => sub {
         my $self = shift;
         my $key = 'rpc_count_'.DateTime->now->minute.$self->id;
-        my $value = MobRaterManager->cache->get($key) + 1;
-        MobRaterManager->cache->set($key, $value, { expires_in => 60 });
+        my $value = Wing->cache->get($key) + 1;
+        Wing->cache->set($key, $value, { expires_in => 60 });
     }
 );
 

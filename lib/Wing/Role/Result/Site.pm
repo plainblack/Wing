@@ -49,7 +49,7 @@ sub trash {
 
 sub connect_to_database {
     my $self = shift;
-    my $config = MobRaterManager->config;
+    my $config = Wing->config;
     my @dsn = @{$config->get('db')};
     $dsn[0] = $config->get('site_db_driver/prefix') . $self->shortname . $config->get('site_db_driver/suffix');
     return MobRater::DB->connect(@dsn);
@@ -57,7 +57,7 @@ sub connect_to_database {
 
 sub create_database {
     my $self = shift;
-    my $dbh = MobRaterManager->db->storage->dbh;
+    my $dbh = $self->result_source->schema->storage->dbh;
     $dbh->do("create database if not exists ".$dbh->quote_identifier($self->shortname));
     my $db = $self->connect_to_database;
     $db->deploy({ add_drop_table => 1 });
@@ -66,7 +66,7 @@ sub create_database {
 
 sub destroy_database {
     my $self = shift;
-    my $dbh = MobRaterManager->db->storage->dbh;
+    my $dbh = $self->result_source->schema->storage->dbh;
     $dbh->do("drop database if exists ".$dbh->quote_identifier($self->shortname));
 }
 

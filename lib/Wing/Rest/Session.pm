@@ -8,7 +8,7 @@ use Wing::Rest;
 use Wing::SSO;
 
 del '/api/session/:id' => sub {
-    Wing::Session->new(id => params->{id}, db => MobRaterManager->db, cache => MobRaterManager->cache)->end;
+    Wing::Session->new(id => params->{id}, db => vars->{site_db})->end;
     return { success => 1 };
 };
 
@@ -16,7 +16,7 @@ post '/api/session/sso/:id' => sub {
     unless (params->{private_key}) {
         ouch 441, 'Private Key required.', 'private_key';
     }
-    my $sso = Wing::SSO->new(id => params->{id}, db => vars->{site_db}, cache => MobRaterManager->cache);
+    my $sso = Wing::SSO->new(id => params->{id}, db => vars->{site_db});
     unless ($sso->api_key_id) {
         ouch 440, 'SSO token not found.';
     }
@@ -39,7 +39,7 @@ post '/api/session' => sub {
     ouch(440, 'User not found.') unless defined $user;
 
     # rate limiter
-    my $max = MobRaterManager->config->get('rpc_limit') || 30;
+    my $max = Wing->config->get('rpc_limit') || 30;
     if ($user->rpc_count > $max) {
         ouch 452, 'Slow down! You are only allowed to make ('.$max.') requests per minute to the server.';
     }
