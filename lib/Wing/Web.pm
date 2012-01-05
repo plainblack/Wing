@@ -4,13 +4,13 @@ use strict;
 use warnings;
 use Ouch;
 use Dancer ':syntax';
+use Wing::Dancer;
 use Wing::Session;
 use Dancer::Plugin;
 use DateTime::Format::Strptime;
 use DateTime::Format::RFC3339;
 
 $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
-
 
 register get_session => sub {
     my ($session_id) = @_;
@@ -21,7 +21,7 @@ register get_session => sub {
     }
     return undef unless $session_id;
     return $session_id if (ref $session_id eq 'Wing::Session');
-    my $session = Wing::Session->new(id => $session_id, db => vars->{site_db});
+    my $session = Wing::Session->new(id => $session_id, db => site_db());
     if ($session->user_id) {
         $session->extend;
         return $session;
@@ -66,7 +66,7 @@ register fetch_object => sub {
     my ($type, $id) = @_;
     $id ||= params->{id};
     ouch(404, 'No id specified for '.$type) unless $id;
-    my $object = vars->{site_db}->resultset($type)->find($id);
+    my $object = site_db()->resultset($type)->find($id);
     ouch(404, $type.' not found.') unless defined $object;
     return $object;
 };

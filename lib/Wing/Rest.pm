@@ -5,6 +5,7 @@ use warnings;
 use Ouch;
 use Dancer ':syntax';
 use Dancer::Plugin;
+use Wing::Dancer;
 
 set serializer => 'JSON';
 
@@ -19,7 +20,7 @@ register get_session => sub {
         ouch 441, 'session_id is required', 'session_id';
     }
     return $session_id if (ref $session_id eq 'Wing::Session');
-    my $session = Wing::Session->new( id => $session_id, db => vars->{site_db} );
+    my $session = Wing::Session->new( id => $session_id, db => site_db() );
     if ($session->user_id) {
         $session->extend;
         return $session;
@@ -49,7 +50,7 @@ register fetch_object => sub {
     my ($type, $id) = @_;
     $id ||= params->{id};
     ouch(404, 'No id specified for '.$type) unless $id;
-    my $object = vars->{site_db}->resultset($type)->find($id);
+    my $object = site_db()->resultset($type)->find($id);
     ouch(404, $type.' not found.') unless defined $object;
     return $object;
 };
@@ -137,7 +138,7 @@ register generate_create => sub {
     my ($object_type, $extra_processing) = @_;
     my $object_url = lc($object_type);
     post '/api/'.$object_url => sub {
-        my $object = vars->{site_db}->resultset($object_type)->new({});
+        my $object = site_db()->resultset($object_type)->new({});
         my $params = expanded_params();
         my $current_user = eval{get_user_by_session_id()};
         $object->verify_creation_params($params, $current_user);
@@ -162,7 +163,7 @@ register generate_options => sub {
     my ($object_type) = @_;
     my $object_url = lc($object_type);
     get '/api/'.$object_url.'/options' => sub {
-        return vars->{site_db}->resultset($object_type)->new({})->field_options(
+        return site_db()->resultset($object_type)->new({})->field_options(
             include_relationships   => params->{include_relationships},
             include_options         => params->{include_options},
             include_related_objects => params->{include_related_objects},

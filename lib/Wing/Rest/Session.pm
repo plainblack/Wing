@@ -8,7 +8,7 @@ use Wing::Rest;
 use Wing::SSO;
 
 del '/api/session/:id' => sub {
-    Wing::Session->new(id => params->{id}, db => vars->{site_db})->end;
+    Wing::Session->new(id => params->{id}, db => site_db())->end;
     return { success => 1 };
 };
 
@@ -16,7 +16,7 @@ post '/api/session/sso/:id' => sub {
     unless (params->{private_key}) {
         ouch 441, 'Private Key required.', 'private_key';
     }
-    my $sso = Wing::SSO->new(id => params->{id}, db => vars->{site_db});
+    my $sso = Wing::SSO->new(id => params->{id}, db => site_db());
     unless ($sso->api_key_id) {
         ouch 440, 'SSO token not found.';
     }
@@ -35,7 +35,7 @@ post '/api/session' => sub {
     ouch(441, 'You need an API key.', 'api_key_id') unless params->{api_key_id};
     ouch(441, 'You must specify a username.', 'username') unless params->{username};
     ouch(441, 'You must specify a password.', 'password') unless params->{password};
-    my $user = vars->{site_db}->resultset('User')->search({username => params->{username}},{rows=>1})->single;
+    my $user = site_db()->resultset('User')->search({username => params->{username}},{rows=>1})->single;
     ouch(440, 'User not found.') unless defined $user;
 
     # rate limiter
