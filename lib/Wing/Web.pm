@@ -62,39 +62,6 @@ register get_admin_by_session_id => sub {
     }
 };
 
-register fetch_object => sub {
-    my ($type, $id) = @_;
-    $id ||= params->{id};
-    ouch(404, 'No id specified for '.$type) unless $id;
-    my $object = site_db()->resultset($type)->find($id);
-    ouch(404, $type.' not found.') unless defined $object;
-    return $object;
-};
-
-register format_list => sub {
-    my ($result_set, %options) = @_;
-    $options{current_user} = eval{ get_user_by_session_id() };
-    my $page_number = $options{page_number} || params->{page_number} || 1;
-    my $items_per_page = $options{items_per_page} || params->{items_per_page} || 25;
-    $items_per_page = ($items_per_page < 1 || $items_per_page > 100 ) ? 25 : $items_per_page;
-    my $page = $result_set->search(undef, {rows => $items_per_page, page => $page_number });
-    my @list;
-    while (my $item = $page->next) {
-        push @list, $item->describe(%options);
-    }
-    return {
-        paging => {
-            total_items             => $page->pager->total_entries,
-            total_pages             => int($page->pager->total_entries / $items_per_page) + 1,
-            page_number             => $page_number,
-            items_per_page          => $items_per_page,
-            next_page_number        => $page_number + 1,
-            previous_page_number    => $page_number < 2 ? 1 : $page_number - 1,
-        },
-        items   => \@list,
-    };
-};
-
 register describe => sub {
     my ($object, $current_user) = @_;
     $current_user ||= eval { get_user_by_session_id() };
@@ -104,14 +71,6 @@ register describe => sub {
         current_user            => $current_user,
         tracer                  => get_tracer(),
     );
-};
-
-register get_tracer => sub {
-    my $cookie = cookies->{tracer};
-    if (defined $cookie) {
-        return $cookie->value;
-    }
-    return undef;
 };
 
 register template_vars => sub {
