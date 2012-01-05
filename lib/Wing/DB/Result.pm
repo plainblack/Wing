@@ -42,7 +42,14 @@ sub object_name {
 
 sub object_type {
     my $self = shift;
-    return lc($self->object_name);    
+    my $type = lc(ref $self || $self);    
+    $type =~ s/^.*:(\w+)$/$1/;
+    return $type;
+}
+
+sub object_api_uri {
+    my $self = shift;
+    return '/api/'.$self->object_type.'/'.$self->id;
 }
 
 sub describe {
@@ -58,6 +65,9 @@ sub describe {
     }
     if ($options{include_options}) {
         $out->{_options} = $self->field_options;
+    }
+    if ($options{include_relationships}) {
+        $out->{_relationships}{self} = $self->object_api_uri;
     }
     return $out;
 }
