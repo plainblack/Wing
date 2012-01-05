@@ -3,14 +3,18 @@ package Wing::Role::Result::Shortname;
 use Wing::Perl;
 use Ouch;
 use Moose::Role;
+with 'Wing::Role::Result::Field';
 
 around table => sub {
     my ($orig, $class, $table) = @_;
     $orig->($class, $table);
-    $class->add_columns(
-        shortname        => { data_type => 'varchar', size => 50, is_nullable => 0 },
+    $class->add_field(
+        shortname        => {
+            dbic    => { data_type => 'varchar', size => 50, is_nullable => 0 },
+            edit    => 'unique',
+            view    => 'public',
+        }
     );
-    $class->add_unique_constraint([qw/shortname/]);
     $class->meta->add_before_method_modifier('shortname', sub {
         my ($self, $name) = @_;
         if (scalar @_ >= 2) {
@@ -30,33 +34,6 @@ around table => sub {
             }
         }
     });
-};
-
-around sqlt_deploy_hook => sub {
-    my ($orig, $self, $sqlt_table) = @_;
-    $orig->($self, $sqlt_table);
-    $sqlt_table->add_index(name => 'idx_shortname', fields => ['shortname']);
-};
-
-around describe => sub {
-    my ($orig, $self, %options) = @_;
-    my $out = $orig->($self, %options);
-    $out->{shortname} = $self->shortname;
-    return $out;
-};
-
-around postable_params => sub {
-    my ($orig, $self) = @_;
-    my $params = $orig->($self);
-    push @$params, qw(shortname);
-    return $params;
-};
-
-around required_params => sub {
-    my ($orig, $self) = @_;
-    my $params = $orig->($self);
-    push @$params, qw(shortname);
-    return $params;
 };
 
 1;
