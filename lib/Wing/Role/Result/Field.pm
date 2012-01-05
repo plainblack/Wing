@@ -62,10 +62,10 @@ sub register_field {
     }
 
     # add index
-    if (exists $options->{index} && $options->{index} eq 'unique' || exists $options->{edit} && $options->{edit} eq 'unique') {
+    if (exists $options->{indexed} && $options->{indexed} eq 'unique' || exists $options->{edit} && $options->{edit} eq 'unique') {
         $class->add_unique_constraint([$field]);
     }
-    elsif (exists $options->{index} && $options->{index}) {
+    elsif (exists $options->{indexed} && $options->{indexed}) {
         $class->meta->add_around_method_modifier(sql_deploy_hook => sub {
             my ($orig, $self, $sqlt_table) = @_;
             $orig->($self, $sqlt_table);
