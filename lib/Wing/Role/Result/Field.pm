@@ -38,7 +38,6 @@ sub register_field {
 
                 # make unique
                 if ($options->{edit} eq 'unique') {
-                    $class->add_unique_constraint([$field]);
                     $class->meta->add_before_method_modifier($field => sub {
                         my ($self, $value) = @_;
                         if (scalar(@_) > 1) {
@@ -60,6 +59,18 @@ sub register_field {
                 return $params;
             });
         }
+    }
+
+    # add index
+    if (exists $options->{index} && $options->{index} eq 'unique' || exists $options->{edit} && $options->{edit} eq 'unique') {
+        $class->add_unique_constraint([$field]);
+    }
+    elsif (exists $options->{index} && $options->{index}) {
+        $class->meta->add_around_method_modifier(sql_deploy_hook => sub {
+            my ($orig, $self, $sqlt_table) = @_;
+            $orig->($self, $sqlt_table);
+            $sqlt_table->add_index(name => 'idx_'.$field, fields => [$field]);
+        };
     }
     
     # range validation
