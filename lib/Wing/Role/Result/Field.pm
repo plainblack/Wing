@@ -70,7 +70,7 @@ sub register_field {
             my ($orig, $self, $sqlt_table) = @_;
             $orig->($self, $sqlt_table);
             $sqlt_table->add_index(name => 'idx_'.$field, fields => [$field]);
-        };
+        });
     }
     
     # range validation

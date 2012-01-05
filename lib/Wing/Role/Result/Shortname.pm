@@ -8,7 +8,7 @@ with 'Wing::Role::Result::Field';
 around table => sub {
     my ($orig, $class, $table) = @_;
     $orig->($class, $table);
-    $class->add_field(
+    $class->register_field(
         shortname        => {
             dbic    => { data_type => 'varchar', size => 50, is_nullable => 0 },
             edit    => 'unique',
