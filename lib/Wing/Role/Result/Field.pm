@@ -66,7 +66,7 @@ sub register_field {
         $class->add_unique_constraint([$field]);
     }
     elsif (exists $options->{indexed} && $options->{indexed}) {
-        $class->meta->add_around_method_modifier(sql_deploy_hook => sub {
+        $class->meta->add_around_method_modifier(sqlt_deploy_hook => sub {
             my ($orig, $self, $sqlt_table) = @_;
             $orig->($self, $sqlt_table);
             $sqlt_table->add_index(name => 'idx_'.$field, fields => [$field]);

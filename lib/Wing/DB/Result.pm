@@ -82,7 +82,9 @@ sub touch {
 }
 
 sub sqlt_deploy_hook {
-    # place holder for subclasses
+    my ($self, $sqlt_table) = @_;
+    $sqlt_table->add_index(name => 'idx_date_created', fields => ['date_created']);
+    $sqlt_table->add_index(name => 'idx_date_updated', fields => ['date_updated']);
 }
 
 sub postable_params {
