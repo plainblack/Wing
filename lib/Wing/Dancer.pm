@@ -41,6 +41,8 @@ register format_list => sub {
     my $tracer = get_tracer();
     while (my $item = $page->next) {
         push @list, $item->describe(
+            include_admin           => $options{include_admin}, 
+            include_private         => $options{include_private}, 
             include_relationships   => $options{include_relationships} || params->{include_relationships}, 
             include_related_objects => $options{include_related_objects} || params->{include_related_objects}, 
             include_options         => $options{include_options} || params->{include_options}, 
