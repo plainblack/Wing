@@ -44,4 +44,40 @@ sub cache {
     return $_cache;
 }
 
+## utility methods
+
+# format DateTime as an RFC3339 date
+sub to_RFC3339 {
+    my ($class, $date) = @_;
+    $date ||= DateTime->now;
+    return DateTime::Format::RFC3339->new->format_datetime($date);
+}
+
+# format an RFC3339 date as DateTime
+sub from_RFC3339 {
+    my ($class, $date) = @_;
+    return DateTime::Format::RFC3339->new->parse_datetime($date);
+}
+
+# send a templated email
+sub send_templated_email {
+    my ($class, $template, $params, $options) = @_; 
+    $params->{sitename} = $_config->get('sitename');
+    my $email = Email::MIME::Kit
+        ->new({ source => $_config->get('mkits').$template.'.mkit' })
+        ->assemble($params);
+    my $transport = Email::Sender::Transport::SMTP->new($_config->get('smtp'));
+    eval {
+        Email::Sender::Simple->send($email, { transport => $transport});
+        if ($options->{bcc}) {
+            Email::Sender::Simple->send($email, { transport => $transport, to => $options->{bcc} });
+        }
+    };
+    if (hug) {
+        $_log->fatal('Email Problem: '.bleep);
+        ouch 504, 'Could not send email. Mail service down.';
+    }
+}
+
+
 1;

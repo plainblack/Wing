@@ -8,7 +8,6 @@ use Wing::Dancer;
 use Wing::Session;
 use Dancer::Plugin;
 use DateTime::Format::Strptime;
-use DateTime::Format::RFC3339;
 
 $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
 
@@ -96,7 +95,7 @@ register template_vars => sub {
     };
     $vars{date}         = sub {
         my ($date_string, $format) = @_;
-        return DateTime::Format::Strptime->new(pattern => $format)->format_datetime(DateTime::Format::RFC3339->new->parse_datetime($date_string));
+        return DateTime::Format::Strptime->new(pattern => $format)->format_datetime(Wing->to_RFC3339($date_string));
     };
     $vars{system_alert_message} = Wing->cache->get('system_alert_message');
     return \%vars;

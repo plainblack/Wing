@@ -3,7 +3,6 @@ package Wing::Role::Result::DateTimeField;
 use Wing::Perl;
 use Ouch;
 use Moose::Role;
-use DateTime::Format::RFC3339;
 with 'Wing::Role::Result::Field';
 
 sub register_datetime_fields {
@@ -29,7 +28,7 @@ sub register_datetime_field {
 
     $class->meta->add_method( $field.'_rfc3339' => sub {
         my $self = shift;
-        return DateTime::Format::RFC3339->new->format_datetime($self->$field);
+        return Wing->to_RFC3339($self->$field);
     });
 
 }

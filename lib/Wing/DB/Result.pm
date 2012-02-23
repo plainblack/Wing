@@ -2,7 +2,6 @@ package Wing::DB::Result;
 
 use Wing::Perl;
 use DateTime;
-use DateTime::Format::RFC3339;
 use Ouch;
 use base 'DBIx::Class::Core';
 
@@ -60,8 +59,8 @@ sub describe {
         object_name => $self->object_name,
     };
     if (eval { $self->can_use($options{current_user}) } ) {
-        $out->{date_created} = DateTime::Format::RFC3339->new->format_datetime($self->date_created);
-        $out->{date_updated} = DateTime::Format::RFC3339->new->format_datetime($self->date_updated);
+        $out->{date_created} = Wing->to_RFC3339($self->date_created);
+        $out->{date_updated} = Wing->to_RFC3339($self->date_updated);
     }
     if ($options{include_options}) {
         $out->{_options} = $self->field_options;
