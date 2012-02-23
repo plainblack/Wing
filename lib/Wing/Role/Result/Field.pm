@@ -35,7 +35,12 @@ sub register_field {
                     push @$params, $field;
                     return $params;
                 });
-
+                $class->meta->add_before_method_modifier(deck_id => sub {
+                    if (scalar @_ == 2 && ! defined $_[1]) {
+                        ouch 441, $field.' is required.', $field;
+                    }
+                });
+                
                 # make unique
                 if ($options->{edit} eq 'unique') {
                     $class->meta->add_before_method_modifier($field => sub {
