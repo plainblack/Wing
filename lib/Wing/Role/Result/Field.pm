@@ -160,7 +160,16 @@ sub register_field {
     $class->meta->add_around_method_modifier(duplicate => sub {
         my ($orig, $self) = @_;
         my $dup = $orig->($self);
-        $dup->$field($self->$field()) unless $options->{no_duplicate};
+        if ($options->{no_duplicate}) {
+            # do nothing
+        }
+        else {
+            my $value = $self->$field();
+            if ($options->{duplicate_prefix}) {
+                $value = $options->{duplicate_prefix}.$value;
+            }
+            $dup->$field($value);
+        }
         return $dup;
     });
 
