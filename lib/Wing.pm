@@ -5,6 +5,9 @@ use Config::JSON;
 use CHI;
 use Log::Log4perl;
 use IO::File;
+use Email::Sender::Simple;
+use Email::MIME::Kit;
+use Email::Sender::Transport::SMTP;
 
 ## singletons
 
