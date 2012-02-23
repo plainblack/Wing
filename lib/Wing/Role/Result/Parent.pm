@@ -40,6 +40,33 @@ sub register_parent {
             $self->$field($object);
         }
     });
+
+    # add relationship to describe
+    $class->meta->add_around_method_modifier(describe => sub {
+        my ($orig, $self, %describe_options) = @_;
+        my $out = $orig->($self, %describe_options);
+        my $describe = sub {
+            if ($describe_options{includ_related_objects}) {
+                $out->{$field} = $self->$field->describe;
+            }
+            if ($describe_options{include_relationships}) {
+                $out->{_relationships}{$field} = '/api/'.$field.'/'.$self->$id;
+            }
+        };
+        if (exists $options->{view}) {
+            if ($options->{view} eq 'admin') {
+                $describe->() if ($describe_options{include_admin} || (exists $describe_options{current_user} && defined $describe_options{current_user} && $describe_options{current_user}->is_admin));
+            }
+            elsif ($options->{view} eq 'private') {
+                $describe->() if ($describe_options{include_private} || eval { $self->can_use($describe_options{current_user}) });
+            }
+            elsif ($options->{view} eq 'public') {
+                $describe->(); 
+            }
+        }
+        return $out;
+    });
+
 }
 
 1;
