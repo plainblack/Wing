@@ -32,18 +32,21 @@ sub new {
     return $self;
 }
 
+sub object_class {
+    my $self = shift;
+    my $class = ref $self || $self;    
+    $class =~ s/^.*:(\w+)$/$1/;
+    return $class;
+}
+
 sub object_name {
     my $self = shift;
-    my $name = ref $self || $self;
-    $name =~ s/^.*:(\w+)$/$1/;
-    return $name;
+    return $self->object_class;
 }
 
 sub object_type {
     my $self = shift;
-    my $type = lc(ref $self || $self);    
-    $type =~ s/^.*:(\w+)$/$1/;
-    return $type;
+    return lc($self->object_class);
 }
 
 sub object_api_uri {
@@ -58,7 +61,7 @@ sub describe {
         object_type => $self->object_type,
         object_name => $self->object_name,
     };
-    if (eval { $self->can_use($options{current_user}) } ) {
+    if ($options{include_private} || eval { $self->can_use($options{current_user}) } ) {
         $out->{date_created} = Wing->to_RFC3339($self->date_created);
         $out->{date_updated} = Wing->to_RFC3339($self->date_updated);
     }
