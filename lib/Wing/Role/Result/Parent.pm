@@ -16,7 +16,7 @@ sub register_parent {
     my ($class, $field, $options) = @_;
     my $id = $field.'_id';
     my %dbic = ( data_type => 'char', size => 36, is_nullable => 1 );
-    my @relationship = ($field, $options->{parent_class}, $id);
+    my @relationship = ($field, $options->{related_class}, $id);
     if ($options->{edit} ~~ [qw(required unique)]) {
         $dbic{is_nullable} = 0;
     }
@@ -35,7 +35,7 @@ sub register_parent {
     $class->meta->add_before_method_modifier($id => sub {
         my ($self, $value) = @_;
         if (defined $value) {
-            my $object = Wing->db->resultset($options->{parent_class})->find($value);
+            my $object = Wing->db->resultset($options->{related_class})->find($value);
             ouch(440, $id.' specified does not exist.', $id) unless defined $object;
             $self->$field($object);
         }
@@ -68,7 +68,7 @@ Hash reference. All of the options from L<Wing::Role::Result::Field> C<register_
 
 =over
 
-=item parent_class
+=item related_class
 
 The L<Wing::DB::Result> subclass that this object should be related to.
 
