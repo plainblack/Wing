@@ -40,6 +40,16 @@ sub register_parent {
             $self->$field($object);
         }
     });
+    $class->meta->add_before_method_modifier(verify_posted_params => sub {
+        my ($self, $params, $current_user) = @_;
+        if (exists $params->{deck_id}) {
+            ouch(441, $id.' is required.', $id) unless $params->{$id};
+            my $object = Wing->db->resultset($options->{related_class})->find($params->{$id});
+            ouch(440, $id.' not found.') unless defined $object;
+            $object->can_use($current_user);
+            $self->$field($object);
+        }
+    });
 
     # add relationship to describe
     $class->meta->add_around_method_modifier(describe => sub {
