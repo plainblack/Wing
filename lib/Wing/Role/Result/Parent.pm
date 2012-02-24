@@ -60,7 +60,7 @@ sub register_parent {
                 $out->{$field} = $self->$field->describe;
             }
             if ($describe_options{include_relationships}) {
-                $out->{_relationships}{$field} = '/api/'.$options->{related_class}->object_type.'/'.$self->$id;
+                $out->{_relationships}{$field} = '/api/'.$options->{related_class}->object_type.'/'.$self->$id if $self->$id;
             }
         };
         if (exists $options->{view}) {
