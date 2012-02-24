@@ -14,7 +14,7 @@ sub register_parents {
 
 sub register_parent {
     my ($class, $field, $options) = @_;
-    my $id = $field.'_id';
+    my $id = $options->{related_id} || $field.'_id';
     my %dbic = ( data_type => 'char', size => 36, is_nullable => 1 );
     my @relationship = ($field, $options->{related_class}, $id);
     if ($options->{edit} ~~ [qw(required unique)]) {
@@ -107,7 +107,11 @@ Hash reference. All of the options from L<Wing::Role::Result::Field> C<register_
 
 =item related_class
 
-The L<Wing::DB::Result> subclass that this object should be related to.
+Scalar. The L<Wing::DB::Result> subclass that this object should be related to.
+
+=item related_id
+
+Scalar. Optional. The field to be created in this class to store the relationship. If left undefined it will be generated as C<name> + C<_id> (C<name_id>).
 
 =back
 
