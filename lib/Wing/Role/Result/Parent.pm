@@ -77,6 +77,24 @@ sub register_parent {
         return $out;
     });
 
+    # generate options
+    if ($options->{generate_options_by_name}) {
+        $class->meta->add_around_method_modifier(field_options => sub {
+            my ($orig, $self) = @_;
+            my $out = $orig->($self);
+            my @parent_ids;
+            my %parent_options;
+            my $parents = Wing->db->resultset($options->{related_class})->search(undef,{order_by => 'name'});
+            while (my $parent = $parents->next) {
+                push @parent_ids, $parent->id;
+                $parent_options{$parent->id} = $parent->name;
+            }
+            $out->{$id} = \@parent_ids;
+            $out->{'_'.$id} = \%parent_options;
+            return $out;
+        });
+    }
+
 }
 
 1;
@@ -112,6 +130,10 @@ Scalar. The L<Wing::DB::Result> subclass that this object should be related to.
 =item related_id
 
 Scalar. Optional. The field to be created in this class to store the relationship. If left undefined it will be generated as C<name> + C<_id> (C<name_id>).
+
+=item generate_options_by_name
+
+Boolean. Optional. Defaults to C<0>. If set to C<1> this will add an enumerated options list to the object description when C<include_options> is specified. The options will be C<id> / C<name> pairs. 
 
 =back
 
