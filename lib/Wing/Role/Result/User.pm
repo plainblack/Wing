@@ -134,7 +134,7 @@ sub encrypt {
 
 around can_use => sub {
     my ($orig, $self, $user) = @_;
-    return 1 if defined $user && ($user->id eq $self->id || $user->is_admin);
+    return 1 if defined $user && $user->id eq $self->id;
     return $orig->($self, $user);
 };
 
