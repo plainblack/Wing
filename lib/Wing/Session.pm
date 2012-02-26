@@ -37,6 +37,7 @@ has extended => (
 );
 
 has api_key_id => (
+    predicate   => 'has_api_key_id',
     is          => 'rw',
 );
 
@@ -73,6 +74,31 @@ has user => (
         return $user;
     },
 );
+
+sub get_permissions {
+    my $self = shift;
+    my @permissions = $self->db->resultset('APIKeyPermission')->search({
+        user_id     => $self->user_id,
+        api_key_id  => $self->api_key_id,
+    })
+    ->get_column('permission')
+    ->all;
+    return \@permissions;
+}
+
+sub check_permissions {
+    my ($self, $permissions) = @_;
+    return 1 unless $self->sso; # always has permissions if this isn't a single-sign-on session
+    return 1 unless scalar(@{$permissions}); # has permissions if they aren't asking for any
+    ouch(450, 'Insufficient permissions.',$permissions) unless $self->has_user_id && $self->has_api_key_id; # can't have permissions if they haven't logged in, or didn't assign an API key
+    my $existing = $self->get_permissions;
+    foreach my $permission (@{$permissions}) {
+        unless ($permission ~~ $existing) {
+            ouch(450, 'Insufficient permissions.',$permissions);
+        }
+    }
+    return 1;
+}
 
 sub extend {
     my $self = shift;
@@ -123,7 +149,7 @@ sub describe {
         object_type => 'session',
         user_id     => $self->user_id,
     };
-    if (exists $options{current_user} && defined $options{current_user} && $options{current_user} eq $self->user_id) {
+    if ($options{include_private} || (exists $options{current_user} && defined $options{current_user} && $options{current_user} eq $self->user_id)) {
         $out->{extended} = $self->extended;
         $out->{ip_address} = $self->ip_address;
         $out->{sso} = $self->sso;
