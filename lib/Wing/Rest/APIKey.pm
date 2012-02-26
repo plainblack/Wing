@@ -4,6 +4,6 @@ use Wing::Perl;
 use Dancer;
 use Wing::Rest;
 
-generate_crud('APIKey');
+generate_create('APIKey', permissions => ['edit_my_account']);
 
 1;
