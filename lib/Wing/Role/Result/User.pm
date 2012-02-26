@@ -165,4 +165,15 @@ has current_session => (
     predicate           => 'has_current_session',
 );
 
+sub send_templated_email {
+    my ($self, $template, $params, $options) = @_;
+    unless ($self->email) {
+        ouch 441, "No email address associated with this user.", 'email';
+    }
+    $params->{me} = $self->describe(include_private => 1);
+    Wing->send_templated_email($template, $params, $options);
+    return $self;
+}
+
+
 1;
