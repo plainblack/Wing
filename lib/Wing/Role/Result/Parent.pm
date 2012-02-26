@@ -42,7 +42,7 @@ sub register_parent {
     });
     $class->meta->add_before_method_modifier(verify_posted_params => sub {
         my ($self, $params, $current_user) = @_;
-        if (exists $params->{deck_id}) {
+        if (exists $params->{$id}) {
             ouch(441, $id.' is required.', $id) unless $params->{$id};
             my $object = Wing->db->resultset($options->{related_class})->find($params->{$id});
             ouch(440, $id.' not found.') unless defined $object;
