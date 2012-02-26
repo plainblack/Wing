@@ -17,9 +17,10 @@ my $extra = sub {
 };
 
 generate_options('User');
-generate_read('User');
-generate_update('User');
-generate_delete('User');
-generate_create('User', $extra);
+generate_read('User', permissions => ['view_my_account']);
+generate_update('User', permissions => ['edit_my_account']);
+generate_delete('User', permissions => ['edit_my_account']);
+generate_create('User', extra_processing => $extra);
+
 
 1;
