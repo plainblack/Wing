@@ -22,6 +22,7 @@ register get_session => sub {
     return $session_id if (ref $session_id eq 'Wing::Session');
     my $session = Wing::Session->new( id => $session_id, db => site_db() );
     if ($session->user_id) {
+        $session->check_permissions($options{permissions});
         $session->extend;
         return $session;
     }
@@ -50,6 +51,7 @@ register describe => sub {
     my ($object, $current_user) = @_;
     $current_user ||= eval { get_user_by_session_id() };
     return $object->describe(
+        include_private         => (eval { $object->can_use($current_user) }) ? 1 : 0,
         include_relationships   => params->{include_relationships},
         include_options         => params->{include_options},
         include_related_objects => params->{include_related_objects},
@@ -59,26 +61,26 @@ register describe => sub {
 };
 
 register generate_delete => sub {
-    my ($object_type) = @_;
+    my ($object_type, %options) = @_;
     my $object_url = lc($object_type);
     del '/api/'.$object_url.'/:id'  => sub {
         my $object = fetch_object($object_type);
-        $object->can_use(get_user_by_session_id());
+        $object->can_use(get_user_by_session_id(permissions => $options{permissions}));
         $object->delete;
         return { success => 1 };
     };
 };
 
 register generate_update => sub {
-    my ($object_type, $extra_processing) = @_;
+    my ($object_type, %options) = @_;
     my $object_url = lc($object_type);
     put '/api/'.$object_url.'/:id'  => sub {
-        my $current_user = get_user_by_session_id();
+        my $current_user = get_user_by_session_id(permissions => $options{permissions});
         my $object = fetch_object($object_type);
         $object->can_use($current_user);
         $object->verify_posted_params(expanded_params(), $current_user);
-        if (defined $extra_processing) {
-            $extra_processing->($object, $current_user);
+        if (exists $options{extra_processing}) {
+            $options{extra_processing}->($object, $current_user);
         }
         $object->update;
         return describe($object, $current_user);
@@ -86,16 +88,16 @@ register generate_update => sub {
 };
 
 register generate_create => sub {
-    my ($object_type, $extra_processing) = @_;
+    my ($object_type, %options) = @_;
     my $object_url = lc($object_type);
     post '/api/'.$object_url => sub {
         my $object = site_db()->resultset($object_type)->new({});
         my $params = expanded_params();
-        my $current_user = eval{get_user_by_session_id()};
+        my $current_user = eval{get_user_by_session_id(permissions => $options{permissions})};
         $object->verify_creation_params($params, $current_user);
         $object->verify_posted_params($params, $current_user);
-        if (defined $extra_processing) {
-            $extra_processing->($object, $current_user);
+        if (defined $options{extra_processing}) {
+            $options{extra_processing}->($object, $current_user);
         }
         $object->insert;
         return describe($object, $current_user);
@@ -103,10 +105,11 @@ register generate_create => sub {
 };
 
 register generate_read => sub {
-    my ($object_type) = @_;
+    my ($object_type, %options) = @_;
     my $object_url = lc($object_type);
     get '/api/'.$object_url.'/:id' => sub {
-        return describe(fetch_object($object_type));
+        my $current_user = eval{ get_user_by_session_id(permissions => $options{permissions}) };
+        return describe(fetch_object($object_type), $current_user);
     };
 };
 
