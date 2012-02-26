@@ -74,30 +74,6 @@ register describe => sub {
     );
 };
 
-register template_vars => sub {
-    my ($current_user, %vars) = @_;
-    my %params;
-    if (defined $current_user) {
-        $vars{current_user} = describe($current_user, $current_user);
-    }
-    $vars{money}        = sub { sprintf '$%.2f', shift || 0 };
-    $vars{int}          = sub { my $value = shift; return $value ? int $value : 0; };
-    $vars{text_as_html} = sub {
-        my $text = shift;
-        $text =~ s/\&/&amp;/g;
-        $text =~ s/\</&lt;/g;
-        $text =~ s/\>/&gt;/g;
-        $text =~ s/\n/<br>/g;
-        return $text;
-    };
-    $vars{date}         = sub {
-        my ($date_string, $format) = @_;
-        return DateTime::Format::Strptime->new(pattern => $format)->format_datetime(Wing->to_RFC3339($date_string));
-    };
-    $vars{system_alert_message} = Wing->cache->get('system_alert_message');
-    return \%vars;
-};
-
 hook before_error_init => sub {
     my $error = shift;
     if (ref $error->exception eq 'Ouch') {
