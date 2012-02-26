@@ -2,7 +2,7 @@ package Wing::SSO;
 
 use Moose;
 use Wing::Perl;
-use Data::GUID;
+use String::Random qw(random_string);
 
 has db => (
     is          => 'ro',
@@ -13,7 +13,9 @@ has id => (
     is      => 'ro',
     lazy    => 1,
     default => sub {
-        return Data::GUID->new->as_string;
+        my $foo = String::Random->new;
+        $foo->{'A'} = [ 'A'..'Z', 'a'..'z', 0..9 ];
+        return $foo->randpattern('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
     },
 );
 
@@ -25,12 +27,58 @@ sub BUILD {
         $self->ip_address($data->{ip_address});
         $self->api_key_id($data->{api_key_id});
         $self->postback_uri($data->{postback_uri});
+        $self->requested_permissions($data->{requested_permissions});
     }
 }
 
 has postback_uri => (
     is          => 'rw',
 );
+
+has requested_permissions => (
+    is          => 'rw',
+    isa         => 'ArrayRef',
+    default     => sub { [] },
+);
+
+sub get_permissions {
+    my $self = shift;
+    my @permissions = $self->db->resultset('APIKeyPermission')->search({
+        user_id     => $self->user_id,
+        api_key_id  => $self->api_key_id,
+    })
+    ->get_column('permission')
+    ->all;
+    return \@permissions;
+}
+
+sub has_requested_permissions {
+    my $self = shift;
+    my @requested = @{$self->requested_permissions};
+    return 1 unless scalar @requested;
+    my $existing = $self->get_permissions;
+    my $available = Wing->config->get('api_key_permissions');
+    foreach my $permission (@requested) {
+        next if $permission eq ''; # just in case they request null permissions
+        next if !($permission ~~ $available); # just in case they request something we don't support
+        unless ($permission ~~ $existing) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+sub grant_requested_permissions {
+    my $self = shift;        
+    my $permissions = $self->db->resultset('APIKeyPermission');
+    foreach my $request (@{$self->requested_permissions}) {
+        my $permission = $permissions->new({});
+        $permission->user_id($self->user_id);
+        $permission->api_key_id($self->api_key_id);
+        $permission->permission($request);
+        $permission->insert;
+    }
+}
 
 has api_key_id => (
     is          => 'rw',
@@ -88,7 +136,14 @@ sub store {
     my $self = shift;
     Wing->cache->set(
         'sso'.$self->id,
-        { user_id => $self->user_id, api_key_id => $self->api_key_id, postback_uri => $self->postback_uri, ip_address => $self->ip_address },
+        {
+            user_id                 => $self->user_id,
+            api_key_id              => $self->api_key_id,
+            postback_uri            => $self->postback_uri,
+            ip_address              => $self->ip_address,
+            ip_address              => $self->ip_address,
+            requested_permissions   => $self->requested_permissions,
+        },
         { expires_in => 60 * 60 },
     );
     return $self;
@@ -96,10 +151,15 @@ sub store {
 
 sub redirect {
     my ($self) = @_;
-    my $uri = $self->postback_uri;
-    $uri .= ($uri =~ m/\?/) ? '&' : '?';
-    $uri .= 'sso_id='.$self->id;
-    return $uri;
+    if ($self->postback_uri eq 'native') {
+        return '/sso/success#sso_id='.$self->id;
+    }
+    else {
+        my $uri = $self->postback_uri;
+        $uri .= ($uri =~ m/\?/) ? '&' : '?';
+        $uri .= 'sso_id='.$self->id;
+        return $uri;
+    }
 }
 
 no Moose;
