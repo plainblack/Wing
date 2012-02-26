@@ -79,9 +79,6 @@ register template_vars => sub {
     my %params;
     if (defined $current_user) {
         $vars{current_user} = describe($current_user, $current_user);
-        if ($current_user->is_admin) {
-           $params{is_admin} = 1;
-        }
     }
     $vars{money}        = sub { sprintf '$%.2f', shift || 0 };
     $vars{int}          = sub { my $value = shift; return $value ? int $value : 0; };
