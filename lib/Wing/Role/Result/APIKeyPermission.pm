@@ -1,6 +1,7 @@
 package Wing::Role::Result::APIKeyPermission;
 
 use Wing::Perl;
+use Wing;
 use Ouch;
 use Moose::Role;
 with 'Wing::Role::Result::Field';
