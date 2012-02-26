@@ -17,18 +17,19 @@ post '/api/session/sso/:id' => sub {
         ouch 441, 'Private Key required.', 'private_key';
     }
     my $sso = Wing::SSO->new(id => params->{id}, db => site_db());
-    unless ($sso->api_key_id) {
+    if (!$sso->api_key_id || !defined $sso->api_key) {
         ouch 440, 'SSO token not found.';
     }
     unless ($sso->api_key->private_key eq params->{private_key}) {
         ouch 454, 'Private key does not match SSO token.';
     }
+    $sso->delete;
     return describe($sso->user->start_session({ip_address => request->remote_address, api_key_id => $sso->api_key_id, sso => 1}));
 };
 
 get '/api/session/:id' => sub {
     my $session = get_session(params->{id});
-    return describe($session);
+    return describe($session, eval { get_user_by_session_id() });
 };
 
 post '/api/session' => sub {
