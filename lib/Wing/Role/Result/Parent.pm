@@ -103,6 +103,8 @@ sub register_parents {
 
 sub register_parent {
     my ($class, $field, $options) = @_;
+    $class->register_parent_field($field, $options);
+    $class->register_parent_relationship($field, $options);
 }
 
 1;
