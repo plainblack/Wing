@@ -95,8 +95,10 @@ sub register_parent_relationship {
 
 sub register_parents {
     my ($class, %fields) = @_;
-    while (my ($field, $options) = each %fields) {
+    while (my ($field, $options) = each %fields) { # fields must be registered before relationships get applied
         $class->register_parent_field($field, $options);
+    }
+    while (my ($field, $options) = each %fields) {
         $class->register_parent_relationship($field, $options);
     }
 }
