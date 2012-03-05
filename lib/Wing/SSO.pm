@@ -152,7 +152,7 @@ sub store {
 sub redirect {
     my ($self) = @_;
     if ($self->postback_uri eq 'native') {
-        return '/sso/success#sso_id='.$self->id;
+        return '/sso/success?sso_id='.$self->id;
     }
     else {
         my $uri = $self->postback_uri;
