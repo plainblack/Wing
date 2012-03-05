@@ -22,7 +22,7 @@ around table => sub {
             edit    => 'unique',
         },
         real_name               => {
-            dbic    => { data_type => 'varchar', size => 255, is_nullable => 1 },
+            dbic    => { data_type => 'varchar', size => 255, is_nullable => 0, default_value => '' },
             view    => 'private',
             edit    => 'postable',
         },
