@@ -3,6 +3,7 @@ package Wing;
 use Wing::Perl;
 use Config::JSON;
 use CHI;
+use Ouch;
 use Log::Log4perl;
 use IO::File;
 use Email::Sender::Simple;
@@ -31,6 +32,8 @@ sub log {
 die "'app_namespace' directive missing from config file" unless $_config->get('app_namespace');
 die "'db' directive missing from config file" unless $_config->get('db');
 my $class = $_config->get('app_namespace') . '::DB';
+eval " require $class; import $class; ";
+die $@ if $@;
 my $_db = $class->connect(@{$_config->get('db')});
 if ($_config->get('dbic_trace')) {
     $_db->storage->debug(1);
