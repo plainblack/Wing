@@ -12,8 +12,8 @@ use DateTime::Format::Strptime;
 $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
 
 register get_session => sub {
-    my ($session_id) = @_;
-    $session_id ||= params->{session_id};
+    my (%options) = @_;
+    my $session_id = $options{session_id} || params->{session_id};
     my $cookie = cookies->{session_id};
     if (!defined $session_id && defined $cookie) {
         $session_id = $cookie->value;

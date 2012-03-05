@@ -28,7 +28,7 @@ post '/api/session/sso/:id' => sub {
 };
 
 get '/api/session/:id' => sub {
-    my $session = get_session(params->{id});
+    my $session = get_session(session_id => params->{id});
     return describe($session, eval { get_user_by_session_id() });
 };
 
