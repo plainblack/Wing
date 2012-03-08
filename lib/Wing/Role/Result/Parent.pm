@@ -19,16 +19,18 @@ sub wing_parent_field {
 
     $wing_class->meta->add_after_method_modifier(wing_apply_fields => sub {
         my $class = shift;
-        
+
         # validation
-        $class->meta->add_before_method_modifier($id => sub {
-            my ($self, $value) = @_;
-            if (defined $value) {
-                my $object = Wing->db->resultset($options->{related_class})->find($value);
-                ouch(440, $id.' specified does not exist.', $id) unless defined $object;
-                $self->$field($object);
-            }
-        });
+        unless ($options->{skip_ref_check}) {
+            $class->meta->add_before_method_modifier($id => sub {
+                my ($self, $value) = @_;
+                if (defined $value) {
+                    my $object = Wing->db->resultset($options->{related_class})->find($value);
+                    ouch(440, $id.' specified does not exist.', $id) unless defined $object;
+                    $self->$field($object);
+                }
+            });
+        }
         $class->meta->add_before_method_modifier(verify_posted_params => sub {
             my ($self, $params, $current_user) = @_;
             if (exists $params->{$id}) {
@@ -154,6 +156,10 @@ Scalar. Optional. The field to be created in this class to store the relationshi
 =item generate_options_by_name
 
 Boolean. Optional. Defaults to C<0>. If set to C<1> this will add an enumerated options list to the object description when C<include_options> is specified. The options will be C<id> / C<name> pairs. 
+
+=item skip_ref_check
+
+Boolean. Optional. Normally adding a parent adds a check to make sure that the id that refers to a parent actually exists. When C<skip_ref_checK> is true that validation is skipped. This is really only useful if you want to create the parent at the same time you insert this object into the database.
 
 =back
 
