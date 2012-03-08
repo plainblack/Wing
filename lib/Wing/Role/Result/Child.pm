@@ -5,20 +5,23 @@ use Ouch;
 use Moose::Role;
 with 'Wing::Role::Result::Field';
 
-sub register_children {
+sub wing_children {
     my ($class, %fields) = @_;
     while (my ($field, $definition) = each %fields) {
-        $class->register_child($field, $definition);
+        $class->wing_child($field, $definition);
     }
 }
 
-sub register_child {
+sub wing_child {
     my ($class, $field, $options) = @_;
 
     # create relationship
     my @relationship = ($field, $options->{related_class}, $options->{related_id});
-    $class->has_many(@relationship);
-    
+    $class->meta->add_after_method_modifier(wing_apply_relationships => sub {
+        my $my_class = shift;
+        $my_class->has_many(@relationship);
+    });
+        
     # add relationship to describe
     $class->meta->add_around_method_modifier(describe => sub {
         my ($orig, $self, %describe_options) = @_;
@@ -56,7 +59,7 @@ Create descendant relationships from the class that consumes this role.
 
 =head1 METHODS
 
-=head2 register_child
+=head2 wing_child
 
 =over
 
@@ -66,7 +69,7 @@ Scalar. The name of the relationship.
 
 =item options
 
-Hash reference. All of the options from L<Wing::Role::Result::Field> C<register_field> except for C<dbic> and C<edit>, plus the following ones:
+Hash reference. All of the options from L<Wing::Role::Result::Field> C<wing_field> except for C<dbic> and C<edit>, plus the following ones:
 
 =over
 
@@ -82,15 +85,15 @@ The name of the field in C<related_class> that maps to the C<id> of the consumin
 
 =back
 
-=head2 register_children
+=head2 wing_children
 
-The same as C<register_child>, but takes a hash of relationships rather than just a single one.
+The same as C<wing_child>, but takes a hash of relationships rather than just a single one.
 
 =over
 
 =item relationships
 
-Hash. The names are the names of the relationships and the values are the C<options> from C<register_child>.
+Hash. The names are the names of the relationships and the values are the C<options> from C<wing_child>.
 
 =back
 

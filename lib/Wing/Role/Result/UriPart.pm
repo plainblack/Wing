@@ -6,13 +6,19 @@ use Moose::Role;
 use Data::GUID;
 requires 'name';
 
-around table => sub {
-    my ($orig, $class, $table) = @_;
-    $orig->($class, $table);
-    $class->add_columns(
-        uri_part        => { data_type => 'varchar', size => 60, is_nullable => 0 },
+before wing_finalize_class => sub {
+    my ($class) = @_;
+    $class->wing_field(
+        uri_part => {
+            dbic        => { data_type => 'varchar', size => 60, is_nullable => 0 },
+            view        => 'public',
+            indexed     => 'unique',
+        }
     );
-    $class->add_unique_constraint([qw/uri_part/]);
+};
+
+after wing_finalize_class => sub {
+    my $class = shift;
     $class->meta->add_after_method_modifier('name', sub {
         my ($self, $name) = @_;
         if ($name) {
@@ -52,12 +58,6 @@ around table => sub {
             $self->uri_part($uri_part);
         }
     });
-};
-
-around sqlt_deploy_hook => sub {
-    my ($orig, $self, $sqlt_table) = @_;
-    $orig->($self, $sqlt_table);
-    $sqlt_table->add_index(name => 'idx_uri_part', fields => ['uri_part']);
 };
 
 1;

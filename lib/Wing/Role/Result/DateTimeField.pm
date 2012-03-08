@@ -5,14 +5,14 @@ use Ouch;
 use Moose::Role;
 with 'Wing::Role::Result::Field';
 
-sub register_datetime_fields {
+sub wing_datetime_fields {
     my ($class, %fields) = @_;
     while (my ($field, $definition) = each %fields) {
-        $class->register_datetime_field($field, $definition);
+        $class->wing_datetime_field($field, $definition);
     }
 }
 
-sub register_datetime_field {
+sub wing_datetime_field {
     my ($class, $field, $options) = @_;
 
     my %dbic = ( data_type => 'datetime', is_nullable => 0 );
@@ -24,7 +24,7 @@ sub register_datetime_field {
     }
     $options->{dbic} = \%dbic;
     $options->{describe_method} = $field .'_rfc3339';
-    $class->register_field($field, $options);
+    $class->wing_field($field, $options);
 
     $class->meta->add_method( $field.'_rfc3339' => sub {
         my $self = shift;

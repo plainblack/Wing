@@ -3,13 +3,22 @@ package Wing::Role::Result::Hostname;
 use Wing::Perl;
 use Ouch;
 use Moose::Role;
+with Wing::Role::Result::Field;
 
-around table => sub {
-    my ($orig, $class, $table) = @_;
-    $orig->($class, $table);
-    $class->add_columns(
-        hostname        => { data_type => 'varchar', size => 255, is_nullable => 0 },
+before wing_finalize_class => sub {
+    my ($class) = @_;
+    $class->wing_field(
+        hostname => {
+            dbic        => { data_type => 'varchar', size => 255, is_nullable => 0 },
+            view        => 'public',
+            edit        => 'postable',
+            indexed     => 1,
+        }
     );
+};
+
+after wing_finalize_class => sub {
+    my ($class) = @_;
     $class->meta->add_before_method_modifier('hostname', sub {
         my ($self, $name) = @_;
         if ($name) {
@@ -28,26 +37,6 @@ around table => sub {
             }
         }
     });
-};
-
-around sqlt_deploy_hook => sub {
-    my ($orig, $self, $sqlt_table) = @_;
-    $orig->($self, $sqlt_table);
-    $sqlt_table->add_index(name => 'idx_hostname', fields => ['hostname']);
-};
-
-around describe => sub {
-    my ($orig, $self, %options) = @_;
-    my $out = $orig->($self, %options);
-    $out->{hostname} = $self->hostname;
-    return $out;
-};
-
-around postable_params => sub {
-    my ($orig, $self) = @_;
-    my $params = $orig->($self);
-    push @$params, qw(hostname);
-    return $params;
 };
 
 1;

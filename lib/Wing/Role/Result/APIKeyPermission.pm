@@ -6,10 +6,9 @@ use Moose::Role;
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::UserControlled';
 
-around table => sub {
-    my ($orig, $class, $table) = @_;
-    $orig->($class, $table);
-    $class->register_field(
+before wing_finalize_class => sub {
+    my ($class) = @_;
+    $class->wing_field(
         permisison                  => {
             dbic                => { data_type => 'varchar', size => 30, is_nullable => 0 },
             view                => 'private',
@@ -19,9 +18,9 @@ around table => sub {
     );
 };
 
-sub sqlt_deploy_hook {
+after sqlt_deploy_hook => sub {
     my ($self, $sqlt_table) = @_;
     $sqlt_table->add_index(name => 'idx_apikey_user', fields => ['api_key_id','user_id']);
-}
+};
 
 1;

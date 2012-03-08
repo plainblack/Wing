@@ -12,10 +12,9 @@ use Moose::Role;
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::DateTimeField';
 
-around table => sub {
-    my ($orig, $class, $table) = @_;
-    $orig->($class, $table);
-    $class->register_fields(
+before wing_finalize_class => sub {
+    my ($class) = @_;
+    $class->wing_fields(
         username                => {
             dbic    => { data_type => 'varchar', size => 30, is_nullable => 0 },
             view    => 'private',
@@ -50,7 +49,7 @@ around table => sub {
             edit    => 'admin',
         },
     );
-    $class->register_datetime_field(
+    $class->wing_datetime_field(
         last_login  => {
             view            => 'private',
             set_on_create   => 1,

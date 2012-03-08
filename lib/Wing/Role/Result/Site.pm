@@ -8,10 +8,9 @@ with 'Wing::Role::Result::Shortname';
 with 'Wing::Role::Result::Hostname';
 with 'Wing::Role::Result::UserControlled';
 
-around table => sub {
-    my ($orig, $class, $table) = @_;
-    $orig->($class, $table);
-    $class->register_fields(
+before wing_finalize_class => sub {
+    my ($class) = @_;
+    $class->wing_fields(
         name    => {
             dbic    => { data_type => 'varchar', size => 60, is_nullable => 0 },
             view    => 'public',

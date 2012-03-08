@@ -5,8 +5,8 @@ use Ouch;
 use Moose::Role;
 with 'Wing::Role::Result::Field';
 
-sub register_parent_field {
-    my ($class, $field, $options) = @_;
+sub wing_parent_field {
+    my ($wing_class, $field, $options) = @_;
     my $id = $options->{related_id} || $field.'_id';
     my %dbic = ( data_type => 'char', size => 36, is_nullable => 1 );
     if ($options->{edit} ~~ [qw(required unique)]) {
@@ -15,56 +15,64 @@ sub register_parent_field {
     
     # create the field
     $options->{dbic} = \%dbic;
-    $class->register_field($id, $options);
+    $wing_class->wing_field($id, $options);
 
-    # validation
-    $class->meta->add_before_method_modifier($id => sub {
-        my ($self, $value) = @_;
-        if (defined $value) {
-            my $object = Wing->db->resultset($options->{related_class})->find($value);
-            ouch(440, $id.' specified does not exist.', $id) unless defined $object;
-            $self->$field($object);
-        }
-    });
-    $class->meta->add_before_method_modifier(verify_posted_params => sub {
-        my ($self, $params, $current_user) = @_;
-        if (exists $params->{$id}) {
-            ouch(441, $id.' is required.', $id) unless $params->{$id};
-            my $object = Wing->db->resultset($options->{related_class})->find($params->{$id});
-            ouch(440, $id.' not found.') unless defined $object;
-            $object->can_use($current_user);
-            $self->$field($object);
-        }
-    });
-
-    # generate options
-    if ($options->{generate_options_by_name}) {
-        $class->meta->add_around_method_modifier(field_options => sub {
-            my ($orig, $self) = @_;
-            my $out = $orig->($self);
-            my @parent_ids;
-            my %parent_options;
-            my $parents = Wing->db->resultset($options->{related_class})->search(undef,{order_by => 'name'});
-            while (my $parent = $parents->next) {
-                push @parent_ids, $parent->id;
-                $parent_options{$parent->id} = $parent->name;
+    $wing_class->meta->add_after_method_modifier(wing_apply_fields => sub {
+        my $class = shift;
+        
+        # validation
+        $class->meta->add_before_method_modifier($id => sub {
+            my ($self, $value) = @_;
+            if (defined $value) {
+                my $object = Wing->db->resultset($options->{related_class})->find($value);
+                ouch(440, $id.' specified does not exist.', $id) unless defined $object;
+                $self->$field($object);
             }
-            $out->{$id} = \@parent_ids;
-            $out->{'_'.$id} = \%parent_options;
-            return $out;
         });
-    }
+        $class->meta->add_before_method_modifier(verify_posted_params => sub {
+            my ($self, $params, $current_user) = @_;
+            if (exists $params->{$id}) {
+                ouch(441, $id.' is required.', $id) unless $params->{$id};
+                my $object = Wing->db->resultset($options->{related_class})->find($params->{$id});
+                ouch(440, $id.' not found.') unless defined $object;
+                $object->can_use($current_user);
+                $self->$field($object);
+            }
+        });
+    
+        # generate options
+        if ($options->{generate_options_by_name}) {
+            $class->meta->add_around_method_modifier(field_options => sub {
+                my ($orig, $self) = @_;
+                my $out = $orig->($self);
+                my @parent_ids;
+                my %parent_options;
+                my $parents = Wing->db->resultset($options->{related_class})->search(undef,{order_by => 'name'});
+                while (my $parent = $parents->next) {
+                    push @parent_ids, $parent->id;
+                    $parent_options{$parent->id} = $parent->name;
+                }
+                $out->{$id} = \@parent_ids;
+                $out->{'_'.$id} = \%parent_options;
+                return $out;
+            });
+        }
+    });
 }
 
-sub register_parent_relationship {
+sub wing_parent_relationship {
     my ($class, $field, $options) = @_;
     my $id = $options->{related_id} || $field.'_id';
+
+    # create relationship
     my @relationship = ($field, $options->{related_class}, $id);
     unless ($options->{edit} ~~ [qw(required unique)]) {
         push @relationship, { on_delete => 'set null' };
     }
-    # create relationship
-    $class->belongs_to(@relationship);
+    $class->meta->add_after_method_modifier(wing_apply_relationships => sub {
+        my $my_class = shift;
+        $my_class->belongs_to(@relationship);
+    });
     
     # add relationship to describe
     $class->meta->add_around_method_modifier(describe => sub {
@@ -93,20 +101,20 @@ sub register_parent_relationship {
     });
 }
 
-sub register_parents {
+sub wing_parents {
     my ($class, %fields) = @_;
     while (my ($field, $options) = each %fields) { # fields must be registered before relationships get applied
-        $class->register_parent_field($field, $options);
+        $class->wing_parent_field($field, $options);
     }
     while (my ($field, $options) = each %fields) {
-        $class->register_parent_relationship($field, $options);
+        $class->wing_parent_relationship($field, $options);
     }
 }
 
-sub register_parent {
+sub wing_parent {
     my ($class, $field, $options) = @_;
-    $class->register_parent_field($field, $options);
-    $class->register_parent_relationship($field, $options);
+    $class->wing_parent_field($field, $options);
+    $class->wing_parent_relationship($field, $options);
 }
 
 1;
@@ -121,7 +129,7 @@ Create parental relationships from the class that consumes this role.
 
 =head1 METHODS
 
-=head2 register_parent
+=head2 wing_parent
 
 =over
 
@@ -131,7 +139,7 @@ Scalar. The name of the relationship.
 
 =item options
 
-Hash reference. All of the options from L<Wing::Role::Result::Field> C<register_field> except for C<dbic>, plus the following ones.
+Hash reference. All of the options from L<Wing::Role::Result::Field> C<wing_field> except for C<dbic>, plus the following ones.
 
 =over
 
@@ -151,15 +159,15 @@ Boolean. Optional. Defaults to C<0>. If set to C<1> this will add an enumerated 
 
 =back
 
-=head2 register_parents
+=head2 wing_parents
 
-The same as C<register_parent>, but takes a hash of relationships rather than just a single one.
+The same as C<wing_parent>, but takes a hash of relationships rather than just a single one.
 
 =over
 
 =item relationships
 
-Hash. The names are the names of the relationships and the values are the C<options> from C<register_parent>.
+Hash. The names are the names of the relationships and the values are the C<options> from C<wing_parent>.
 
 =back
 

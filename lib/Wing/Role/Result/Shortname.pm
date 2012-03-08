@@ -5,16 +5,19 @@ use Ouch;
 use Moose::Role;
 with 'Wing::Role::Result::Field';
 
-around table => sub {
-    my ($orig, $class, $table) = @_;
-    $orig->($class, $table);
-    $class->register_field(
+before wing_finalize_class => sub {
+    my ($class) = @_;
+    $class->wing_field(
         shortname        => {
             dbic    => { data_type => 'varchar', size => 50, is_nullable => 0 },
             edit    => 'unique',
             view    => 'public',
         }
     );
+};
+
+after wing_finalize_class => sub {
+    my ($class) = @_;
     $class->meta->add_before_method_modifier('shortname', sub {
         my ($self, $name) = @_;
         if (scalar @_ >= 2) {
