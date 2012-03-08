@@ -4,7 +4,6 @@ use Wing::Perl;
 use Ouch;
 use Moose::Role;
 use Data::GUID;
-requires 'name';
 
 before wing_finalize_class => sub {
     my ($class) = @_;
