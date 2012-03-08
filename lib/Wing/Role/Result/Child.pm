@@ -106,4 +106,24 @@ Hash. The names are the names of the relationships and the values are the C<opti
 
 =back
 
+=head1 RESULT
+
+The result object will be changed in these ways:
+
+=over
+
+=item Adds a C<has_many>
+
+Adds a L<DBIx::Class> C<has_many> relationship.
+
+=item Updates C<describe>
+
+Adds the child relationship to the C<describe> method.
+
+=item Adds C<wing_add_to_$relationship_name> Method
+
+Exactly like the C<add_to_$rel> method created by L<DBIx::Class::Relationship::Base> except that it doesn't insert the object, it waits for you to insert it.
+
+=back
+
 =cut
