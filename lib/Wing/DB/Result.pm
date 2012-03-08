@@ -22,8 +22,8 @@ sub wing_apply_fields {
 }
 
 sub wing_finalize_class {
-    my ($class, $table_name) = @_;
-    $class->table($table_name);
+    my ($class, %options) = @_;
+    $class->table($options{table_name});
     $class->uuid_class('::Data::GUID');
     $class->wing_apply_fields;
     $class->wing_apply_relationships;
