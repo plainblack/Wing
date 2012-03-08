@@ -3,7 +3,7 @@ package Wing::Role::Result::UserControlled;
 use Wing::Perl;
 use Ouch;
 use Moose::Role;
-with Wing::Role::Result::Parent;
+with 'Wing::Role::Result::Parent';
 
 before wing_finalize_class => sub {
     my ($class) = @_;
