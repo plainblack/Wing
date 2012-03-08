@@ -44,6 +44,15 @@ sub wing_child {
         }
         return $out;
     });
+    
+    # add a shortcut to adding a new child
+    $class->meta->add_method( 'wing_add_to_'.$field => sub {
+        my $self = shift;
+        my $child = $self->result_source->schema->resultset($options->{related_class})->new({});
+        my $method = $options->{related_id};
+        $child->$method($self->id);
+        return $child;
+    });
 
 }
 
