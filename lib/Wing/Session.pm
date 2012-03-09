@@ -90,7 +90,9 @@ sub check_permissions {
     my ($self, $permissions) = @_;
     return 1 unless $self->sso; # always has permissions if this isn't a single-sign-on session
     return 1 unless scalar(@{$permissions}); # has permissions if they aren't asking for any
-    ouch(450, 'Insufficient permissions.',$permissions) unless $self->has_user_id && $self->has_api_key_id; # can't have permissions if they haven't logged in, or didn't assign an API key
+    ouch(451, 'You must log in to access that.',$permissions) unless $self->has_user_id; # can't have permissions if they haven't logged in
+    return 1 if $self->user->is_admin; # always has permissions if they're an admin
+    ouch(450, 'Insufficient permissions.',$permissions) unless $self->has_api_key_id; # can't have permissions if they didn't assign an API key
     my $existing = $self->get_permissions;
     foreach my $permission (@{$permissions}) {
         unless ($permission ~~ $existing) {

@@ -93,7 +93,7 @@ register generate_create => sub {
     post '/api/'.$object_url => sub {
         my $object = site_db()->resultset($object_type)->new({});
         my $params = expanded_params();
-        my $current_user = eval{get_user_by_session_id(permissions => $options{permissions})};
+        my $current_user = get_user_by_session_id(permissions => $options{permissions});
         $object->verify_creation_params($params, $current_user);
         $object->verify_posted_params($params, $current_user);
         if (defined $options{extra_processing}) {

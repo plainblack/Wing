@@ -22,7 +22,7 @@ __PACKAGE__->wing_child(
     }
 );
 
-__PACKAGE__->wing_finalize_class('companies');
+__PACKAGE__->wing_finalize_class( table_name => 'companies');
 
 no Moose;
 __PACKAGE__->meta->make_immutable(inline_constructor => 0);

@@ -4,6 +4,7 @@ use Wing::Perl;
 use Dancer;
 use Ouch;
 use Wing::Rest;
+use Wing::Dancer;
 
 get '/api/user' => sub {
     ouch(450, 'You must be an administrator to get a list of all users.') unless get_user_by_session_id()->is_admin;

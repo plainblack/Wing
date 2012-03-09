@@ -41,7 +41,7 @@ __PACKAGE__->wing_child(
     }
 );
 
-__PACKAGE__->wing_finalize_class('employees');
+__PACKAGE__->wing_finalize_class( table_name => 'employees');
 
 
 no Moose;

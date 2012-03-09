@@ -23,7 +23,7 @@ __PACKAGE__->wing_parent(
     }
 );
 
-__PACKAGE__->wing_finalize_class('equipment');
+__PACKAGE__->wing_finalize_class( table_name => 'equipment');
 
 
 no Moose;

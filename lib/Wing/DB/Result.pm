@@ -108,7 +108,7 @@ sub admin_postable_params {
 }
 
 sub can_use {
-    my ($orig, $self, $user) = @_;
+    my ($self, $user) = @_;
     return 1 if defined $user && $user->is_admin;
     ouch(450, 'Insufficient privileges.');
 }
