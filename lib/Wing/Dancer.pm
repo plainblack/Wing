@@ -10,7 +10,7 @@ register site_db => sub {
     if ($db) {
         var wing_site_db => $db;
     }
-    return vars->{wing_site_db};
+    return vars->{wing_site_db} || Wing->db;
 };
 
 register site => sub {
