@@ -9,7 +9,7 @@ with 'Wing::Role::Result::UserControlled';
 before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_field(
-        permisison                  => {
+        permission                  => {
             dbic                => { data_type => 'varchar', size => 30, is_nullable => 0 },
             view                => 'private',
             edit                => 'postable',
