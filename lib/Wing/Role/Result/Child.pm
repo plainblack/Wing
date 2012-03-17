@@ -28,7 +28,7 @@ sub wing_child {
         my $out = $orig->($self, %describe_options);
         my $describe = sub {
             if ($describe_options{include_relationships}) {
-                $out->{_relationships}{$field} = $self->object_api_uri.'/'.$field;
+                $out->{_relationships}{$field} = $self->wing_object_api_uri.'/'.$field;
             }
         };
         if (exists $options->{view}) {

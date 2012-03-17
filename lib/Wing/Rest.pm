@@ -61,10 +61,10 @@ register describe => sub {
 };
 
 register generate_delete => sub {
-    my ($object_type, %options) = @_;
-    my $object_url = lc($object_type);
+    my ($wing_object_type, %options) = @_;
+    my $object_url = lc($wing_object_type);
     del '/api/'.$object_url.'/:id'  => sub {
-        my $object = fetch_object($object_type);
+        my $object = fetch_object($wing_object_type);
         $object->can_use(get_user_by_session_id(permissions => $options{permissions}));
         $object->delete;
         return { success => 1 };
@@ -72,11 +72,11 @@ register generate_delete => sub {
 };
 
 register generate_update => sub {
-    my ($object_type, %options) = @_;
-    my $object_url = lc($object_type);
+    my ($wing_object_type, %options) = @_;
+    my $object_url = lc($wing_object_type);
     put '/api/'.$object_url.'/:id'  => sub {
         my $current_user = get_user_by_session_id(permissions => $options{permissions});
-        my $object = fetch_object($object_type);
+        my $object = fetch_object($wing_object_type);
         $object->can_use($current_user);
         $object->verify_posted_params(expanded_params(), $current_user);
         if (exists $options{extra_processing}) {
@@ -88,10 +88,10 @@ register generate_update => sub {
 };
 
 register generate_create => sub {
-    my ($object_type, %options) = @_;
-    my $object_url = lc($object_type);
+    my ($wing_object_type, %options) = @_;
+    my $object_url = lc($wing_object_type);
     post '/api/'.$object_url => sub {
-        my $object = site_db()->resultset($object_type)->new({});
+        my $object = site_db()->resultset($wing_object_type)->new({});
         my $params = expanded_params();
         my $current_user = get_user_by_session_id(permissions => $options{permissions});
         $object->verify_creation_params($params, $current_user);
@@ -105,19 +105,19 @@ register generate_create => sub {
 };
 
 register generate_read => sub {
-    my ($object_type, %options) = @_;
-    my $object_url = lc($object_type);
+    my ($wing_object_type, %options) = @_;
+    my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id' => sub {
         my $current_user = eval{ get_user_by_session_id(permissions => $options{permissions}) };
-        return describe(fetch_object($object_type), $current_user);
+        return describe(fetch_object($wing_object_type), $current_user);
     };
 };
 
 register generate_options => sub {
-    my ($object_type) = @_;
-    my $object_url = lc($object_type);
+    my ($wing_object_type) = @_;
+    my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/options' => sub {
-        return site_db()->resultset($object_type)->new({})->field_options(
+        return site_db()->resultset($wing_object_type)->new({})->field_options(
             include_relationships   => params->{include_relationships},
             include_options         => params->{include_options},
             include_related_objects => params->{include_related_objects},
@@ -127,12 +127,12 @@ register generate_options => sub {
 };
 
 register generate_crud => sub {
-    my ($object_type) = @_;
-    generate_options($object_type);
-    generate_read($object_type);
-    generate_update($object_type);
-    generate_delete($object_type);
-    generate_create($object_type);
+    my ($wing_object_type) = @_;
+    generate_options($wing_object_type);
+    generate_read($wing_object_type);
+    generate_update($wing_object_type);
+    generate_delete($wing_object_type);
+    generate_create($wing_object_type);
 };
 
 hook after => sub {

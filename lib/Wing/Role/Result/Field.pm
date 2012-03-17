@@ -12,9 +12,9 @@ sub wing_fields {
 }
 
 sub wing_field {
-    my ($wing_class, $field, $options) = @_;
+    my ($wing_object_class, $field, $options) = @_;
 
-    $wing_class->meta->add_around_method_modifier(wing_apply_fields => sub {
+    $wing_object_class->meta->add_around_method_modifier(wing_apply_fields => sub {
         my ($orig, $class) = @_;
         $orig->($class);
         

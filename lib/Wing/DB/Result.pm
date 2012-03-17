@@ -38,34 +38,34 @@ sub BUILD {
     }
 }
 
-sub object_class {
+sub wing_object_class {
     my $self = shift;
     my $class = ref $self || $self;    
     $class =~ s/^.*:(\w+)$/$1/;
     return $class;
 }
 
-sub object_name {
+sub wing_object_name {
     my $self = shift;
-    return $self->object_class;
+    return $self->wing_object_class;
 }
 
-sub object_type {
+sub wing_object_type {
     my $self = shift;
-    return lc($self->object_class);
+    return lc($self->wing_object_class);
 }
 
-sub object_api_uri {
+sub wing_object_api_uri {
     my $self = shift;
-    return '/api/'.$self->object_type.'/'.$self->id;
+    return '/api/'.$self->wing_object_type.'/'.$self->id;
 }
 
 sub describe {
     my ($self, %options) = @_;
     my $out = {
         id          => $self->id,
-        object_type => $self->object_type,
-        object_name => $self->object_name,
+        object_type => $self->wing_object_type,
+        object_name => $self->wing_object_name,
     };
     if ($options{include_private} || eval { $self->can_use($options{current_user}) } ) {
         $out->{date_created} = Wing->to_RFC3339($self->date_created);
@@ -75,7 +75,7 @@ sub describe {
         $out->{_options} = $self->field_options;
     }
     if ($options{include_relationships}) {
-        $out->{_relationships}{self} = $self->object_api_uri;
+        $out->{_relationships}{self} = $self->wing_object_api_uri;
     }
     return $out;
 }

@@ -6,7 +6,7 @@ use Moose::Role;
 with 'Wing::Role::Result::Field';
 
 sub wing_parent_field {
-    my ($wing_class, $field, $options) = @_;
+    my ($wing_object_class, $field, $options) = @_;
     my $id = $options->{related_id} || $field.'_id';
     my %dbic = ( data_type => 'char', size => 36, is_nullable => 1 );
     if ($options->{edit} ~~ [qw(required unique)]) {
@@ -15,9 +15,9 @@ sub wing_parent_field {
     
     # create the field
     $options->{dbic} = \%dbic;
-    $wing_class->wing_field($id, $options);
+    $wing_object_class->wing_field($id, $options);
 
-    $wing_class->meta->add_after_method_modifier(wing_apply_fields => sub {
+    $wing_object_class->meta->add_after_method_modifier(wing_apply_fields => sub {
         my $class = shift;
 
         # validation
@@ -84,9 +84,10 @@ sub wing_parent_relationship {
             if ($describe_options{include_related_objects}) {
                 $out->{$field} = $self->$field->describe;
             }
-            if ($describe_options{include_relationships}) {
-                $out->{_relationships}{$field} = '/api/'.$options->{related_class}->object_type.'/'.$self->$id if $self->$id;
+            if ($describe_options{include_relationships} && $self->$id) {
+                $out->{_relationships}{$field} = '/api/'.$options->{related_class}->wing_object_type.'/'.$self->$id;
             }
+            return $out;
         };
         if (exists $options->{view}) {
             if ($options->{view} eq 'admin') {
