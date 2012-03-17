@@ -81,7 +81,7 @@ sub wing_parent_relationship {
         my ($orig, $self, %describe_options) = @_;
         my $out = $orig->($self, %describe_options);
         my $describe = sub {
-            if ($describe_options{includ_related_objects}) {
+            if ($describe_options{include_related_objects}) {
                 $out->{$field} = $self->$field->describe;
             }
             if ($describe_options{include_relationships}) {
