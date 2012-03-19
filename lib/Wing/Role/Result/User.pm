@@ -154,7 +154,7 @@ has rpc_count => (
     default => sub {
         my $self = shift;
         my $key = 'rpc_count_'.DateTime->now->minute.$self->id;
-        my $value = Wing->cache->get($key) + 1;
+        my $value = (Wing->cache->get($key) || 0) + 1;
         Wing->cache->set($key, $value, { expires_in => 60 });
     }
 );
