@@ -82,7 +82,9 @@ sub wing_parent_relationship {
         my $out = $orig->($self, %describe_options);
         my $describe = sub {
             if ($describe_options{include_related_objects}) {
-                $out->{$field} = $self->$field->describe;
+                if ($self->$id) {
+                    $out->{$field} = $self->$field->describe;
+                }
             }
             if ($describe_options{include_relationships} && $self->$id) {
                 $out->{_relationships}{$field} = '/api/'.$options->{related_class}->wing_object_type.'/'.$self->$id;
