@@ -98,7 +98,7 @@ sub is_password_valid {
         default { $encrypted_password = $self->encrypt($password) }
     }
     if (defined $password && $password ne '' && $self->password eq $encrypted_password) {
-        if ($self->password_type eq 'md5') { # while we have the password in the clear, let's upgrade the encryption
+        if (defined $self->password_type && $self->password_type eq 'md5') { # while we have the password in the clear, let's upgrade the encryption
             $self->password_type('bcrypt');
             $self->password($self->encrypt($password));
             $self->update;
