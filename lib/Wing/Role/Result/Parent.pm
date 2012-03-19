@@ -37,7 +37,7 @@ sub wing_parent_field {
                 ouch(441, $id.' is required.', $id) unless $params->{$id};
                 my $object = Wing->db->resultset($options->{related_class})->find($params->{$id});
                 ouch(440, $id.' not found.') unless defined $object;
-                $object->can_use($current_user);
+                $object->can_use($current_user) unless $options->{skip_owner_check};
                 $self->$field($object);
             }
         });
@@ -163,6 +163,10 @@ Boolean. Optional. Defaults to C<0>. If set to C<1> this will add an enumerated 
 =item skip_ref_check
 
 Boolean. Optional. Normally adding a parent adds a check to make sure that the id that refers to a parent actually exists. When C<skip_ref_checK> is true that validation is skipped. This is really only useful if you want to create the parent at the same time you insert this object into the database.
+
+=item skip_owner_check
+
+Boolean. Optional. Normally adding a parent checks to see that you C<can_use> the object in question. When this is set, that check is disabled.
 
 =back
 
