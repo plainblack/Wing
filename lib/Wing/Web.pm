@@ -4,12 +4,13 @@ use strict;
 use warnings;
 use Ouch;
 use Dancer ':syntax';
-use Wing::Dancer;
 use Wing::Session;
 use Dancer::Plugin;
 use DateTime::Format::Strptime;
 
 $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
+
+require Wing::Dancer;
 
 register get_session => sub {
     my (%options) = @_;

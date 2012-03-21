@@ -6,7 +6,7 @@ use Wing::Session;
 use Dancer;
 use Wing::Rest;
 use Wing::SSO;
-use Wing::Dancer;
+
 
 del '/api/session/:id' => sub {
     Wing::Session->new(id => params->{id}, db => site_db())->end;

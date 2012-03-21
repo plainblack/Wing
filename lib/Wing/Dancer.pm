@@ -1,10 +1,4 @@
-package Wing::Dancer;
-
-use strict;
-use warnings;
-use Dancer ':syntax';
-use Dancer::Plugin;
-use Ouch;
+# this gets included into Wing::Rest and Wing::Web to avoid duplcation of code
 
 register site_db => sub {
     my ($db) = @_;
@@ -80,6 +74,4 @@ register expanded_params => sub {
     return \%params
 };
 
-register_plugin;
 
-1;
