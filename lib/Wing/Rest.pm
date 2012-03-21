@@ -52,6 +52,7 @@ register describe => sub {
     $current_user ||= eval { get_user_by_session_id() };
     return $object->describe(
         include_private         => (eval { $object->can_use($current_user) }) ? 1 : 0,
+        include_admin           => (eval { defined $current_user && $current_user->is_admin }) ? 1 : 0,
         include_relationships   => params->{include_relationships},
         include_options         => params->{include_options},
         include_related_objects => params->{include_related_objects},

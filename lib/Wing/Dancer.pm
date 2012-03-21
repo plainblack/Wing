@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Dancer ':syntax';
 use Dancer::Plugin;
+use Ouch;
 
 register site_db => sub {
     my ($db) = @_;
@@ -41,8 +42,8 @@ register format_list => sub {
     my $tracer = get_tracer();
     while (my $item = $page->next) {
         push @list, $item->describe(
-            include_admin           => $options{include_admin}, 
-            include_private         => $options{include_private}, 
+            include_admin           => $options{include_admin} || (defined $user && $user->is_admin) ? 1 : 0, 
+            include_private         => $options{include_private} || (eval { $item->can_use($user) }) ? 1 : 0, 
             include_relationships   => $options{include_relationships} || params->{include_relationships}, 
             include_related_objects => $options{include_related_objects} || params->{include_related_objects}, 
             include_options         => $options{include_options} || params->{include_options}, 

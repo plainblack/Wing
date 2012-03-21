@@ -148,10 +148,10 @@ sub wing_field {
             };
             if (exists $options->{view}) {
                 if ($options->{view} eq 'admin') {
-                    $describe->() if ($describe_options{include_admin} || (exists $describe_options{current_user} && defined $describe_options{current_user} && $describe_options{current_user}->is_admin));
+                    $describe->() if $describe_options{include_admin};
                 }
                 elsif ($options->{view} eq 'private') {
-                    $describe->() if ($describe_options{include_private} || eval { $self->can_use($describe_options{current_user}) });
+                    $describe->() if $describe_options{include_private};
                 }
                 elsif ($options->{view} eq 'public') {
                     $describe->(); 
