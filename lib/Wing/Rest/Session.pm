@@ -25,6 +25,7 @@ post '/api/session/sso/:id' => sub {
         ouch 454, 'Private key does not match SSO token.';
     }
     $sso->delete;
+    ouch(440, 'No user associated with SSO token.') unless $sso->user_id;
     return describe($sso->user->start_session({ip_address => request->remote_address, api_key_id => $sso->api_key_id, sso => 1}));
 };
 
