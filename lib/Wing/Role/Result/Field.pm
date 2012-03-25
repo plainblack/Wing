@@ -164,7 +164,7 @@ sub wing_field {
         $class->meta->add_around_method_modifier(duplicate => sub {
             my ($orig, $self) = @_;
             my $dup = $orig->($self);
-            if ($options->{no_duplicate}) {
+            if ($options->{skip_duplicate}) {
                 # do nothing
             }
             else {
