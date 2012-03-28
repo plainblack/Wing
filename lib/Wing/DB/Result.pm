@@ -66,11 +66,9 @@ sub describe {
         id          => $self->id,
         object_type => $self->wing_object_type,
         object_name => $self->wing_object_name,
+        date_updated=> Wing->to_RFC3339($self->date_updated),
+        date_created=> Wing->to_RFC3339($self->date_created),
     };
-    if ($options{include_private} || eval { $self->can_use($options{current_user}) } ) {
-        $out->{date_created} = Wing->to_RFC3339($self->date_created);
-        $out->{date_updated} = Wing->to_RFC3339($self->date_updated);
-    }
     if ($options{include_options}) {
         $out->{_options} = $self->field_options;
     }
