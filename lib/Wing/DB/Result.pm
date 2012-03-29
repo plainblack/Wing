@@ -1,10 +1,9 @@
 package Wing::DB::Result;
 
-use Moose;
 use Wing::Perl;
 use DateTime;
 use Ouch;
-extends 'DBIx::Class::Core';
+use base 'DBIx::Class::Core';
 
 __PACKAGE__->load_components('UUIDColumns', 'TimeStamp', 'InflateColumn::DateTime', 'InflateColumn::Serializer', 'Core');
 
@@ -29,13 +28,15 @@ sub wing_finalize_class {
     $class->wing_apply_relationships;
 }
 
-#  set defaults from schema
-sub BUILD {
-    my $self = shift;
+# override default DBIx::Class constructor to set defaults from schema
+sub new {
+    my $class = shift;
+    my $self = $class->SUPER::new(@_);
     foreach my $col ($self->result_source->columns) {
         my $default = $self->result_source->column_info($col)->{default_value};
         $self->$col($default) if (defined $default && !defined $self->$col());
     }
+    return $self;
 }
 
 sub wing_object_class {
@@ -146,6 +147,4 @@ sub duplicate {
     return $self->result_source->schema->resultset(ref $self)->new({});
 }
 
-no Moose;
-__PACKAGE__->meta->make_immutable(inline_constructor => 0);
-
+1;
