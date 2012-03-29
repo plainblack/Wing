@@ -5,6 +5,7 @@ use Ouch;
 use Moose::Role;
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::UserControlled';
+with 'Wing::Role::Result::Child';
 
 before wing_finalize_class => sub {
     my ($class) = @_;
@@ -29,6 +30,15 @@ before wing_finalize_class => sub {
             view    => 'private',
         },
     );
+
+    $class->wing_child(
+        permissions   => {
+            view                => 'private',
+            related_class       => Wing->config->get('app_namespace').'::DB::Result::APIKeyPermission',
+            related_id          => 'api_key_id',
+        }
+    );
+
 };
 
 1;

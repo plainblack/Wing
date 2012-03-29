@@ -24,6 +24,10 @@ before wing_finalize_class => sub {
             indexed => 'unique'
         },
     );
+};
+
+after wing_finalize_class => sub {
+    my ($class) = @_;
     $class->meta->add_after_method_modifier('shortname', sub {
         my ($self, $name) = @_;
         if (scalar @_ >= 2 && !$self->in_storage) {
