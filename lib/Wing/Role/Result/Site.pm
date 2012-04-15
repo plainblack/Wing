@@ -83,7 +83,8 @@ sub connect_to_database {
     my $config = Wing->config;
     my @dsn = @{$config->get('db')};
     $dsn[0] = $config->get('site_db_driver/prefix') . $self->database_name . $config->get('site_db_driver/suffix');
-    return MobRater::DB->connect(@dsn);
+    my $class = $config->get('site_namespace').'::DB';
+    return $class->connect(@dsn);
 }
 
 sub create_database {

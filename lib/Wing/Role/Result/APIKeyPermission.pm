@@ -17,11 +17,13 @@ before wing_finalize_class => sub {
             options             => Wing->config->get('api_key_permissions'),
         }
     );
+    my $namespace = $class;
+    $namespace =~ s/^(\w+)\:.*$/$1/;
     $class->wing_parent(
         apikey   => {
             view                => 'parent',
             edit                => 'required',
-            related_class       => Wing->config->get('app_namespace').'::DB::Result::APIKey',
+            related_class       => $namespace.'::DB::Result::APIKey',
             related_id          => 'api_key_id',
         }
     );

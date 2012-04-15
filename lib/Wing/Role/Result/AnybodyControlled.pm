@@ -3,8 +3,8 @@ package Wing::Role::Result::AnybodyControlled;
 use Wing::Perl;
 use Ouch;
 use Moose::Role;
-with Wing::Role::Result::Field;
-with Wing::Role::Result::Parent;
+with 'Wing::Role::Result::Field';
+with 'Wing::Role::Result::Parent';
 
 before wing_finalize_class => sub {
     my ($class) = @_;
@@ -29,11 +29,13 @@ before wing_finalize_class => sub {
         },
     );
     
+    my $namespace = $class;
+    $namespace =~ s/^(\w+)\:.*$/$1/;
     $class->wing_parent(
         user    => {
             view        => 'public',
             edit        => 'postable',
-            related_class   => Wing->config->get('app_namespace').'::DB::Result::User',
+            related_class   => $namespace.'::DB::Result::User',
         }
     );
 };

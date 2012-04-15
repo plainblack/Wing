@@ -31,10 +31,12 @@ before wing_finalize_class => sub {
         },
     );
 
+    my $namespace = $class;
+    $namespace =~ s/^(\w+)\:.*$/$1/;
     $class->wing_child(
         permissions   => {
             view                => 'private',
-            related_class       => Wing->config->get('app_namespace').'::DB::Result::APIKeyPermission',
+            related_class       => $namespace.'::DB::Result::APIKeyPermission',
             related_id          => 'api_key_id',
         }
     );

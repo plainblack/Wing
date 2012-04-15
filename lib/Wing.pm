@@ -44,6 +44,14 @@ sub db {
     return $_db;
 }
 
+# load site DBIx::Class namespace
+my $site_namespace = $_config->get('site_namespace');
+if (defined $site_namespace) {
+    my $class = $site_namespace. '::DB';
+    eval " require $class; import $class; ";
+}
+
+
 # cache
 die "'cache' directive missing from config file" unless $_config->get('cache');
 my $_cache = CHI->new(%{$_config->get('cache')});

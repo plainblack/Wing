@@ -7,11 +7,13 @@ with 'Wing::Role::Result::Parent';
 
 before wing_finalize_class => sub {
     my ($class) = @_;
+    my $namespace = $class;
+    $namespace =~ s/^(\w+)\:.*$/$1/;
     $class->wing_parent(
         user    => {
             view        => 'public',
             edit        => 'required',
-            related_class   => Wing->config->get('app_namespace').'::DB::Result::User',
+            related_class   => $namespace.'::DB::Result::User',
         }
     ); 
 };
