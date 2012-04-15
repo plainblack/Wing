@@ -1,5 +1,7 @@
 # this gets included into Wing::Rest and Wing::Web to avoid duplcation of code
 
+use Wing;
+
 register site_db => sub {
     my ($db) = @_;
     if ($db) {
