@@ -3,11 +3,34 @@
 use Wing;
 
 register site_db => sub {
-    my ($db) = @_;
-    if ($db) {
-        var wing_site_db => $db;
+    if (exists vars->{wing_site_db} && defined vars->{wing_site_db}) {
+        return vars->{wing_site_db};
     }
-    return vars->{wing_site_db} || Wing->db;
+    my $domain = Wing->config->get('tenants/domain');
+    if ($domain) {
+        my $hostname = request->env->{HTTP_HOST};
+        my $search = {trashed => 0};
+        if ($hostname =~ m/^(.*)\.$domain$/) {
+            $search->{-or} = [ { shortname => $1 }, {hostname => $hostname} ];
+        }
+        else {
+            $search->{hostname} = $hostname;
+        }
+        my $site = Wing->db->resultset('Site')->search($search,{rows => 1})->single;
+        if (defined $site) {
+            site( $site );
+            return vars->{wing_site_db} = $site->connect_to_database;
+            pass;
+        }
+    }
+    return Wing->db;
+};
+
+
+hook after => sub {
+    if (exists vars->{wing_site_db} && defined vars->{wing_site_db}) { # we only need to disconnect if this is a tenant site
+        vars->{wing_site_db}->storage->disconnect;
+    }
 };
 
 register site => sub {

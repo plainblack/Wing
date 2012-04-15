@@ -41,7 +41,7 @@ before wing_finalize_class => sub {
 };
 
 around can_use => sub {
-    my ($orig, $self, $user) = @_;
+    my ($orig, $self, $user, $tracer) = @_;
     if ($self->user_id) {
         return 1 if $self->user->can_use($user);
     }

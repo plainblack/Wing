@@ -90,6 +90,7 @@ hook before_error_init => sub {
     }
 };
 
+
 register_plugin;
 
 1;

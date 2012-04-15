@@ -45,7 +45,7 @@ sub db {
 }
 
 # load site DBIx::Class namespace
-my $site_namespace = $_config->get('site_namespace');
+my $site_namespace = $_config->get('tenants/namespace');
 if (defined $site_namespace) {
     my $class = $site_namespace. '::DB';
     eval " require $class; import $class; ";

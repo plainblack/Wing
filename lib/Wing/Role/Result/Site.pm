@@ -82,8 +82,8 @@ sub connect_to_database {
     my $self = shift;
     my $config = Wing->config;
     my @dsn = @{$config->get('db')};
-    $dsn[0] = $config->get('site_db_driver/prefix') . $self->database_name . $config->get('site_db_driver/suffix');
-    my $class = $config->get('site_namespace').'::DB';
+    $dsn[0] = $config->get('tenants/db_driver/prefix') . $self->database_name . $config->get('tenants/db_driver/suffix');
+    my $class = $config->get('tenants/namespace').'::DB';
     return $class->connect(@dsn);
 }
 
