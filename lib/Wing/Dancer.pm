@@ -26,7 +26,6 @@ register site_db => sub {
     my $tenant = find_tenant_site();
     if (defined $tenant) {
         site( $tenant );
-        warn "B".ref $tenant;
         var wing_site_db => $tenant->connect_to_database;
         return vars->{wing_site_db};
     }
