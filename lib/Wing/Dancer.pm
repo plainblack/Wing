@@ -2,10 +2,7 @@
 
 use Wing;
 
-register site_db => sub {
-    if (exists vars->{wing_site_db} && defined vars->{wing_site_db}) {
-        return vars->{wing_site_db};
-    }
+sub find_tenant_site {
     my $domain = Wing->config->get('tenants/domain');
     if ($domain) {
         my $hostname = request->env->{HTTP_HOST};
@@ -16,12 +13,22 @@ register site_db => sub {
         else {
             $search->{hostname} = $hostname;
         }
-        my $site = Wing->db->resultset('Site')->search($search,{rows => 1})->single;
-        if (defined $site) {
-            site( $site );
-            return vars->{wing_site_db} = $site->connect_to_database;
-            pass;
-        }
+        return Wing->db->resultset('Site')->search($search,{rows => 1})->single;
+    }
+    return undef;
+}
+
+register site_db => sub {
+    if (exists vars->{wing_site_db} && defined vars->{wing_site_db}) {
+        return vars->{wing_site_db};
+    }
+    my $domain = Wing->config->get('tenants/domain');
+    my $tenant = find_tenant_site();
+    if (defined $tenant) {
+        site( $tenant );
+        warn "B".ref $tenant;
+        var wing_site_db => $tenant->connect_to_database;
+        return vars->{wing_site_db};
     }
     return Wing->db;
 };
@@ -36,6 +43,10 @@ hook after => sub {
 register site => sub {
     my ($site) = @_;
     if ($site) {
+        var wing_site => $site;
+    }
+    elsif (!exists vars->{wing_site} || !defined vars->{wing_site}) {
+        $site = find_tenant_site();
         var wing_site => $site;
     }
     return vars->{wing_site};

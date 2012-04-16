@@ -43,9 +43,7 @@ register get_user_by_session_id => sub {
         }
         return $user;
     }
-    else {
-        ouch 440, 'User no longer exists.', 'session_id';
-    }
+    return undef;
 };
 
 register describe => sub {
