@@ -148,7 +148,7 @@ sub describe {
     my ($self, %options) = @_;
     my $out = {
         id          => $self->id,
-        wing_object_type => 'session',
+        object_type => 'session',
         user_id     => $self->user_id,
     };
     if ($options{include_private} || (exists $options{current_user} && defined $options{current_user} && $options{current_user} eq $self->user_id)) {
