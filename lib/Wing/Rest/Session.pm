@@ -41,6 +41,8 @@ post '/api/session' => sub {
     my $user = site_db()->resultset('User')->search({username => params->{username}},{rows=>1})->single;
     ouch(440, 'User not found.') unless defined $user;
 
+    ouch(441, 'API Key does not belong to this user.') unless site_db()->resultset('APIKey')->search({user_id => $user->id, id => params->{api_key_id}})->count;
+
     # rate limiter
     my $max = Wing->config->get('rpc_limit') || 30;
     if ($user->rpc_count > $max) {
