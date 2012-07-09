@@ -1,0 +1,16 @@
+---
+appname: [% project %]
+charset: UTF-8
+engines:
+  template_toolkit:
+    encoding: utf8
+    end_tag: '%]'
+    start_tag: '[%'
+error_template: error
+layout: main
+log4perl:
+  config_file: /data/[% project %]/etc/log4perl.conf
+logger: log4perl
+show_errors: 0
+template: template_toolkit
+behind_proxy: 1

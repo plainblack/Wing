@@ -15,12 +15,13 @@ $project = ucfirst $project;
 # make folder
 make_path('/data/'.$project.'/lib/'.$project.'/DB/Result');
 make_path('/data/'.$project.'/etc');
-make_path('/data/'.$project.'/bin');
+make_path('/data/'.$project.'/bin/setup');
+make_path('/data/'.$project.'/bin/util');
 make_path('/data/'.$project.'/var');
 
 # set up default configs
-my $config = Config::JSON->new('/data/Wing/var/init/etc/example.conf');
-my $new_config = Config::JSON->create('/data/'.$project.'/etc/'.lc($project).'.conf');
+my $config = Config::JSON->new('/data/Wing/var/init/etc/wing.conf');
+my $new_config = Config::JSON->create('/data/'.$project.'/etc/wing.conf');
 $new_config->config($config->config);
 $new_config->set('mkits', '/data/'.$project.'/var/mkits/');
 $new_config->set('app_namespace', $project);
@@ -42,6 +43,11 @@ template($tt,'bin/restart_starman.sh', $vars, 'bin/restart_starman.sh');
 template($tt,'bin/stop_starman.sh', $vars, 'bin/stop_starman.sh');
 template($tt,'bin/web.psgi', $vars, 'bin/web.psgi');
 template($tt,'bin/rest.psgi', $vars, 'bin/rest.psgi');
+template($tt,'bin/setup/install_perl_modules.sh', $vars, 'bin/setup/install_perl_modules.sh');
+template($tt,'bin/setup/init_db.pl', $vars, 'bin/setup/init_db.pl');
+template($tt,'bin/util/add_user.pl', $vars, 'bin/util/add_user.pl');
+template($tt,'bin/util/generate_init_sql.pl', $vars, 'bin/util/generate_init_sql.pl');
+template($tt,'bin/util/show_db_classes.pl', $vars, 'bin/util/show_db_classes.pl');
 
 # set privs
 system('cd /data/'.$project.'/bin;chmod 755 *');
