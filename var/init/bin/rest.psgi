@@ -3,7 +3,7 @@ use lib '/data/[% project %]/lib', '/data/Wing/lib';
 use Dancer;
 use Wing::Rest::APIKey;
 use Wing::Rest::Session;
-use [% project %]::Rest::User;
+use Wing::Rest::User;
 use Wing::Rest::Status;
 use Wing::Rest::NotFound;
 use Plack::Builder;
