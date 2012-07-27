@@ -1,6 +1,6 @@
 mkdir -p /data/apps
 
-. dataapps.sh
+. /data/Wing/bin/dataapps.sh
 
 ln -s /etc/profile.d/dataapps.sh /data/Wing/bin/dataapps.sh
 
