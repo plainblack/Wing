@@ -24,7 +24,7 @@ sub config {
 # log
 die "'log4perl_config' directive missing from config file" unless $_config->get('log4perl_config');
 Log::Log4perl::init($_config->get('log4perl_config'));
-my $_log = Log::Log4perl->get_logger('generate_preview');
+my $_log = Log::Log4perl->get_logger;
 sub log {
     return $_log;
 }
