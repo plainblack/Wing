@@ -90,7 +90,7 @@ sub send_templated_email {
         }
     };
     if (hug) {
-        $_log->fatal('Email Problem: '.bleep);
+        __PACKAGE__->log->fatal('Email Problem: '.bleep);
         ouch 504, 'Could not send email. Mail service down.';
     }
 }
