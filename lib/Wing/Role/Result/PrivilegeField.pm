@@ -35,6 +35,18 @@ sub wing_privilege_field {
         return $self->$field || $self->is_admin;
     });
 
+    $class->meta->add_around_method_modifier( describe => sub {
+        my ($orig, $self, %options) = @_;
+        my $out = $orig->($self, $user);
+        if (exists $options{current_user} && $options{user}->$is_method_name) {
+            $out->{$is_method_name} = 1;
+        }
+        else {
+            $out->{$is_method_name} = 0;
+        }
+        return $out;
+    });
+
     $class->meta->add_method('verify_is_'. $field => sub {
         my $self = shift;
         unless ($self->$is_method_name) {
