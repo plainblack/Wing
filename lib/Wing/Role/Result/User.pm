@@ -66,6 +66,9 @@ around describe => sub {
     my ($orig, $self, %options) = @_;
     my $out = $orig->($self, %options);
     $out->{display_name} = $self->display_name;
+    if ($options{include_private}) {
+        $out->{is_admin} = $self->is_admin;
+    }
     return $out;
 };
 
