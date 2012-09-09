@@ -37,7 +37,7 @@ sub wing_privilege_field {
 
     $class->meta->add_around_method_modifier( describe => sub {
         my ($orig, $self, %options) = @_;
-        my $out = $orig->($self, $user);
+        my $out = $orig->($self, %options);
         if ($options{include_private} && exists $options{current_user}) {
             $out->{$is_method_name} = $options{user}->$is_method_name;
         }
