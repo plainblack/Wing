@@ -93,6 +93,14 @@ sub is_admin {
     return $self->admin;
 }
 
+sub verify_is_admin {
+    my $self = shift;
+    unless ($self->is_admin) {
+        ouch 450, 'You must be an admin to do that.';
+    }
+    return $self;
+}
+
 sub is_password_valid {
     my ($self, $password) = @_;
     my $encrypted_password;

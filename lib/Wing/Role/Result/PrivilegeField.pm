@@ -39,7 +39,7 @@ sub wing_privilege_field {
         my ($orig, $self, %options) = @_;
         my $out = $orig->($self, %options);
         if ($options{include_private} && exists $options{current_user}) {
-            $out->{$is_method_name} = $options{user}->$is_method_name;
+            $out->{$is_method_name} = $options{current_user}->$is_method_name;
         }
         return $out;
     });
