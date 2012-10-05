@@ -75,7 +75,34 @@ sub from_RFC3339 {
     return DateTime::Format::RFC3339->new->parse_datetime($date);
 }
 
-# send a templated email
+=head2 send_templated_email ($class, $template, $params, $options)
+
+This is a class method for sending out a templated email.  It is a
+light wrapper around L<Email::MIME::Kit>.  If an error
+occurs during the sending of any email it will throw an exception.
+
+=head3 $template
+
+The name of a template to use for building the email.  This should be a directory
+in the mkits directory for the project.
+
+=head3 $params
+
+A hashref of parameters to send to L<Email::MIME::Kit>'s assemble method, called on
+a newly created object.  Please see the docs for the module for which params are
+available.
+
+=head3 $options
+
+A hashref of options for changing the behavior of this method
+
+=head4 bcc
+
+If this option exists, then a copy of the email will be sent to the value of
+the option.
+
+=cut
+
 sub send_templated_email {
     my ($class, $template, $params, $options) = @_; 
     $params->{sitename} = $_config->get('sitename');
