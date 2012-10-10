@@ -14,15 +14,18 @@ package Wing;
 
 =head1 NAME
 
-Package Wing
+Wing - A restful web service toolkit.
 
 =head1 DESCRIPTION
 
-Wing master object, providing several utility functions
+Wing master object, providing several utility functions.
 
 =head1 SYNOPSIS
 
  use Wing;
+ 
+ my $db = Wing->db;
+ my $cache = Wing->cache;
 
 =head1 SUBROUTINES
 
