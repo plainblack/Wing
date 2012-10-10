@@ -1,5 +1,35 @@
 package Wing;
 
+=head1 LEGAL
+
+ -------------------------------------------------------------------
+  Wing is Copyright 2001-2012 Plain Black Corporation.
+ -------------------------------------------------------------------
+  Please read the legal notices (docs/legal.txt) and the license
+  (docs/license.txt) that came with this distribution before using
+  this software.
+ -------------------------------------------------------------------
+  http://www.plainblack.com                     info@plainblack.com
+ -------------------------------------------------------------------
+
+=head1 NAME
+
+Package Wing
+
+=head1 DESCRIPTION
+
+Wing master object, providing several utility functions
+
+=head1 SYNOPSIS
+
+ use Wing;
+
+=head1 SUBROUTINES
+
+These subroutines are available from this package:
+
+=cut
+
 use Wing::Perl;
 use Config::JSON;
 use CHI;
@@ -17,6 +47,13 @@ use DateTime::Format::RFC3339;
 die "'WING_CONFIG' environment variable has not been set" unless exists $ENV{WING_CONFIG};
 die "'WING_CONFIG' environment variable does not point to a config file" unless -f $ENV{WING_CONFIG};
 my $_config = Config::JSON->new($ENV{WING_CONFIG});
+
+=head2 config
+
+Return a copy of the Wing config file for this project as a L<Config::JSON> object.
+
+=cut
+
 sub config {
     return $_config;
 }
@@ -24,6 +61,13 @@ sub config {
 # log
 die "'log4perl_config' directive missing from config file" unless $_config->get('log4perl_config');
 Log::Log4perl->init($_config->get('log4perl_config'));
+
+=head2 log
+
+Return a copy of the Wing logger for this project as a L<Log::Log4perl> object.
+
+=cut
+
 sub log {
     my $class = shift;
     my $module = shift || 'Wing';
@@ -41,6 +85,13 @@ if ($_config->get('dbic_trace')) {
     $_db->storage->debug(1);
     $_db->storage->debugfh(IO::File->new($_config->get('dbic_trace'), 'w'));
 }
+
+=head2 db
+
+Return a copy of a database handle for this object as a L<DBIx::Class> object
+
+=cut
+
 sub db {
     return $_db;
 }
@@ -56,6 +107,13 @@ if (defined $site_namespace) {
 # cache
 die "'cache' directive missing from config file" unless $_config->get('cache');
 my $_cache = CHI->new(%{$_config->get('cache')});
+
+=head2 cache
+
+Return a copy of a cache object for this object as a L<CHI> object
+
+=cut
+
 sub cache {
     return $_cache;
 }
@@ -63,6 +121,13 @@ sub cache {
 ## utility methods
 
 # format DateTime as an RFC3339 date
+
+=head2 to_RFC3339
+
+Format DateTime as an RFC3339 date
+
+=cut
+
 sub to_RFC3339 {
     my ($class, $date) = @_;
     $date ||= DateTime->now;
@@ -70,6 +135,13 @@ sub to_RFC3339 {
 }
 
 # format an RFC3339 date as DateTime
+
+=head2 from_RFC3339
+
+Format an RFC3339 date as DateTime
+
+=cut
+
 sub from_RFC3339 {
     my ($class, $date) = @_;
     return DateTime::Format::RFC3339->new->parse_datetime($date);
