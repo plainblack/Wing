@@ -10,7 +10,6 @@ my $project = '';
 GetOptions("project=s" => \$project);
 
 die "usage: $0 --project=ProjectName" unless $project;
-$project = ucfirst $project;
 
 # make folder
 make_path('/data/'.$project.'/lib/'.$project.'/DB/Result');
