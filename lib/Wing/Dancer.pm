@@ -1,6 +1,24 @@
 # this gets included into Wing::Rest and Wing::Web to avoid duplcation of code
 
+=head1 NAME
+
+Wing::Dancer - A mixin of Dancer utilities.
+
+=head1 DESCRIPTION
+
+These subroutines get included into L<Wing::Rest> and L<Wing::Web>. These subs are shared between the two do avoid duplication of code.
+
+=cut
+
 use Wing;
+
+=head1 SUBROUTINES
+
+=head2 find_tenant_site()
+
+When Wing is running in multi-tenant mode, this subroutine can be used to look up a site record. See L<Wing::Role::Result::Site> for details.
+
+=cut
 
 sub find_tenant_site {
     my $domain = Wing->config->get('tenants/domain');
@@ -17,6 +35,14 @@ sub find_tenant_site {
     }
     return undef;
 }
+
+=head2 site_db()
+
+In multi-tenant mode, this returns the a reference to the database for the current site. Otherwise it returns Wing->db.
+
+Registered as a Dancer keyword.
+
+=cut
 
 register site_db => sub {
     if (exists vars->{wing_site_db} && defined vars->{wing_site_db}) {
@@ -39,6 +65,14 @@ hook after => sub {
     }
 };
 
+=head2 site()
+
+Returns a site record. This is the value of find_tenant_site(), except calling through this is cached, and therefore faster.
+
+Registered as a Dancer keyword.
+
+=cut
+
 register site => sub {
     my ($site) = @_;
     if ($site) {
@@ -51,6 +85,26 @@ register site => sub {
     return vars->{wing_site};
 };
 
+=head2 fetch_object(class, id)
+
+Returns a Wing object of the specified type.
+
+Registered as a Dancer keyword.
+
+=over
+
+=item class
+
+Required. The class name of the object you wish to fetch.
+
+=item id
+
+Optional. The id of the object you wish to fetch. Defaults to pulling the id from Dancer C<params>.
+
+=back
+
+=cut
+
 register fetch_object => sub {
     my ($type, $id) = @_;
     $id ||= params->{id};
@@ -59,6 +113,58 @@ register fetch_object => sub {
     ouch(404, $type.' not found.') unless defined $object;
     return $object;
 };
+
+=head format_list(result_set, options)
+
+Formats a result set as a hash reference for exposing to web/rest.
+
+Registered as a Dancer keyword.
+
+=over
+
+=item result_set
+
+A result set to format.
+
+=item options
+
+A hash of formatting options.
+
+=over
+
+=item page_number
+
+Defaults to C<params> page_number, or 1 if not specified.
+
+=item items_per_page
+
+A number between 1 and 100. Defaults to C<params> items_per_page or 25 if not specified.
+
+=item include_admin
+
+If you want to force the items in the formatted list to include admin fields.
+
+=item include_private
+
+If you want to force the items in the formatted list to include private fields.
+
+=item include_related_objects
+
+If you want to force the items in the formatted list to include related objects.
+
+=item include_relationships
+
+If you want to force the items in the formatted list to include relationships.
+
+=item include_options
+
+If you want to force the items in the formatted list to include field options.
+
+=back
+
+=back
+
+=cut
 
 register format_list => sub {
     my ($result_set, %options) = @_;
@@ -93,6 +199,14 @@ register format_list => sub {
     };
 };
 
+=head2 get_tracer()
+
+Returns a tracer id. Tracers are used to track users when no user session is present.
+
+Registered as a Dancer keyword.
+
+=cut
+
 register get_tracer => sub {
     my $cookie = cookies->{tracer};
     if (defined $cookie) {
@@ -100,6 +214,14 @@ register get_tracer => sub {
     }
     return undef;
 };
+
+=head2 expanded_params()
+
+Does the same thing as Dancer C<params> but also added a few new automatic keys: C<tracer>, C<ipaddress>, C<useragent>
+
+Registered as a Dancer keyword.
+
+=cut
 
 register expanded_params => sub {
     my %params = params;
