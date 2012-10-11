@@ -62,7 +62,7 @@ before wing_finalize_class => sub {
     );
     my $namespace = $class;
     $namespace =~ s/^(\w+)\:.*$/$1/;
-    $class->wing_child(
+    $class->wing_children(
         api_keys  => {
             view                => 'private',
             related_class       => $namespace.'::DB::Result::APIKey',
