@@ -1,8 +1,42 @@
 package Wing::Role::Result::Field;
 
+=head1 NAME
+
+Wing::Role::Result::Field - Some sugar to add fields to your wing classes.
+
+=head1 SYNOPSIS
+
+ with 'Wing::Role::Result::Field';
+ 
+ __PACKAGE__->wing_field( 
+    'name' => {
+        dbic    => { data_type => 'varchar', size => 30 },
+        edit  => 'unique',
+    }
+ );
+ 
+=head1 METHODS
+
+=cut
+
 use Wing::Perl;
 use Ouch;
 use Moose::Role;
+
+
+=head2 wing_fields(fields)
+
+Add multiple fields at once. See C<wing_field> for details.
+
+=over
+
+=item fields
+
+A hash of fields.
+
+=back
+
+=cut
 
 sub wing_fields {
     my ($class, %fields) = @_;
@@ -10,6 +44,82 @@ sub wing_fields {
         $class->wing_field($field, $definition);
     }
 }
+
+=head2 wing_field(field, options)
+
+Add a field to your class.
+
+=over
+
+=item field
+
+The name of the field. A method will be created as a getter/setter using this name.
+
+=item options
+
+A hash reference of the options that define the field.
+
+=over
+
+=item dbic
+
+The L<DBIx::Class> field definition. Required.
+
+=item edit
+
+Can this field be edited through web/rest? There are several options:
+
+=over
+
+=item postable
+
+Editable by anybody that controls the object.
+
+=item required
+
+The same as C<postable> and also required at object creation.
+
+=item unique
+
+The same as C<required> and is also required to be unique amongst all objects of this type.
+
+=item admin
+
+The same as C<postable>, but only editable by users with the admin bit flipped.
+
+=back
+
+=item indexed
+
+Boolean. Indicates whether this field should have an index applied to it in the database for quicker searching. This is automatic when C<edit> is set to C<unique>.
+
+B<NOTE:> If you set this specifically to C<unique> then it will create a unique index rather than a normal index.
+
+=item range
+
+An array reference where the first value is the minimum value in the range and the second is the max value.
+
+=item options
+
+An enumerated list of scalars as options for this field. 
+
+=item describe_method
+
+The name of a method in this class. This method will be called when C<describe> is called on the object to serialize this field. Most fields don't need special serialziation so most of the time this isn't necessary.
+
+=item skip_duplicate
+
+Boolean. When this is true then the C<duplicate> method will not copy this field while making a duplicate.
+
+=item duplicate_prefix
+
+If you set this, it will be prepended to the field when duplicated. This is useful for doing things like 'Copy of '. 
+
+=back
+
+=back
+
+=cut
 
 sub wing_field {
     my ($wing_object_class, $field, $options) = @_;
