@@ -12,6 +12,7 @@ use Moose::Role;
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::DateTimeField';
 with 'Wing::Role::Result::PrivilegeField';
+with 'Wing::Role::Result::Child';
 
 before wing_finalize_class => sub {
     my ($class) = @_;
@@ -59,12 +60,31 @@ before wing_finalize_class => sub {
             set_on_create   => 1,
         }
     );
+    my $namespace = $class;
+    $namespace =~ s/^(\w+)\:.*$/$1/;
+    $class->wing_child(
+        api_keys  => {
+            view                => 'private',
+            related_class       => $namespace.'::DB::Result::APIKey',
+            related_id          => 'user_id',
+        },
+        api_key_permissions  => {
+            view                => 'private',
+            related_class       => $namespace.'::DB::Result::APIKeyPermission',
+            related_id          => 'user_id',
+        },
+    );
 };
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
     $sqlt_table->add_index(name => 'idx_search', fields => ['real_name','username','email']);
 }
+
+before delete => sub {
+    my $self = shift;
+
+};
 
 around describe => sub {
     my ($orig, $self, %options) = @_;
