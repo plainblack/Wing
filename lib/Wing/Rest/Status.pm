@@ -18,6 +18,7 @@ any qr{/api/_test.*} => sub {
         params => {params},
         path    => request->path,
     };
+    delete $out->{params}{splat};
     my $uploads = request->uploads;
     if (scalar(keys %{$uploads})) {
         foreach my $upload (values %{$uploads}) {
