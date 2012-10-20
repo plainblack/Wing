@@ -12,8 +12,23 @@ get '/api/status' => sub {
     }
 };
 
-any '/api/_test' => sub {
-    return params;
+any qr{/api/_test.*} => sub {
+    my $out = { 
+        method => request->method, 
+        params => {params},
+        path    => request->path,
+    };
+    my $uploads = request->uploads;
+    if (scalar(keys %{$uploads})) {
+        foreach my $upload (values %{$uploads}) {
+            push @{$out->{uploads}}, {
+                filename => $upload->filename,
+                size => $upload->size,
+                type => $upload->type,
+            };
+        }
+    }
+    return $out;
 };
 
 1;
