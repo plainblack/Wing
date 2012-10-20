@@ -12,5 +12,8 @@ get '/api/status' => sub {
     }
 };
 
+any '/api/_test' => sub {
+    return params;
+};
 
 1;
