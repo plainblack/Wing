@@ -52,9 +52,9 @@ register describe => sub {
     return $object->describe(
         include_private         => (eval { $object->can_use($current_user) }) ? 1 : 0,
         include_admin           => (eval { defined $current_user && $current_user->is_admin }) ? 1 : 0,
-        include_relationships   => params->{include_relationships},
-        include_options         => params->{include_options},
-        include_related_objects => params->{include_related_objects},
+        include_relationships   => params->{_include_relationships},
+        include_options         => params->{_include_options},
+        include_related_objects => params->{_include_related_objects},
         current_user            => $current_user,
         tracer                  => get_tracer(),
     );
@@ -116,11 +116,11 @@ register generate_read => sub {
 register generate_options => sub {
     my ($wing_object_type) = @_;
     my $object_url = lc($wing_object_type);
-    get '/api/'.$object_url.'/options' => sub {
+    get '/api/'.$object_url.'/_options' => sub {
         return site_db()->resultset($wing_object_type)->new({})->field_options(
-            include_relationships   => params->{include_relationships},
-            include_options         => params->{include_options},
-            include_related_objects => params->{include_related_objects},
+            include_relationships   => params->{_include_relationships},
+            include_options         => params->{_include_options},
+            include_related_objects => params->{_include_related_objects},
             current_user            => eval { get_user_by_session_id() },
         );
     };

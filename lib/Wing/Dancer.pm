@@ -134,11 +134,11 @@ A hash of formatting options.
 
 =item page_number
 
-Defaults to C<params> page_number, or 1 if not specified.
+Defaults to C<params> _page_number, or 1 if not specified.
 
 =item items_per_page
 
-A number between 1 and 100. Defaults to C<params> items_per_page or 25 if not specified.
+A number between 1 and 100. Defaults to C<params> _items_per_page or 25 if not specified.
 
 =item include_admin
 
@@ -168,8 +168,8 @@ If you want to force the items in the formatted list to include field options.
 
 register format_list => sub {
     my ($result_set, %options) = @_;
-    my $page_number = $options{page_number} || params->{page_number} || 1;
-    my $items_per_page = $options{items_per_page} || params->{items_per_page} || 25;
+    my $page_number = $options{page_number} || params->{_page_number} || 1;
+    my $items_per_page = $options{items_per_page} || params->{_items_per_page} || 25;
     $items_per_page = ($items_per_page < 1 || $items_per_page > 100 ) ? 25 : $items_per_page;
     my $page = $result_set->search(undef, {rows => $items_per_page, page => $page_number });
     my @list;
@@ -179,9 +179,9 @@ register format_list => sub {
         push @list, $item->describe(
             include_admin           => $options{include_admin} || (defined $user && $user->is_admin) ? 1 : 0, 
             include_private         => $options{include_private} || (eval { $item->can_use($user) }) ? 1 : 0, 
-            include_relationships   => $options{include_relationships} || params->{include_relationships}, 
-            include_related_objects => $options{include_related_objects} || params->{include_related_objects}, 
-            include_options         => $options{include_options} || params->{include_options}, 
+            include_relationships   => $options{include_relationships} || params->{_include_relationships}, 
+            include_related_objects => $options{include_related_objects} || params->{_include_related_objects}, 
+            include_options         => $options{include_options} || params->{_include_options}, 
             tracer                  => $tracer,
             current_user            => $user,
         );
