@@ -33,9 +33,10 @@ INSTALLATION
 
 5. Initialize the database:
 
-  cd /data/MyProject/bin/setup
+  cd /data/MyProject/bin
   export WING_CONFIG=/data/MyProject/etc/wing.conf
-  perl init_db.pl
+
+  perl dbdh.pl --install
 
 6. Start up the rest server:
 
