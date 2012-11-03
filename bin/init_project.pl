@@ -17,6 +17,7 @@ make_path('/data/'.$project.'/etc');
 make_path('/data/'.$project.'/bin/setup');
 make_path('/data/'.$project.'/bin/util');
 make_path('/data/'.$project.'/var');
+make_path('/data/'.$project.'/dbicdh/_common/deploy/1');
 
 # set up default configs
 my $config = Config::JSON->new('/data/Wing/var/init/etc/wing.conf');
@@ -47,6 +48,7 @@ template($tt,'bin/setup/init_db.pl', $vars);
 template($tt,'bin/util/add_user.pl', $vars);
 template($tt,'bin/util/generate_init_sql.pl', $vars);
 template($tt,'bin/util/show_db_classes.pl', $vars);
+template($tt,'dbicdh/_common/deploy/1/install_admin.pl', $vars);
 
 # set privs
 system('cd /data/'.$project.'/bin;chmod 755 *');
