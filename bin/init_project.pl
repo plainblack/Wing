@@ -43,9 +43,9 @@ template($tt,'bin/restart_starman.sh', $vars);
 template($tt,'bin/stop_starman.sh', $vars);
 template($tt,'bin/web.psgi', $vars);
 template($tt,'bin/rest.psgi', $vars);
+template($tt,'bin/dbdh.pl', $vars);
 template($tt,'bin/setup/install_perl_modules.sh', $vars);
 template($tt,'bin/util/add_user.pl', $vars);
-template($tt,'bin/util/generate_init_sql.pl', $vars);
 template($tt,'bin/util/show_db_classes.pl', $vars);
 template($tt,'dbicdh/_common/deploy/1/install_admin.pl', $vars);
 
