@@ -38,7 +38,7 @@ my $schema_name = Wing->config->get('app_namespace');
  
 my $version = eval "${schema_name}::DB->VERSION;";
  
-say "processing version $version for $ENV{WING_CONFIG}...";
+say "Current code version $version for $ENV{WING_CONFIG}...";
  
 my $dh = DBIx::Class::DeploymentHandler->new( {
         schema              => $schema,
@@ -71,8 +71,7 @@ elsif ($upgrade) {
 }
 elsif ($install) {
     say "Installing a new database";
-    $dh->prepare_install;
-    $dh->install;
+    $dh->install({ version => 1, });
 }
 elsif ($initialize) {
     say "Adding DeploymentHandler to your current db";
@@ -80,7 +79,9 @@ elsif ($initialize) {
     $dh->add_database_version({ version => $schema->schema_version });
 }
 elsif ($prepare) {
-    say "Prepare upgrade information";
+    say "Preparing SQL for new version";
+    say "\tgenerating deploy script";
+    $dh->prepare_deploy;
     if ( $version > 1 ) {
         say "\tgenerating upgrade script";
         $dh->prepare_upgrade( {
@@ -134,15 +135,23 @@ you automatically.
 
 Each branch should contain ONE and ONLY ONE increase in the VERSION number.
 
+=head1 GETTING STARTED
+
+When initializing a new database for development, you need run an install
+and then an upgrade:
+
+  dbdh.pl --install
+  dbdh.pl --upgrade
+
 =head1 BRANCHING AND MAKING CHANGES
 
-First, by the light of a waning crescent moon, create your branch in git.
+First, by the waning light of your creativity, create your branch in git.
 
 Next, increment C<$VERSION> in C<lib/$PROJECT/DB.pm> by one.  You
 may commit this change.
 
 Continue by making your database changes in the Results and ResultSets.  When you
-wish to use this code, 
+wish to use this code, type:
 
   dbdh.pl --prepare
 
@@ -183,6 +192,18 @@ Add and commit the code in in the dbicdh branch.
 
 Push your branch so that others may suffer from your codification.
 
+=head1 EDGE CASES
+
+=head2 Replacing one column with another.
+
+Recently in TGC we refactored Document to remove the use_for column (3 options) with two columns (is_printable
+and is_downloadable).  This required two revisions.
+
+In revision one, we added the two new columns and then went over the Documents row by row to spread
+the 3 options across them.
+
+Then, in revision two, you can safely remove the old column.
+
 =head1 OPTIONS
 
 =over
@@ -206,8 +227,8 @@ B<NEVER COMMIT THE OUTPUT OF THIS SCRIPT IN ANY BRANCH OTHER THAN MASTER.>
 
 =item B<--initialize>
 
-This option to prepare a database that has not yet been upgraded to use DBIx::Class::DeploymentHandler.
-Projects that are newly created containing this script should not need use this option.  It's only
+This option prepares a database that has not yet been setup to use DBIx::Class::DeploymentHandler.
+Projects that are newly created containing this script will not need use this option.  It's only
 used to retrofit existing projects with the necessary database tables and directories for managing
 schema version information.
 
