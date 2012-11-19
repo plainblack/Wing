@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
  
-use 5.12.0;
+use lib '/data/[% project %]/lib', '/data/Wing/lib';
  
-use strict;
-use warnings;
+use Wing;
+use Wing::Perl;
 use FindBin;
 use Getopt::Long;
 use Pod::Usage;
