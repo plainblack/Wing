@@ -79,10 +79,10 @@ elsif ($initialize) {
     $dh->add_database_version({ version => $schema->schema_version });
 }
 elsif ($prepare) {
-    say "Preparing SQL for new version";
-    say "\tgenerating deploy script";
-    $dh->prepare_deploy;
+    say "Prepare upgrade information";
     if ( $version > 1 ) {
+        say "\tgenerating deploy script";
+        $dh->prepare_deploy;
         say "\tgenerating upgrade script";
         $dh->prepare_upgrade( {
                 from_version => $version - 1,
@@ -192,18 +192,6 @@ Add and commit the code in in the dbicdh branch.
 
 Push your branch so that others may suffer from your codification.
 
-=head1 EDGE CASES
-
-=head2 Replacing one column with another.
-
-Recently in TGC we refactored Document to remove the use_for column (3 options) with two columns (is_printable
-and is_downloadable).  This required two revisions.
-
-In revision one, we added the two new columns and then went over the Documents row by row to spread
-the 3 options across them.
-
-Then, in revision two, you can safely remove the old column.
-
 =head1 OPTIONS
 
 =over
@@ -227,8 +215,8 @@ B<NEVER COMMIT THE OUTPUT OF THIS SCRIPT IN ANY BRANCH OTHER THAN MASTER.>
 
 =item B<--initialize>
 
-This option prepares a database that has not yet been setup to use DBIx::Class::DeploymentHandler.
-Projects that are newly created containing this script will not need use this option.  It's only
+This option to prepare a database that has not yet been upgraded to use DBIx::Class::DeploymentHandler.
+Projects that are newly created containing this script should not need use this option.  It's only
 used to retrofit existing projects with the necessary database tables and directories for managing
 schema version information.
 
