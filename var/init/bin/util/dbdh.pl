@@ -80,9 +80,9 @@ elsif ($initialize) {
 }
 elsif ($prepare) {
     say "Prepare upgrade information";
+    say "\tgenerating deploy script";
+    $dh->prepare_deploy;
     if ( $version > 1 ) {
-        say "\tgenerating deploy script";
-        $dh->prepare_deploy;
         say "\tgenerating upgrade script";
         $dh->prepare_upgrade( {
                 from_version => $version - 1,
