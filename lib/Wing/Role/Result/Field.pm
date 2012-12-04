@@ -239,7 +239,7 @@ sub wing_field {
                 my ($self, $value) = @_;
                 if (scalar(@_) > 1) {
                     unless ($value ~~ $options->{options}) {
-                        ouch 442, $field.' must be one of: '.join(', ', @{$options->{options}}), $field;
+                        ouch 442, $field.' must be one of: '.join(', ', @{$options->{options}}). " and not ".$value, $field;
                     }
                 }
             });

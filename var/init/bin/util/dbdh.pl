@@ -44,7 +44,7 @@ my $dh = DBIx::Class::DeploymentHandler->new( {
         schema              => $schema,
         databases           => [qw/ MySQL /],
         sql_translator_args => { add_drop_table => 0, },
-        script_directory    => "$FindBin::Bin/../dbicdh",
+        script_directory    => "$FindBin::Bin/../../dbicdh",
         force_overwrite     => $force_overwrite,
     }
 );
