@@ -175,9 +175,10 @@ register format_list => sub {
     my @list;
     my $user = eval{ get_user_by_session_id() };
     my $tracer = get_tracer();
+    my $is_admin = defined $user && $user->is_admin ? 1 : 0;
     while (my $item = $page->next) {
         push @list, $item->describe(
-            include_admin           => $options{include_admin} || (defined $user && $user->is_admin) ? 1 : 0, 
+            include_admin           => $options{include_admin} || $is_admin ? 1 : 0, 
             include_private         => $options{include_private} || (eval { $item->can_use($user) }) ? 1 : 0, 
             include_relationships   => $options{include_relationships} || params->{_include_relationships}, 
             include_related_objects => $options{include_related_objects} || params->{_include_related_objects}, 
