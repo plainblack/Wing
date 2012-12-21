@@ -149,7 +149,7 @@ hook before_error_init => sub {
         $error->{message} = {
             error   => $error->exception->hashref,
         };
-        $error->{code} = $error->exception->code;
+        $error->{code} = $error->exception->code =~ m/^\d{3}$/ ? $error->exception->code : 500;
     }
     else {
         $error->{message} = {
