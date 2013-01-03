@@ -1,6 +1,10 @@
 #!/usr/bin/env perl
  
-use lib '/data/[% project %]/lib', '/data/Wing/lib';
+BEGIN {
+ die "Must set WING_HOME environment variable." unless $ENV{WING_HOME};
+ die "Must set WING_APP environment variable." unless $ENV{WING_APP};
+}
+use lib $ENV{WING_APP}.'/lib', $ENV{WING_HOME}.'/lib';
  
 use Wing;
 use Wing::Perl;
@@ -11,7 +15,7 @@ use Pod::Usage;
 use DBIx::Class::DeploymentHandler;
 
 my $force_overwrite = 0;
-my ($upgrade, $downgrade, $install, $initialize, $prepare);
+my ($upgrade, $downgrade, $install, $initialize, $prepare, $show_classes, $show_create);
 my ($help, $man);
 
 my $ok = GetOptions(
@@ -21,6 +25,8 @@ my $ok = GetOptions(
     'in|install'       => \$install,
     'initialize'       => \$initialize,
     'prepare'          => \$prepare,
+    'show_classes'     => \$show_classes,
+    'show_create'      => \$show_create,
     'help'             => \$help,
     'man'              => \$man,
 );
@@ -31,78 +37,89 @@ pod2usage( verbose => 1 ) if $help;
 pod2usage( verbose => 2 ) if $man;
 pod2usage( msg => "Must specify an environment variable!" ) unless $ENV{WING_CONFIG} && -e $ENV{WING_CONFIG};
 
-use Wing;  ##Controlled the WING_CONFIG
+use Wing; 
 my $schema = Wing->db;
 
-my $schema_name = Wing->config->get('app_namespace');
+if ($show_classes) {
+    foreach my $name ($schema->sources) {
+        say $name;
+    }
+}
+elsif ($show_create) {
+    say $schema->deployment_statements();
+}
+else { # schema manipulation
+    my $schema_name = Wing->config->get('app_namespace');
  
-my $version = eval "${schema_name}::DB->VERSION;";
+    my $version = eval "${schema_name}::DB->VERSION;";
  
-say "Current code version $version for $ENV{WING_CONFIG}...";
- 
-my $dh = DBIx::Class::DeploymentHandler->new( {
+    my $dh = DBIx::Class::DeploymentHandler->new( {
         schema              => $schema,
         databases           => [qw/ MySQL /],
         sql_translator_args => { add_drop_table => 0, },
         script_directory    => "$FindBin::Bin/../../dbicdh",
         force_overwrite     => $force_overwrite,
-    }
-);
+    });
 
-if ($downgrade) {
-    say "Downgrading";
-    my $db_version = $dh->database_version;
-    if ($db_version > $version) {
-        $dh->downgrade;
-    }
-    else {
-        say "No downgrades required.  Code version = $version, database version = $db_version";
-    }
-}
-elsif ($upgrade) {
-    say "Upgrading";
-    my $db_version = $dh->database_version;
-    if ($version > $db_version) {
-        $dh->upgrade;
-    }
-    else {
-        say "No upgrades required.  Code version = $version, database version = $db_version";
-    }
-}
-elsif ($install) {
-    say "Installing a new database";
-    $dh->install({ version => 1, });
-}
-elsif ($initialize) {
-    say "Adding DeploymentHandler to your current db";
-    $dh->install_version_storage;
-    $dh->add_database_version({ version => $schema->schema_version });
-}
-elsif ($prepare) {
-    say "Prepare upgrade information";
-    say "\tgenerating deploy script";
-    $dh->prepare_deploy;
-    if ( $version > 1 ) {
-        say "\tgenerating upgrade script";
-        $dh->prepare_upgrade( {
-                from_version => $version - 1,
-                to_version   => $version,
-                version_set  => [ $version - 1, $version ],
-            } );
-     
-        say "\tgenerating downgrade script";
-        $dh->prepare_downgrade( {
-                from_version => $version,
-                to_version   => $version - 1,
-                version_set  => [ $version, $version - 1 ],
-            } );
-    }
-}
-else {
-    say "You didn't tell me to do anything that I recognize";
-}
- 
-say "done";
+    say "Current code version $version for $ENV{WING_CONFIG}...";
+	if ($downgrade) {
+	    say "Downgrading";
+	    my $db_version = $dh->database_version;
+	    if ($db_version > $version) {
+	        $dh->downgrade;
+	        say "done";
+	    }
+	    else {
+	        say "No downgrades required.  Code version = $version, database version = $db_version";
+	    }
+	}
+	elsif ($upgrade) {
+	    say "Upgrading";
+	    my $db_version = $dh->database_version;
+	    if ($version > $db_version) {
+	        $dh->upgrade;
+	        say "done";
+	    }
+	    else {
+	        say "No upgrades required.  Code version = $version, database version = $db_version";
+	    }
+	}
+	elsif ($install) {
+	    say "Installing a new database";
+	    $dh->install({ version => 1, });
+	    say "done";
+	}
+	elsif ($initialize) {
+	    say "Adding DeploymentHandler to your current db";
+	    $dh->install_version_storage;
+	    $dh->add_database_version({ version => $schema->schema_version });
+	    say "done";
+	}
+	elsif ($prepare) {
+	    say "Prepare upgrade information";
+	    say "\tgenerating deploy script";
+	    $dh->prepare_deploy;
+	    if ( $version > 1 ) {
+	        say "\tgenerating upgrade script";
+	        $dh->prepare_upgrade( {
+	                from_version => $version - 1,
+	                to_version   => $version,
+	                version_set  => [ $version - 1, $version ],
+	            } );
+	     
+	        say "\tgenerating downgrade script";
+	        $dh->prepare_downgrade( {
+	                from_version => $version,
+	                to_version   => $version - 1,
+	                version_set  => [ $version, $version - 1 ],
+	            } );
+	    }
+	    say "done";
+	}
+	else {
+	    say "You didn't tell me to do anything that I recognize";
+	}
+} 
 
 =head1 NAME
 
@@ -110,12 +127,15 @@ dbdh.pl - manipulate database schema, handling installs, upgrades and downgrades
 
 =head1 SYNOPSIS
 
- dbdh.pl --up
- dbdh.pl --down
- dbdh.pl --prepare
- dbdh.pl --install
+ wing_db.pl --show_create
+ wing_db.pl --show_classes
 
- dbdh.pl --help
+ wing_db.pl --up
+ wing_db.pl --down
+ wing_db.pl --prepare
+ wing_db.pl --install
+
+ wing_db.pl --help
 
 =head1 DESCRIPTION
 
@@ -129,8 +149,8 @@ A few notes:
 You must have a C<WING_CONFIG> environment variable set to the configuration file
 for your Wing project.  If you don't, prepare for programatically generated shame.
 
-The VERSION for the database should be kept in C<lib/$PROJECT/DB.pm> in a publicly
-available scalar variable.  If you used Wing's C<init_project.pl> this ws done for
+The VERSION for the database should be kept in C<$ENV{WING_APP}/lib/$PROJECT/DB.pm> in a publicly
+available scalar variable.  If you used Wing's C<wing_init_app.pl> this ws done for
 you automatically.
 
 Each branch should contain ONE and ONLY ONE increase in the VERSION number.
@@ -140,25 +160,25 @@ Each branch should contain ONE and ONLY ONE increase in the VERSION number.
 When initializing a new database for development, you need run an install
 and then an upgrade:
 
-  dbdh.pl --install
-  dbdh.pl --upgrade
+  wing_db.pl --install
+  wing_db.pl --upgrade
 
 =head1 BRANCHING AND MAKING CHANGES
 
 First, by the waning light of your creativity, create your branch in git.
 
-Next, increment C<$VERSION> in C<lib/$PROJECT/DB.pm> by one.  You
+Next, increment C<$VERSION> in C<$ENV{WING_APP}/lib/$PROJECT/DB.pm> by one.  You
 may commit this change.
 
 Continue by making your database changes in the Results and ResultSets.  When you
 wish to use this code, type:
 
-  dbdh.pl --prepare
+  wing_db.pl --prepare
 
 this will create all the SQL and DDL changes required for the upgrade.  Then
 chant
 
-  dbdh.pl --up
+  wing_db.pl --up
 
 and your database will be upgraded.
 
@@ -169,13 +189,13 @@ database.  If so, then:
 
 Decrease $VERSION in lib/$PROJECT/DB.pm
 
-  dbdh.pl --down
+  wing_db.pl --down
 
 Make your additional changes, fix your mistakes, again, and sob uncontrollably.
 Increase C<$VERSION> in C<lib/$PROJECT/DB.pm>
 
-  dbdh.pl --prepare
-  dbdh.pl --up
+  wing_db.pl --prepare
+  wing_db.pl --up
 
 =head2 The urge to merge
 
@@ -186,7 +206,7 @@ Remove all traces of automatically generated code that have been added to the db
 
 Merge your branch into the master branch.
 
-  dbdh.pl --prepare
+  wing_db.pl --prepare
 
 Add and commit the code in in the dbicdh branch.
 
@@ -195,6 +215,14 @@ Push your branch so that others may suffer from your codification.
 =head1 OPTIONS
 
 =over
+
+=item B<--show-create>
+
+This option will display the SQL used to generate the database schema from scratch. This is useful to verify that everything is being created as you want it to be.
+
+=item B<--show-classes>
+
+This option will display the database class names that Wing automatically loaded at startup. This can sometimes be useful when diagnosing weird problems.
 
 =item B<--up|upgrade>
 
@@ -234,7 +262,7 @@ Shows this document
 
 =head1 AUTHOR
 
-Copyright 2012 Plain Black Corporation.
+Copyright 2012-2013 Plain Black Corporation.
 
 =cut
 

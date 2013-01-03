@@ -7,9 +7,9 @@ use Getopt::Long;
 use File::Path qw(make_path);
 
 my $project = '';
-GetOptions("project=s" => \$project);
+GetOptions("app=s" => \$project);
 
-die "usage: $0 --project=ProjectName" unless $project;
+die "usage: $0 --app=AppName" unless $project;
 
 # make folder
 make_path('/data/'.$project.'/lib/'.$project.'/DB/Result');
@@ -44,9 +44,6 @@ template($tt,'bin/stop_starman.sh', $vars);
 template($tt,'bin/web.psgi', $vars);
 template($tt,'bin/rest.psgi', $vars);
 template($tt,'bin/setup/install_perl_modules.sh', $vars);
-template($tt,'bin/util/dbdh.pl', $vars);
-template($tt,'bin/util/add_user.pl', $vars);
-template($tt,'bin/util/show_db_classes.pl', $vars);
 template($tt,'dbicdh/_common/deploy/1/install_admin.pl', $vars);
 
 # set privs

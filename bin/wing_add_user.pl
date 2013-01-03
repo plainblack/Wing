@@ -1,7 +1,10 @@
 #!/usr/bin/env perl
 
-use lib '/data/[% project %]/lib', '/data/Wing/lib';
-
+BEGIN {
+ die "Must set WING_HOME environment variable." unless $ENV{WING_HOME};
+ die "Must set WING_APP environment variable." unless $ENV{WING_APP};
+}
+use lib $ENV{WING_APP}.'/lib', $ENV{WING_HOME}.'/lib';
 
 use Wing;
 use Wing::Perl;
