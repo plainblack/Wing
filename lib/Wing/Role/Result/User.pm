@@ -204,6 +204,9 @@ sub send_templated_email {
     unless ($self->email) {
         ouch 441, "No email address associated with this user.", 'email';
     }
+    unless ($self->email =~ '\@') {
+        ouch 442, "Illegal email address for this user.", 'email';
+    }
     $params->{me} = $self->describe(include_private => 1);
     Wing->send_templated_email($template, $params, $options);
     return $self;
