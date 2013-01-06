@@ -22,7 +22,7 @@ GetOptions(
 );
 
 unless ($username) {
-    say "usage: ./add_user.pl --username=Joe --password=123qwe --admin";
+    say "usage: ./wing_add_user.pl --username=Joe --password=123qwe --admin";
     exit;
 }
 
