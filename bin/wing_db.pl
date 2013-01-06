@@ -16,7 +16,7 @@ use DBIx::Class::DeploymentHandler;
 
 my $force_overwrite = 0;
 my ($upgrade, $downgrade, $install, $initialize, $prepare, $show_classes, $show_create);
-my ($help, $man);
+my ($info, $help, $man);
 
 my $ok = GetOptions(
     'force_overwrite!' => \$force_overwrite,
@@ -24,6 +24,7 @@ my $ok = GetOptions(
     'up|upgrade'       => \$upgrade,
     'in|install'       => \$install,
     'initialize'       => \$initialize,
+    'info'             => \$info,
     'prepare'          => \$prepare,
     'show_classes'     => \$show_classes,
     'show_create'      => \$show_create,
@@ -61,7 +62,15 @@ else { # schema manipulation
         force_overwrite     => $force_overwrite,
     });
 
-    say "Current code version $version for $ENV{WING_CONFIG}...";
+    say "For $ENV{WING_CONFIG}...";
+    say "\tCurrent code version $version...";
+    if ($dh->version_storage_is_installed) {
+        say "\tCurrent database version ".$dh->database_version."...";
+    }
+    else {
+        say "\tNo version control installed in this database.";
+    }
+
 	if ($downgrade) {
 	    say "Downgrading";
 	    my $db_version = $dh->database_version;
@@ -116,6 +125,9 @@ else { # schema manipulation
 	    }
 	    say "done";
 	}
+    elsif ($info) {
+        ##Do nothing, but don't generate the message below
+    }
 	else {
 	    say "You didn't tell me to do anything that I recognize";
 	}
@@ -123,7 +135,7 @@ else { # schema manipulation
 
 =head1 NAME
 
-dbdh.pl - manipulate database schema, handling installs, upgrades and downgrades
+wing_db.pl - manipulate database schema, handling installs, upgrades and downgrades
 
 =head1 SYNOPSIS
 
@@ -132,16 +144,19 @@ dbdh.pl - manipulate database schema, handling installs, upgrades and downgrades
 
  wing_db.pl --up
  wing_db.pl --down
- wing_db.pl --prepare
- wing_db.pl --install
+ wing_db.pl --prep
+ wing_db.pl --in
 
  wing_db.pl --help
+ wing_db.pl --info
 
 =head1 DESCRIPTION
 
+
 Greetings, future victim of automatic database manipulation.  This document
 describes the futile ways in which you will try to decrease your workload
-by the use of several scripts, a few modules and some arcane incantations.
+via the use of this script.
+
 Weep now, while you still can.
 
 A few notes:
@@ -163,6 +178,13 @@ and then an upgrade:
   wing_db.pl --install
   wing_db.pl --upgrade
 
+=head1 DESTROYING DATA
+
+The B<install> and B<prepare> commands create consistent names, and to protect you,
+L<DBIx::Class::DeploymentHandler> will not overwrite files that already exist.  When
+installing a new development database, or regenerating install, upgrade or downgrade
+files, you need to tell B<wing_db> to overwrite files using the B<force_overwrite> option.
+
 =head1 BRANCHING AND MAKING CHANGES
 
 First, by the waning light of your creativity, create your branch in git.
@@ -173,7 +195,7 @@ may commit this change.
 Continue by making your database changes in the Results and ResultSets.  When you
 wish to use this code, type:
 
-  wing_db.pl --prepare
+  wing_db.pl --prep
 
 this will create all the SQL and DDL changes required for the upgrade.  Then
 chant
@@ -194,7 +216,7 @@ Decrease $VERSION in lib/$PROJECT/DB.pm
 Make your additional changes, fix your mistakes, again, and sob uncontrollably.
 Increase C<$VERSION> in C<lib/$PROJECT/DB.pm>
 
-  wing_db.pl --prepare
+  wing_db.pl --prep
   wing_db.pl --up
 
 =head2 The urge to merge
@@ -211,6 +233,17 @@ Merge your branch into the master branch.
 Add and commit the code in in the dbicdh branch.
 
 Push your branch so that others may suffer from your codification.
+
+=head1 Cookbook
+
+=head2 Refactoring column data.
+
+This usually happens when you are replacing one column with data from another.  As
+past of this, you need to port over the old data, perhaps making changes to it.  Since all
+the schema changes happen before the deploy scripts run, this doesn't work.
+
+One solution to this is to add the new column(s) in one database version, and then
+remove the old column(s) in another version.
 
 =head1 OPTIONS
 
@@ -236,7 +269,12 @@ This option will downgrade your current database to the latest version in your b
 
 Use this option to install the schema for a brand new database for development.
 
-=item B<--prepare>
+=item B<--fo|force_overwrite>
+
+By default, DBIx::Class::DeploymentHandler will not overwrite existing files.  You can
+use C<--fo> to make it do that anyway.
+
+=item B<--prep|prepare>
 
 This option is used to make the code to upgrade a database.
 B<NEVER COMMIT THE OUTPUT OF THIS SCRIPT IN ANY BRANCH OTHER THAN MASTER.>
@@ -249,6 +287,10 @@ used to retrofit existing projects with the necessary database tables and direct
 schema version information.
 
 If you don't know whether or not to use this option, then don't.
+
+=item B<--info>
+
+In case you're lost, show the current versions of the code and the database.
 
 =item B<--help>
 
