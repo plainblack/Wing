@@ -11,6 +11,7 @@ These subroutines get included into L<Wing::Rest> and L<Wing::Web>. These subs a
 =cut
 
 use Wing;
+use POSIX qw/ceil/; 
 
 =head1 SUBROUTINES
 
@@ -190,7 +191,7 @@ register format_list => sub {
     return {
         paging => {
             total_items             => $page->pager->total_entries,
-            total_pages             => int($page->pager->total_entries / $items_per_page) + 1,
+            total_pages             => ceil($page->pager->total_entries / $items_per_page),
             page_number             => $page_number,
             items_per_page          => $items_per_page,
             next_page_number        => $page_number + 1,
