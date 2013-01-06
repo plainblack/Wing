@@ -141,7 +141,7 @@ sub wing_object_api_uri {
 
 Serializes important data about the object and returns it as a hash reference.
 
-B<NOTE:> This method is context sensitive. It will return different data depending on the context information passed to it via the options hash.
+B<NOTE:> This method is modal. It will return different data depending on the information passed to it via the C<options> hash.
 
 =over
 
@@ -170,6 +170,29 @@ A boolean that inicates whether the describe method should include API links to 
 =item current_user
 
 A reference to a user object. If this is included then the object can determine whether to display private data on it's own.
+
+=back
+
+=back
+
+=over
+
+=item Returns
+
+Unless overridden in a child or consumer class, all Wing objects will have these fields being
+returned by describe.
+
+=over
+
+=item id
+
+=item object_type
+
+=item object_name
+
+=item date_updated
+
+=item date_created
 
 =back
 
@@ -292,6 +315,8 @@ A hash reference of parameters to verify.
 
 A reference to the current user object.
 
+=back
+
 =cut
 
 sub verify_creation_params {
@@ -314,6 +339,8 @@ A hash reference of parameters to verify.
 =item current_user
 
 A reference to the current user object.
+
+=back
 
 =cut
 
@@ -350,5 +377,11 @@ sub duplicate {
     my ($self) = @_;
     return $self->result_source->schema->resultset(ref $self)->new({});
 }
+
+=head2 SEE ALSO
+
+L<Ouch>, L<DBIx::Class>
+
+=cut
 
 1;
