@@ -1,4 +1,8 @@
-=head1 Error Codes
+=head1 NAME
+
+Error Codes
+
+=head1 DESCRIPTION
 
 This document describes the error codes thrown by Wing's REST API. They map directly onto the W3C's standard HTTP status codes (L<http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html>). When functioning properly the web service will always return a 200 HTTP status code.
 
