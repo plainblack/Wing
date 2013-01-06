@@ -175,7 +175,7 @@ Results will always start with a top level element called "result" and the data 
 
 Paginated lists are always handled exactly the same way, and always have the same minimum set of parameters for manipulation.
 
- curl -F _items_per_page=25 page_number=3 http://wing.example.com/article
+ curl -F _items_per_page=25 _page_number=3 http://wing.example.com/article
 
 You can tell how many items per page to return and which page number to return. That will give you a result set like this:
 
@@ -184,7 +184,7 @@ You can tell how many items per page to return and which page number to return. 
      "paging" : {
        "total_items" : 937,
        "page_number" : 3,
-       "_items_per_page" : 25,
+       "items_per_page" : 25,
        "total_pages" : 313,
        "next_page_number" : 4,
        "previous_page_number" : 2,
