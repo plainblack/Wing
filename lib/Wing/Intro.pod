@@ -1,0 +1,344 @@
+=head1 Introduction to the Wing API
+
+The Wing API is a restful protocol developed by Plain Black Corporation (L<http://www.plainblack.com>). It is designed to make web services easy to use, easy to implement, easy to wrap in a software layer, and most important, maintain absolute consistency. 
+
+
+
+=head2 Conventions
+
+There are several conventions used in this documentation to keep things shorter. They are documented here.
+
+=head3 Ellipsis
+
+We often shorten pieces of return values with ellipsis (three dots: ...) to show that there would be additional data there, but it is not directly relevent to the documentation at hand.
+
+=head3 No Result Wrappers
+
+Though all Wing results have a wrapper like:
+
+ { "result" : { ... } }
+ 
+Or
+
+ { "error" : { ... } }
+
+They are left out in most of the documentaiton for the sake of brevity. Only the C<{...}> portion is discussed in most cases.
+
+=head3 ID's
+
+ID's everywhere are represented as 3 x's: C<xxx>. If you see C<xxx> anywhere that means that would be replaced by a legitimate ID and shouldn't be interpreted literally.
+
+=head2 Requests and Responses
+
+To make a request to a Wing web service you need nothing more than a command line tool like C<curl>, but you can of course use any network aware programming language as well. Here's an example request:
+
+Create an object:
+
+ curl -X POST -F title="Ethics in Prisons" author="Andy Dufresne" http://wing.example.com/article
+
+ {
+   "result" : {
+     "id" : "xxx",
+     "author" : "Andy Dufresne",
+     "title" : "Ethics in Prisons"
+   }
+ }
+
+Read an object:
+
+ curl http://wing.example.com/article/xxx
+
+ {
+   "result" : {
+     "id" : "xxx",
+     "author" : "Andy Dufresne",
+     "title" : "Ethics in Prisons"
+   }
+ }
+
+Update an object:
+
+ curl -X PUT -F body="..." http://wing.example.com/article/xxx
+
+ {
+   "result" : {
+     "id" : "xxx",
+     "author" : "Andy Dufresne",
+     "title" : "Ethics in Prisons",
+     "body" : "..."
+   }
+ }
+
+Delete an object: 
+
+ curl -X DELETE http://wing.example.com/article/xxx
+
+ {
+   "result" : { "success" : 1 }
+ }
+
+=head3 Authenticated Requests
+
+With each request you can choose to either send a cookie with C<session_id> or
+pass it in the query params. If you choose not to pass the C<session_id>, then
+the result you receive will be the public result set. If you do pass the
+C<session_id> then you'll get the private result set (provided your session
+has the privileges to receive the private result set). For example, if you
+request information about your user account without specifying a C<session_id>
+then all you'd get back is an ID and some other basic information, like this:
+
+ {
+    "id" : "xxx",
+    "display_name" : "Andy Dufresne"
+ }
+
+But if you request your account information with your C<session_id>, then you'd
+get a result set with everything we know about you:
+
+ {
+    "id" : "xxx",
+    "display_name" : "Andy Dufresne",
+    "username" : "andy",
+    "email" : "andy@shawshank.jail",
+    ...
+ }
+
+However, if I requested information about your account, and specified my own
+C<session_id>, then I would only get the public data. Because I don't have
+the privileges necessary to access your private information.
+
+See Also: L<Session>
+
+
+=head2 Consistency
+
+A big part of the Wing specification is that you can reliably expect it to do the same thing in all circumstances. Here are a few key points of consistency.
+
+=head3 Format
+
+Wing will always return a JSON response in the form of a hash.
+
+ {
+   "result" : { "success" : 1 }
+ }
+
+=head3 Exceptions
+
+Exceptions will always start with a top level element called C<error> and then will have a hash of 3 properties: C<code>, C<message>, and C<data>.
+
+ {
+   "error" : {
+     "code" : 500,
+     "message" : "An unknown error has occurred.",
+     "data" : null
+   }
+ }
+
+The code is always an integer and conforms to the standard list of Wing L<Wing::ErrorCodes>. These numbers are used consistently so that app developers can trap and handle specific types of exceptions more gracefully.
+
+The message is a human readable message that you can display to a user.
+
+The data element many times will be null, but it can have important debug information. For example, if a required field was left empty, the field name could be put in the data element so that the app could highlight the field for the user.
+
+=head3 Warnings
+
+In addition to exceptions there can be less severe issues that come up. These are handled via warnings. Warnings are just like exceptions, but they don't cause execution to halt. As such there can be any number of warnings. And warnings are returned with the result.
+
+ {
+    "result" : {
+        "_warnings" : [
+            {
+                "code" : 445,
+                "message" : "Logo image is too big.",
+                "data" : "logo"
+            }
+        ],
+        ...
+    }
+ }
+
+
+=head3 Results
+
+Results will always start with a top level element called "result" and the data contained therein will always be returned as a hash.
+
+ {
+   "result" : { 
+      "session_id" : "xxx",
+      "user" : {
+        "username" : "andy",
+        "email" : "andy@shawshank.jail"
+      }
+ }
+
+=head3 Pagination
+
+Paginated lists are always handled exactly the same way, and always have the same minimum set of parameters for manipulation.
+
+ curl -F _items_per_page=25 page_number=3 http://wing.example.com/article
+
+You can tell how many items per page to return and which page number to return. That will give you a result set like this:
+
+ {
+   "result" : {
+     "paging" : {
+       "total_items" : 937,
+       "page_number" : 3,
+       "_items_per_page" : 25,
+       "total_pages" : 313,
+       "next_page_number" : 4,
+       "previous_page_number" : 2,
+     },
+     "items" : [
+       {
+         "id" : "xxx",
+         "title" : "Ethics in Prisons",
+         "author" : "Andy Dufresne",
+         "body" : "..."
+       },
+       ...
+     ]
+   }
+ }
+
+=over
+
+=item _items_per_page
+
+Defaults to 25. Minimum 1. Maximum 100. The number of items to be returned in a given result set.
+
+=item page_number
+
+Defaults to 1. The page of results to return.
+
+=back
+
+
+=head3 Relationships
+
+All objects can have relationships to each other. When you fetch an object, you can pass C<_include_relationships=1> as a parameter if you want to get the relationship data as well.
+
+ curl -F _include_relationships=1  http://wing.example.com/article/xxx
+
+ {
+   "result" : {
+     "id" : "xxx",
+     "author" : "Andy Dufresne",
+     "title" : "Ethics in Prisons",
+     "body" : "...",
+     "user_id" : "xxx",
+     "_relationships" : {
+        "user" : "http://wing.example.com/api/user/xxx",
+        "related_articles" : "http://wing.example.com/article/xxx/related_articles"
+     }
+   }
+ }
+
+=head3 Related Objects
+
+Likewise you can request that the short version of the related objects be included directly in the result by adding C<_include_related_objects=1> as a parameter:
+
+ curl -F _include_related_objects=1  http://wing.example.com/article/xxx
+
+ {
+   "result" : {
+     "id" : "xxx",
+     "author" : "Andy Dufresne",
+     "title" : "Ethics in Prisons",
+     "body" : "...",
+     "user_id" : "xxx",
+     "user" : {
+        "id" : "xxx",
+        "username" : "andy",
+        "display_name" : "Andy Dufresne"
+     }
+   }
+ }
+
+B<NOTE:> The only related objects that will be returned in this manner are 1:1 relationships. If the relationship is 1:N as in the case of related articles above, then those will not be included in the result.
+
+=head3 Options
+
+Sometimes an object will have fields that require you to choose an option from an enumerated list. There are two ways to see what those options are:
+
+This way would be most often used when you need the list of options in order to create an object.
+
+ curl http://wing.example.com/article/_options
+ 
+ {
+    "result" : {
+        "book_type" : ["Hardcover","Paperback"]
+    }
+ }
+
+This way would be most often used when you need the list of options to update an object, because you can get the properties of the object and the options in one call.
+
+ curl -F _include_options=1  http://wing.example.com/article/xxx
+
+ {
+   "result" : {
+     "id" : "xxx",
+     "author" : "Andy Dufresne",
+     "title" : "Ethics in Prisons",
+     "body" : "...",
+     "book_type" : "Hardcover"
+     "_options" : {
+        "book_type" : ["Hardcover","Paperback"]
+     }
+   }
+ }
+
+Options will always be returned as an array as displayed above. However, they can be accompanied by a hash of human readable labels such as:
+
+ {
+    "result" : {
+        "_options" : {
+            "country" : ["CA","GB","US",...],
+            "_country" : {
+                "US" : "United States of America",
+                "GB: : "Great Britain",
+                "CA" : "Canada",
+                ...
+            }
+        }
+    }
+ }
+
+=head2 HTTP Method Tunnelling
+
+Sometimes it's not possible to use all HTTP methods. For example if you were to
+trigger a form post through Javascript the browser only knows how to do GET and
+POST. You can get around this by using XmlHttpRequest, but there is another way:
+HTTP Method Tunnelling.
+
+Instead of doing a request like:
+
+ curl -X DELETE http://wing.example.com/article/xxx
+
+You can instead do a POST and pass the actual method via an HTTP Header like
+this:
+
+ curl -H "X-HTTP-Method: DELETE" -X POST http://wing.example.com/article/xxx
+ 
+Or you can pass it as part of the URI like:
+
+ curl -X POST http://wing.example.com/article/xxx?X-HTTP-Method=DELETE
+
+Here's the same example as an HTML form:
+
+ <form method="POST" action="http://wing.example.com/article/xxx?X-HTTP-Method=DELETE">
+ ...
+ </form>
+
+=head2 Clients
+
+An example of a Wing based client is available to help you interface with our APIs.
+
+Perl: L<http://search.cpan.org/~rizen/TheGameCrafter-Client/lib/TheGameCrafter/Client.pm>
+
+=head2 Testing
+
+If you don't want to use an available client, but instead write your own, there is a L<Test> API that can help make sure your client is working before you start using the real web service.
+
+=cut
+
