@@ -1,4 +1,4 @@
-=head1 Introduction to the Wing API
+=head1 Introduction to the Wing Restful API
 
 The Wing API is a restful protocol developed by Plain Black Corporation (L<http://www.plainblack.com>). It is designed to make web services easy to use, easy to implement, easy to wrap in a software layer, and most important, maintain absolute consistency. 
 
