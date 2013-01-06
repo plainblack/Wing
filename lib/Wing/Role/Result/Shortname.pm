@@ -5,6 +5,23 @@ use Ouch;
 use Moose::Role;
 with 'Wing::Role::Result::Field';
 
+=head1 NAME
+
+Wing::Role::Result::Shortname - add a small, constrained text field to your Wing object.
+
+=head1 SYNOPSIS
+
+ with 'Wing::Role::Result::Shortname
+
+=head1 DESCRIPTION
+
+This role adds a C<shortname> field to your Wing::DB::Result object class.  shortname
+fields are between 3 and 50 characters in length, are alphanumeric with only lower
+case and have to start with an alphabetical character.
+
+=cut
+
+
 before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_field(

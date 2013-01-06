@@ -5,6 +5,26 @@ use Ouch;
 use Moose::Role;
 use Data::GUID;
 
+=head1 NAME
+
+Wing::Role::Result::UriPart - give your Wing object a URL fragment.
+
+=head1 SYNOPSIS
+
+ with 'Wing::Role::Result::UriPart';
+
+=head1 DESCRIPTION
+
+This role adds a C<uri_part> field to your Wing::DB::Result object class and enforces
+character length limits and characters valid in a URL.  uri_parts can be in utf8.
+
+If a C<uri_part> already exists in the database, Wing will try to construct a
+unique URL by appending integers to the end of the user's input.
+
+If a valid C<uri_part> cannot be constructed from user input, then it will ouch 443.
+
+=cut
+
 before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_field(
