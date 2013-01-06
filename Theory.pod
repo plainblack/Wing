@@ -1,0 +1,31 @@
+=head1 NAME
+
+Theory - How to take the concepts of Wing and put them together.
+
+=head1 DESCRIPTION
+
+Wing is a thin layer of glue and sugar that binds L<DBIx::Class> to L<Dancer> to allow you to easily create web service enabled applications. 
+
+=head2 Role-Based Architecture
+
+Pretty much everything in Wing is a Role. This allows you to create the objects you want to create, and only use the components of Wing you need. The one major exception to this is L<Wing::DB::Result>. L<Wing::DB::Result> needs to be the base class of all of your objects. It sets up your objects to be compatible with Wing. Here's an example of an object:
+
+ package MyApp::DB::Result::User;
+ 
+ use Wing::Perl;
+ use Moose;
+ 
+ extends 'Wing::DB::Result';
+ 
+ __PACKAGE__->wing_finalize_class( table_name => 'users');
+ 
+ no Moose;
+ __PACKAGE__->meta->make_immutable(inline_constructor => 0);
+ 
+The above is a valid Wing class. It doesn't do anything really, but it is a valid starting point.  If you were to add one additional line it would become a very useful object:
+
+ with 'Wing::Role::Result::User';
+ 
+With just that one incantation, you now have a valid Wing user object with permissions and more. And that's the beauty of the role-based architecture. With very little code, you can make incredibly powerful objects. It's not just adding fields like C<username>, but also setting up validation for those fields for both web and web services, database storage and schema creation, Perl accessors, and more.
+
+=cut

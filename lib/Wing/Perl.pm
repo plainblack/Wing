@@ -1,5 +1,16 @@
 package Wing::Perl;
 
+=head1 NAME
+
+Wing::Perl - Standardize what Perl configuration Wing uses.
+
+
+=head1 SYNOPSIS
+
+ use Wing::Perl;
+
+=cut
+
 use 5.010_000;
 
 use strict;
