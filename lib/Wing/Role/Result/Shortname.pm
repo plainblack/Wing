@@ -19,6 +19,9 @@ This role adds a C<shortname> field to your Wing::DB::Result object class.  shor
 fields are between 3 and 50 characters in length, are alphanumeric with only lower
 case and have to start with an alphabetical character.
 
+Wing will ouch 442 if those constraints are not met, or if the shortname is not unique
+in the database.
+
 =cut
 
 
