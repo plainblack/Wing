@@ -7,7 +7,7 @@ use Data::GUID;
 
 =head1 NAME
 
-Wing::Role::Result::UriPart - give your Wing object a URL fragment.
+Wing::Role::Result::UriPart - Give your Wing object a URL fragment.
 
 =head1 SYNOPSIS
 
@@ -15,13 +15,23 @@ Wing::Role::Result::UriPart - give your Wing object a URL fragment.
 
 =head1 DESCRIPTION
 
-This role adds a C<uri_part> field to your Wing::DB::Result object class and enforces
-character length limits and characters valid in a URL.  uri_parts can be in utf8.
+Create an automatically defined URL for an object based upon it's name. The uri_part will be unique amongst other objects of the same type, by appending an integer to the end if necessary. If the name cannot be turned into a uri_part for some reason it will ouch 443.
 
-If a C<uri_part> already exists in the database, Wing will try to construct a
-unique URL by appending integers to the end of the user's input.
+=head1 REQUIREMENTS
 
-If a valid C<uri_part> cannot be constructed from user input, then it will ouch 443.
+The class you load this into must have a C<name> field defined.
+
+=head1 ADDS
+
+=head2 Fields
+
+=over
+
+=item uri_part
+
+A URL-safe version of the C<name> field. This is automatically generated and gracefully supports UTF-8. 
+
+=back
 
 =cut
 

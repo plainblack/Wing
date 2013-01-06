@@ -14,6 +14,81 @@ with 'Wing::Role::Result::DateTimeField';
 with 'Wing::Role::Result::PrivilegeField';
 with 'Wing::Role::Result::Child';
 
+
+=head1 NAME
+
+Wing::Role::Result::User - The basis of Wing users.
+
+=head1 SYNOPSIS
+
+ with 'Wing::Role::Result::User';
+ 
+=head1 DESCRIPTION
+
+This is a foundational role which is required to create user objects. Users allow access and permissions to be defined in your applications.
+
+=head1 REQUIREMENTS
+
+All Wing Apps need to have a class called AppName::DB::Result::User that uses this role as a starting point.
+
+=head1 ADDS
+
+=head2 Fields
+
+=over
+
+=item username
+
+The name this user will type to authenticate themselves.
+
+=item real_name
+
+Their name in meatspace.
+
+=item email
+
+Their contact email address.
+
+=item use_as_display_name
+
+The field the user wishes to be used to display their name to other users. Must be one of C<username>, C<email>, or C<real_name>.
+
+=item password
+
+The encrypted version of the user's text-based password.
+
+=item password_type
+
+The method of encryption used on the user's password.
+
+=item admin
+
+A boolean indicating whether or not the user should be treated as an admin. See also L<Wing::Role::Result::PrivilegeField>.
+
+=item developer
+
+A boolean indicating whether or not the user should be treated as a software developer for the Restful API. See also L<Wing::Role::Result::PrivilegeField>.
+
+=item last_login
+
+A datetime indicating the time last time this user authenticated to the system. See also L<Wing::Role::Result::DateTimeField>.
+
+=back
+
+=head2 Children
+
+=over
+
+=item api_keys
+
+A relationship to a L<Wing::Role::Result::APIKeyPermmission> enabled object.
+
+=item api_key_permissions
+
+=back
+
+=cut
+
 before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_fields(
@@ -95,6 +170,48 @@ around describe => sub {
     }
     return $out;
 };
+
+=head2 Methods
+
+=over
+
+=item start_session (options)
+
+Starts a new session for this user. See C<start> in L<Wing::Session> for details.
+
+=item display_name
+
+Returns the user's preferred display name based upon the L<use_as_display_name> field. 
+
+=item is_password_valid ( password )
+
+Validates that the password supplied matches the user's defined password and returns a 1 or 0 to indicate success or failure.
+
+=item encrypt_and_set_password ( password )
+
+Given a string of text, encrypts the password and sets it in the user's account. Ouches 443 if not able to set.
+
+=item encrypt ( password )
+
+A utility function to encrypt a password. Useful for verifying passwords and setting passwords.
+
+=item rpc_count
+
+Returns an integer indicating how many web service requests this user has made in the past 60 seconds.
+
+=item current_session
+
+Returns a reference to the current L<Wing::Session> object if any.
+
+=item send_templated_email ( template, params, options )
+
+Sends a templated email to this user. See C<send_templated_email> in L<Wing> for details.
+
+=back
+
+=cut
+
+
 
 sub start_session {
     my ($self, $options) = @_;

@@ -7,20 +7,31 @@ with 'Wing::Role::Result::Field';
 
 =head1 NAME
 
-Wing::Role::Result::Shortname - add a small, constrained text field to your Wing object.
+Wing::Role::Result::Shortname - Add a small, constrained text field to your Wing object.
 
 =head1 SYNOPSIS
 
- with 'Wing::Role::Result::Shortname
+ with 'Wing::Role::Result::Shortname';
 
 =head1 DESCRIPTION
 
-This role adds a C<shortname> field to your Wing::DB::Result object class.  shortname
-fields are between 3 and 50 characters in length, are alphanumeric with only lower
-case and have to start with an alphabetical character.
+Sometimes you need a name that will help you interface with other systems. Perhaps with programs on the server, or domain names, or other machine-based processes. Shortnames are perfect for such a task. 
 
-Wing will ouch 442 if those constraints are not met, or if the shortname is not unique
-in the database.
+=head1 REQUIREMENTS
+
+The class you load this into must have a C<name> field defined.
+
+=head1 ADDS
+
+=head2 Fields
+
+=over
+
+=item shortname
+
+A 50 character name that cannot contain spaces, upper-case characters, or non-alpha-numeric characters. It will ouch 442 if an invalid name has been defined.
+
+=back
 
 =cut
 

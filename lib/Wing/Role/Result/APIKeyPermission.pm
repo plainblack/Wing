@@ -7,6 +7,47 @@ with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::UserControlled';
 with 'Wing::Role::Result::Parent';
 
+
+=head1 NAME
+
+Wing::Role::Result::APIKeyPermission - The basis of Wing API service key permissions.
+
+=head1 SYNOPSIS
+
+ with 'Wing::Role::Result::APIKeyPermission';
+ 
+=head1 DESCRIPTION
+
+This is a foundational role for the required APIKeyPermission class. API Key Permissions are used in Wing to grant privileges to third-party applications.
+
+=head1 REQUIREMENTS
+
+All Wing Apps need to have a class called AppName::DB::Result::APIKeyPermission that uses this role as a starting point.
+
+=head1 ADDS
+
+=head2 Fields
+
+=over
+
+=item permission
+
+The name of a permission being granted to this API key. 
+
+=back
+
+=head2 Parents
+
+=over
+
+=item apikey
+
+A relationship to a L<Wing::Role::Result::APIKey> enabled object.
+
+=back
+
+=cut
+
 before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_field(

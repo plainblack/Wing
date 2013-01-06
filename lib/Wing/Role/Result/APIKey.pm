@@ -7,6 +7,58 @@ with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::UserControlled';
 with 'Wing::Role::Result::Child';
 
+=head1 NAME
+
+Wing::Role::Result::APIKey - The basis of Wing API service keys.
+
+=head1 SYNOPSIS
+
+ with 'Wing::Role::Result::APIKey';
+ 
+=head1 DESCRIPTION
+
+This is a foundational role for the required APIKey class. API Keys are used in Wing to grant access to third-party applications.
+
+=head1 REQUIREMENTS
+
+All Wing Apps need to have a class called AppName::DB::Result::APIKey that uses this role as a starting point.
+
+=head1 ADDS
+
+=head2 Fields
+
+=over
+
+=item name
+
+The name of the application, person, or service that will be using this key.
+
+=item uri
+
+An optional URL of the application, person, or service using the key.
+
+=item reason
+
+The reason this key was created.
+
+=item private_key
+
+The private side of this key which can be used as an encryption key or a password.
+
+=back
+
+=head2 Children
+
+=over
+
+=item permissions
+
+A relationship to a L<Wing::Role::Result::APIKeyPermmission> enabled object.
+
+=back
+
+=cut
+
 before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_fields(
