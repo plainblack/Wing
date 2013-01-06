@@ -207,7 +207,7 @@ You can tell how many items per page to return and which page number to return. 
 
 Defaults to 25. Minimum 1. Maximum 100. The number of items to be returned in a given result set.
 
-=item page_number
+=item _page_number
 
 Defaults to 1. The page of results to return.
 
@@ -228,8 +228,9 @@ All objects can have relationships to each other. When you fetch an object, you 
      "body" : "...",
      "user_id" : "xxx",
      "_relationships" : {
-        "user" : "http://wing.example.com/api/user/xxx",
-        "related_articles" : "http://wing.example.com/article/xxx/related_articles"
+        "self" : "/api/article/xxx",
+        "user" : "/api/user/xxx",
+        "related_articles" : "/api/article/xxx/related_articles"
      }
    }
  }
