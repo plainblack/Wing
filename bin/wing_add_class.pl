@@ -37,6 +37,35 @@ eval {
   $tt->process($ENV{WING_HOME}.'/var/add_class/DB/Result.tt', $vars, $ENV{WING_APP}.'/lib/'.$project.'/DB/Result/'.$class_name.'.pm') || die $tt->error();
   $tt->process($ENV{WING_HOME}.'/var/add_class/Rest/Rest.tt', $vars, $ENV{WING_APP}.'/lib/'.$project.'/Rest/'.$class_name.'.pm') || die $tt->error();
   $tt->process($ENV{WING_HOME}.'/var/add_class/Web/Web.tt', $vars, $ENV{WING_APP}.'/lib/'.$project.'/Web/'.$class_name.'.pm') || die $tt->error();
+
+{
+    local ($^I, @ARGV) = ('', $ENV{WING_APP}.'/bin/rest.psgi');
+    my $added = 0;
+    while (<>) {
+        next if $added;
+        next unless /Wing::Rest::NotFound/;
+        $added = 1;
+        say "use ".$project."::Rest::".$class_name;
+    }
+    continue {
+        print;
+    }
+}
+
+{
+    local ($^I, @ARGV) = ('', $ENV{WING_APP}.'/bin/web.psgi');
+    my $added = 0;
+    while (<>) {
+        next if $added;
+        next unless /Wing::Web::NotFound/;
+        $added = 1;
+        say "use ".$project."::Web::".$class_name;
+    }
+    continue {
+        print;
+    }
+}
+
 };
 
 if ($@) {
