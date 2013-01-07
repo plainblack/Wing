@@ -8,7 +8,7 @@ use Wing::Rest;
 
 get '/api/status' => sub {
     return {
-        datetime    => Wing->to_ISO8601,
+        datetime    => Wing->to_mysql,
     }
 };
 

@@ -347,7 +347,24 @@ If you don't want to use an available client, but instead write your own, there 
 
 =head2 Date Format
 
-Wing's date format is ISO8601.  All dates from and to Wing must be in that format.
+Wing's date format is mysql's.  All dates from and to Wing must be in that format.  The
+reasoning for that is simple:
+
+=over
+
+=item *
+
+It's human readable.
+
+=item *
+
+It's read by Template Toolkit's Date module.
+
+=item *
+
+It's well supported in JavaScript across all browsers.
+
+=back
 
 =cut
 
