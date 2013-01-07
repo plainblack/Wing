@@ -1,0 +1,53 @@
+package TGC::Web::[%class_name%];
+
+use Dancer ':syntax';
+use Wing::Perl;
+use Ouch;
+use Wing;
+use Template;
+use Wing::Web;
+
+[% USE String %]
+[% lower_class = String.new(class_name).lower %]
+
+post '/[% lower_class %]' => sub {
+    my $current_user = get_user_by_session_id();
+    site_db()->resultset('[% class_name %]')->new({});
+    my $params = params();
+    eval {
+        $object->verify_creation_params(\%params, $current_user);
+        $object->verify_posted_params(\%params, $current_user);
+    };
+    if (hug) {
+        $status_message = bleep;
+        return redirect '/[% lower_case %]?status_message='.$status_message;
+    }
+    else {
+        $object->insert;
+        return redirect '/[% lower_case %]/'.$object->id.'?status_message='.$status_message;
+    }
+};
+
+get '/[% lower_class %]/:id' => sub {
+    my $current_user = get_user_by_session_id();
+    my $object = fetch_object('[% class_name %]');
+    $object->can_use($current_user);
+    my $vars = $object->describe;
+    template '[% lower_class %]/view', $vars;
+};
+
+put '/[% lower_class %]/:id' => sub {
+    my $current_user = get_user_by_session_id();
+    my $object = fetch_object('[% class_name %]');
+    $object->can_use($current_user);
+    $object->update({param()});
+};
+
+del '/[% lower_class %]/:id' => sub {
+    my $current_user = get_user_by_session_id();
+    my $object = fetch_object('[% class_name %]');
+    $object->can_use($current_user);
+    $object->delete;
+};
+
+true;
