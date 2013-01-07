@@ -124,19 +124,6 @@ window.alert = function(message) {
     });
 };
 
-wing.enable_blink = function() {
-        window.blinker = setInterval(function(){
-        if(window.blink){
-           $('.blink').delay(500).animate({color:'#000'},500);
-           window.blink=false;
-         }
-        else{
-                $('.blink').animate({color:'#f00'},500);
-                window.blink = true;
-        }
-    },500);
-};
-
 wing.pager = function(selector, callback, data) {
     $(selector).pagination(data.result.paging.total_items, {
           items_per_page : data.result.paging.items_per_page,
@@ -151,6 +138,7 @@ wing.pager = function(selector, callback, data) {
       });  
 };
 
+// auto-populate a page with data from an ajax call
 wing.populate = function(uri, params, ids, extra) {
     wing.ajax('GET', uri, params, function(data, text_status, jqxhr) {
         var object = data.result;
@@ -194,53 +182,4 @@ wing.populate = function(uri, params, ids, extra) {
     });    
 };
 
-
-wing.show_window = function(uri) {
-    if (!uri) {
-        uri = '/filesystem';
-    }
-    $('#fs_modal_iframe').prop('src', uri);
-    $('#fs_modal').modal({show: true });
-};
-
-wing.hide_window = function() {
-    $('#fs_modal').modal('hide');
-};
-
-wing.current_callback = function() {
-    wing.error('No callback specified');
-};
-
-wing.choose_file = function(file, expected_type, postback_uri, open_uri) {
-    wing.current_callback = function(id, preview_uri, type) {
-        var error_message = '';
-        if (expected_type == 'image') {
-            if (type != 'JPEG' && type != 'PNG') {
-                error_message = 'Expected you to choose an image, but you chose a PDF.';
-            }
-        }
-        else if (expected_type != type) {
-            error_message = 'Expected you to choose a PDF, but you chose an image.';
-        }
-        if (error_message != '') {
-            wing.error(error_message);
-        }
-        else {
-            document.getElementById(file + '_id').value = id;
-            var file_field = $('#'+file + '_id');
-            var proofed_field = $('#has_proofed_'+file);
-            var params = {};
-            params[file_field.attr('name')] = file_field.val();
-            params[proofed_field.attr('name')] = 0;
-            wing.ajax('PUT', postback_uri, params, function(){
-                wing.hide_window();
-                document.getElementById(file).src = preview_uri;
-                $('#has_proofed_' + file).val(0);
-                $('#has_proofed_' + file + '_button').addClass('red');
-                wing.success('Saved '+ $('label[for="'+file + '_id'+'"]').text()+'.');
-            });
-        }
-    };
-    wing.show_window(open_uri);
-};
 
