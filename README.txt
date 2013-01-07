@@ -20,7 +20,7 @@ INSTALLATION
 3. Create a project:
 
   cd /data/Wing/bin
-  perl init_project.pl --project=MyProject
+  perl wing_init_app.pl --project=MyProject
 
 4. Create a database on your MySQL server to host the project, and edit the Wing config to match:
 
@@ -29,14 +29,16 @@ INSTALLATION
   mysql -uroot -p -e "flush privileges" 
 
   vi /data/MyProject/etc/wing.conf  
-  # edit the "db" section
+  # edit the "db" section and add the username and password.
 
 5. Initialize the database:
 
   cd /data/MyProject/bin
+  export WING_HOME=/data/Wing
+  export WING_APP=/data/MyProject/
   export WING_CONFIG=/data/MyProject/etc/wing.conf
 
-  perl dbdh.pl --install
+  perl wing_db.pl --install --force_overwrite
 
 6. Start up the rest server:
 
@@ -46,6 +48,5 @@ INSTALLATION
 7. Now you can connect to the rest server and see if it's alive:
 
    curl http://localhost:5000/api/status
-
 
 
