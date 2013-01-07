@@ -1,0 +1,18 @@
+package [% project %]::Rest::[% class_name %];
+
+use Wing::Perl;
+use Wing;
+use Dancer;
+use Wing::Rest; 
+
+[% USE String %]
+
+#get '/api/[% String.new(class_name).lower %]' => sub {
+#    my $user = get_user_by_session_id();
+#    my $data = site_db()->resultset('[% class_name %]')->search(undef,{order_by => 'name'});
+#    return format_list($data); 
+#};
+
+generate_crud('[% class_name %]');
+
+1;
