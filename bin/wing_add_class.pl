@@ -45,7 +45,7 @@ eval {
         next if $added;
         next unless /Wing::Rest::NotFound/;
         $added = 1;
-        say "use ".$project."::Rest::".$class_name;
+        say "use ".$project."::Rest::".$class_name.';';
     }
     continue {
         print;
@@ -59,7 +59,7 @@ eval {
         next if $added;
         next unless /Wing::Web::NotFound/;
         $added = 1;
-        say "use ".$project."::Web::".$class_name;
+        say "use ".$project."::Web::".$class_name.';';
     }
     continue {
         print;
