@@ -5,6 +5,7 @@ use Config::JSON;
 use Template;
 use Getopt::Long;
 use File::Path qw(make_path);
+use YAML;
 
 my $project = '';
 GetOptions("app=s" => \$project);
@@ -27,6 +28,14 @@ $new_config->set('mkits', '/data/'.$project.'/var/mkits/');
 $new_config->set('app_namespace', $project);
 $new_config->set("log4perl_config", "/data/".$project."/etc/log4perl.conf",);
 $new_config->write;
+
+# set up dancer config
+my $dancer_config = YAML::LoadFile('/data/Wing/var/init/config.yml');
+$dancer_config->{appname} = $project;
+$dancer_config->{log4perl}{config_file} = '/data/'.$project.'/etc/log4perl.conf';
+use Data::Dumper;
+print Dumper $dancer_config;
+YAML::DumpFile('/data/'.$project.'/config.yml', $dancer_config);
 
 # set up needed files
 my $tt = Template->new({ABSOLUTE => 1});
