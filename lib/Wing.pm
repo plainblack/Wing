@@ -30,7 +30,7 @@ use IO::File;
 use Email::Sender::Simple;
 use Email::MIME::Kit;
 use Email::Sender::Transport::SMTP;
-use DateTime::Format::RFC3339;
+use DateTime::Format::ISO8601;
 
 ## singletons
 
@@ -111,31 +111,27 @@ sub cache {
 
 ## utility methods
 
-# format DateTime as an RFC3339 date
+=head2 to_ISO8601
 
-=head2 to_RFC3339
-
-Format DateTime as an RFC3339 date
+Format a DateTime object as an ISO 8601 date
 
 =cut
 
-sub to_RFC3339 {
+sub to_ISO8601 {
     my ($class, $date) = @_;
     $date ||= DateTime->now;
-    return DateTime::Format::RFC3339->new->format_datetime($date);
+    return DateTime::Format::ISO8601->new(base_datetime => $date)->datetime;
 }
 
-# format an RFC3339 date as DateTime
+=head2 from_ISO8601
 
-=head2 from_RFC3339
-
-Format an RFC3339 date as DateTime
+Format an ISO 8601 date as DateTime
 
 =cut
 
-sub from_RFC3339 {
+sub from_ISO8601 {
     my ($class, $date) = @_;
-    return DateTime::Format::RFC3339->new->parse_datetime($date);
+    return DateTime::Format::ISO8601->new->parse_datetime($date);
 }
 
 =head2 send_templated_email ($class, $template, $params, $options)

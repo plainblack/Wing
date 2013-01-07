@@ -46,7 +46,7 @@ sub wing_datetime_field {
 
     $class->meta->add_method( $field.'_rfc3339' => sub {
         my $self = shift;
-        return Wing->to_RFC3339($self->$field);
+        return Wing->to_ISO8601($self->$field);
     });
 
 }
