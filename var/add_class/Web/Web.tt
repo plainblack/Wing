@@ -12,11 +12,12 @@ use Wing::Web;
 
 post '/[% lower_class %]' => sub {
     my $current_user = get_user_by_session_id();
-    site_db()->resultset('[% class_name %]')->new({});
+    my $status_message = 'Created successfully.';
+    my $object = site_db()->resultset('[% class_name %]')->new({});
     my $params = params();
     eval {
-        $object->verify_creation_params(\%params, $current_user);
-        $object->verify_posted_params(\%params, $current_user);
+        $object->verify_creation_params($params, $current_user);
+        $object->verify_posted_params($params, $current_user);
     };
     if (hug) {
         $status_message = bleep;
