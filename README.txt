@@ -38,7 +38,7 @@ INSTALLATION
   export WING_APP=/data/MyProject/
   export WING_CONFIG=/data/MyProject/etc/wing.conf
 
-  perl wing_db.pl --install --force_overwrite
+  perl $WING_HOME/bin/wing_db.pl --install --force_overwrite
 
 6. Start up the rest server:
 
