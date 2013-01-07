@@ -251,12 +251,12 @@ wing.populate = function(uri, params, ids, extra) {
 			page_id = page_id<0?0:(page_id<np?page_id:np-1); // Normalize page id to sane value
 			appendopts = $.extend({text:page_id+1, classes:""}, appendopts||{});
 			if(page_id == current_page){
-				lnk = $("<span class='current'>" + appendopts.text + "</span>");
+				lnk = $("<li class='active'><a href='javascript:void(0)'>" + appendopts.text + "</a></li>");
 			}
 			else
 			{
-				lnk = $("<a>" + appendopts.text + "</a>")
-					.attr('href', this.opts.link_to.replace(/__id__/,page_id));
+				lnk = $("<li><a>" + appendopts.text + "</a></li>");
+				lnk.find('a').attr('href', this.opts.link_to.replace(/__id__/,page_id));
 			}
 			if(appendopts.classes){ lnk.addClass(appendopts.classes); }
 			lnk.data('page_id', page_id);
@@ -273,7 +273,7 @@ wing.populate = function(uri, params, ids, extra) {
 			var begin, end,
 				interval = this.pc.getInterval(current_page),
 				np = this.pc.numPages(),
-				fragment = $("<div class='pagination'></div>");
+				fragment = $("<ul></ul>");
 			
 			// Generate "Previous"-Link
 			if(this.opts.prev_text && (current_page > 0 || this.opts.prev_show_always)){
@@ -286,7 +286,7 @@ wing.populate = function(uri, params, ids, extra) {
 				this.appendRange(fragment, current_page, 0, end, {classes:'sp'});
 				if(this.opts.num_edge_entries < interval.start && this.opts.ellipse_text)
 				{
-					$("<span>"+this.opts.ellipse_text+"</span>").appendTo(fragment);
+					$("<li class='disabled'>"+this.opts.ellipse_text+"</li>").appendTo(fragment);
 				}
 			}
 			// Generate interval links
@@ -296,7 +296,7 @@ wing.populate = function(uri, params, ids, extra) {
 			{
 				if(np-this.opts.num_edge_entries > interval.end && this.opts.ellipse_text)
 				{
-					$("<span>"+this.opts.ellipse_text+"</span>").appendTo(fragment);
+					$("<li>"+this.opts.ellipse_text+"</li>").appendTo(fragment);
 				}
 				begin = Math.max(np-this.opts.num_edge_entries, interval.end);
 				this.appendRange(fragment, current_page, begin, np, {classes:'ep'});
