@@ -16,13 +16,15 @@ use DBIx::Class::DeploymentHandler;
 
 my $force_overwrite = 0;
 my ($upgrade, $downgrade, $install, $initialize, $prepare, $show_classes, $show_create);
+my $ok;
 my ($info, $help, $man);
 
 my $ok = GetOptions(
     'force_overwrite!' => \$force_overwrite,
     'down|downgrade'   => \$downgrade,
     'up|upgrade'       => \$upgrade,
-    'in|install'       => \$install,
+    'install'          => \$install,
+    'ok'               => \$ok,
     'initialize'       => \$initialize,
     'info'             => \$info,
     'prepare'          => \$prepare,
@@ -54,10 +56,11 @@ else { # schema manipulation
  
     my $version = eval "${schema_name}::DB->VERSION;";
  
+    ##Note, install below has a separate but almost identical DH object
     my $dh = DBIx::Class::DeploymentHandler->new( {
         schema              => $schema,
         databases           => [qw/ MySQL /],
-        sql_translator_args => { add_drop_table => 0, },
+        sql_translator_args => { add_drop_table => 0 },
         script_directory    => $ENV{WING_APP}."/dbicdh",
         force_overwrite     => $force_overwrite,
     });
@@ -94,8 +97,20 @@ else { # schema manipulation
 	    }
 	}
 	elsif ($install) {
+        if (!$ok) {
+            say "You didn't say that it was ok to nuke your db";
+        }
 	    say "Installing a new database";
+        my $dh = DBIx::Class::DeploymentHandler->new( {
+            schema              => $schema,
+            databases           => [qw/ MySQL /],
+            sql_translator_args => { add_drop_table => 1 },
+            script_directory    => $ENV{WING_APP}."/dbicdh",
+            force_overwrite     => 1,
+        });
+
         $dh->prepare_install();
+        Wing->db->storage->dbh->do('drop table if exists dbix_class_deploymenthandler_versions');
 	    $dh->install({ version => 1, });
 	    say "done";
 	}
@@ -181,10 +196,11 @@ and then an upgrade:
 
 =head1 DESTROYING DATA
 
-The B<install> and B<prepare> commands create consistent names, and to protect you,
-L<DBIx::Class::DeploymentHandler> will not overwrite files that already exist.  When
-installing a new development database, or regenerating install, upgrade or downgrade
-files, you need to tell B<wing_db> to overwrite files using the B<force_overwrite> option.
+The B<prepare> command creates consistent SQL file names, and to
+protect you, L<DBIx::Class::DeploymentHandler> will not overwrite files
+that already exist.  When regenerating upgrade and downgrade files, you
+need to tell B<wing_db> to overwrite files using the B<force_overwrite>
+option.
 
 =head1 BRANCHING AND MAKING CHANGES
 
@@ -266,9 +282,11 @@ This option will upgrade your current database to the latest version in your bra
 
 This option will downgrade your current database to the latest version in your branch.
 
-=item B<--in|install>
+=item B<--install>
 
-Use this option to install the schema for a brand new database for development.
+Use this option to install the schema for a brand new database for development.  This option
+will completely wipe out any existing database, so it requires the C<--ok> switch as well
+as a safety precaution.
 
 =item B<--fo|force_overwrite>
 
