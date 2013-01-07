@@ -8,7 +8,7 @@ use Wing::Rest;
 
 get '/api/status' => sub {
     return {
-        datetime    => Wing->to_RFC3339,
+        datetime    => Wing->to_ISO8601,
     }
 };
 
