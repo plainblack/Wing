@@ -9,6 +9,7 @@ use DateTime;
 use Data::GUID;
 use Ouch;
 use Moose::Role;
+use String::Random;
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::DateTimeField';
 with 'Wing::Role::Result::PrivilegeField';
@@ -116,6 +117,9 @@ before wing_finalize_class => sub {
         },
         password                => {
             dbic    => { data_type => 'char', size => 50 },
+        },
+        password_salt           => {
+            dbic    => { data_type => 'char', size => 16, is_nullable => 1 },
         },
         password_type           => {
             dbic    => { data_type => 'varchar', size => 10, is_nullable => 0, default_value => 'bcrypt' },
@@ -247,13 +251,11 @@ sub is_password_valid {
     my $encrypted_password;
     given ($self->password_type) {
         when ('md5') { $encrypted_password = Digest::MD5::md5_base64(Encode::encode_utf8($password)) }
-        default { $encrypted_password = $self->encrypt($password) }
+        default { $encrypted_password = $self->encrypt($password, $self->password_salt) }
     }
     if (defined $password && $password ne '' && $self->password eq $encrypted_password) {
         if (defined $self->password_type && $self->password_type eq 'md5') { # while we have the password in the clear, let's upgrade the encryption
-            $self->password_type('bcrypt');
-            $self->password($self->encrypt($password));
-            $self->update;
+            $self->encrypt_and_set_password($password)->update;
         }
         return 1;
     }
@@ -264,21 +266,20 @@ sub is_password_valid {
 
 sub encrypt_and_set_password {
     my ($self, $password) = @_;
-    unless (length($password) >= 6) {
-        ouch 443, "The password specified is too short. Must be at least 6 characters.", 'password';
-    }
-    $self->password($self->encrypt($password));
+    my $salt = String::Random->new->randpattern('ssssssssssssssss');
+    $self->password($self->encrypt($password, $salt));
+    $self->password_salt($salt);
     $self->password_type('bcrypt');
     return $self;
 }
 
 sub encrypt {
-    my ($self, $password) = @_;
+    my ($self, $password, $salt) = @_;
     return Crypt::Eksblowfish::Bcrypt::en_base64(
         Crypt::Eksblowfish::Bcrypt::bcrypt_hash({
             key_nul     => 1,
             cost        => 8,
-            salt        => 'THEGAMECRAFTERSA',
+            salt        => $salt,
         }, Encode::encode_utf8($password))
     );
 }

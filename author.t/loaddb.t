@@ -16,7 +16,7 @@ isa_ok $db, 'TestWing::DB';
 
 my @sources = $db->sources;
 
-is scalar(@sources), 3, 'source count is right';
+is scalar(@sources), 6, 'source count is right';
 
 ok 'Employee' ~~ \@sources, 'we have the sources we think we do';
 
