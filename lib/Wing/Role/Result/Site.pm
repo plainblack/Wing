@@ -102,4 +102,28 @@ sub destroy_database {
     $dbh->do("drop database if exists ".$dbh->quote_identifier($self->database_name));
 }
 
+=head1 NAME
+
+Wing::Role::Result::Site - Multi-tenancy for Wing.
+
+=head1 SYNOPSIS
+
+ with 'Wing::Role::Result::Site';
+
+ # in another program
+ 
+ my $site = Wing->db->resultset('Site')->find($id);
+
+ $site->create_database;
+ 
+ my $site_db = $site->connect_to_database;
+ 
+ $site->destroy_database;
+
+=head1 DESCRIPTION
+
+Add this to a AppName::DB::Result::Site class in your management app. This will set up this app to control multiple tenant apps. You can create and delete instances of those apps on the fly.
+
+B<NOTE:> We need to write up a cookbook example of this. 
+
 1;

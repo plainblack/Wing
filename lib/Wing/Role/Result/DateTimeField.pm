@@ -5,6 +5,24 @@ use Ouch;
 use Moose::Role;
 with 'Wing::Role::Result::Field';
 
+=head1 NAME
+
+Wing::Role::Result::DateTimeField - Inflate DB dates into Perl DateTime objects.
+
+=head1 SYNOPSIS
+
+ with 'Wing::Role::Result::DateTimeField';
+ 
+ __PACKAGE__->wing_datetime_fields(
+    last_login => {},
+ );
+
+=head1 DESCRIPTION
+
+Using this role will allow you to inflate and deflate database date times into Perl L<DateTime>s automatically. Moreover, it will also handle the serialization and deserialization on web and rest interfaces. 
+ 
+=cut
+
 sub wing_datetime_fields {
     my ($class, %fields) = @_;
     while (my ($field, $definition) = each %fields) {

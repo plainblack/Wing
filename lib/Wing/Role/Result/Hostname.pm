@@ -5,6 +5,20 @@ use Ouch;
 use Moose::Role;
 with Wing::Role::Result::Field;
 
+=head1 NAME
+
+Wing::Role::Result::Hostname - Validation for a hostname field.
+
+=head1 SYNOPSIS
+
+ with 'Wing::Role::Result::Hostname';
+ 
+=head1 DESCRIPTION
+
+Adds a C<hostname> field to your object and validates it, and guarantees it to be unique in the system. Useful for allowing users to name L<Wing::Role::Result::Site>s in a multi-tenant environment.
+
+=cut
+
 before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_field(
