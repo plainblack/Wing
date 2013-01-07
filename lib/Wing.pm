@@ -30,7 +30,7 @@ use IO::File;
 use Email::Sender::Simple;
 use Email::MIME::Kit;
 use Email::Sender::Transport::SMTP;
-use DateTime::Format::ISO8601;
+use DateTime::Format::MySQL;
 
 ## singletons
 
@@ -111,27 +111,27 @@ sub cache {
 
 ## utility methods
 
-=head2 to_ISO8601
+=head2 to_mysql
 
-Format a DateTime object as an ISO 8601 date
+Format a DateTime object as an mysql date
 
 =cut
 
-sub to_ISO8601 {
+sub to_mysql {
     my ($class, $date) = @_;
     $date ||= DateTime->now;
-    return $date->datetime;
+    return DateTime::Format::MySQL->format_datetime($date);
 }
 
-=head2 from_ISO8601
+=head2 from_mysql
 
-Format an ISO 8601 date as DateTime
+Format an mysql date as DateTime
 
 =cut
 
-sub from_ISO8601 {
+sub from_mysql {
     my ($class, $date) = @_;
-    return DateTime::Format::ISO8601->new->parse_datetime($date);
+    return DateTime::Format::MySQL->new->parse_datetime($date);
 }
 
 =head2 send_templated_email ($class, $template, $params, $options)

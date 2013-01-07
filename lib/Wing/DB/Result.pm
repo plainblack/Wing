@@ -206,8 +206,8 @@ sub describe {
         id          => $self->id,
         object_type => $self->wing_object_type,
         object_name => $self->wing_object_name,
-        date_updated=> Wing->to_ISO8601($self->date_updated),
-        date_created=> Wing->to_ISO8601($self->date_created),
+        date_updated=> Wing->to_mysql($self->date_updated),
+        date_created=> Wing->to_mysql($self->date_created),
     };
     if ($options{include_options}) {
         $out->{_options} = $self->field_options;
