@@ -120,7 +120,7 @@ Format a DateTime object as an ISO 8601 date
 sub to_ISO8601 {
     my ($class, $date) = @_;
     $date ||= DateTime->now;
-    return DateTime::Format::ISO8601->new(base_datetime => $date)->datetime;
+    return $date->datetime;
 }
 
 =head2 from_ISO8601
