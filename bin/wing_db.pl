@@ -58,7 +58,7 @@ else { # schema manipulation
         schema              => $schema,
         databases           => [qw/ MySQL /],
         sql_translator_args => { add_drop_table => 0, },
-        script_directory    => "$FindBin::Bin/../../dbicdh",
+        script_directory    => $ENV{WING_APP}."/dbicdh",
         force_overwrite     => $force_overwrite,
     });
 
