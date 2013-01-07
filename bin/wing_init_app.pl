@@ -33,8 +33,6 @@ $new_config->write;
 my $dancer_config = YAML::LoadFile('/data/Wing/var/init/config.yml');
 $dancer_config->{appname} = $project;
 $dancer_config->{log4perl}{config_file} = '/data/'.$project.'/etc/log4perl.conf';
-use Data::Dumper;
-print Dumper $dancer_config;
 YAML::DumpFile('/data/'.$project.'/config.yml', $dancer_config);
 
 # set up needed files
