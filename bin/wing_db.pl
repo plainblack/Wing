@@ -95,6 +95,7 @@ else { # schema manipulation
 	}
 	elsif ($install) {
 	    say "Installing a new database";
+        $dh->prepare_install();
 	    $dh->install({ version => 1, });
 	    say "done";
 	}
