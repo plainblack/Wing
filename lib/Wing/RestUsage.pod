@@ -345,5 +345,9 @@ Perl: L<http://search.cpan.org/~rizen/TheGameCrafter-Client/lib/TheGameCrafter/C
 
 If you don't want to use an available client, but instead write your own, there is a L<Test> API that can help make sure your client is working before you start using the real web service.
 
+=head2 Date Format
+
+Wing's date format is ISO8601.  All dates from and to Wing must be in that format.
+
 =cut
 
