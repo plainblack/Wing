@@ -1,4 +1,4 @@
-package TGC::Web::[%class_name%];
+package [% project %]::Web::[%class_name%];
 
 use Dancer ':syntax';
 use Wing::Perl;
