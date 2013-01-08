@@ -16,7 +16,7 @@ use DBIx::Class::DeploymentHandler;
 
 my $force_overwrite = 0;
 my ($upgrade, $downgrade, $install, $initialize, $prepare, $show_classes, $show_create);
-my $ok;
+my $nuke_ok;
 my ($info, $help, $man);
 
 my $ok = GetOptions(
@@ -24,7 +24,7 @@ my $ok = GetOptions(
     'down|downgrade'   => \$downgrade,
     'up|upgrade'       => \$upgrade,
     'install'          => \$install,
-    'ok'               => \$ok,
+    'ok'               => \$nuke_ok,
     'initialize'       => \$initialize,
     'info'             => \$info,
     'prepare'          => \$prepare,
@@ -97,8 +97,8 @@ else { # schema manipulation
 	    }
 	}
 	elsif ($install) {
-        if (!$ok) {
-            say "You didn't say that it was ok to nuke your db";
+        if (!$nuke_ok) {
+            die "You didn't say that it was ok to nuke your db\n";
         }
 	    say "Installing a new database";
         my $dh = DBIx::Class::DeploymentHandler->new( {
