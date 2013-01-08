@@ -48,7 +48,18 @@ put '/[% lower_class %]/:id' => sub {
     my $current_user = get_user_by_session_id();
     my $object = fetch_object('[% class_name %]');
     $object->can_use($current_user);
-    $object->update({param()});
+    my %params = params();
+    eval {
+        $object->verify_posted_params(\%params, $current_user);
+    };
+    if (hug) {
+        my $status_message = bleep;
+        return redirect '/[% lower_case %]?status_message='.$status_message;
+    }
+    else {
+        $object->update;
+        return redirect '/[% lower_case %]/'.$object->id.'?status_message=Created successfully';
+    }
     return redirect '/[% project %]/'.$object->id;
 };
 
