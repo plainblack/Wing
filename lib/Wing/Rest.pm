@@ -164,6 +164,13 @@ hook before_error_init => sub {
     delete $error->{exception};
 };
 
+hook(
+    after_serializer => sub {
+        my $response = shift;
+        $response->{encoded} = 1;
+    }
+);
+
 register_plugin;
 
 1;
