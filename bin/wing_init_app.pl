@@ -37,13 +37,14 @@ YAML::DumpFile('/data/'.$project.'/config.yml', $dancer_config);
 
 # set up needed files
 my $tt = Template->new({ABSOLUTE => 1});
-my $vars = {project => $project};
+my $vars = {project => $project, wing_home => $ENV{WING_HOME}, };
 template($tt,'lib/DB.pm', $vars, 'lib/'.$project.'/DB.pm') || die $tt->error();
 template($tt,'lib/DB/Result/APIKey.pm', $vars, 'lib/'.$project.'/DB/Result/APIKey.pm');
 template($tt,'lib/DB/Result/APIKeyPermission.pm', $vars, 'lib/'.$project.'/DB/Result/APIKeyPermission.pm');
 template($tt,'lib/DB/Result/User.pm', $vars, 'lib/'.$project.'/DB/Result/User.pm');
 template($tt,'etc/log4perl.conf', $vars);
 template($tt,'etc/mime.types', $vars);
+template($tt,'etc/nginx.conf', $vars);
 template($tt,'bin/start_web.sh', $vars);
 template($tt,'bin/start_rest.sh', $vars);
 template($tt,'bin/restart_starman.sh', $vars);

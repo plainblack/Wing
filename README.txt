@@ -20,6 +20,7 @@ INSTALLATION
 3. Create a project:
 
   cd /data/Wing/bin
+  export WING_HOME=/data/Wing
   perl wing_init_app.pl --project=MyProject
 
 4. Create a database on your MySQL server to host the project, and edit the Wing config to match:
