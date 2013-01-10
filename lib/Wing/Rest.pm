@@ -200,6 +200,8 @@ This L<Dancer> plugin generates restful web services from a Wing class definitio
 
 =head2 get_session( options )
 
+Unless for some reason you're only mucking around with the session and not the user, you should use C<get_user_by_session_id> instead. Will L<Ouch> a 451 if it can't find a session or the session has expired.
+
 =over
 
 =item options
@@ -222,7 +224,7 @@ If specified, it will check to see that the API Key using this session has this 
 
 =head2 get_user_by_session_id ( options )
 
-Doest the same thing as C<get_session> except that it returns the User object associated with the session. See C<get_session> for more information.
+Does the same thing as C<get_session> except that it returns the User object associated with the session.  See C<get_session> for more information.
  
 =head2 describe ( object, current_user )
 
