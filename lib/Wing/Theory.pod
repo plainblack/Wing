@@ -28,4 +28,8 @@ The above is a valid Wing class. It doesn't do anything really, but it is a vali
  
 With just that one incantation, you now have a valid Wing user object with permissions and more. And that's the beauty of the role-based architecture. With very little code, you can make incredibly powerful objects. It's not just adding fields like C<username>, but also setting up validation for those fields for both web and web services, database storage and schema creation, Perl accessors, and more.
 
+=head2 Rate Limiting
+
+Rest requests are rate-limited by user using the C<rpc_limit> directive in C<etc/wing.conf>. This is the number of requests per minute the user is allowed to make to the service. If you have public services that don't require a user session (because they don't use C<get_user_by_session_id> in L<Wing::Rest>), then they won't get rate limited. We made the choice not to rate limit public requests because most likely they'll be very quick, whereas posts will likely be uploading files or writing to the database.
+
 =cut
