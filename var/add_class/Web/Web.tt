@@ -10,65 +10,67 @@ use Wing::Web;
 [% lower_class = String.new(class_name).lower %]
 
 get '/' => sub {
-    my $user = get_user_by_session_id();
-    template 'index', { current_user => describe($user), };
+    my $user = eval { get_user_by_session_id(); };
+    my $vars = {};
+    if ($user) {
+        $vars->{current_user} = describe($user);
+    }
+    template 'index', $vars;
 };
 
 post '/[% lower_class %]' => sub {
     my $current_user = get_user_by_session_id();
-    my $status_message = 'Created successfully.';
-    my $object = site_db()->resultset('[% class_name %]')->new({});
+    my $[% lower_class %] = site_db()->resultset('[% class_name %]')->new({});
     my %params = params();
     eval {
-        $object->verify_creation_params(\%params, $current_user);
-        $object->verify_posted_params(\%params, $current_user);
+        $[% lower_class %]->verify_creation_params(\%params, $current_user);
+        $[% lower_class %]->verify_posted_params(\%params, $current_user);
     };
     if (hug) {
-        my $status_message = bleep;
-        return redirect '/[% lower_case %]?status_message='.$status_message;
+        return redirect '/[% lower_class %]?error_message='.bleep;
     }
     else {
-        $object->insert;
-        return redirect '/[% lower_case %]/'.$object->id.'?status_message=Created successfully';
+        $[% lower_class %]->insert;
+        return redirect '/[% lower_class %]/'.$[% lower_class %]->id.'?success_message=Created successfully';
     }
 };
 
 get '/[% lower_class %]/:id' => sub {
-    my $current_user = get_user_by_session_id();
-    my $object = fetch_object('[% class_name %]');
-    $object->can_use($current_user);
+    my $current_user = eval { get_user_by_session_id(); };
+    my $[% lower_class %] = fetch_object('[% class_name %]');
     my $vars = {
-        object       => describe($object);
-        current_user => describe($current_user);
+        [% lower_class %]         => describe($[% lower_class %]),
     };
+    if ($current_user) {
+        $vars->{current_user} = describe($current_user);
+    }
     template '[% lower_class %]/view', $vars;
 };
 
 put '/[% lower_class %]/:id' => sub {
     my $current_user = get_user_by_session_id();
-    my $object = fetch_object('[% class_name %]');
-    $object->can_use($current_user);
+    my $[% lower_class %] = fetch_object('[% class_name %]');
+    $[% lower_class %]->can_use($current_user);
     my %params = params();
     eval {
-        $object->verify_posted_params(\%params, $current_user);
+        $[% lower_class %]->verify_posted_params(\%params, $current_user);
     };
     if (hug) {
-        my $status_message = bleep;
-        return redirect '/[% lower_case %]?status_message='.$status_message;
+        return redirect '/[% lower_class %]?status_message='.bleep;
     }
     else {
-        $object->update;
-        return redirect '/[% lower_case %]/'.$object->id.'?status_message=Created successfully';
+        $[% lower_class %]->update;
+        return redirect '/[% lower_class %]/'.$[% lower_class %]->id.'?success_message=Created successfully';
     }
-    return redirect '/[% project %]/'.$object->id;
+    return redirect '/[% project %]/'.$[% lower_class %]->id;
 };
 
 del '/[% lower_class %]/:id' => sub {
     my $current_user = get_user_by_session_id();
-    my $object = fetch_object('[% class_name %]');
-    $object->can_use($current_user);
-    $object->delete;
-    return redirect '/';
+    my $[% lower_class %] = fetch_object('[% class_name %]');
+    $[% lower_class %]->can_use($current_user);
+    $[% lower_class %]->delete;
+    return redirect '/?success_message=Deleted successfully';
 };
 
 true;
