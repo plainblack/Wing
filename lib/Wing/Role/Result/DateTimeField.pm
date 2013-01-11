@@ -65,7 +65,7 @@ sub wing_datetime_field {
                     $self->$orig($dt);
                 }
             }
-            return $orig->($self);
+            return $_[0]->($_[1]);
         });
     });
 
