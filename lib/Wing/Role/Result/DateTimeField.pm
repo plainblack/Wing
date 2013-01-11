@@ -49,21 +49,23 @@ sub wing_datetime_field {
         return Wing->to_mysql($self->$field);
     });
 
-    $object_class->meta->add_around_method_modifier(wing_apply_fields => sub {
-        my ($orig, $class) = @_;
-        $class->$orig;
+    $object_class->meta->add_after_method_modifier(wing_apply_fields => sub {
+        my ($class) = @_;
         $class->meta->add_around_method_modifier($field => sub {
-            my ($orig, $self, $proto_date) = @_;
-            if (defined $proto_date && ! ref $proto_date) {
-                ##It's not a reference and DBIx::Class won't auto inflate it for us it's bad.
-                ##Manually validate the data.
-                my $dt = eval { Wing->from_mysql($proto_date) };
-                if (@_) {
-                    ouch 442, 'Invalid date '.$proto_date;
+            if (scalar @_ == 3 && defined $_[2]) {
+                my ($orig, $self, $proto_date) = @_;
+                if (ref $proto_date eq 'DateTime') {
+                    return $orig->($self, $proto_date);
                 }
-                $self->$orig($dt);
+                else {
+                    my $dt = eval { Wing->from_mysql($proto_date) };
+                    if ($@) {
+                        ouch 442, 'Invalid date/time: '.$proto_date;
+                    }
+                    $self->$orig($dt);
+                }
             }
-            return $self->$orig($proto_date);
+            return $orig->($self);
         });
     });
 
