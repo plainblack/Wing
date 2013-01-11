@@ -16,7 +16,6 @@ die "usage: $0 --app=AppName" unless $project;
 make_path('/data/'.$project.'/lib/'.$project.'/DB/Result');
 make_path('/data/'.$project.'/etc');
 make_path('/data/'.$project.'/bin/setup');
-make_path('/data/'.$project.'/bin/util');
 make_path('/data/'.$project.'/var');
 make_path('/data/'.$project.'/dbicdh/_common/deploy/1');
 
