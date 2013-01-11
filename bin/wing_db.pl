@@ -181,7 +181,7 @@ You must have a C<WING_CONFIG> environment variable set to the configuration fil
 for your Wing project.  If you don't, prepare for programatically generated shame.
 
 The VERSION for the database should be kept in C<$ENV{WING_APP}/lib/$PROJECT/DB.pm> in a publicly
-available scalar variable.  If you used Wing's C<wing_init_app.pl> this ws done for
+available scalar variable.  If you used Wing's C<wing_init_app.pl> this was done for
 you automatically.
 
 Each branch should contain ONE and ONLY ONE increase in the VERSION number.
@@ -235,6 +235,22 @@ Increase C<$VERSION> in C<lib/$PROJECT/DB.pm>
 
   wing_db.pl --prep
   wing_db.pl --up
+
+=head2 Fill in the blanks.
+
+So you've created a new column, only to find that it is empty.  You would like to fix
+this and since you obsess over automating database work, you may use any or all of
+L<DBIx::Class::DeploymentHandler>'s methods for doing that.
+
+Briefly, you create a new directory C<dbicdh/_common/upgrade/x-y>, which C<x> is the
+previous version and <y> is the new version.  You may either place an SQL file (suffixed with .sql)
+or a perl file (suffixed with .pl).  The perl module should have just an anonymous subroutine
+that expects a DBIx::Class schema object as its only argument:
+
+    sub {
+        my $db = shift;
+        ...
+    }
 
 =head2 The urge to merge
 
