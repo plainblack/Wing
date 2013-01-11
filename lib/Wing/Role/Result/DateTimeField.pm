@@ -41,10 +41,10 @@ sub wing_datetime_field {
         $dbic{set_on_update} = 1;
     }
     $options->{dbic} = \%dbic;
-    $options->{describe_method} = $field .'_rfc3339';
+    $options->{describe_method} = $field .'_mysql';
     $class->wing_field($field, $options);
 
-    $class->meta->add_method( $field.'_rfc3339' => sub {
+    $class->meta->add_method( $field.'_mysql' => sub {
         my $self = shift;
         return Wing->to_mysql($self->$field);
     });
