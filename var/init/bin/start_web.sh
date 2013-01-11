@@ -1,7 +1,8 @@
 #!/bin/bash
 . /data/Wing/bin/dataapps.sh
-cd /data/[% project %]/bin
+export WING_APP=/data/[% project %]
 export WING_CONFIG=/data/[% project %]/etc/wing.conf
+cd /data/[% project %]/bin
 
 if [ $UID == 0 ] 
   then
