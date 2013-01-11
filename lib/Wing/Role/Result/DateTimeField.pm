@@ -49,6 +49,19 @@ sub wing_datetime_field {
         return Wing->to_mysql($self->$field);
     });
 
+    $class->meta->add_around_method_modifier($field => sub {
+        my ($orig, $self, $proto_date) = @_;
+        if (defined $proto_date && ! ref $proto_date) {
+            ##It's not a reference and DBIx::Class won't auto inflate it for us it's bad.
+            ##Manually validate the data.
+            my $dt = eval { Wing->from_mysql($proto_date) };
+            if (@_) {
+                ouch 442, 'Invalid date '.$proto_date;
+            }
+            $self->$orig($dt);
+        }
+        return $self->$orig($proto_date);
+    });
 }
 
 1;
