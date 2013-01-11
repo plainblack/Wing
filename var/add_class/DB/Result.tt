@@ -6,25 +6,25 @@ use Ouch;
 extends 'Wing::DB::Result';
 
 with 'Wing::Role::Result::Field';
-with 'Wing::Role::Result::PrivilegeField';
-with 'Wing::Role::Result::Child';
-with 'Wing::Role::Result::Parent';
+#with 'Wing::Role::Result::PrivilegeField';
+#with 'Wing::Role::Result::Child';
+#with 'Wing::Role::Result::Parent';
 
 __PACKAGE__->wing_fields(
 ##Add fields here
 );
 
-__PACKAGE__->wing_privilege_fields(
-##Add privileged fields here
-);
-
-__PACKAGE__->wing_children(
-##Add children here
-);
-
-__PACKAGE__->wing_parent(
-##Add parents here
-);
+#__PACKAGE__->wing_privilege_fields(
+###Add privileged fields here
+#);
+#
+#__PACKAGE__->wing_children(
+###Add children here
+#);
+#
+#__PACKAGE__->wing_parent(
+###Add parents here
+#);
 
 [% USE String %]
 

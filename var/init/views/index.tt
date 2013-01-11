@@ -1,0 +1,78 @@
+[% page_title = "Users" %]
+[% INCLUDE header_include.tt %]
+
+<div class="row">
+
+<div class="span6">
+<fieldset>
+<legend>Pages</legend>
+
+
+<table class="table table-striped">
+<thead>
+<tr>
+    <th>Name</th>
+    <th>Last Updated</th>
+</tr>
+</thead>
+<tbody id="pages">
+</tbody>
+</table>
+<div class="pagination"></div>
+</div>
+
+[%[ USE String; ]%]
+[%[ lower_project = String.new(project).lower ]%]
+
+[% IF current_user %]
+<div class="span6">
+<form action="/[%[ lower_project ]%]" method="POST" class="form-horizontal">
+<fieldset>
+<legend>Create A [%[ project ]%]</legend>
+<div class="control-group">
+    <label class="control-label" for="name">Name</label>
+    <div class="controls">
+    <input type="text" name="name" id="name">
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" for="description">Description</label>
+    <div class="controls">
+    <textarea rows="10" name="description" id="description" class="span4"></textarea>
+    </div>
+</div>
+<div class="control-group">
+    <div class="controls">
+    <input class="btn" type="submit" value="Create">
+    </div>
+</div>
+</fieldset>
+</form>
+</div>
+[% END %]
+
+    
+</div><!-- row -->
+
+[% foot_tags = BLOCK %]
+<script src="//ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js" type="text/javascript"></script>
+<script id="page_template" type="text/html">
+<tr>
+    <td><a href="/[%[ lower_project ]%]/${uri_part}">${name}</a></td>
+    <td>${date_updated}</td>
+</td>
+</script>
+<script type="text/javascript">
+function load_pages(page_index, pagination_container) {
+    page_index = page_index || 0;
+    var params = { _page_number : page_index + 1, _items_per_page : 10 };
+    wing.ajax('GET','[%[ lower_project ]%]', params, function(data, text_status, jqxhr) {
+        $('#pages tr').remove();
+        $('#page_template').tmpl(data.result.items).appendTo('#pages');
+        wing.pager('.pagination', load_pages, data);
+    });
+}
+load_pages();
+</script>
+[% END %]
+[% INCLUDE footer_include.tt %]

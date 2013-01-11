@@ -1,0 +1,94 @@
+[% page_title = "Users" %]
+[% INCLUDE admin/header_include.tt %]
+
+<div class="row">
+
+<div class="span7">
+<fieldset>
+<legend>Find Users</legend>
+
+<div class="input-append">
+  <input id="query" name="query" type="search">
+  <button class="btn btn-primary" type="button" onclick="search_users(0)">Search</button>
+</div>
+
+<table class="table table-striped">
+<thead>
+<tr>
+    <th>Username</th>
+    <th>Real Name</th>
+    <th>Email</th>
+    <th>Last Login</th>
+</tr>
+</thead>
+<tbody id="users">
+<tr><td colspan="4"></td></tr>
+</tbody>
+</table>
+<div class="pagination"></div>
+</div>
+
+    
+<div class="span5">
+<form action="/admin/user" method="POST" class="form-horizontal">
+<fieldset>
+<legend>Add A User</legend>
+<div class="control-group">
+    <label class="control-label" for="username">Username</label>
+    <div class="controls">
+    <input type="text" name="username" id="username">
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" for="full_name">Full Name</label>
+    <div class="controls">
+    <input type="text" name="full_name" id="full_name">
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" for="email">Email</label>
+    <div class="controls">
+    <input type="text" name="email" id="email">
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" for="password">Password</label>
+    <div class="controls">
+    <input type="text" name="password" id="password">
+    </div>
+</div>
+<div class="control-group">
+    <div class="controls">
+    <input class="btn" type="submit" value="Create">
+    </div>
+</div>
+</fieldset>
+</form>
+</div>
+
+</div><!-- row -->
+
+[% foot_tags = BLOCK %]
+<script src="//ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js" type="text/javascript"></script>
+<script id="user_template" type="text/html">
+<tr>
+    <td><a href="/admin/user/${id}">${username}</a></td>
+    <td>${real_name}</td>
+    <td>${email}</td>
+    <td>${last_login}</td>
+    <td><form action="/admin/user/${id}/become" method="POST"><input type="submit" value="Become" class="btn btn-inverse"></form></td>
+</td>
+</script>
+<script type="text/javascript">
+function search_users(page_index, pagination_container) {
+    page_index = page_index || 0;
+    var params = { _page_number : page_index + 1, query : $('#query').val(), _items_per_page : 10 };
+    wing.ajax('GET','user',params, function(data, text_status, jqxhr) {
+        $('#users tr').remove();
+        $('#user_template').tmpl(data.result.items).appendTo('#users');
+        wing.pager('.pagination', search_users, data);
+    });
+}
+</script>
+[% END %]
+[% INCLUDE admin/footer_include.tt %]

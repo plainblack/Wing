@@ -31,7 +31,7 @@ sub wing_datetime_fields {
 }
 
 sub wing_datetime_field {
-    my ($class, $field, $options) = @_;
+    my ($object_class, $field, $options) = @_;
 
     my %dbic = ( data_type => 'datetime', is_nullable => 0 );
     if ($options->{set_on_create}) {
@@ -42,26 +42,31 @@ sub wing_datetime_field {
     }
     $options->{dbic} = \%dbic;
     $options->{describe_method} = $field .'_mysql';
-    $class->wing_field($field, $options);
+    $object_class->wing_field($field, $options);
 
-    $class->meta->add_method( $field.'_mysql' => sub {
+    $object_class->meta->add_method( $field.'_mysql' => sub {
         my $self = shift;
         return Wing->to_mysql($self->$field);
     });
 
-    $class->meta->add_around_method_modifier($field => sub {
-        my ($orig, $self, $proto_date) = @_;
-        if (defined $proto_date && ! ref $proto_date) {
-            ##It's not a reference and DBIx::Class won't auto inflate it for us it's bad.
-            ##Manually validate the data.
-            my $dt = eval { Wing->from_mysql($proto_date) };
-            if (@_) {
-                ouch 442, 'Invalid date '.$proto_date;
+    $object_class->meta->add_around_method_modifier(wing_apply_fields => sub {
+        my ($orig, $class) = @_;
+        $class->$orig;
+        $class->meta->add_around_method_modifier($field => sub {
+            my ($orig, $self, $proto_date) = @_;
+            if (defined $proto_date && ! ref $proto_date) {
+                ##It's not a reference and DBIx::Class won't auto inflate it for us it's bad.
+                ##Manually validate the data.
+                my $dt = eval { Wing->from_mysql($proto_date) };
+                if (@_) {
+                    ouch 442, 'Invalid date '.$proto_date;
+                }
+                $self->$orig($dt);
             }
-            $self->$orig($dt);
-        }
-        return $self->$orig($proto_date);
+            return $self->$orig($proto_date);
+        });
     });
+
 }
 
 1;

@@ -1,0 +1,21 @@
+<head>
+<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
+<link href="//cdn.jsdelivr.net/pnotify/1.2/jquery.pnotify.default.css" rel="stylesheet">
+<meta charset="UTF-8">
+[% section_head_tags %]
+[% head_tags %]
+<title>[% page_title %]</title>
+</head>
+<body>
+<div class="container">
+
+<div class="navbar">
+  <div class="navbar-inner">
+    <ul class="nav">
+      <li><a href="/">Home</a></li>
+    </ul>
+    <ul class="nav pull-right">
+      <li><a href="/account">My Account</a></li>
+    </ul>
+  </div>
+</div>

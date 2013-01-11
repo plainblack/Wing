@@ -1,0 +1,49 @@
+[% page_title = "${api_key.name} Is Requesting Access" %]
+[% head_tags = BLOCK %]
+<style type="text/css">
+.permission {
+    border: 1px solid black;
+    background-color: hsl(39, 100%, 50%);
+    padding: 5px;
+    width: 300px;
+    float: left;
+    margin: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+}
+.permission img {
+    float: left;
+}
+.permission span {
+    float: left;
+    width: 170px;
+    margin-left: 10px;
+}
+</style>
+[% END %]
+[% INCLUDE header_include.tt %]
+
+[% permissions = {
+    view_my_account = "View your private account information like your email address."
+    edit_my_account = "Edit your private account information including your password."
+}%]
+
+<form action="/sso/authorize" method="POST" enctype="multipart/form-data">
+<a href="[% api_key.uri %]" target="_new">[% api_key.name %]</a> has requested the following permissions from your account:
+<input type="hidden" name="sso_id" value="[% sso_id || params.sso_id %]">
+    <br><br>
+[% FOREACH permission IN requested_permissions %]
+        <div class="permission">
+            <img src="/permissions/[% permission %].png" alt="[% permission %]">
+            <span>[% permissions.${permission} %]</span>
+            <div class="clearer"></div>
+        </div>
+        <input type="hidden" name="permission" value="[% permission %]">
+[% END %]
+<div class="clearer"></div>
+    <br>
+
+<input class="btn btn-success" type="submit" value="Approve"> <button class="btn btn-danger" onclick="alert('You must either approve this request, or navigate away from the page. You cannot proceed without approving.'); return false;">Deny</button><br><br>
+</form>
+
+[% INCLUDE footer_include.tt %]
