@@ -18,6 +18,10 @@ make_path('/data/'.$project.'/etc');
 make_path('/data/'.$project.'/bin/setup');
 make_path('/data/'.$project.'/var');
 make_path('/data/'.$project.'/dbicdh/_common/deploy/1');
+make_path('/data/'.$project.'/views');
+make_path('/data/'.$project.'/views/admin');
+make_path('/data/'.$project.'/views/account');
+make_path('/data/'.$project.'/views/layout');
 
 # set up default configs
 my $config = Config::JSON->new('/data/Wing/var/init/etc/wing.conf');
@@ -52,6 +56,33 @@ template($tt,'bin/web.psgi', $vars);
 template($tt,'bin/rest.psgi', $vars);
 template($tt,'bin/setup/install_perl_modules.sh', $vars);
 template($tt,'dbicdh/_common/deploy/1/install_admin.pl', $vars);
+
+# set up views, using alternate template tags since they're templates
+my $t_alt = Template->new({ABSOLUTE => 1, START_TAG => '[%[', END_TAG => ']%]'});
+template($t_alt,'views/footer_include.tt', $vars);
+template($t_alt,'views/header_include.tt', $vars);
+template($t_alt,'views/error.tt', $vars);
+template($t_alt,'views/status_include.tt', $vars);
+template($t_alt,'views/index.tt', $vars);
+template($t_alt,'views/admin/users.tt', $vars);
+template($t_alt,'views/admin/user.tt', $vars);
+template($t_alt,'views/admin/footer_include.tt', $vars);
+template($t_alt,'views/admin/header_include.tt', $vars);
+template($t_alt,'views/account/apikey_form_include.tt', $vars);
+template($t_alt,'views/account/apikeys.tt', $vars);
+template($t_alt,'views/account/apikey.tt', $vars);
+template($t_alt,'views/account/authenticate_include.tt', $vars);
+template($t_alt,'views/account/authorize.tt', $vars);
+template($t_alt,'views/account/footer_include.tt', $vars);
+template($t_alt,'views/account/header_include.tt', $vars);
+template($t_alt,'views/account/index.tt', $vars);
+template($t_alt,'views/account/login_include.tt', $vars);
+template($t_alt,'views/account/login.tt', $vars);
+template($t_alt,'views/account/profile.tt', $vars);
+template($t_alt,'views/account/reset-password-code.tt', $vars);
+template($t_alt,'views/account/reset-password.tt', $vars);
+template($t_alt,'views/account/ssosuccess.tt', $vars);
+template($t_alt,'views/layouts/main.tt', $vars);
 
 # set privs
 system('cd /data/'.$project.'/bin;chmod 755 *');

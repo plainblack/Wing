@@ -1,0 +1,39 @@
+[% page_title = "API Keys" %]
+[% INCLUDE account/header_include.tt %]
+
+
+<div class="row">
+
+<div class="span6">
+<form action="/account/apikey" method="POST" enctype="multipart/form-data" class="form-horizontal">
+<fieldset>
+<legend>Create An API Key</legend>
+[% INCLUDE account/apikey_form_include.tt %]
+</fieldset>
+</form>
+</div>
+
+<div class="span6">
+<fieldset>
+<legend>Existing API Keys</legend>
+<table class="table table-striped">
+<tr>
+    <th>Application Name</th>
+    <th>Public Key</th>
+</tr>
+[% FOREACH item IN apikeys.items %]
+<tr>
+    <td><a href="/account/apikey/[% item.id %]">[% item.name %]</a></td>
+    <td>[% item.id %]</td>
+</tr>
+[% END %]
+</table>
+</fieldset>
+</div>
+
+</div><!-- row -->
+
+<p>Use your API keys with our <a href="/developer/">API documentation</a> to build your own applications.</p>
+
+
+[% INCLUDE account/footer_include.tt %]

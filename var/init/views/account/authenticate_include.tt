@@ -1,0 +1,58 @@
+<div class="row">
+
+<div class="span6">
+[% INCLUDE account/login_include.tt %]
+</div>
+
+<div class="span6">
+<form action="/account/create" method="POST" enctype="multipart/form-data" class="form-horizontal">
+[% IF params.redirect_after %]
+<input type="hidden" name="redirect_after" value="[% params.redirect_after %]">
+[% END %]
+[% IF sso_id || params.sso_id %]
+<input type="hidden" name="sso_id" value="[% sso_id || params.sso_id %]">
+[% END %]
+<fieldset>
+<legend>Create An Account</legend>
+ <div class="control-group">
+    <label class="control-label" for="username">Username</label>
+    <div class="controls">
+      <input type="text" name="username" value="[% params.username FILTER html %]" id="username">
+      <span class="help-block">(Required)</span>
+    </div>
+ </div>
+ <div class="control-group">
+    <label class="control-label" for="real_name">Real Name</label>
+    <div class="controls">
+      <input type="text" name="real_name" value="[% params.real_name FILTER html %]" id="real_name">
+    </div>
+ </div>
+ <div class="control-group">
+    <label class="control-label" for="email">Email Address</label>
+    <div class="controls">
+      <input type="email" name="email" value="[% params.email FILTER html %]" id="email" placeholder="joe@gmail.com"> 
+      <span class="help-block">(Required)</span>
+    </div>
+ </div>
+ <div class="control-group">
+    <label class="control-label" for="password1">Password</label>
+    <div class="controls">
+      <input type="password" name="password1" id="password1">
+      <span class="help-block">(Required)</span>
+    </div>
+ </div>
+ <div class="control-group">
+    <label class="control-label" for="password2">Verify Password</label><br>
+    <div class="controls">
+      <input type="password" name="password2" id="password2">
+      <span class="help-block">(Required)</span>
+    </div>
+ </div>
+ <div class="control-group">
+    <div class="controls">
+      <input class="btn" type="submit" value="Create Account">
+    </div>
+ </div>
+</fieldset>
+</form>
+</div>
