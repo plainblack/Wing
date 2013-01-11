@@ -58,7 +58,7 @@ template($tt,'bin/setup/install_perl_modules.sh', $vars);
 template($tt,'dbicdh/_common/deploy/1/install_admin.pl', $vars);
 
 # set up views, using alternate template tags since they're templates
-my $t_alt = Template->new({ABSOLUTE => 1, START_TAG => '[%[', END_TAG => ']%]'});
+my $t_alt = Template->new({ABSOLUTE => 1, START_TAG => quotemeta('[%['), END_TAG => quotemeta(']%]')});
 template($t_alt,'views/footer_include.tt', $vars);
 template($t_alt,'views/header_include.tt', $vars);
 template($t_alt,'views/error.tt', $vars);
