@@ -62,7 +62,7 @@ sub wing_datetime_field {
                     if ($@) {
                         ouch 442, 'Invalid date/time: '.$proto_date;
                     }
-                    $self->$orig($dt);
+                    return $self->$orig($dt);
                 }
             }
             return $_[0]->($_[1]);
