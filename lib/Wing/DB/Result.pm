@@ -251,6 +251,36 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'idx_date_updated', fields => ['date_updated']);
 }
 
+=head2 public_params()
+
+Is wrapped by roles like L<Wing::Role::Result::Field> to expose whether a Wing object's parameters should be viewable publicly.
+
+=cut
+
+sub public_params {
+    return [qw(id object_type object_name date_updated date_created)];
+}
+
+=head2 private_params()
+
+Is wrapped by roles like L<Wing::Role::Result::Field> to expose whether a Wing object's parameters should be viewable by the object's controller.
+
+=cut
+
+sub private_params {
+    return [];
+}
+
+=head2 admin_viewable_params()
+
+Is wrapped by roles like L<Wing::Role::Result::Field> to expose whether a Wing object's parameters should be viewable by admins.
+
+=cut
+
+sub admin_viewable_params {
+    return [];
+}
+
 =head2 postable_params()
 
 Is wrapped by roles like L<Wing::Role::Result::Field> to expose whether a Wing object's parameters should be postable.

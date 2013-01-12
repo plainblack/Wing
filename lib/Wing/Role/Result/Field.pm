@@ -180,6 +180,34 @@ sub wing_field {
             }
         }
     
+        # add field to viewable params
+        if (exists $options->{view}) {
+            if ($options->{edit} eq 'public') {
+                $class->meta->add_around_method_modifier(public_params => sub {
+                    my ($orig, $self) = @_;
+                    my $params = $orig->($self);
+                    push @$params, $field;
+                    return $params;
+                });
+            }
+            elsif ($options->{view} eq 'private') {
+                $class->meta->add_around_method_modifier(private => sub {
+                    my ($orig, $self) = @_;
+                    my $params = $orig->($self);
+                    push @$params, $field;
+                    return $params;
+                });
+            }
+            elsif ($options->{view} eq 'admin') {
+                $class->meta->add_around_method_modifier(admin_viewable_params => sub {
+                    my ($orig, $self) = @_;
+                    my $params = $orig->($self);
+                    push @$params, $field;
+                    return $params;
+                });
+            }
+        }
+    
         # add index
         if (exists $options->{indexed} && $options->{indexed} eq 'unique' || exists $options->{edit} && $options->{edit} eq 'unique') {
             $class->add_unique_constraint([$field]);
