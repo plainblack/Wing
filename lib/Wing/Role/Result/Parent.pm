@@ -37,7 +37,7 @@ sub wing_parent_field {
                 ouch(441, $id.' is required.', $id) unless $params->{$id};
                 my $object = Wing->db->resultset($options->{related_class})->find($params->{$id});
                 ouch(440, $id.' not found.') unless defined $object;
-                $object->can_use($current_user) unless $options->{skip_owner_check};
+                $object->can_edit($current_user) unless $options->{skip_owner_check};
                 $self->$field($object);
             }
         });
@@ -166,7 +166,7 @@ Boolean. Optional. Normally adding a parent adds a check to make sure that the i
 
 =item skip_owner_check
 
-Boolean. Optional. Normally adding a parent checks to see that you C<can_use> the object in question. When this is set, that check is disabled.
+Boolean. Optional. Normally adding a parent checks to see that you C<can_edit> the object in question. When this is set, that check is disabled.
 
 =back
 

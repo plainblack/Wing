@@ -50,7 +50,7 @@ register describe => sub {
     my ($object, $current_user) = @_;
     $current_user ||= eval { get_user_by_session_id() };
     return $object->describe(
-        include_private         => (eval { $object->can_use($current_user) }) ? 1 : 0,
+        include_private         => (eval { $object->can_view($current_user) }) ? 1 : 0,
         include_admin           => (eval { defined $current_user && $current_user->is_admin }) ? 1 : 0,
         include_relationships   => params->{_include_relationships},
         include_options         => params->{_include_options},
@@ -65,7 +65,7 @@ register generate_delete => sub {
     my $object_url = lc($wing_object_type);
     del '/api/'.$object_url.'/:id'  => sub {
         my $object = fetch_object($wing_object_type);
-        $object->can_use(get_user_by_session_id(permissions => $options{permissions}));
+        $object->can_edit(get_user_by_session_id(permissions => $options{permissions}));
         $object->delete;
         return { success => 1 };
     };
@@ -77,7 +77,7 @@ register generate_update => sub {
     put '/api/'.$object_url.'/:id'  => sub {
         my $current_user = get_user_by_session_id(permissions => $options{permissions});
         my $object = fetch_object($wing_object_type);
-        $object->can_use($current_user);
+        $object->can_edit($current_user);
         $object->verify_posted_params(expanded_params(), $current_user);
         if (exists $options{extra_processing}) {
             $options{extra_processing}->($object, $current_user);

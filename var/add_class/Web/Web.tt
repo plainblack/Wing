@@ -50,7 +50,7 @@ get '/[% lower_class %]/:id' => sub {
 put '/[% lower_class %]/:id' => sub {
     my $current_user = get_user_by_session_id();
     my $[% lower_class %] = fetch_object('[% class_name %]');
-    $[% lower_class %]->can_use($current_user);
+    $[% lower_class %]->can_edit($current_user);
     my %params = params();
     eval {
         $[% lower_class %]->verify_posted_params(\%params, $current_user);
@@ -68,7 +68,7 @@ put '/[% lower_class %]/:id' => sub {
 del '/[% lower_class %]/:id' => sub {
     my $current_user = get_user_by_session_id();
     my $[% lower_class %] = fetch_object('[% class_name %]');
-    $[% lower_class %]->can_use($current_user);
+    $[% lower_class %]->can_edit($current_user);
     $[% lower_class %]->delete;
     return redirect '/?success_message=Deleted successfully';
 };

@@ -288,7 +288,7 @@ sub encrypt {
     );
 }
 
-around can_use => sub {
+around can_edit => sub {
     my ($orig, $self, $user) = @_;
     return 1 if defined $user && $user->id eq $self->id;
     return $orig->($self, $user);

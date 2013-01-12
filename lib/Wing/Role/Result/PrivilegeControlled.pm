@@ -24,7 +24,7 @@ sub wing_controlled_by_privilege {
     my ($class, $privilege_name) = @_;
     my $is_method_name = 'is_'.$privilege_name;
 
-    $class->meta->add_around_method_modifier( can_use => sub {
+    $class->meta->add_around_method_modifier( can_edit => sub {
         my ($orig, $self, $user) = @_;
         return 1 if (defined $user && $user->$is_method_name);
         return $orig->($self, $user);

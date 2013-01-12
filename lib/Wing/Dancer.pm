@@ -180,7 +180,7 @@ register format_list => sub {
     while (my $item = $page->next) {
         push @list, $item->describe(
             include_admin           => $options{include_admin} || $is_admin ? 1 : 0, 
-            include_private         => $options{include_private} || (eval { $item->can_use($user) }) ? 1 : 0, 
+            include_private         => $options{include_private} || (eval { $item->can_view($user) }) ? 1 : 0, 
             include_relationships   => $options{include_relationships} || params->{_include_relationships}, 
             include_related_objects => $options{include_related_objects} || params->{_include_related_objects}, 
             include_options         => $options{include_options} || params->{_include_options}, 

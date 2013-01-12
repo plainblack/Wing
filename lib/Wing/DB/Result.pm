@@ -311,9 +311,9 @@ sub admin_postable_params {
     return [];
 }
 
-=head2 can_use(user)
+=head2 can_edit(user)
 
-Can this user use this object? 
+Can this user edit this object? By default C<is_admin> in L<Wing::Role::Result::User> can edit the object. All other privileges must be added. L<Ouch>es C<450> if the privileges are not sufficient.
 
 =over
 
@@ -325,10 +325,29 @@ A reference to a user object.
 
 =cut
 
-sub can_use {
+sub can_edit {
     my ($self, $user) = @_;
     return 1 if defined $user && $user->is_admin;
     ouch(450, 'Insufficient privileges.');
+}
+
+=head2 can_view(user)
+
+Can this user view this object?  By default, if you C<can_edit> then you can view it. 
+
+=over
+
+=item user
+
+A reference to a user object.
+
+=back
+
+=cut
+
+sub can_view {
+    my $self = shift;
+    return $self->can_edit(@_);
 }
 
 =head2 verify_creation_params(params, current_user)

@@ -88,10 +88,10 @@ after wing_apply_relationships => sub {
     );
 };
 
-around can_use => sub {
+around can_edit => sub {
     my ($orig, $self, $user, $tracer) = @_;
     if ($self->user_id) {
-        return 1 if $self->user->can_use($user);
+        return 1 if $self->user->can_edit($user);
     }
     return $orig->($self, $user);
 };

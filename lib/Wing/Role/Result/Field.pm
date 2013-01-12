@@ -65,6 +65,22 @@ A hash reference of the options that define the field.
 
 The L<DBIx::Class> field definition. Required.
 
+=item view
+
+Can this field be viewed through web/rest? There are several options:
+
+=item public
+
+Anybody can view it.
+
+=item private
+
+Viewable by anybody that passes muster with the C<can_view> method.
+
+=item admin
+
+Viewable only by admins.
+
 =item edit
 
 Can this field be edited through web/rest? There are several options:
@@ -73,7 +89,7 @@ Can this field be edited through web/rest? There are several options:
 
 =item postable
 
-Editable by anybody that controls the object.
+Editable by anybody that controls the object through the C<can_edit> method.
 
 =item required
 
