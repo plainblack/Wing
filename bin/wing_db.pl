@@ -17,6 +17,7 @@ use DBIx::Class::DeploymentHandler;
 my $force_overwrite = 0;
 my ($upgrade, $downgrade, $install, $initialize, $prepare, $show_classes, $show_create);
 my $nuke_ok;
+my $install_version;
 my ($info, $help, $man);
 
 my $ok = GetOptions(
@@ -24,6 +25,7 @@ my $ok = GetOptions(
     'down|downgrade'   => \$downgrade,
     'up|upgrade'       => \$upgrade,
     'install'          => \$install,
+    'ver|version=i'    => \$install_version,
     'ok'               => \$nuke_ok,
     'initialize'       => \$initialize,
     'info'             => \$info,
@@ -54,7 +56,8 @@ elsif ($show_create) {
 else { # schema manipulation
     my $schema_name = Wing->config->get('app_namespace');
  
-    my $version = eval "${schema_name}::DB->VERSION;";
+    my $code_version = eval "${schema_name}::DB->VERSION;";
+    my $install_version ||= $code_version;
  
     ##Note, install below has a separate but almost identical DH object
     my $dh = DBIx::Class::DeploymentHandler->new( {
@@ -66,7 +69,7 @@ else { # schema manipulation
     });
 
     say "For $ENV{WING_CONFIG}...";
-    say "\tCurrent code version $version...";
+    say "\tCurrent code version $code_version...";
     if ($dh->version_storage_is_installed) {
         say "\tCurrent database version ".$dh->database_version."...";
     }
@@ -77,30 +80,30 @@ else { # schema manipulation
 	if ($downgrade) {
 	    say "Downgrading";
 	    my $db_version = $dh->database_version;
-	    if ($db_version > $version) {
+	    if ($db_version > $code_version) {
 	        $dh->downgrade;
 	        say "done";
 	    }
 	    else {
-	        say "No downgrades required.  Code version = $version, database version = $db_version";
+	        say "No downgrades required.  Code version = $code_version, database version = $db_version";
 	    }
 	}
 	elsif ($upgrade) {
 	    say "Upgrading";
 	    my $db_version = $dh->database_version;
-	    if ($version > $db_version) {
+	    if ($code_version > $db_version) {
 	        $dh->upgrade;
 	        say "done";
 	    }
 	    else {
-	        say "No upgrades required.  Code version = $version, database version = $db_version";
+	        say "No upgrades required.  Code version = $code_version, database version = $db_version";
 	    }
 	}
 	elsif ($install) {
         if (!$nuke_ok) {
             die "You didn't say that it was ok to nuke your db\n";
         }
-	    say "Installing a new database";
+	    say "Installing a new database with version $install_version";
         my $dh = DBIx::Class::DeploymentHandler->new( {
             schema              => $schema,
             databases           => [qw/ MySQL /],
@@ -111,7 +114,7 @@ else { # schema manipulation
 
         $dh->prepare_install();
         Wing->db->storage->dbh->do('drop table if exists dbix_class_deploymenthandler_versions');
-	    $dh->install({ version => 1, });
+	    $dh->install({ version => $install_version, });
 	    say "done";
 	}
 	elsif ($initialize) {
@@ -124,19 +127,20 @@ else { # schema manipulation
 	    say "Prepare upgrade information";
 	    say "\tgenerating deploy script";
 	    $dh->prepare_deploy;
-	    if ( $version > 1 ) {
+	    if ( $code_version > 1 ) {
 	        say "\tgenerating upgrade script";
+            my $previous_version = $code_version - 1;
 	        $dh->prepare_upgrade( {
-	                from_version => $version - 1,
-	                to_version   => $version,
-	                version_set  => [ $version - 1, $version ],
+	                from_version => $previous_version,
+	                to_version   => $code_version,
+	                version_set  => [ $previous_version, $code_version ],
 	            } );
 	     
 	        say "\tgenerating downgrade script";
 	        $dh->prepare_downgrade( {
-	                from_version => $version,
-	                to_version   => $version - 1,
-	                version_set  => [ $version, $version - 1 ],
+	                from_version => $code_version,
+	                to_version   => $previous_version,
+	                version_set  => [ $code_version, $previous_version ],
 	            } );
 	    }
 	    say "done";
@@ -302,7 +306,11 @@ This option will downgrade your current database to the latest version in your b
 
 Use this option to install the schema for a brand new database for development.  This option
 will completely wipe out any existing database, so it requires the C<--ok> switch as well
-as a safety precaution.
+as a safety precaution.  By default, the latest version is installed, as described in C<$PROJECT::DB::VERSION>.
+
+=item B<--ver|version>
+
+ONLY FOR INSTALL.  This allows you to install versions other than C<$PROJECT::DB::VERSION>.  Note, schema differences due to the code may not always allows this.
 
 =item B<--fo|force_overwrite>
 
