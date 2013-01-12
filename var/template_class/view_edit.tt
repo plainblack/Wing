@@ -1,8 +1,16 @@
 [% INCLUDE header_include.tt %]
 
 <div>
-<h2>[% wiki.name %]</h2>
-<div>[% wiki.description %]</div>
+[%[ IF public_params.size ]%]
+    [%[ FOREACH field IN postable_params ]%]
+<div>[% [%[ lower_class ]%].[%[ field ]%] %]</div>
+    [%[ END ]%]
+[%[ END ]%]
+[%[ IF admin_viewable_params.size ]%]
+    [%[ FOREACH field IN admin_viewable_params ]%]
+<div>[% [%[ lower_class ]%].[%[ field ]%] %]</div>
+    [%[ END ]%]
+[%[ END ]%]
 </div>
 
 <hr>

@@ -36,19 +36,24 @@ my $project = Wing->config->get('app_namespace');
 
 my $object = Wing->db->resultset($class_name)->new({});
 
-my $vars = {
-    project => $project,
-    class_name => $class_name,
-    lower_class => lc $class_name,
-    postable_params => $object->postable_params,
-    required_params => $object->required_params,
-    admin_postable_params => $object->admin_postable_params,
-};
-
 my $t_alt = Template->new({ABSOLUTE => 1, START_TAG => quotemeta('[%['), END_TAG => quotemeta(']%]')});
 
 eval {
-  $t_alt->process($wing_templates.'/edit.tt', $vars, $app_templates.'/edit.tt') || die $t_alt->error();
+    my $vars = {
+        project => $project,
+        class_name => $class_name,
+        lower_class => lc $class_name,
+        #Edit
+        postable_params => $object->postable_params,
+        required_params => $object->required_params,
+        admin_postable_params => $object->admin_postable_params,
+        #View
+        public_params         => $object->public_params,
+        private_params        => $object->private_params,
+        admin_viewable_params => $object->admin_viewable_params,
+    };
+    $t_alt->process($wing_templates.'/edit.tt', $vars, $app_templates.'/view_edit.tt')
+        || die $t_alt->error();
 };
 
 if ($@) {
