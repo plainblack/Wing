@@ -48,7 +48,7 @@ A relationship to a L<Wing::Role::Result::APIKey> enabled object.
 
 =cut
 
-before wing_finalize_class => sub {
+after wing_apply_fields => sub {
     my ($class) = @_;
     $class->wing_field(
         permission                  => {
@@ -58,6 +58,10 @@ before wing_finalize_class => sub {
             options             => Wing->config->get('api_key_permissions'),
         }
     );
+};
+
+after wing_apply_relationships => sub {
+    my ($class) = @_;
     my $namespace = $class;
     $namespace =~ s/^(\w+)\:.*$/$1/;
     $class->wing_parent(

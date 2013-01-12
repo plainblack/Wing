@@ -90,7 +90,7 @@ A relationship to a L<Wing::Role::Result::APIKeyPermmission> enabled object.
 
 =cut
 
-before wing_finalize_class => sub {
+after wing_apply_fields => sub {
     my ($class) = @_;
     $class->wing_fields(
         username                => {
@@ -139,6 +139,10 @@ before wing_finalize_class => sub {
             set_on_create   => 1,
         }
     );
+};
+
+after wing_apply_relationships => sub {
+    my ($class) = @_;
     my $namespace = $class;
     $namespace =~ s/^(\w+)\:.*$/$1/;
     $class->wing_children(

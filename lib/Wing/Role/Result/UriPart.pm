@@ -35,7 +35,7 @@ A URL-safe version of the C<name> field. This is automatically generated and gra
 
 =cut
 
-before wing_finalize_class => sub {
+after wing_apply_fields => sub {
     my ($class) = @_;
     $class->wing_field(
         uri_part => {
