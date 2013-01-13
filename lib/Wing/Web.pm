@@ -62,19 +62,6 @@ register get_admin_by_session_id => sub {
     }
 };
 
-register describe => sub {
-    my ($object, $current_user) = @_;
-    $current_user ||= eval { get_user_by_session_id() };
-    return $object->describe(
-        include_private         => 1,
-        include_admin           => 1,
-        include_options         => 1,
-        include_related_objects => 1,
-        current_user            => $current_user,
-        tracer                  => get_tracer(),
-    );
-};
-
 hook before_error_init => sub {
     my $error = shift;
     if (ref $error->exception eq 'Ouch') {

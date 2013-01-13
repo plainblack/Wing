@@ -46,20 +46,6 @@ register get_user_by_session_id => sub {
     return undef;
 };
 
-register describe => sub {
-    my ($object, $current_user) = @_;
-    $current_user ||= eval { get_user_by_session_id() };
-    return $object->describe(
-        include_private         => (eval { $object->can_view($current_user) }) ? 1 : 0,
-        include_admin           => (eval { defined $current_user && $current_user->is_admin }) ? 1 : 0,
-        include_relationships   => params->{_include_relationships},
-        include_options         => params->{_include_options},
-        include_related_objects => params->{_include_related_objects},
-        current_user            => $current_user,
-        tracer                  => get_tracer(),
-    );
-};
-
 register generate_delete => sub {
     my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
@@ -83,7 +69,7 @@ register generate_update => sub {
             $options{extra_processing}->($object, $current_user);
         }
         $object->update;
-        return describe($object, $current_user);
+        return describe($object, current_user => $current_user);
     };
 };
 
@@ -100,7 +86,7 @@ register generate_create => sub {
             $options{extra_processing}->($object, $current_user);
         }
         $object->insert;
-        return describe($object, $current_user);
+        return describe($object, current_user => $current_user);
     };
 };
 
@@ -109,7 +95,7 @@ register generate_read => sub {
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id' => sub {
         my $current_user = eval{ get_user_by_session_id(permissions => $options{permissions}) };
-        return describe(fetch_object($wing_object_type), $current_user);
+        return describe(fetch_object($wing_object_type), current_user => $current_user);
     };
 };
 
@@ -226,21 +212,7 @@ If specified, it will check to see that the API Key using this session has this 
 
 Does the same thing as C<get_session> except that it returns the User object associated with the session.  See C<get_session> for more information.
  
-=head2 describe ( object, current_user )
 
-Returns the description of the object by calling it's C<describe> method. However, it also gracefully handles all the extra modifiers such as _include_relationships and displaying private information if the user owns the object.
-
-=over
-
-=item object
-
-The object you wish to describe.
-
-=item current_user
-
-Optional. If specified we won't bother trying to figure out who the current user is. 
-
-=back
 
 =head2 generate_create ( object_type, options )
 

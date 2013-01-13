@@ -174,7 +174,7 @@ register format_list => sub {
     $items_per_page = ($items_per_page < 1 || $items_per_page > 100 ) ? 25 : $items_per_page;
     my $page = $result_set->search(undef, {rows => $items_per_page, page => $page_number });
     my @list;
-    my $user = eval{ get_user_by_session_id() };
+    my $user = $options{current_user} || eval{ get_user_by_session_id() };
     my $tracer = get_tracer();
     my $is_admin = defined $user && $user->is_admin ? 1 : 0;
     while (my $item = $page->next) {
@@ -199,6 +199,65 @@ register format_list => sub {
         },
         items   => \@list,
     };
+};
+
+
+=head2 describe ( object, options )
+
+Returns the description of the object by calling it's C<describe> method. However, it also gracefully handles all the extra modifiers such as _include_relationships and displaying private information if the user owns the object.
+
+=over
+
+=item object
+
+The object you wish to describe.
+
+=item options
+
+=over
+
+=item current_user
+
+Optional. If specified we won't bother trying to figure out who the current user is.
+
+=item include_admin
+
+If you want to force the items in the description to include admin fields.
+
+=item include_private
+
+If you want to force the items in the description to include private fields.
+
+=item include_related_objects
+
+If you want to force the items in the description to include related objects.
+
+=item include_relationships
+
+If you want to force the items in the description to include relationships.
+
+=item include_options
+
+If you want to force the items in the description to include field options.
+
+=back
+
+=back
+
+=cut
+
+register describe => sub {
+    my ($object, %options) = @_;
+    my $current_user = $options{current_user} || eval { get_user_by_session_id() };
+    return $object->describe(
+        include_private         => $options{include_private} || (eval { $object->can_view($current_user) }) ? 1 : 0,
+        include_admin           => $options{include_admin} || (eval { defined $current_user && $current_user->is_admin }) ? 1 : 0,
+        include_relationships   => $options{include_relationships} || params->{_include_relationships},
+        include_options         => $options{include_options} || params->{_include_options},
+        include_related_objects => $options{include_related_objects} || params->{_include_related_objects},
+        current_user            => $current_user,
+        tracer                  => get_tracer(),
+    );
 };
 
 =head2 get_tracer()

@@ -7,13 +7,14 @@ use Wing::Rest;
 
 
 get '/api/user' => sub {
-    ouch(450, 'You must be an administrator to get a list of all users.') unless get_user_by_session_id()->is_admin;
+    my $user = get_user_by_session_id();
+    ouch(450, 'You must be an administrator to get a list of all users.') unless $user->is_admin;
     my $users = site_db()->resultset('User')->search({ -or => {
         username    => { like => '%'.params->{query}.'%'}, 
         email       => { like => '%'.params->{query}.'%'},
         real_name   => { like => '%'.params->{query}.'%'},
     }}, {order_by => 'username'});
-    return format_list($users); 
+    return format_list($users, current_user => $user); 
 };
 
 my $extra = sub {

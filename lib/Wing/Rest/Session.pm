@@ -31,7 +31,7 @@ post '/api/session/sso/:id' => sub {
 
 get '/api/session/:id' => sub {
     my $session = get_session(session_id => params->{id});
-    return describe($session, eval { get_user_by_session_id() });
+    return describe($session, current_user => eval { get_user_by_session_id() });
 };
 
 post '/api/session' => sub {
@@ -57,7 +57,7 @@ post '/api/session' => sub {
     # validate password
     if ($user->is_password_valid(params->{password})) {
         my $session = $user->start_session({ api_key_id => params->{api_key_id}, ip_address => request->remote_address });
-        return describe($session, $user);
+        return describe($session, current_user => $user);
     }
     else {
         ouch 454, 'Password incorrect.';

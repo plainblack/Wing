@@ -13,7 +13,7 @@ get '/' => sub {
     my $user = eval { get_user_by_session_id(); };
     my $vars = {};
     if ($user) {
-        $vars->{current_user} = describe($user);
+        $vars->{current_user} = describe($user, current_user => $user);
     }
     template 'index', $vars;
 };
@@ -39,10 +39,10 @@ get '/[% lower_class %]/:id' => sub {
     my $current_user = eval { get_user_by_session_id(); };
     my $[% lower_class %] = fetch_object('[% class_name %]');
     my $vars = {
-        [% lower_class %]         => describe($[% lower_class %]),
+        [% lower_class %]         => describe($[% lower_class %], current_user => $current_user),
     };
     if ($current_user) {
-        $vars->{current_user} = describe($current_user);
+        $vars->{current_user} = describe($current_user, current_user => $current_user);
     }
     template '[% lower_class %]/view_edit', $vars;
 };
