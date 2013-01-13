@@ -44,7 +44,7 @@ get '/[% lower_class %]/:id' => sub {
     if ($current_user) {
         $vars->{current_user} = describe($current_user);
     }
-    template '[% lower_class %]/view', $vars;
+    template '[% lower_class %]/view_edit', $vars;
 };
 
 put '/[% lower_class %]/:id' => sub {

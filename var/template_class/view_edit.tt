@@ -1,0 +1,74 @@
+[% INCLUDE header_include.tt %]
+
+<div>
+[%[ IF public_params.size ]%]
+    [%[ FOREACH field IN postable_params ]%]
+<div>[% [%[ lower_class ]%].[%[ field ]%] %]</div>
+    [%[ END ]%]
+[%[ END ]%]
+[%[ IF admin_viewable_params.size ]%]
+    [%[ FOREACH field IN admin_viewable_params ]%]
+<div>[% [%[ lower_class ]%].[%[ field ]%] %]</div>
+    [%[ END ]%]
+[%[ END ]%]
+</div>
+
+<hr>
+
+[% IF current_user %]
+<div id="[%[ lower_class ]%]_buttons">
+<form action="/[%[ lower_class ]%]/[% [%[ lower_class ]%].id %]?X-HTTP-Method=DELETE" method="POST" class="form-inline">
+<button class="btn btn-success" onclick="edit_page(); return false;">Edit</button>
+<input class="btn btn-danger" type="submit" value="Delete">
+</form>
+</div>
+[% END %]
+
+<div id="[%[ lower_class ]%]_edit" style="display: none;">
+<form action="/[%[ lower_class ]%]/[% [%[ lower_class ]%].id %]?X-HTTP-Method=PUT" method="POST" class="form-horizontal">
+  [%[ IF postable_params.size ]%]
+  [%[ FOREACH field IN postable_params ]%]
+  <div class="control-group">
+    <label class="control-label" for="[%[ field ]%]">[%[ field ]%]</label>
+    <div class="controls">
+      <input type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]">
+    </div>
+  </div>
+  [%[ END ]%]
+  [%[ END ]%]
+  [%[ IF admin_postable_params.size ]%]
+  [% IF current_user.is_admin %]
+  [%[ FOREACH field IN admin_params ]%]
+  <div class="control-group">
+    <label class="control-label" for="[%[ field ]%]">Name</label>
+    <div class="controls">
+      <input type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]">
+    </div>
+  </div>
+  [%[ END ]%]
+  [% END %]
+  [%[ END ]%]
+  <div class="control-group">
+    <div class="controls">
+      <button type="submit" class="btn btn-success">Save</button>
+      <button class="btn" onclick="cancel_edit_page(); return false;">Cancel</button>
+    </div>
+  </div>
+</form>
+</div>
+
+
+   
+[% foot_tags = BLOCK %]
+<script type="text/javascript">
+function edit_page() {
+ $('#[%[ lower_class ]%]_buttons').css('display', 'none');
+ $('#[%[ lower_class ]%]_edit').css('display', 'block');
+}
+function cancel_edit_page() {
+ $('#[%[ lower_class ]%]_buttons').css('display', 'block');
+ $('#[%[ lower_class ]%]_edit').css('display', 'none');
+}
+</script>
+[% END %]
+[% INCLUDE footer_include.tt %]
