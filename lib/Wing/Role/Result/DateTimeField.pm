@@ -48,7 +48,7 @@ sub wing_datetime_field {
         my $self = shift;
         return Wing->to_mysql($self->$field);
     });
-
+    
     $object_class->meta->add_after_method_modifier(wing_apply_fields => sub {
         my ($class) = @_;
         $class->meta->add_around_method_modifier($field => sub {

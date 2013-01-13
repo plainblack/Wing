@@ -33,7 +33,7 @@ A reference to a user object.
 =cut
 
 
-after wing_apply_relationships => sub {
+before wing_finalize_class => sub {
     my ($class) = @_;
     my $namespace = $class;
     $namespace =~ s/^(\w+)\:.*$/$1/;

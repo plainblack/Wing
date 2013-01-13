@@ -36,7 +36,7 @@ A 50 character name that cannot contain spaces, upper-case characters, or non-al
 =cut
 
 
-after wing_apply_fields => sub {
+before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_field(
         shortname        => {

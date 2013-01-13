@@ -198,7 +198,7 @@ sub wing_field {
     
         # add field to viewable params
         if (exists $options->{view}) {
-            if ($options->{edit} eq 'public') {
+            if ($options->{view} eq 'public') {
                 $class->meta->add_around_method_modifier(public_params => sub {
                     my ($orig, $self) = @_;
                     my $params = $orig->($self);
@@ -207,7 +207,7 @@ sub wing_field {
                 });
             }
             elsif ($options->{view} eq 'private') {
-                $class->meta->add_around_method_modifier(private => sub {
+                $class->meta->add_around_method_modifier(private_params => sub {
                     my ($orig, $self) = @_;
                     my $params = $orig->($self);
                     push @$params, $field;

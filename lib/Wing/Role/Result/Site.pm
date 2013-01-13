@@ -8,7 +8,7 @@ with 'Wing::Role::Result::Shortname';
 with 'Wing::Role::Result::Hostname';
 with 'Wing::Role::Result::UserControlled';
 
-after wing_apply_fields => sub {
+before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_fields(
         name    => {

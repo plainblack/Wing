@@ -51,7 +51,7 @@ A reference to a user object.
 =cut
 
 
-after wing_apply_fields => sub {
+before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_fields(
         tracer => {
@@ -73,10 +73,6 @@ after wing_apply_fields => sub {
             indexed     => 1,
         },
     );    
-};
-
-after wing_apply_relationships => sub {
-    my ($class) = @_;
     my $namespace = $class;
     $namespace =~ s/^(\w+)\:.*$/$1/;
     $class->wing_parent(

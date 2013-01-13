@@ -19,7 +19,7 @@ Adds a C<hostname> field to your object and validates it, and guarantees it to b
 
 =cut
 
-after wing_apply_fields => sub {
+before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_field(
         hostname => {
