@@ -3,6 +3,8 @@ use lib '/data/[% project %]/lib', '/data/Wing/lib';
 
 use Dancer;
 # your modules here
+use Wing::Web::Account;
+use Wing::Web::Admin::User;
 use Wing::Web::NotFound;
 use Plack::Builder;
 
