@@ -1,4 +1,4 @@
-[% page_title = "Users" %]
+[% page_title = "[%[ class_name ]%]" %]
 [% INCLUDE header_include.tt %]
 
 <div class="row">
@@ -29,18 +29,16 @@
 <form action="/[%[ lower_class ]%]" method="POST" class="form-horizontal">
 <fieldset>
 <legend>Create A [%[ class_name ]%]</legend>
-<div class="control-group">
-    <label class="control-label" for="name">Name</label>
+  [%[ IF postable_params.size ]%]
+  [%[ FOREACH field IN postable_params ]%]
+  <div class="control-group">
+    <label class="control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
     <div class="controls">
-    <input type="text" name="name" id="name">
+      <input type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]">
     </div>
-</div>
-<div class="control-group">
-    <label class="control-label" for="description">Description</label>
-    <div class="controls">
-    <textarea rows="10" name="description" id="description" class="span4"></textarea>
-    </div>
-</div>
+  </div>
+  [%[ END ]%]
+  [%[ END ]%]
 <div class="control-group">
     <div class="controls">
     <input class="btn" type="submit" value="Create">

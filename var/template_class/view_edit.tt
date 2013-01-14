@@ -1,3 +1,4 @@
+[% page_title = "View/Edit [%[ class_name ]%]" %]
 [% INCLUDE header_include.tt %]
 
 <div>
@@ -29,7 +30,7 @@
   [%[ IF postable_params.size ]%]
   [%[ FOREACH field IN postable_params ]%]
   <div class="control-group">
-    <label class="control-label" for="[%[ field ]%]">[%[ field ]%]</label>
+    <label class="control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
     <div class="controls">
       <input type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]">
     </div>
@@ -40,7 +41,7 @@
   [% IF current_user.is_admin %]
   [%[ FOREACH field IN admin_params ]%]
   <div class="control-group">
-    <label class="control-label" for="[%[ field ]%]">Name</label>
+    <label class="control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
     <div class="controls">
       <input type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]">
     </div>

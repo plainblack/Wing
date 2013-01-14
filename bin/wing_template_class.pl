@@ -25,7 +25,7 @@ unless ($class_name) {
 }
 
 my $wing_templates = $ENV{WING_HOME}.'/var/template_class/';
-my $app_templates = $ENV{WING_APP}.'/views/'.$class_name;
+my $app_templates = $ENV{WING_APP}.'/views/'.lc($class_name);
 
 say "Creating directory $app_templates";
 

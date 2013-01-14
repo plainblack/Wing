@@ -15,7 +15,7 @@ get '/[% lower_class %]' => sub {
     if ($user) {
         $vars->{current_user} = describe($user, current_user => $user);
     }
-    template 'index', $vars;
+    template '[% lower_class %]/index', $vars;
 };
 
 post '/[% lower_class %]' => sub {
@@ -56,7 +56,7 @@ put '/[% lower_class %]/:id' => sub {
         $[% lower_class %]->verify_posted_params(\%params, $current_user);
     };
     if (hug) {
-        return redirect '/[% lower_class %]?status_message='.bleep;
+        return redirect '/[% lower_class %]/'.$[% lower_class %]->id.'?error_message='.bleep;
     }
     else {
         $[% lower_class %]->update;
