@@ -3,7 +3,7 @@ package Wing::Role::Result::Hostname;
 use Wing::Perl;
 use Ouch;
 use Moose::Role;
-with Wing::Role::Result::Field;
+with 'Wing::Role::Result::Field';
 
 =head1 NAME
 
