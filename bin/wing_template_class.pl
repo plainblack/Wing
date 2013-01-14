@@ -52,9 +52,8 @@ eval {
         private_params        => $object->private_params,
         admin_viewable_params => $object->admin_viewable_params,
     };
-    $t_alt->process($wing_templates.'/index.tt', $vars, $app_templates.'/index.tt')
-    $t_alt->process($wing_templates.'/view_edit.tt', $vars, $app_templates.'/view_edit.tt')
-        || die $t_alt->error();
+    $t_alt->process($wing_templates.'/index.tt', $vars, $app_templates.'/index.tt') || die $t_alt->error();
+    $t_alt->process($wing_templates.'/view_edit.tt', $vars, $app_templates.'/view_edit.tt') || die $t_alt->error();
 };
 
 if ($@) {
