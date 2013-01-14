@@ -11,7 +11,12 @@ with 'Wing::Role::Result::Field';
 #with 'Wing::Role::Result::Parent';
 
 __PACKAGE__->wing_fields(
-##Add fields here
+  name => {
+    dbic 		=> { data_type => 'varchar', size => 60, is_nullable => 1 },
+    view		=> 'public',
+    edit		=> 'required',
+  },
+##Add more fields here
 );
 
 #__PACKAGE__->wing_privilege_fields(
