@@ -21,7 +21,6 @@ make_path('/data/'.$project.'/dbicdh/_common/deploy/1');
 make_path('/data/'.$project.'/views');
 make_path('/data/'.$project.'/views/admin');
 make_path('/data/'.$project.'/views/account');
-make_path('/data/'.$project.'/views/layout');
 
 # set up default configs
 my $config = Config::JSON->new('/data/Wing/var/init/etc/wing.conf');
@@ -82,7 +81,6 @@ template($t_alt,'views/account/profile.tt', $vars);
 template($t_alt,'views/account/reset-password-code.tt', $vars);
 template($t_alt,'views/account/reset-password.tt', $vars);
 template($t_alt,'views/account/ssosuccess.tt', $vars);
-template($t_alt,'views/layouts/main.tt', $vars);
 
 # set privs
 system('cd /data/'.$project.'/bin;chmod 755 *');
