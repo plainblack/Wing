@@ -15,7 +15,7 @@
 
 <hr>
 
-[% IF current_user %]
+[% IF [%[ lower_class ]%].can_edit %]
 <div id="[%[ lower_class ]%]_buttons">
 <form action="/[%[ lower_class ]%]/[% [%[ lower_class ]%].id %]?X-HTTP-Method=DELETE" method="POST" class="form-inline">
 <button class="btn btn-success" onclick="edit_page(); return false;">Edit</button>
