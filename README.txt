@@ -52,6 +52,8 @@ INSTALLATION
    curl http://localhost:5000/api/status
 
    curl http://localhost:5001/account
+
+ NOTE: By default there is one user named 'Admin' with a password of '123qwe'.
    
 8. We also provide you with an nginx config file to give you a baseline for serving your apps. You can start it like this:
 
