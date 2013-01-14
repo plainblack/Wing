@@ -12,7 +12,7 @@ with 'Wing::Role::Result::Field';
 
 __PACKAGE__->wing_fields(
   name => {
-    dbic 		=> { data_type => 'varchar', size => 60, is_nullable => 1 },
+    dbic 		=> { data_type => 'varchar', size => 60, is_nullable => 0 },
     view		=> 'public',
     edit		=> 'required',
   },
