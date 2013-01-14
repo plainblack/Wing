@@ -26,9 +26,9 @@
 
 [% IF current_user %]
 <div class="span6">
-<form action="/[%[ lower_project ]%]" method="POST" class="form-horizontal">
+<form action="/[%[ lower_class ]%]" method="POST" class="form-horizontal">
 <fieldset>
-<legend>Create A [%[ project ]%]</legend>
+<legend>Create A [%[ class_name ]%]</legend>
 <div class="control-group">
     <label class="control-label" for="name">Name</label>
     <div class="controls">
@@ -58,7 +58,7 @@
 <script src="//ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js" type="text/javascript"></script>
 <script id="page_template" type="text/html">
 <tr>
-    <td><a href="/[%[ lower_project ]%]/${uri_part}">${name}</a></td>
+    <td><a href="/[%[ lower_class ]%]/${id}">${name}</a></td>
     <td>${date_updated}</td>
 </td>
 </script>
@@ -66,7 +66,7 @@
 function load_pages(page_index, pagination_container) {
     page_index = page_index || 0;
     var params = { _page_number : page_index + 1, _items_per_page : 10 };
-    wing.ajax('GET','[%[ lower_project ]%]', params, function(data, text_status, jqxhr) {
+    wing.ajax('GET','[%[ lower_class ]%]', params, function(data, text_status, jqxhr) {
         $('#pages tr').remove();
         $('#page_template').tmpl(data.result.items).appendTo('#pages');
         wing.pager('.pagination', load_pages, data);
