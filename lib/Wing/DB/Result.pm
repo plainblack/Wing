@@ -209,6 +209,10 @@ sub describe {
         date_updated=> Wing->to_mysql($self->date_updated),
         date_created=> Wing->to_mysql($self->date_created),
     };
+    if (defined $options{current_user} && $options{include_private}) {
+        $out->{can_view} = (eval { $self->can_view($options{current_user}) }) ? 1 : 0;
+        $out->{can_edit} = (eval { $self->can_edit($options{current_user}) }) ? 1 : 0;
+    }
     if ($options{include_options}) {
         $out->{_options} = $self->field_options;
     }
