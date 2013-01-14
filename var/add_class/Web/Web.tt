@@ -9,7 +9,7 @@ use Wing::Web;
 [% USE String %]
 [% lower_class = String.new(class_name).lower %]
 
-get '/' => sub {
+get '/[% lower_class %]' => sub {
     my $user = eval { get_user_by_session_id(); };
     my $vars = {};
     if ($user) {
