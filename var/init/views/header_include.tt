@@ -15,7 +15,7 @@
       <li><a href="/">Home</a></li>
     </ul>
     <ul class="nav pull-right">
-      <li><a href="/account">My Account</a></li>
+      <li><a href="/account">[% IF current_user %][% current_user.display_name %][% ELSE %]Login[% END %]</a></li>
     </ul>
   </div>
 </div>

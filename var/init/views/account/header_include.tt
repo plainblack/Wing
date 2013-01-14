@@ -23,6 +23,9 @@
       [% END %]
       <li><a href="/logout">Log Out</a></li>
     </ul>
+    <ul class="nav pull-right">
+      <li><a href="/account">[% IF current_user %][% current_user.display_name %][% ELSE %]Login[% END %]</a></li>
+    </ul>
   </div>
 </div>
 
