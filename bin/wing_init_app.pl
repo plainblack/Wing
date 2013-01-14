@@ -62,7 +62,6 @@ template($t_alt,'views/footer_include.tt', $vars);
 template($t_alt,'views/header_include.tt', $vars);
 template($t_alt,'views/error.tt', $vars);
 template($t_alt,'views/status_include.tt', $vars);
-template($t_alt,'views/index.tt', $vars);
 template($t_alt,'views/admin/users.tt', $vars);
 template($t_alt,'views/admin/user.tt', $vars);
 template($t_alt,'views/admin/footer_include.tt', $vars);
