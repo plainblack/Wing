@@ -126,4 +126,6 @@ Add this to a AppName::DB::Result::Site class in your management app. This will 
 
 B<NOTE:> We need to write up a cookbook example of this. 
 
+=cut
+
 1;
