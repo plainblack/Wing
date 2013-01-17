@@ -16,13 +16,17 @@ use DBIx::Class::DeploymentHandler;
 
 my $force_overwrite = 0;
 my ($upgrade, $downgrade, $install, $initialize, $prepare, $show_classes, $show_create);
+my $nuke_ok;
+my $install_version;
 my ($info, $help, $man);
 
 my $ok = GetOptions(
     'force_overwrite!' => \$force_overwrite,
     'down|downgrade'   => \$downgrade,
     'up|upgrade'       => \$upgrade,
-    'in|install'       => \$install,
+    'install'          => \$install,
+    'ver|version=i'    => \$install_version,
+    'ok'               => \$nuke_ok,
     'initialize'       => \$initialize,
     'info'             => \$info,
     'prepare'          => \$prepare,
@@ -52,18 +56,20 @@ elsif ($show_create) {
 else { # schema manipulation
     my $schema_name = Wing->config->get('app_namespace');
  
-    my $version = eval "${schema_name}::DB->VERSION;";
+    my $code_version = eval "${schema_name}::DB->VERSION;";
+    my $install_version ||= $code_version;
  
+    ##Note, install below has a separate but almost identical DH object
     my $dh = DBIx::Class::DeploymentHandler->new( {
         schema              => $schema,
         databases           => [qw/ MySQL /],
-        sql_translator_args => { add_drop_table => 0, },
-        script_directory    => "$FindBin::Bin/../../dbicdh",
+        sql_translator_args => { add_drop_table => 0 },
+        script_directory    => $ENV{WING_APP}."/dbicdh",
         force_overwrite     => $force_overwrite,
     });
 
     say "For $ENV{WING_CONFIG}...";
-    say "\tCurrent code version $version...";
+    say "\tCurrent code version $code_version...";
     if ($dh->version_storage_is_installed) {
         say "\tCurrent database version ".$dh->database_version."...";
     }
@@ -74,28 +80,41 @@ else { # schema manipulation
 	if ($downgrade) {
 	    say "Downgrading";
 	    my $db_version = $dh->database_version;
-	    if ($db_version > $version) {
+	    if ($db_version > $code_version) {
 	        $dh->downgrade;
 	        say "done";
 	    }
 	    else {
-	        say "No downgrades required.  Code version = $version, database version = $db_version";
+	        say "No downgrades required.  Code version = $code_version, database version = $db_version";
 	    }
 	}
 	elsif ($upgrade) {
 	    say "Upgrading";
 	    my $db_version = $dh->database_version;
-	    if ($version > $db_version) {
+	    if ($code_version > $db_version) {
 	        $dh->upgrade;
 	        say "done";
 	    }
 	    else {
-	        say "No upgrades required.  Code version = $version, database version = $db_version";
+	        say "No upgrades required.  Code version = $code_version, database version = $db_version";
 	    }
 	}
 	elsif ($install) {
-	    say "Installing a new database";
-	    $dh->install({ version => 1, });
+        if (!$nuke_ok) {
+            die "You didn't say that it was ok to nuke your db\n";
+        }
+	    say "Installing a new database with version $install_version";
+        my $dh = DBIx::Class::DeploymentHandler->new( {
+            schema              => $schema,
+            databases           => [qw/ MySQL /],
+            sql_translator_args => { add_drop_table => 1 },
+            script_directory    => $ENV{WING_APP}."/dbicdh",
+            force_overwrite     => 1,
+        });
+
+        $dh->prepare_install();
+        Wing->db->storage->dbh->do('drop table if exists dbix_class_deploymenthandler_versions');
+	    $dh->install({ version => $install_version, });
 	    say "done";
 	}
 	elsif ($initialize) {
@@ -108,19 +127,20 @@ else { # schema manipulation
 	    say "Prepare upgrade information";
 	    say "\tgenerating deploy script";
 	    $dh->prepare_deploy;
-	    if ( $version > 1 ) {
+	    if ( $code_version > 1 ) {
 	        say "\tgenerating upgrade script";
+            my $previous_version = $code_version - 1;
 	        $dh->prepare_upgrade( {
-	                from_version => $version - 1,
-	                to_version   => $version,
-	                version_set  => [ $version - 1, $version ],
+	                from_version => $previous_version,
+	                to_version   => $code_version,
+	                version_set  => [ $previous_version, $code_version ],
 	            } );
 	     
 	        say "\tgenerating downgrade script";
 	        $dh->prepare_downgrade( {
-	                from_version => $version,
-	                to_version   => $version - 1,
-	                version_set  => [ $version, $version - 1 ],
+	                from_version => $code_version,
+	                to_version   => $previous_version,
+	                version_set  => [ $code_version, $previous_version ],
 	            } );
 	    }
 	    say "done";
@@ -165,7 +185,7 @@ You must have a C<WING_CONFIG> environment variable set to the configuration fil
 for your Wing project.  If you don't, prepare for programatically generated shame.
 
 The VERSION for the database should be kept in C<$ENV{WING_APP}/lib/$PROJECT/DB.pm> in a publicly
-available scalar variable.  If you used Wing's C<wing_init_app.pl> this ws done for
+available scalar variable.  If you used Wing's C<wing_init_app.pl> this was done for
 you automatically.
 
 Each branch should contain ONE and ONLY ONE increase in the VERSION number.
@@ -180,10 +200,11 @@ and then an upgrade:
 
 =head1 DESTROYING DATA
 
-The B<install> and B<prepare> commands create consistent names, and to protect you,
-L<DBIx::Class::DeploymentHandler> will not overwrite files that already exist.  When
-installing a new development database, or regenerating install, upgrade or downgrade
-files, you need to tell B<wing_db> to overwrite files using the B<force_overwrite> option.
+The B<prepare> command creates consistent SQL file names, and to
+protect you, L<DBIx::Class::DeploymentHandler> will not overwrite files
+that already exist.  When regenerating upgrade and downgrade files, you
+need to tell B<wing_db> to overwrite files using the B<force_overwrite>
+option.
 
 =head1 BRANCHING AND MAKING CHANGES
 
@@ -218,6 +239,22 @@ Increase C<$VERSION> in C<lib/$PROJECT/DB.pm>
 
   wing_db.pl --prep
   wing_db.pl --up
+
+=head2 Fill in the blanks.
+
+So you've created a new column, only to find that it is empty.  You would like to fix
+this and since you obsess over automating database work, you may use any or all of
+L<DBIx::Class::DeploymentHandler>'s methods for doing that.
+
+Briefly, you create a new directory C<dbicdh/_common/upgrade/x-y>, which C<x> is the
+previous version and <y> is the new version.  You may either place an SQL file (suffixed with .sql)
+or a perl file (suffixed with .pl).  The perl module should have just an anonymous subroutine
+that expects a DBIx::Class schema object as its only argument:
+
+    sub {
+        my $db = shift;
+        ...
+    }
 
 =head2 The urge to merge
 
@@ -265,9 +302,15 @@ This option will upgrade your current database to the latest version in your bra
 
 This option will downgrade your current database to the latest version in your branch.
 
-=item B<--in|install>
+=item B<--install>
 
-Use this option to install the schema for a brand new database for development.
+Use this option to install the schema for a brand new database for development.  This option
+will completely wipe out any existing database, so it requires the C<--ok> switch as well
+as a safety precaution.  By default, the latest version is installed, as described in C<$PROJECT::DB::VERSION>.
+
+=item B<--ver|version>
+
+ONLY FOR INSTALL.  This allows you to install versions other than C<$PROJECT::DB::VERSION>.  Note, schema differences due to the code may not always allows this.
 
 =item B<--fo|force_overwrite>
 
