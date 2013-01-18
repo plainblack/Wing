@@ -3,6 +3,7 @@
 BEGIN {
  die "Must set WING_HOME environment variable." unless $ENV{WING_HOME};
  die "Must set WING_APP environment variable." unless $ENV{WING_APP};
+ die "Must set WING_CONFIG environment variable." unless $ENV{WING_CONFIG};
 }
 use lib $ENV{WING_APP}.'/lib', $ENV{WING_HOME}.'/lib';
  
