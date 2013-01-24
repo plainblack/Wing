@@ -16,7 +16,7 @@ use Pod::Usage;
 use DBIx::Class::DeploymentHandler;
 
 my $force_overwrite = 0;
-my ($upgrade, $downgrade, $install, $initialize, $prepare, $show_classes, $show_create);
+my ($upgrade, $downgrade, $prepare_install, $install, $initialize, $prepare, $show_classes, $show_create);
 my $nuke_ok;
 my $install_version;
 my ($info, $help, $man);
@@ -26,6 +26,7 @@ my $ok = GetOptions(
     'down|downgrade'   => \$downgrade,
     'up|upgrade'       => \$upgrade,
     'install'          => \$install,
+    'prepare_install'  => \$prepare_install,
     'ver|version=i'    => \$install_version,
     'ok'               => \$nuke_ok,
     'initialize'       => \$initialize,
@@ -100,20 +101,17 @@ else { # schema manipulation
 	        say "No upgrades required.  Code version = $code_version, database version = $db_version";
 	    }
 	}
+	elsif ($prepare_install) {
+        say "Preparing files to install a new database with version $install_version";
+        $dh->prepare_install();
+	    say "done";
+	}
 	elsif ($install) {
         if (!$nuke_ok) {
             die "You didn't say that it was ok to nuke your db\n";
         }
 	    say "Installing a new database with version $install_version";
-        my $dh = DBIx::Class::DeploymentHandler->new( {
-            schema              => $schema,
-            databases           => [qw/ MySQL /],
-            sql_translator_args => { add_drop_table => 1 },
-            script_directory    => $ENV{WING_APP}."/dbicdh",
-            force_overwrite     => 1,
-        });
-
-        $dh->prepare_install();
+        #$dh->prepare_install();
         Wing->db->storage->dbh->do('drop table if exists dbix_class_deploymenthandler_versions');
 	    $dh->install({ version => $install_version, });
 	    say "done";
@@ -166,7 +164,7 @@ wing_db.pl - manipulate database schema, handling installs, upgrades and downgra
  wing_db.pl --up
  wing_db.pl --down
  wing_db.pl --prep
- wing_db.pl --in
+ wing_db.pl --install --ok
 
  wing_db.pl --help
  wing_db.pl --info
@@ -193,11 +191,11 @@ Each branch should contain ONE and ONLY ONE increase in the VERSION number.
 
 =head1 GETTING STARTED
 
-When initializing a new database for development, you need run an install
-and then an upgrade:
+When initializing a new database for development, you need run an install.  This will
+install the latest version.
 
-  wing_db.pl --install
-  wing_db.pl --upgrade
+  wing_db.pl --prepare_install
+  wing_db.pl --install --ok
 
 =head1 DESTROYING DATA
 
@@ -302,6 +300,11 @@ This option will upgrade your current database to the latest version in your bra
 =item B<--down|downgrade>
 
 This option will downgrade your current database to the latest version in your branch.
+
+=item B<--prepare_install>
+
+You will not use this option very often.  When beginning a project, you need to run C<wing_db.pl>
+once to create the files to install the database and the DBIx::Class::DeploymentHandler
 
 =item B<--install>
 
