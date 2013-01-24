@@ -19,6 +19,7 @@ my $force_overwrite = 0;
 my ($upgrade, $downgrade, $prepare_install, $install, $initialize, $prepare, $show_classes, $show_create);
 my $nuke_ok;
 my $install_version;
+my $tenant;
 my ($info, $help, $man);
 
 my $ok = GetOptions(
@@ -32,6 +33,7 @@ my $ok = GetOptions(
     'initialize'       => \$initialize,
     'info'             => \$info,
     'prepare'          => \$prepare,
+    'tenant=s'         => \$tenant,
     'show_classes'     => \$show_classes,
     'show_create'      => \$show_create,
     'help'             => \$help,
@@ -45,7 +47,31 @@ pod2usage( verbose => 2 ) if $man;
 pod2usage( msg => "Must specify an environment variable!" ) unless $ENV{WING_CONFIG} && -e $ENV{WING_CONFIG};
 
 use Wing; 
-my $schema = Wing->db;
+##Keep a copy of these in case we are working with tenants.
+my $master_schema      = Wing->db;
+my $master_app         = $ENV{WING_APP};
+my $master_schema_name = Wing->config->get('app_namespace');
+
+##A per-tenant/db set of variables;
+my $app    = $master_app;
+my $schema = $master_schema;
+my $schema_name = $master_schema_name;
+
+if ($tenant) {
+    if (! Wing->config->get('tenants')) {
+        die "No tenants defined for this project\n";
+    }
+    my $site = Wing->db->resultset('Site')->search({hostname => $tenant})->single;
+    if (! $site) {
+        die "Could not find a tenant site with hostname: $tenant\n";
+    }
+    $schema = $tenant->connect_to_database;
+    my $tenant_namespace = Wing->config->get('tenants/namespace');
+    $app = '/data'.$tenant_namespace;
+    eval " use lib $app; ";
+    $schema_name = $tenant_namespace;
+    say "Switching from $master_schema_name to $schema_name";
+}
 
 if ($show_classes) {
     foreach my $name ($schema->sources) {
@@ -56,7 +82,6 @@ elsif ($show_create) {
     say $schema->deployment_statements();
 }
 else { # schema manipulation
-    my $schema_name = Wing->config->get('app_namespace');
  
     my $code_version = eval "${schema_name}::DB->VERSION;";
     my $install_version ||= $code_version;
@@ -66,11 +91,14 @@ else { # schema manipulation
         schema              => $schema,
         databases           => [qw/ MySQL /],
         sql_translator_args => { add_drop_table => 0 },
-        script_directory    => $ENV{WING_APP}."/dbicdh",
+        script_directory    => $app."/dbicdh",
         force_overwrite     => $force_overwrite,
     });
 
     say "For $ENV{WING_CONFIG}...";
+    if ($tenant) {
+        say "\t\t tenant site = $hostname";
+    }
     say "\tCurrent code version $code_version...";
     if ($dh->version_storage_is_installed) {
         say "\tCurrent database version ".$dh->database_version."...";
@@ -165,6 +193,8 @@ wing_db.pl - manipulate database schema, handling installs, upgrades and downgra
  wing_db.pl --down
  wing_db.pl --prep
  wing_db.pl --install --ok
+
+ wing_db.pl --tenant=trial --up
 
  wing_db.pl --help
  wing_db.pl --info
@@ -334,6 +364,11 @@ used to retrofit existing projects with the necessary database tables and direct
 schema version information.
 
 If you don't know whether or not to use this option, then don't.
+
+=item B<--tenant=HOSTNAME>
+
+Some Wing projects are multi-tenanted, see L<Wing::Role::Result::Site>.  This option will allow
+you to pick a particular tenant site by the hostname, and work on its database.
 
 =item B<--info>
 
