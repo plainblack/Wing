@@ -97,7 +97,7 @@ else { # schema manipulation
 
     say "For $ENV{WING_CONFIG}...";
     if ($tenant) {
-        say "\t\t tenant site = $hostname";
+        say "\t\t tenant site = $tenant";
     }
     say "\tCurrent code version $code_version...";
     if ($dh->version_storage_is_installed) {
