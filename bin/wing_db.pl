@@ -16,7 +16,7 @@ use Pod::Usage;
 use DBIx::Class::DeploymentHandler;
 
 my $force_overwrite = 0;
-my ($upgrade, $downgrade, $prepare_install, $install, $initialize, $prepare, $show_classes, $show_create);
+my ($upgrade, $downgrade, $prepare_install, $install, $initialize, $prepare_update, $show_classes, $show_create);
 my $nuke_ok;
 my $install_version;
 my $tenant;
@@ -32,8 +32,8 @@ my $ok = GetOptions(
     'ok'               => \$nuke_ok,
     'initialize'       => \$initialize,
     'info'             => \$info,
-    'prepare'          => \$prepare,
-    'tenant=s'         => \$tenant,
+    'prepare'          => \$prepare_update,
+    'tenant:s'         => \$tenant,
     'show_classes'     => \$show_classes,
     'show_create'      => \$show_create,
     'help'             => \$help,
@@ -57,18 +57,27 @@ my $app    = $master_app;
 my $schema = $master_schema;
 my $schema_name = $master_schema_name;
 
-if ($tenant) {
+##--tenant can be called with a tenant site
+if (defined $tenant) {
+    warn "using tenant";
     if (! Wing->config->get('tenants')) {
         die "No tenants defined for this project\n";
     }
-    my $site = Wing->db->resultset('Site')->search({hostname => $tenant})->single;
-    if (! $site) {
-        die "Could not find a tenant site with hostname: $tenant\n";
-    }
-    $schema = $tenant->connect_to_database;
     my $tenant_namespace = Wing->config->get('tenants/namespace');
-    $app = '/data'.$tenant_namespace;
-    eval " use lib $app; ";
+    my $site;
+    if ($prepare_install || $prepare_update) {
+        $site = Wing->db->resultset('Site')->new({});
+    }
+    else {
+        $site = Wing->db->resultset('Site')->search({hostname => $tenant})->single;
+        if (! $site) {
+            die "Could not find a tenant with name $tenant\n";
+        }
+    }
+    $app = '/data/'.$tenant_namespace;
+    my $lib = $app . '/lib';
+    unshift @INC, $lib;
+    $schema = $site->connect_to_database;
     $schema_name = $tenant_namespace;
     say "Switching from $master_schema_name to $schema_name";
 }
@@ -150,7 +159,7 @@ else { # schema manipulation
 	    $dh->add_database_version({ version => $schema->schema_version });
 	    say "done";
 	}
-	elsif ($prepare) {
+	elsif ($prepare_update) {
 	    say "Prepare upgrade information";
 	    say "\tgenerating deploy script";
 	    $dh->prepare_deploy;
