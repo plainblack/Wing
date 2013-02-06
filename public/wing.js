@@ -52,7 +52,10 @@ wing.success = function(message) {
 };
 
 wing.ajax = function(method, uri, params, success) {
-    jQuery.ajax('/api/'+uri, {
+    if (!uri.match(/\/api/)) {
+        uri = '/api/' + uri;
+    }
+    jQuery.ajax(uri, {
         type : method,
         data : params,
         dataType : "json",
