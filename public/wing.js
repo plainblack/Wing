@@ -8,7 +8,6 @@ wing.info = function(message) {
         text: message,
         icon: 'picon icon16 brocco-icon-info white',
         opacity: 0.95,
-        hide: false,
         history: false,
         sticker: false
     });
@@ -107,6 +106,7 @@ wing.delete_object = function(wing_object_type, id) {
             $('#'+id).remove();
         });
     }
+    return false;
 };
 
 wing.attach_autosave = function(uri, save_class) {
