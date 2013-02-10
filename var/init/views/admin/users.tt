@@ -36,25 +36,25 @@
 <div class="control-group">
     <label class="control-label" for="username">Username</label>
     <div class="controls">
-    <input type="text" name="username" id="username">
+    <input class="input-block-level" type="text" name="username" id="username">
     </div>
 </div>
 <div class="control-group">
     <label class="control-label" for="real_name">Real Name</label>
     <div class="controls">
-    <input type="text" name="real_name" id="real_name">
+    <input class="input-block-level" type="text" name="real_name" id="real_name">
     </div>
 </div>
 <div class="control-group">
     <label class="control-label" for="email">Email</label>
     <div class="controls">
-    <input type="text" name="email" id="email">
+    <input class="input-block-level" type="text" name="email" id="email">
     </div>
 </div>
 <div class="control-group">
     <label class="control-label" for="password">Password</label>
     <div class="controls">
-    <input type="text" name="password" id="password">
+    <input class="input-block-level" type="text" name="password" id="password">
     </div>
 </div>
 <div class="control-group">
