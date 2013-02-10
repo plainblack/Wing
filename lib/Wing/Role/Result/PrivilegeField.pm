@@ -105,6 +105,7 @@ sub wing_privilege_field {
 
     $options->{view} = 'private' unless exists $options->{view};
     $options->{edit} = 'admin' unless exists $options->{edit};
+    $options->{options} = [ 0, 1 ] unless exists $options->{options};
     $options->{_options} = { 0 => 'No', 1 => 'Yes'} unless exists $options->{_options};
 
     $class->wing_field($field, $options);

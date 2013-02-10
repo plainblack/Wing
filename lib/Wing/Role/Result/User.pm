@@ -126,6 +126,8 @@ before wing_finalize_class => sub {
         },
         admin                   => {
             dbic    => { data_type => 'tinyint', default_value => 0 },
+            options => [0,1],
+            _options=> { 0 => 'No', 1 => 'Yes' },
             view    => 'private',
             edit    => 'admin',
         },
