@@ -40,9 +40,9 @@
     </div>
 </div>
 <div class="control-group">
-    <label class="control-label" for="full_name">Full Name</label>
+    <label class="control-label" for="real_name">Real Name</label>
     <div class="controls">
-    <input type="text" name="full_name" id="full_name">
+    <input type="text" name="real_name" id="real_name">
     </div>
 </div>
 <div class="control-group">
