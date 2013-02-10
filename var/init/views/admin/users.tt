@@ -4,13 +4,13 @@
 <div class="row">
 
 <div class="span7">
-<fieldset>
-<legend>Find Users</legend>
 
-<div class="input-append">
-  <input id="query" name="query" type="search">
-  <button class="btn btn-primary" type="button" onclick="search_users(0)">Search</button>
-</div>
+        <form class="form-search" onsubmit="search_users(0); return false;">
+            <div class="input-append">
+                <input type="text" id="query" class="search-query">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
 
 <table class="table table-striped">
 <thead>
