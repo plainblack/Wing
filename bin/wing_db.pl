@@ -96,7 +96,7 @@ elsif ($show_create) {
 }
 else { # schema manipulation
  
-    my $code_version = eval "${schema_name}::DB->VERSION;";
+    my $code_version = eval "use ${schema_name}::DB; ${schema_name}::DB->VERSION;";
     my $install_version ||= $code_version;
  
     ##Note, install below has a separate but almost identical DH object
@@ -129,6 +129,28 @@ else { # schema manipulation
 	    }
 	    else {
 	        say "No downgrades required.  Code version = $code_version, database version = $db_version";
+	    }
+	}
+	elsif ($upgrade and $all_tenants) {
+        my $sites = Wing->db->resultset('Site')->search();
+        while (my $site = $sites->next) {
+            my $schema = $site->connect_to_database;
+            my $db_version = $dh->database_version;
+            my $dh = DBIx::Class::DeploymentHandler->new( {
+                schema              => $schema,
+                databases           => [qw/ MySQL /],
+                sql_translator_args => { add_drop_table => 0 },
+                script_directory    => $app."/dbicdh",
+                force_overwrite     => 0,
+            });
+            if ($code_version > $db_version) {
+                say "Upgrading ".$site->name;
+                $dh->upgrade;
+                say "done";
+            }
+            else {
+                say "No upgrades required.  Code version = $code_version, database version = $db_version";
+            }
 	    }
 	}
 	elsif ($upgrade) {
