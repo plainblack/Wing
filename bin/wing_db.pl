@@ -120,7 +120,29 @@ else { # schema manipulation
         say "\tNo version control installed in this database.";
     }
 
-	if ($downgrade) {
+	if ($downgrade and $all_tenants) {
+        my $sites = Wing->db->resultset('Site')->search();
+        while (my $site = $sites->next) {
+            my $schema = $site->connect_to_database;
+            my $dh = DBIx::Class::DeploymentHandler->new( {
+                schema              => $schema,
+                databases           => [qw/ MySQL /],
+                sql_translator_args => { add_drop_table => 0 },
+                script_directory    => $app."/dbicdh",
+                force_overwrite     => 0,
+            });
+            my $db_version = $dh->database_version;
+            if ($db_version > $code_version) {
+                say "Downgrading ".$site->name;
+                $dh->downgrade;
+                say "done";
+            }
+            else {
+                say "No downgrades required for ".$site->name.".  Code version = $code_version, database version = $db_version";
+            }
+	    }
+	}
+	elsif ($downgrade) {
 	    say "Downgrading";
 	    my $db_version = $dh->database_version;
 	    if ($db_version > $code_version) {
@@ -135,7 +157,6 @@ else { # schema manipulation
         my $sites = Wing->db->resultset('Site')->search();
         while (my $site = $sites->next) {
             my $schema = $site->connect_to_database;
-            my $db_version = $dh->database_version;
             my $dh = DBIx::Class::DeploymentHandler->new( {
                 schema              => $schema,
                 databases           => [qw/ MySQL /],
@@ -143,6 +164,7 @@ else { # schema manipulation
                 script_directory    => $app."/dbicdh",
                 force_overwrite     => 0,
             });
+            my $db_version = $dh->database_version;
             if ($code_version > $db_version) {
                 say "Upgrading ".$site->name;
                 $dh->upgrade;
