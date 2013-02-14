@@ -7,6 +7,5 @@
 [% INCLUDE status_include.tt %]
 [% section_foot_tags %]
 [% foot_tags %]
-
 </body>
 </html>
