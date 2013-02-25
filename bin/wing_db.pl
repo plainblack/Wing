@@ -16,9 +16,10 @@ use Pod::Usage;
 use DBIx::Class::DeploymentHandler;
 
 my $force_overwrite = 0;
-my ($upgrade, $downgrade, $install, $initialize, $prepare, $show_classes, $show_create);
+my ($upgrade, $downgrade, $prepare_install, $install, $initialize, $prepare_update, $show_classes, $show_create);
 my $nuke_ok;
 my $install_version;
+my ($tenant, $all_tenants);
 my ($info, $help, $man);
 
 my $ok = GetOptions(
@@ -26,11 +27,14 @@ my $ok = GetOptions(
     'down|downgrade'   => \$downgrade,
     'up|upgrade'       => \$upgrade,
     'install'          => \$install,
+    'prepare_install'  => \$prepare_install,
     'ver|version=i'    => \$install_version,
     'ok'               => \$nuke_ok,
     'initialize'       => \$initialize,
     'info'             => \$info,
-    'prepare'          => \$prepare,
+    'prep|prepare'     => \$prepare_update,
+    'tenant:s'         => \$tenant,
+    'all_tenants'      => \$all_tenants,
     'show_classes'     => \$show_classes,
     'show_create'      => \$show_create,
     'help'             => \$help,
@@ -44,7 +48,43 @@ pod2usage( verbose => 2 ) if $man;
 pod2usage( msg => "Must specify an environment variable!" ) unless $ENV{WING_CONFIG} && -e $ENV{WING_CONFIG};
 
 use Wing; 
-my $schema = Wing->db;
+##Keep a copy of these in case we are working with tenants.
+my $master_schema      = Wing->db;
+my $master_app         = $ENV{WING_APP};
+my $master_schema_name = Wing->config->get('app_namespace');
+
+##A per-tenant/db set of variables;
+my $app    = $master_app;
+my $schema = $master_schema;
+my $schema_name = $master_schema_name;
+
+##--tenant can be called with a tenant site
+if (defined $tenant || $all_tenants) {
+    if (! Wing->config->get('tenants')) {
+        die "No tenants defined for this project\n";
+    }
+    my $tenant_namespace = Wing->config->get('tenants/namespace');
+    $app = '/data/'.$tenant_namespace;
+    my $lib = $app . '/lib';
+    unshift @INC, $lib;
+    $schema_name = $tenant_namespace;
+    say "Switching from $master_schema_name to $schema_name";
+}
+
+if (defined $tenant) {
+    warn "using tenant";
+    my $site;
+    if ($prepare_install || $prepare_update) {
+        $site = Wing->db->resultset('Site')->new({});
+    }
+    else {
+        $site = Wing->db->resultset('Site')->search({hostname => $tenant})->single;
+        if (! $site) {
+            die "Could not find a tenant with name $tenant\n";
+        }
+    }
+    $schema = $site->connect_to_database;
+}
 
 if ($show_classes) {
     foreach my $name ($schema->sources) {
@@ -55,9 +95,8 @@ elsif ($show_create) {
     say $schema->deployment_statements();
 }
 else { # schema manipulation
-    my $schema_name = Wing->config->get('app_namespace');
  
-    my $code_version = eval "${schema_name}::DB->VERSION;";
+    my $code_version = eval "use ${schema_name}::DB; ${schema_name}::DB->VERSION;";
     my $install_version ||= $code_version;
  
     ##Note, install below has a separate but almost identical DH object
@@ -65,11 +104,14 @@ else { # schema manipulation
         schema              => $schema,
         databases           => [qw/ MySQL /],
         sql_translator_args => { add_drop_table => 0 },
-        script_directory    => $ENV{WING_APP}."/dbicdh",
+        script_directory    => $app."/dbicdh",
         force_overwrite     => $force_overwrite,
     });
 
     say "For $ENV{WING_CONFIG}...";
+    if ($tenant) {
+        say "\t\t tenant site = $tenant";
+    }
     say "\tCurrent code version $code_version...";
     if ($dh->version_storage_is_installed) {
         say "\tCurrent database version ".$dh->database_version."...";
@@ -78,7 +120,29 @@ else { # schema manipulation
         say "\tNo version control installed in this database.";
     }
 
-	if ($downgrade) {
+	if ($downgrade and $all_tenants) {
+        my $sites = Wing->db->resultset('Site')->search();
+        while (my $site = $sites->next) {
+            my $schema = $site->connect_to_database;
+            my $dh = DBIx::Class::DeploymentHandler->new( {
+                schema              => $schema,
+                databases           => [qw/ MySQL /],
+                sql_translator_args => { add_drop_table => 0 },
+                script_directory    => $app."/dbicdh",
+                force_overwrite     => 0,
+            });
+            my $db_version = $dh->database_version;
+            if ($db_version > $code_version) {
+                say "Downgrading ".$site->name;
+                $dh->downgrade;
+                say "done";
+            }
+            else {
+                say "No downgrades required for ".$site->name.".  Code version = $code_version, database version = $db_version";
+            }
+	    }
+	}
+	elsif ($downgrade) {
 	    say "Downgrading";
 	    my $db_version = $dh->database_version;
 	    if ($db_version > $code_version) {
@@ -87,6 +151,28 @@ else { # schema manipulation
 	    }
 	    else {
 	        say "No downgrades required.  Code version = $code_version, database version = $db_version";
+	    }
+	}
+	elsif ($upgrade and $all_tenants) {
+        my $sites = Wing->db->resultset('Site')->search();
+        while (my $site = $sites->next) {
+            my $schema = $site->connect_to_database;
+            my $dh = DBIx::Class::DeploymentHandler->new( {
+                schema              => $schema,
+                databases           => [qw/ MySQL /],
+                sql_translator_args => { add_drop_table => 0 },
+                script_directory    => $app."/dbicdh",
+                force_overwrite     => 0,
+            });
+            my $db_version = $dh->database_version;
+            if ($code_version > $db_version) {
+                say "Upgrading ".$site->name;
+                $dh->upgrade;
+                say "done";
+            }
+            else {
+                say "No upgrades required.  Code version = $code_version, database version = $db_version";
+            }
 	    }
 	}
 	elsif ($upgrade) {
@@ -100,20 +186,16 @@ else { # schema manipulation
 	        say "No upgrades required.  Code version = $code_version, database version = $db_version";
 	    }
 	}
+	elsif ($prepare_install) {
+        say "Preparing files to install a new database with version $install_version";
+        $dh->prepare_install();
+	    say "done";
+	}
 	elsif ($install) {
         if (!$nuke_ok) {
             die "You didn't say that it was ok to nuke your db\n";
         }
 	    say "Installing a new database with version $install_version";
-        my $dh = DBIx::Class::DeploymentHandler->new( {
-            schema              => $schema,
-            databases           => [qw/ MySQL /],
-            sql_translator_args => { add_drop_table => 1 },
-            script_directory    => $ENV{WING_APP}."/dbicdh",
-            force_overwrite     => 1,
-        });
-
-        $dh->prepare_install();
         Wing->db->storage->dbh->do('drop table if exists dbix_class_deploymenthandler_versions');
 	    $dh->install({ version => $install_version, });
 	    say "done";
@@ -124,7 +206,7 @@ else { # schema manipulation
 	    $dh->add_database_version({ version => $schema->schema_version });
 	    say "done";
 	}
-	elsif ($prepare) {
+	elsif ($prepare_update) {
 	    say "Prepare upgrade information";
 	    say "\tgenerating deploy script";
 	    $dh->prepare_deploy;
@@ -166,7 +248,9 @@ wing_db.pl - manipulate database schema, handling installs, upgrades and downgra
  wing_db.pl --up
  wing_db.pl --down
  wing_db.pl --prep
- wing_db.pl --in
+ wing_db.pl --install --ok
+
+ wing_db.pl --tenant=trial --up
 
  wing_db.pl --help
  wing_db.pl --info
@@ -193,11 +277,11 @@ Each branch should contain ONE and ONLY ONE increase in the VERSION number.
 
 =head1 GETTING STARTED
 
-When initializing a new database for development, you need run an install
-and then an upgrade:
+When initializing a new database for development, you need run an install.  This will
+install the latest version.
 
-  wing_db.pl --install
-  wing_db.pl --upgrade
+  wing_db.pl --prepare_install
+  wing_db.pl --install --ok
 
 =head1 DESTROYING DATA
 
@@ -303,6 +387,11 @@ This option will upgrade your current database to the latest version in your bra
 
 This option will downgrade your current database to the latest version in your branch.
 
+=item B<--prepare_install>
+
+You will not use this option very often.  When beginning a project, you need to run C<wing_db.pl>
+once to create the files to install the database and the DBIx::Class::DeploymentHandler
+
 =item B<--install>
 
 Use this option to install the schema for a brand new database for development.  This option
@@ -331,6 +420,11 @@ used to retrofit existing projects with the necessary database tables and direct
 schema version information.
 
 If you don't know whether or not to use this option, then don't.
+
+=item B<--tenant=HOSTNAME>
+
+Some Wing projects are multi-tenanted, see L<Wing::Role::Result::Site>.  This option will allow
+you to pick a particular tenant site by the hostname, and work on its database.
 
 =item B<--info>
 

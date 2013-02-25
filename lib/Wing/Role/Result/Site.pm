@@ -3,6 +3,8 @@ package Wing::Role::Result::Site;
 use Wing::Perl;
 use Ouch;
 use Moose::Role;
+use DBIx::Class::DeploymentHandler;
+
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::Shortname';
 with 'Wing::Role::Result::Hostname';
@@ -84,6 +86,7 @@ sub connect_to_database {
     my @dsn = @{$config->get('db')};
     $dsn[0] = $config->get('tenants/db_driver/prefix') . $self->database_name . $config->get('tenants/db_driver/suffix');
     my $class = $config->get('tenants/namespace').'::DB';
+    eval "use $class";
     return $class->connect(@dsn);
 }
 
@@ -92,7 +95,18 @@ sub create_database {
     my $dbh = $self->result_source->schema->storage->dbh;
     $dbh->do("create database if not exists ".$dbh->quote_identifier($self->database_name));
     my $db = $self->connect_to_database;
-    $db->deploy({ add_drop_table => 1 });
+    #$db->deploy({ add_drop_table => 1 });
+    my $schema_name = Wing->config->get('tenants/namespace');
+    my $install_version = eval "${schema_name}::DB->VERSION;";
+    my $dh = DBIx::Class::DeploymentHandler->new( {
+        schema              => $db,
+        databases           => [qw/ MySQL /],
+        sql_translator_args => { add_drop_table => 0 },
+        script_directory    => "/data/".$schema_name."/dbicdh",
+        force_overwrite     => 0,
+    });
+    $dh->install({ version => $install_version, });
+
     $db->storage->disconnect;
 }
 
