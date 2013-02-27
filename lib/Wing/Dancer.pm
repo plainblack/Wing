@@ -180,8 +180,9 @@ register format_list => sub {
     my @list;
     my $user = $options{current_user} || eval{ get_user_by_session_id() };
     my $is_admin = defined $user && $user->is_admin ? 1 : 0;
-    my %object_options = (
-            %{ exists $options{object_options} ? $options{object_options} : {} },
+    while (my $item = $page->next) {
+        push @list, $item->describe(
+            %{ (exists $options{object_options} ? $options{object_options} : {}) },
             include_admin           => $options{include_admin} || $is_admin ? 1 : 0, 
             include_private         => $options{include_private} || (eval { $item->can_view($user) }) ? 1 : 0, 
             include_relationships   => $options{include_relationships} || params->{_include_relationships}, 
@@ -189,9 +190,7 @@ register format_list => sub {
             include_options         => $options{include_options} || params->{_include_options}, 
             tracer                  => get_tracer(),
             current_user            => $user,
-    );
-    while (my $item = $page->next) {
-        push @list, $item->describe(%object_options);
+        );
     }
     return {
         paging => {
@@ -258,8 +257,8 @@ If you need to pass additional object-specific options to the object, pass them 
 register describe => sub {
     my ($object, %options) = @_;
     my $current_user = $options{current_user} || eval { get_user_by_session_id() };
-    my %object_options = (
-        %{ exists $options{object_options} ? $options{object_options} : {} },
+    return $object->describe(
+        %{ (exists $options{object_options} ? $options{object_options} : {}) },
         include_private         => $options{include_private} || (eval { $object->can_view($current_user) }) ? 1 : 0,
         include_admin           => $options{include_admin} || (eval { defined $current_user && $current_user->is_admin }) ? 1 : 0,
         include_relationships   => $options{include_relationships} || params->{_include_relationships},
@@ -268,7 +267,6 @@ register describe => sub {
         current_user            => $current_user,
         tracer                  => $options{tracer} || get_tracer(),
     );
-    return $object->describe(%object_options);
 };
 
 =head2 get_tracer()
