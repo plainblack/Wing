@@ -161,6 +161,10 @@ If you want to force the items in the formatted list to include relationships.
 
 If you want to force the items in the formatted list to include field options.
 
+=item object_options
+
+If you need to pass additional object-specific options to the object, pass them in here. Is a hash reference.
+
 =back
 
 =back
@@ -175,18 +179,19 @@ register format_list => sub {
     my $page = $result_set->search(undef, {rows => $items_per_page, page => $page_number });
     my @list;
     my $user = $options{current_user} || eval{ get_user_by_session_id() };
-    my $tracer = get_tracer();
     my $is_admin = defined $user && $user->is_admin ? 1 : 0;
-    while (my $item = $page->next) {
-        push @list, $item->describe(
+    my %object_options = (
+            %{ exists $options{object_options} ? $options{object_options} : {} },
             include_admin           => $options{include_admin} || $is_admin ? 1 : 0, 
             include_private         => $options{include_private} || (eval { $item->can_view($user) }) ? 1 : 0, 
             include_relationships   => $options{include_relationships} || params->{_include_relationships}, 
             include_related_objects => $options{include_related_objects} || params->{_include_related_objects}, 
             include_options         => $options{include_options} || params->{_include_options}, 
-            tracer                  => $tracer,
+            tracer                  => get_tracer(),
             current_user            => $user,
-        );
+    );
+    while (my $item = $page->next) {
+        push @list, $item->describe(%object_options);
     }
     return {
         paging => {
@@ -240,6 +245,10 @@ If you want to force the items in the description to include relationships.
 
 If you want to force the items in the description to include field options.
 
+=item object_options
+
+If you need to pass additional object-specific options to the object, pass them in here. Is a hash reference.
+
 =back
 
 =back
@@ -249,15 +258,17 @@ If you want to force the items in the description to include field options.
 register describe => sub {
     my ($object, %options) = @_;
     my $current_user = $options{current_user} || eval { get_user_by_session_id() };
-    return $object->describe(
+    my %object_options = (
+        %{ exists $options{object_options} ? $options{object_options} : {} },
         include_private         => $options{include_private} || (eval { $object->can_view($current_user) }) ? 1 : 0,
         include_admin           => $options{include_admin} || (eval { defined $current_user && $current_user->is_admin }) ? 1 : 0,
         include_relationships   => $options{include_relationships} || params->{_include_relationships},
         include_options         => $options{include_options} || params->{_include_options},
         include_related_objects => $options{include_related_objects} || params->{_include_related_objects},
         current_user            => $current_user,
-        tracer                  => get_tracer(),
+        tracer                  => $options{tracer} || get_tracer(),
     );
+    return $object->describe(%object_options);
 };
 
 =head2 get_tracer()
