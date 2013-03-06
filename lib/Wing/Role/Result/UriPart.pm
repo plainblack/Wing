@@ -58,7 +58,7 @@ after wing_finalize_class => sub {
             $uri_part =~ s{^/+}{};           # remove leading slashes
             $uri_part =~ s{/+$}{};           # remove trailing slashes
             $uri_part =~ s{[^\w/:.-]+}{-}g;  # replace anything aside from word or other allowed characters with dashes
-            $uri_part =~ tr{/-}{/-}s;        # replace multiple slashes and dashes with singles.
+            $uri_part =~ tr{/-}{-}s;        # replace multiple slashes and dashes with single dashes.
             if ($uri_part =~ m/^\s+$/) {
                 ouch 443, 'That name is not available because it contains too few word characters.', 'name';
             }
