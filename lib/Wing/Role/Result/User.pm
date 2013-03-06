@@ -119,7 +119,7 @@ before wing_finalize_class => sub {
             dbic    => { data_type => 'char', size => 50 },
         },
         password_salt           => {
-            dbic    => { data_type => 'char', size => 16, is_nullable => 1 },
+            dbic    => { data_type => 'char', size => 16, is_nullable => 0, default_value => 'abcdefghijklmnop' }, # the default is here in case someone creates a user without a password, so we don't error all over the place
         },
         password_type           => {
             dbic    => { data_type => 'varchar', size => 10, is_nullable => 0, default_value => 'bcrypt' },
