@@ -16,9 +16,9 @@ get '/login' => sub {
 post '/login' => sub {
     return template 'account/login', { error_message => 'You must specify a username or email address.'} unless params->{login};
     return template 'account/login', { error_message => 'You must specify a password.'} unless params->{password};
-    my $user = site_db()->resultset('User')->search({username => params->{login}},{rows=>1})->single;
+    my $user = site_db()->resultset('User')->search({email => params->{login}},{rows=>1})->single;
     unless (defined $user) {
-        $user = site_db()->resultset('User')->search({email => params->{login}},{rows=>1})->single;
+        $user = site_db()->resultset('User')->search({username => params->{login}},{rows=>1})->single;
         return template 'account/login', { error_message => 'User not found.'} unless defined $user;
     }
 
