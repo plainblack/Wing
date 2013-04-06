@@ -25,7 +25,7 @@ sub wing_parent_field {
             $class->meta->add_before_method_modifier($id => sub {
                 my ($self, $value) = @_;
                 if (defined $value) {
-                    my $object = Wing->db->resultset($options->{related_class})->find($value);
+                    my $object = $self->result_source->schema->resultset($options->{related_class})->find($value);
                     ouch(440, $id.' specified does not exist.', $id) unless defined $object;
                     $self->$field($object);
                 }
@@ -35,7 +35,7 @@ sub wing_parent_field {
             my ($self, $params, $current_user) = @_;
             if (exists $params->{$id}) {
                 ouch(441, $id.' is required.', $id) unless $params->{$id};
-                my $object = Wing->db->resultset($options->{related_class})->find($params->{$id});
+                my $object = $self->result_source->schema->resultset($options->{related_class})->find($params->{$id});
                 ouch(440, $id.' not found.') unless defined $object;
                 $object->can_edit($current_user) unless $options->{skip_owner_check};
                 $self->$field($object);
@@ -49,7 +49,7 @@ sub wing_parent_field {
                 my $out = $orig->($self);
                 my @parent_ids;
                 my %parent_options;
-                my $parents = Wing->db->resultset($options->{related_class})->search(undef,{order_by => 'name'});
+                my $parents = $self->result_source->schema->db->resultset($options->{related_class})->search(undef,{order_by => 'name'});
                 while (my $parent = $parents->next) {
                     push @parent_ids, $parent->id;
                     $parent_options{$parent->id} = $parent->name;
