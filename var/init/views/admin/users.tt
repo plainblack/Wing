@@ -90,5 +90,10 @@ function search_users(page_index, pagination_container) {
     });
 }
 </script>
+
+$(document).ready(function() {
+    search_users();
+});
+
 [% END %]
 [% INCLUDE admin/footer_include.tt %]
