@@ -21,8 +21,11 @@ This object reveals all the things you can do with a Wingman job.
 
 Constructor. You should never call this yourself. Use methods from L<Wingman> to generate a C<Wingman::Job>.
 
+=cut
+
 use Wing::Perl;
 use Moose;
+use Ouch;
 with 'Wingman::Role::Logger';
 
 has beanstalk_job => (
