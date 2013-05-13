@@ -25,5 +25,10 @@ make
 make install
 cd ..
 
+cd beanstalkd-1.9
+make
+make install PREFIX=/data/apps
+cd ..
+
 cpan App::cpanminus
 
