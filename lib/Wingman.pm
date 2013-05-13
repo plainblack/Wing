@@ -112,6 +112,8 @@ The following is a list of methods that are direct pass-through's to L<Beanstalk
 
 =back
 
+=cut
+
 has pfm => (
     is      => 'ro',
     lazy    => 1,

@@ -1,5 +1,15 @@
 package Wingman::Role::Logger;
 
+=head1 NAME
+
+Wingman::Role::Logger - A role that exposes some nice logging methods for Wingman's internal functions.
+
+=head1 DESCRIPTION
+
+There is no reason for you to use this in your own modules.
+
+=cut
+
 use Moose::Role;
 
 sub _log {
