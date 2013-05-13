@@ -426,6 +426,10 @@ If you don't know whether or not to use this option, then don't.
 Some Wing projects are multi-tenanted, see L<Wing::Role::Result::Site>.  This option will allow
 you to pick a particular tenant site by the hostname, and work on its database.
 
+=item B<--all_tenants>
+
+Similar to L<--tenant>, this option works on all tenant databases, one by one.
+
 =item B<--info>
 
 In case you're lost, show the current versions of the code and the database.

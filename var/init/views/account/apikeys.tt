@@ -8,6 +8,7 @@
 <form action="/account/apikey" method="POST" enctype="multipart/form-data" class="form-horizontal">
 <fieldset>
 <legend>Create An API Key</legend>
+[% button_label = "Create" %]
 [% INCLUDE account/apikey_form_include.tt %]
 </fieldset>
 </form>

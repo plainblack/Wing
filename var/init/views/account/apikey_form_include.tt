@@ -21,6 +21,6 @@
 </div>
 <div class="control-group">
     <div class="controls">
-    <input class="btn" type="submit" value="Create">
+    <input class="btn" type="submit" value="[% button_label %]">
     </div>
 </div>
