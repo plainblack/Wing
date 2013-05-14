@@ -51,9 +51,9 @@ Developing Wingman plugins is simple. You just need a package that uses the C<Wi
  with 'Wingman::Role::Plugin';
 
  sub run {
-     Ê Êmy ($self, $job, $args_hashref) = @_;
-      Ê Ê# ... your code here ...
-        $job->delete;
+     my ($self, $job, $args_hashref) = @_;
+     # ... your code here ...
+     $job->delete;
  }
 
  1;

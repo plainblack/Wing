@@ -27,7 +27,7 @@ When you're building web services or web sites you often need to do long running
  | +---------------------------+ |
  | | Are there enough workers? | |
  | +---------------------------+ |
- |            |                  |    +-[ Wingman Woker ]-----------------------------------------------+
+ |            |                  |    +-[ Wingman Worker ]----------------------------------------------+
  |            No                 |    | +-----------------+      +-----------------------------+        |
  |            |          +----------->| | Is there a job? |-Yes->| Do we have a plugin for it? |        |
  |            v          |       |    | +-----------------+      +-----------------------------+        |
