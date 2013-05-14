@@ -12,6 +12,7 @@ These subroutines get included into L<Wing::Rest> and L<Wing::Web>. These subs a
 
 use Wing;
 use POSIX qw/ceil/; 
+use Dancer2::Plugin;
 
 =head1 SUBROUTINES
 
