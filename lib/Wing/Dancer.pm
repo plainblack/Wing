@@ -46,6 +46,7 @@ Registered as a Dancer keyword.
 =cut
 
 register site_db => sub {
+    my $dsl = shift;
     if (exists vars->{wing_site_db} && defined vars->{wing_site_db}) {
         return vars->{wing_site_db};
     }
@@ -54,7 +55,7 @@ register site_db => sub {
     if (defined $tenant) {
         site( $tenant );
         var wing_site_db => $tenant->connect_to_database;
-        return vars->{wing_site_db};
+        return $dsl->vars->{wing_site_db};
     }
     return Wing->db;
 };
@@ -75,15 +76,15 @@ Registered as a Dancer keyword.
 =cut
 
 register site => sub {
-    my ($site) = @_;
+    my ($dsl, $site) = @_;
     if ($site) {
-        var wing_site => $site;
+        $dsl->var wing_site => $site;
     }
     elsif (!exists vars->{wing_site} || !defined vars->{wing_site}) {
         $site = find_tenant_site();
-        var wing_site => $site;
+        $dsl->var wing_site => $site;
     }
-    return vars->{wing_site};
+    return $dsl->vars->{wing_site};
 };
 
 =head2 fetch_object(class, id)
@@ -107,8 +108,8 @@ Optional. The id of the object you wish to fetch. Defaults to pulling the id fro
 =cut
 
 register fetch_object => sub {
-    my ($type, $id) = @_;
-    $id ||= params->{id};
+    my ($dsl, $type, $id) = @_;
+    $id ||= $dsl->params->{id};
     ouch(404, 'No id specified for '.$type) unless $id;
     my $object = site_db()->resultset($type)->find($id);
     ouch(404, $type.' not found.') unless defined $object;
@@ -172,9 +173,9 @@ If you need to pass additional object-specific options to the object, pass them 
 =cut
 
 register format_list => sub {
-    my ($result_set, %options) = @_;
-    my $page_number = $options{page_number} || params->{_page_number} || 1;
-    my $items_per_page = $options{items_per_page} || params->{_items_per_page} || 25;
+    my ($dsl, $result_set, %options) = @_;
+    my $page_number = $options{page_number} || $dsl->params->{_page_number} || 1;
+    my $items_per_page = $options{items_per_page} || $dsl->params->{_items_per_page} || 25;
     $items_per_page = ($items_per_page < 1 || $items_per_page > 100 ) ? 25 : $items_per_page;
     my $page = $result_set->search(undef, {rows => $items_per_page, page => $page_number });
     my @list;
@@ -185,9 +186,9 @@ register format_list => sub {
             %{ (exists $options{object_options} ? $options{object_options} : {}) },
             include_admin           => $options{include_admin} || $is_admin ? 1 : 0, 
             include_private         => $options{include_private} || (eval { $item->can_view($user) }) ? 1 : 0, 
-            include_relationships   => $options{include_relationships} || params->{_include_relationships}, 
-            include_related_objects => $options{include_related_objects} || params->{_include_related_objects}, 
-            include_options         => $options{include_options} || params->{_include_options}, 
+            include_relationships   => $options{include_relationships} || $dsl->params->{_include_relationships}, 
+            include_related_objects => $options{include_related_objects} || $dsl->params->{_include_related_objects}, 
+            include_options         => $options{include_options} || $dsl->params->{_include_options}, 
             tracer                  => get_tracer(),
             current_user            => $user,
         );
@@ -255,15 +256,15 @@ If you need to pass additional object-specific options to the object, pass them 
 =cut
 
 register describe => sub {
-    my ($object, %options) = @_;
+    my ($dsl, $object, %options) = @_;
     my $current_user = $options{current_user} || eval { get_user_by_session_id() };
     return $object->describe(
         %{ (exists $options{object_options} ? $options{object_options} : {}) },
         include_private         => $options{include_private} || (eval { $object->can_view($current_user) }) ? 1 : 0,
         include_admin           => $options{include_admin} || (eval { defined $current_user && $current_user->is_admin }) ? 1 : 0,
-        include_relationships   => $options{include_relationships} || params->{_include_relationships},
-        include_options         => $options{include_options} || params->{_include_options},
-        include_related_objects => $options{include_related_objects} || params->{_include_related_objects},
+        include_relationships   => $options{include_relationships} || $dsl->params->{_include_relationships},
+        include_options         => $options{include_options} || $dsl->params->{_include_options},
+        include_related_objects => $options{include_related_objects} || $dsl->params->{_include_related_objects},
         current_user            => $current_user,
         tracer                  => $options{tracer} || get_tracer(),
     );
@@ -278,7 +279,8 @@ Registered as a Dancer keyword.
 =cut
 
 register get_tracer => sub {
-    my $cookie = cookies->{tracer};
+    my $dsl = shift;
+    my $cookie = $dsl->cookies->{tracer};
     if (defined $cookie) {
         return $cookie->value;
     }
@@ -294,10 +296,11 @@ Registered as a Dancer keyword.
 =cut
 
 register expanded_params => sub {
-    my %params = params;
+    my $dsl = shift;
+    my %params = $dsl->params;
     $params{tracer} = get_tracer();
-    $params{ipaddress} = request->env->{HTTP_X_REAL_IP} || request->remote_address;
-    $params{useragent} = request->user_agent;
+    $params{ipaddress} = $dsl->request->env->{HTTP_X_REAL_IP} || $dsl->request->remote_address;
+    $params{useragent} = $dsl->request->user_agent;
     return \%params
 };
 
