@@ -3,17 +3,16 @@ package Wing::Rest;
 use strict;
 use warnings;
 use Ouch;
-use Dancer ':syntax';
-use Dancer::Plugin;
+use Dancer2::Plugin;
 
 set serializer => 'JSON';
 
 require Wing::Dancer;
 
 register get_session => sub {
-    my (%options) = @_;
-    my $session_id = $options{session_id} || params->{session_id};
-    my $cookie = cookies->{session_id};
+    my ($dsl, %options) = @_;
+    my $session_id = $options{session_id} || $dsl->params->{session_id};
+    my $cookie = $dsl->cookies->{session_id};
     if (!defined $session_id && defined $cookie) {
         $session_id = $cookie->value;
     }
@@ -33,6 +32,7 @@ register get_session => sub {
 };
 
 register get_user_by_session_id => sub {
+    my $dsl = shift;
     my $session = get_session(@_);
     return $session if (ref $session =~ m/DB::Result::User$/);
     my $user = $session->user;
@@ -47,7 +47,7 @@ register get_user_by_session_id => sub {
 };
 
 register generate_delete => sub {
-    my ($wing_object_type, %options) = @_;
+    my ($dsl, $wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     del '/api/'.$object_url.'/:id'  => sub {
         my $object = fetch_object($wing_object_type);
@@ -58,7 +58,7 @@ register generate_delete => sub {
 };
 
 register generate_update => sub {
-    my ($wing_object_type, %options) = @_;
+    my ($dsl, $wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     put '/api/'.$object_url.'/:id'  => sub {
         my $current_user = get_user_by_session_id(permissions => $options{permissions});
@@ -74,7 +74,7 @@ register generate_update => sub {
 };
 
 register generate_create => sub {
-    my ($wing_object_type, %options) = @_;
+    my ($dsl, $wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     post '/api/'.$object_url => sub {
         my $object = site_db()->resultset($wing_object_type)->new({});
@@ -91,7 +91,7 @@ register generate_create => sub {
 };
 
 register generate_read => sub {
-    my ($wing_object_type, %options) = @_;
+    my ($dsl, $wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id' => sub {
         my $current_user = eval{ get_user_by_session_id(permissions => $options{permissions}) };
@@ -100,7 +100,7 @@ register generate_read => sub {
 };
 
 register generate_options => sub {
-    my ($wing_object_type) = @_;
+    my ($dsl, $wing_object_type) = @_;
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/_options' => sub {
         return site_db()->resultset($wing_object_type)->new({})->field_options(
@@ -113,7 +113,7 @@ register generate_options => sub {
 };
 
 register generate_crud => sub {
-    my ($wing_object_type) = @_;
+    my ($dsl, $wing_object_type) = @_;
     generate_options($wing_object_type);
     generate_read($wing_object_type);
     generate_update($wing_object_type);

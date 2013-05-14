@@ -3,9 +3,8 @@ package Wing::Web;
 use strict;
 use warnings;
 use Ouch;
-use Dancer ':syntax';
 use Wing::Session;
-use Dancer::Plugin;
+use Dancer2::Plugin;
 use DateTime::Format::Strptime;
 
 $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
@@ -13,9 +12,9 @@ $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
 require Wing::Dancer;
 
 register get_session => sub {
-    my (%options) = @_;
-    my $session_id = $options{session_id} || params->{session_id};
-    my $cookie = cookies->{session_id};
+    my ($dsl, %options) = @_;
+    my $session_id = $options{session_id} || $dsl->params->{session_id};
+    my $cookie = $dsl->cookies->{session_id};
     if (!defined $session_id && defined $cookie) {
         $session_id = $cookie->value;
     }
@@ -32,6 +31,7 @@ register get_session => sub {
 };
 
 register get_user_by_session_id => sub {
+    my $dsl = shift;
     my $session = get_session(@_);
     if (defined $session) {
         return $session if (ref $session =~ m/DB::Result::User$/);
