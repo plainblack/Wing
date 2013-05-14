@@ -89,7 +89,7 @@ Returns the output of the plugin, if any. Note that this is only useful for test
 sub run {
     my ($self) = @_;
     $self->log_info($self, 'Running job');
-    my $out = eval { $self->wingman_plugin->run($self->job_args) };
+    my $out = eval { $self->wingman_plugin->run($self, $self->job_args) };
     if ($@) {
         $self->log_error($self, 'Error running plugin: '.$@);
         $self->bury;
@@ -97,7 +97,6 @@ sub run {
     }
     else {
         $self->log_info($self, 'Job complete.');
-        $self->delete;
         return $out;
     }
 }

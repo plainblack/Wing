@@ -20,6 +20,47 @@ Wingman - A jobs server for Wing.
 
 When you're building web services or web sites you often need to do long running tasks as background processes to avoid connection timeouts, such as sending a bunch of emails or thumbnailing images. Wingman solves this problem. Wingman also forks multiple workers so that you can run jobs in parallel taking advantage of multi-core systems; You can even run multiple wingman server instances if one server isn't cutting it.
 
+
+=head1 FLOW
+
+ +-[ Wingman Task Master ]-------+
+ | +---------------------------+ |
+ | | Are there enough workers? | |
+ | +---------------------------+ |
+ |            |                  |    +-[ Wingman Woker ]-----------------------------------------------+
+ |            No                 |    | +-----------------+      +-----------------------------+        |
+ |            |          +----------->| | Is there a job? |-Yes->| Do we have a plugin for it? |        |
+ |            v          |       |    | +-----------------+      +-----------------------------+        |
+ | +------------------+  |       |    |   ^  |                     |     |                              |
+ | | Spawn new woker. |--+       |    |   |  No                    No   Yes                             |
+ | +------------------+          |    |   |  |                     |     |                              |
+ +-------------------------------+    |   |<-+            +--------+     v                              |
+                                      |   |               |            +------------------+             |
+ +-[ Beanstalkd ]----------------+    |   |               v            | Load the plugin. |             |
+ |                               |<-------+  +---------------+         +------------------+             |
+ | Jobs are queued here.         |<----------| Bury the job. |<-+           |                           |
+ |                               |    |      +---------------+  |           v                           |
+ +-------------------------------+    |                     ^   |      +--------------+                 |
+       ^                ^     ^       |                     |   +--No--| Did it load? |                 |
+       |                |     |       |  +---------+        |          +--------------+                 |
+ +-----------+          |     +--------->| Request |        |               |                           |
+ | add_job() |          |             |  | more    |-------------------+   Yes                          |
+ +-----------+          |             |  | time.   |  ^     |          |    |                           |
+                        |             |  +---------+  |     |          v    v                           |
+                        |             |     ^         |     |         +--------------+                  |
+                        |             |     |        No  +------------| Run the job. |                  |
+                        |             |    Yes        |  |  |         +--------------+                  |
+                        |             |     |         |  v  |             |                             |
+                        |             |  +----------------+ |             v                             |
+                        |             |  |  Are we taking | |         +-------------------------------+ |
+                        |             |  | too long?      | +-----No--| Did it complete successfully? | |
+                        |             |  +----------------+           +-------------------------------+ |
+                        |             |                                   |                             |
+                        |             |  +-----------------+              |                             |
+                        +----------------| Delete the job. |<-------Yes---+                             |
+                                      |  +-----------------+                                            |
+                                      +-----------------------------------------------------------------+
+
 =head1 METHODS
 
 =head2 new
@@ -59,7 +100,7 @@ has beanstalk => (
         return $beanstalk;
     },
     isa     => 'Beanstalk::Client',
-    handles => [qw(use delete release bury touch watch watch_only peek peek_ready disconnect peek_delayed peek_buried kick kick_job stats_job stats_tube stats list_tubes list_tube_used list_tubes_watched pause_tube)],
+    handles => [qw(error use delete release bury touch watch watch_only peek peek_ready disconnect peek_delayed peek_buried kick kick_job stats_job stats_tube stats list_tubes list_tube_used list_tubes_watched pause_tube)],
 );
 
 =head2 Pass Through Methods
@@ -67,6 +108,8 @@ has beanstalk => (
 The following is a list of methods that are direct pass-through's to L<Beanstalk::Client>.
 
 =over
+
+=item error
 
 =item use
 
@@ -179,7 +222,9 @@ sub add_job {
     $args = {} unless defined $args; # must be a hashref
     $options = {} unless defined $options; # must be a hashref
     if ($job_type ~~ $self->job_types) {
-        return $self->_instantiate_job($self->beanstalk->put($options, $job_type, $args));
+        my $beanstalk_job = $self->beanstalk->put($options, $job_type, $args);
+        $self->log_info($beanstalk_job, 'Created job');
+        return $self->_instantiate_job($beanstalk_job);
     }
     else {
         ouch 442, $job_type.' is not a defined Wingman job type.', $job_type;
@@ -202,7 +247,9 @@ The maximum number of seconds to wait for a job to become available. Defaults to
 
 sub next_job {
     my ($self, $timeout) = @_;
-    return $self->_instantiate_job($self->beanstalk->reserve($timeout));
+    my $beanstalk_job = $self->beanstalk->reserve($timeout);
+    $self->log_info($beanstalk_job, 'Fetched job');
+    return $self->_instantiate_job($beanstalk_job);
 }
 
 =head2 run
@@ -220,41 +267,9 @@ sub run {
     }
 }
 
-=head1 Plugin Development
+=head1 SEE ALSO
 
-Developing Wingman plugins is simple. You just need a package that uses the C<Wingman::Role::Plugin> role, and that has a C<run> method. See the following example.
-
- package MyApp::Wingman::MyCustomPlugin;
-
- use Wing::Perl;
- use Moose;
- with 'Wingman::Role::Plugin';
-
- sub run {
-        my ($self, $args_hashref) = @_;
-         # ... your code here ...
- }
-
- 1;
-
-Once you've created your plugin, you need to add it to your wing config file.
-
- "wingman" : {
-     ...,
-     "plugins" : {
-         "MyApp::Wingman::MyCustomPlugin" : {
-             "phase" : "do_the_big_thing",
-             "foo" : "bar",
-         }
-         ...,
-     }
- }
-
-The C<phase> is what your plugin will be known as in the system. You can also include other parameters as with the C<foo> parameter above. Other parameters will be passed to your plugin's constructor at instantiation time. This can be useful for passing in connection, encoding, path, and other properties.
-
-Once you're set up with your new plugin, you can use it in your Wing app like this:
-
- Wingman->new->add_job('do_the_big_thing', \%args);
+See the B<Plugin Development> section of L<Wingman::Role::Plugin> for details on how to give Wingman functionality.
 
 =cut
 
