@@ -68,9 +68,11 @@ The Wingman task master's job is simply to keep enough workers running as define
 
 Workers block on their connection to beanstalkd until they receive a job. They either complete the job or fail, either way they exit so a new worker is spawned. The workers die to ensure no memory leaks or other wierdness from plugin interactions. This is less efficient than keeping them around, but the benefits outweigh the expense.
 
-Workers have until C<TTR> (Time To Run) to complete the job. They should be wary of this and request more time from beanstalkd if they need more time. They can do this by calling the C<touch> method on the job, which will reset the TTR to it's original value. 
+Workers have until C<TTR> (Time To Run) to complete the job. They should be wary of this and request more time from beanstalkd if they need more time. They can do this by calling the C<touch> method on the job, which will reset the TTR to it's original value. Nothing will kill them at the end of TTR, however, beanstalkd will give out the job to a new worker at the end of TTR.
 
 If there's a chance that a plugin could hang, then the plugin needs to deal with this. L<Spawn::Safe> is a good way to deal with it.
+
+Also, plugins should be designed to expect failure. So if there is a portion of a job that should not be run more than once, that should be tracked externally in case the plugin fails partway through, or it loses communication with beanstalkd to tell it that the job completed.
 
 =head1 METHODS
 
