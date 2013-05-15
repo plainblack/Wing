@@ -37,29 +37,40 @@ When you're building web services or web sites you often need to do long running
  +-------------------------------+    |   |<-+            +--------+     v                              |
                                       |   |               |            +------------------+             |
  +-[ Beanstalkd ]----------------+    |   |               v            | Load the plugin. |             |
- |                               |<-------+  +---------------+         +------------------+             |
- | Jobs are queued here.         |<----------| Bury the job. |<-+           |                           |
- |                               |    |      +---------------+  |           v                           |
- +-------------------------------+    |                     ^   |      +--------------+                 |
-       ^                ^     ^       |                     |   +--No--| Did it load? |                 |
-       |                |     |       |  +---------+        |          +--------------+                 |
- +-----------+          |     +--------->| Request |        |               |                           |
- | add_job() |          |             |  | more    |-------------------+   Yes                          |
- +-----------+          |             |  | time.   |  ^     |          |    |                           |
-                        |             |  +---------+  |     |          v    v                           |
-                        |             |     ^         |     |         +--------------+                  |
-                        |             |     |        No  +------------| Run the job. |                  |
-                        |             |    Yes        |  |  |         +--------------+                  |
-                        |             |     |         |  v  |             |                             |
-                        |             |  +----------------+ |             v                             |
-                        |             |  |  Are we taking | |         +-------------------------------+ |
-                        |             |  | too long?      | +-----No--| Did it complete successfully? | |
-                        |             |  +----------------+           +-------------------------------+ |
-                        |             |                                   |                             |
-                        |             |  +-----------------+              |                             |
-                        +----------------| Delete the job. |<-------Yes---+                             |
-                                      |  +-----------------+                                            |
+ |                               |<-------+    +---------------+       +------------------+             |
+ | Jobs are queued here.         |<------------| Bury the job. |<-+         |                           |
+ |                               |<-------+    +---------------+  |         v                           |
+ +-------------------------------+    |   |                   ^   |    +--------------+                 |
+       ^                ^             |   |       +--------+  |   +-No-| Did it load? |                 |
+       |                |             |   |       | exit() |  |        +--------------+                 |
+ +-----------+          |             |   |       +--------+  |             |                           |
+ | add_job() |          |             |   |             ^     |            Yes                          |
+ +-----------+          |             | +------------+  |     |             |                           |
+                        |             | | Delete the |  |     |             v                           |
+                        |             | | job.       |  |     |       +-----------------------------+   |
+                        |             | +------------+  |     |       | Run the job.                |   |
+                        |             |           ^     |     |       |                             |   |
+                        |             |           |     |     |       | +-------------------------+ |   |
+                        |             |           +-----+     |       | | Are we taking too long? | |   |
+                        |             |              |        |       | +-------------------------+ |   |
+                        |             |             Yes      No       |    |                        |   |
+                        |             |              |        |       |   Yes                       |   |
+                        |             | +-----------------------+     |    |                        |   |
+                        |             | | Did the job complete  |<----|    |                        |   |
+                        |             | | successfully?         |     |    v                        |   |
+                        |             | +-----------------------+     | +--------------------+      |   |
+                        +-----------------------------------------------| Request more time. |      |   |
+                                      |                               | +--------------------+      |   |
+                                      |                               +-----------------------------+   |
                                       +-----------------------------------------------------------------+
+
+The Wingman task master's job is simply to keep enough workers running as defined by C<max_workers> in the config file.
+
+Workers block on their connection to beanstalkd until they receive a job. They either complete the job or fail, either way they exit so a new worker is spawned. The workers die to ensure no memory leaks or other wierdness from plugin interactions. This is less efficient than keeping them around, but the benefits outweigh the expense.
+
+Workers have until C<TTR> (Time To Run) to complete the job. They should be wary of this and request more time from beanstalkd if they need more time. They can do this by calling the C<touch> method on the job, which will reset the TTR to it's original value. 
+
+If there's a chance that a plugin could hang, then the plugin needs to deal with this. L<Spawn::Safe> is a good way to deal with it.
 
 =head1 METHODS
 
