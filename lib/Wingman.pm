@@ -280,6 +280,42 @@ sub run {
     }
 }
 
+=head2 stats_tube_as_hashref
+
+Does the same thing as C<stats_tube> except returns a hashref of the stats instead of the L<Beanstalk:Stats> object.
+
+=cut
+
+sub stats_tube_as_hashref {
+    my ($self, $tube_name) = @_; 
+    my $stats = $self->beanstalk->stats_tube($tube_name);
+    my %tube = (name => $tube_name);
+    foreach my $key (keys %{$stats}) {
+        my $underscore_key = $key;
+        $underscore_key =~ s/-/_/g;
+        $tube{$underscore_key} = $stats->{$key};
+    }
+    return \%tube;
+}
+
+=head2 stats_as_hashref
+
+Does the same thing as C<stats> except returns a hashref of the stats instead of the L<Beanstalk:Stats> object.
+
+=cut
+
+sub stats_as_hashref {
+    my ($self) = @_; 
+    my $stats = $self->beanstalk->stats;
+    my %beanstalk;
+    foreach my $key (keys %{$stats}) {
+        my $underscore_key = $key;
+        $underscore_key =~ s/-/_/g;
+        $beanstalk{$underscore_key} = $stats->{$key};
+    }
+    return \%beanstalk;
+}
+
 =head1 SEE ALSO
 
 See the B<Plugin Development> section of L<Wingman::Role::Plugin> for details on how to give Wingman functionality.

@@ -37,6 +37,9 @@ is $job->run, '{"foo":"bar"}', 'echo args as json';
 
 is $wingman->stats->current_jobs_ready, 0, 'zero jobs';
 
+ok $wingman->stats_as_hashref->{total_jobs} > 0, 'stats_as_hashref';
+ok $wingman->stats_tube_as_hashref('wingman_test')->{total_jobs} > 0, 'stats_tube_as_hashref'; 
+
 done_testing;
 
 END {
