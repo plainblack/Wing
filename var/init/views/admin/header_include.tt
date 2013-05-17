@@ -17,6 +17,7 @@
     <ul class="nav">
       <li><a href="/">Home</a></li>
       <li><a href="/admin/users">Users</a></li>
+      <li><a href="/admin/wingman">Wingman</a></li>
     </ul>
     <ul class="nav pull-right">
       <li><a href="/account">[% IF current_user %][% current_user.display_name %][% ELSE %]Login[% END %]</a></li>
