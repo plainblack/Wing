@@ -32,7 +32,7 @@ has beanstalk_job => (
     is      => 'ro',
     required=> 1,
     isa     => 'Beanstalk::Job',
-    handles => [qw(id buried reserved delete touch peek release bury ttr priority)],
+    handles => [qw(id buried reserved delete touch peek release bury ttr priority stats)],
 );
 
 =head2 Pass Through Methods
@@ -60,6 +60,8 @@ The following methods pass through directly from L<Beanstalk::Job>.
 =item ttr
 
 =item priority
+
+=item stats
 
 =back
 
@@ -100,5 +102,41 @@ sub run {
         return $out;
     }
 }
+
+=head2 stats_as_hashref ()
+
+Does the same thing as C<stats> except returns a hashref of the stats instead of the L<Beanstalk:Stats> object.
+
+=cut
+
+sub stats_as_hashref {
+    my ($self) = @_; 
+    my $stats = $self->stats;
+    my %beanstalk;
+    foreach my $key (keys %{$stats}) {
+        my $underscore_key = $key;
+        $underscore_key =~ s/-/_/g;
+        $beanstalk{$underscore_key} = $stats->{$key};
+    }
+    return \%beanstalk;
+}
+
+=head2 describe ( )
+
+Returns a hash reference with all the relevant details of the job.
+
+=cut
+
+sub describe {
+    my $self = shift;
+    my $class = ref $self->wingman_plugin;
+    my %out = (
+        %{$self->stats_as_hashref},
+        phase       => Wing->config->get('wingman/plugins/'.$class.'/phase'),
+        arguments   => $self->job_args,
+    );
+    return \%out;
+}
+
 
 1;

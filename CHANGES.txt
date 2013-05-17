@@ -1,0 +1,15 @@
+                W I N G   C H A N G E S
+----------------------------------------------------------
+This file tracks the changes to Wing over time. Especially
+with respect to new features and compatibility changes.
+==========================================================
+
+2013-05-16
+ * Added Wingman manager rest and web interfaces.
+
+2013-05-14
+ * Restructured Wingman and added more documentation for it.
+
+2013-05-12
+ * Added the Wingman job server.
+

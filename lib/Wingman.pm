@@ -10,8 +10,8 @@ Wingman - A jobs server for Wing.
  my $wingman = Wingman->new;
 
  # as a client
- my $job = $wingman->add_job($plugin_name, \%args, \%opts); # create a job
- my $job = $wingman->next_job($timeout);                    # fetch a job
+ my $job = $wingman->put($plugin_name, \%args, \%opts); # create a job
+ my $job = $wingman->reserve($timeout);                    # fetch a job
 
  # as the jobs task master
  $wingman->run;
@@ -41,11 +41,11 @@ When you're building web services or web sites you often need to do long running
  | Jobs are queued here.         |<------------| Bury the job. |<-+         |                           |
  |                               |<-------+    +---------------+  |         v                           |
  +-------------------------------+    |   |                   ^   |    +--------------+                 |
-       ^                ^             |   |       +--------+  |   +-No-| Did it load? |                 |
-       |                |             |   |       | exit() |  |        +--------------+                 |
- +-----------+          |             |   |       +--------+  |             |                           |
- | add_job() |          |             |   |             ^     |            Yes                          |
- +-----------+          |             | +------------+  |     |             |                           |
+     ^                  ^             |   |       +--------+  |   +-No-| Did it load? |                 |
+     |                  |             |   |       | exit() |  |        +--------------+                 |
+ +-------+              |             |   |       +--------+  |             |                           |
+ | put() |              |             |   |             ^     |            Yes                          |
+ +-------+              |             | +------------+  |     |             |                           |
                         |             | | Delete the |  |     |             v                           |
                         |             | | job.       |  |     |       +-----------------------------+   |
                         |             | +------------+  |     |       | Run the job.                |   |
@@ -91,6 +91,8 @@ use Beanstalk::Client;
 use Parallel::ForkManager;
 use JSON::XS;
 use Ouch;
+use List::Util qw(min max);
+use POSIX qw(ceil);
 with 'Wingman::Role::Logger';
 
 has plugins => (
@@ -113,7 +115,7 @@ has beanstalk => (
         return $beanstalk;
     },
     isa     => 'Beanstalk::Client',
-    handles => [qw(error use delete release bury touch watch watch_only peek peek_ready disconnect peek_delayed peek_buried kick kick_job stats_job stats_tube stats list_tubes list_tube_used list_tubes_watched pause_tube)],
+    handles => [qw(error use delete release bury touch watch watch_only disconnect kick kick_job stats_job stats_tube stats list_tubes list_tube_used list_tubes_watched pause_tube)],
 );
 
 =head2 Pass Through Methods
@@ -138,15 +140,7 @@ The following is a list of methods that are direct pass-through's to L<Beanstalk
 
 =item watch_only
 
-=item peek
-
-=item peek_ready
-
 =item disconnect
-
-=item peek_delayed
-
-=item peek_buried
 
 =item kick
 
@@ -191,6 +185,9 @@ has job_types => (
 
 sub _instantiate_job {
     my ($self, $beanstalk_job) = @_;
+    unless (defined $beanstalk_job) {
+        ouch 440, 'Job not found.';
+    }
     my ($plugin_name, $args) = $beanstalk_job->args;
     $self->log_info($beanstalk_job, 'Instantiating job');
     my $plugin = $self->plugins->get_plugin($plugin_name);
@@ -208,7 +205,7 @@ sub _instantiate_job {
     }
 }
 
-=head2 add_job
+=head2 put ( phase, [ args, options ] )
 
 Add a new job to the queue.
 
@@ -224,18 +221,45 @@ A hash reference that will be passed directly to the job's C<run> method.
 
 =item options
 
-A hash reference of queuing options. See the C<put> method in C<Beanstalk::Client>.
+A hash reference of queuing options.
+
+=over
+
+=item tube
+
+The name of the tube you want to insert this job into. If not specified, it will be inserted into the tube specified as C<default_tube> in the config file.
+
+=item priority
+
+Priority to use to queue the job. Jobs with smaller priority values will be scheduled before jobs with larger priorities. The most urgent priority is 0. Defaults to the C<priority> set in the config file.
+
+=item delay
+
+An integer number of seconds to wait before putting the job in the ready queue. The job will be in the "delayed" state during this time. Defaults to the C<delay> set in the config file.
+
+=item ttr
+
+The "Time To Run". An integer number of seconds to allow a worker to run this job. This time is counted from the moment a worker reserves this job. If the worker does not delete, release, or bury the job within ttr seconds, the job will time out and the server will release the job. The minimum ttr is 1. If the client sends 0, the server will silently increase the ttr to 1. Defaults to the C<ttr> set in the config file.
+
+=back
 
 =back
 
 =cut
 
-sub add_job {
+sub put {
     my ($self, $job_type, $args, $options) = @_;
     $args = {} unless defined $args; # must be a hashref
     $options = {} unless defined $options; # must be a hashref
+    my $default_tube = Wing->config->get('wingman/default_tube');
     if ($job_type ~~ $self->job_types) {
+        if (exists $options->{tube} && defined $options->{tube} && $options->{tube} ne $default_tube) {
+            $self->use($options->{tube});
+        }
         my $beanstalk_job = $self->beanstalk->put($options, $job_type, $args);
+        if (exists $options->{tube} && defined $options->{tube} && $options->{tube} ne $default_tube) {
+            $self->use($default_tube);
+        }
         $self->log_info($beanstalk_job, 'Created job');
         return $self->_instantiate_job($beanstalk_job);
     }
@@ -244,7 +268,7 @@ sub add_job {
     }
 }
 
-=head2 next_job 
+=head2 reserve ( [ timeout ] )
 
 Returns the next job on the queue. Blocks until a job is available.
 
@@ -258,14 +282,82 @@ The maximum number of seconds to wait for a job to become available. Defaults to
 
 =cut
 
-sub next_job {
+sub reserve {
     my ($self, $timeout) = @_;
     my $beanstalk_job = $self->beanstalk->reserve($timeout);
-    $self->log_info($beanstalk_job, 'Fetched job');
+    $self->log_info($beanstalk_job, 'Fetched a job.');
     return $self->_instantiate_job($beanstalk_job);
 }
 
-=head2 run
+=head2 peek ( id )
+
+Fetch a specific job without reserving it.
+
+=over
+
+=item id
+
+The unique id of the job.
+
+=back
+
+=cut
+
+sub peek {
+    my ($self, $id) = @_;
+    my $beanstalk_job = $self->beanstalk->peek($id);
+    if (defined $beanstalk_job) {
+        return $self->_instantiate_job($beanstalk_job);
+    }
+    return undef;
+}
+
+=head2 peek_ready ( )
+
+Fetch the next ready job without reserving it.
+
+=cut
+
+sub peek_ready {
+    my ($self) = @_;
+    my $beanstalk_job = $self->beanstalk->peek_ready;
+    if (defined $beanstalk_job) {
+        return $self->_instantiate_job($beanstalk_job);
+    }
+    return undef;
+}
+
+=head2 peek_delayed ( )
+
+Fetch the next delayed job without reserving it.
+
+=cut
+
+sub peek_delayed {
+    my ($self) = @_;
+    my $beanstalk_job = $self->beanstalk->peek_delayed;
+    if (defined $beanstalk_job) {
+        return $self->_instantiate_job($beanstalk_job);
+    }
+    return undef;
+}
+
+=head2 peek_buried ( )
+
+Fetch the next buried job without reserving it.
+
+=cut
+
+sub peek_buried {
+    my ($self) = @_;
+    my $beanstalk_job = $self->beanstalk->peek_buried;
+    if (defined $beanstalk_job) {
+        return $self->_instantiate_job($beanstalk_job);
+    }
+    return undef;
+}
+
+=head2 run ()
 
 Starts the Wingman task master. This will fork off child processes and start executing jobs as fast as the hardware will allow. 
 
@@ -275,12 +367,12 @@ sub run {
     my $self = shift;
     while (1) {
         my $pid = $self->pfm->start and next;
-        $self->next_job->run;
+        $self->reserve->run;
         $self->pfm->finish;
     }
 }
 
-=head2 stats_tube_as_hashref
+=head2 stats_tube_as_hashref ()
 
 Does the same thing as C<stats_tube> except returns a hashref of the stats instead of the L<Beanstalk:Stats> object.
 
@@ -288,17 +380,53 @@ Does the same thing as C<stats_tube> except returns a hashref of the stats inste
 
 sub stats_tube_as_hashref {
     my ($self, $tube_name) = @_; 
-    my $stats = $self->beanstalk->stats_tube($tube_name);
-    my %tube = (name => $tube_name);
-    foreach my $key (keys %{$stats}) {
-        my $underscore_key = $key;
-        $underscore_key =~ s/-/_/g;
-        $tube{$underscore_key} = $stats->{$key};
+    my $stats = $self->stats_tube($tube_name);
+    if (defined $stats) {
+        my %tube = (name => $tube_name);
+        foreach my $key (keys %{$stats}) {
+            my $underscore_key = $key;
+            $underscore_key =~ s/-/_/g;
+            $tube{$underscore_key} = $stats->{$key};
+        }
+        return \%tube;
     }
-    return \%tube;
+    else {
+        ouch 440, 'Tube not found.', $tube_name;
+    }
 }
 
-=head2 stats_as_hashref
+=head2 stats_job_as_hashref ( id )
+
+Does the same thing as C<stats_job> except returns a hashref of the stats instead of the L<Beanstalk:Stats> object.
+
+=over
+
+=item id
+
+The unique id of the job.
+
+=back
+
+=cut
+
+sub stats_job_as_hashref {
+    my ($self, $id) = @_; 
+    my $stats = $self->stats_job($id);
+    if (defined $stats) {
+        my %beanstalk;
+        foreach my $key (keys %{$stats}) {
+            my $underscore_key = $key;
+            $underscore_key =~ s/-/_/g;
+            $beanstalk{$underscore_key} = $stats->{$key};
+        }
+        return \%beanstalk;
+    }
+    else {
+        ouch 440, 'Job not found.', $id;
+    }
+}
+
+=head2 stats_as_hashref ()
 
 Does the same thing as C<stats> except returns a hashref of the stats instead of the L<Beanstalk:Stats> object.
 
@@ -306,7 +434,7 @@ Does the same thing as C<stats> except returns a hashref of the stats instead of
 
 sub stats_as_hashref {
     my ($self) = @_; 
-    my $stats = $self->beanstalk->stats;
+    my $stats = $self->stats;
     my %beanstalk;
     foreach my $key (keys %{$stats}) {
         my $underscore_key = $key;
@@ -314,6 +442,92 @@ sub stats_as_hashref {
         $beanstalk{$underscore_key} = $stats->{$key};
     }
     return \%beanstalk;
+}
+
+=head2 guess_min_peek_range ( [ options ] )
+
+Returns a best guess as to what the lowest job id might be in the queue.
+
+=over
+
+=item options
+
+A hash reference of options to change the behavior of this method.
+
+=over
+
+=item tubes
+
+An array reference of tubes to search in. Optional. Defaults to all.
+
+=item guess_peek_range
+
+Default 100. The number of elements to use in peek-range guesses.
+
+=item jitter
+
+Default 0.25. Add some jitter in the opposite direction of 1/4 range.
+
+=back
+
+=back
+
+=cut
+
+sub guess_min_peek_range {
+    my ($self, $options) = @_;
+    my $guess_peek_range = $options->{guess_peek_range} || 100;
+    my $jitter = $options->{jitter} || 0.25;
+    my @tubes = @{$options->{tubes}} if exists $options->{tubes} && ref $options->{tubes} eq 'ARRAY';
+    if (scalar @tubes < 1) {
+        @tubes = $self->list_tubes;
+    }
+    my $min = 0;
+    foreach my $tube (@tubes) {
+        my $job = $self->peek_ready;
+        if (defined $job) {
+            if ($min == 0) {
+                $min = $job->id;
+            }
+            else {
+                $min = min($min, $job->id);    
+            }
+        }
+    }
+    my $jitter_min = ceil(min - ($guess_peek_range * $jitter));
+    return max(1, $jitter_min);
+}
+
+=head2 guess_max_peek_range ( min, [ options ] ) 
+
+Pick a maximum peek range based on the minimum.
+
+=over
+
+=item min
+
+The result of C<guess_min_peek_range>.
+
+=item options
+
+A hash reference of options to change the behavior of this method.
+
+=over
+
+=item guess_peek_range
+
+Default 100. The number of elements to use in peek-range guesses.
+
+=back
+
+=back
+
+=cut
+
+sub guess_max_peek_range {
+    my ($self, $min, $options) = @_;
+    my $guess_peek_range = $options->{guess_peek_range} || 100;
+    return ($min + $guess_peek_range) - 1;
 }
 
 =head1 SEE ALSO
