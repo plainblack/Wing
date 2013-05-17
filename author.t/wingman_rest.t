@@ -19,6 +19,17 @@ my $state = $job->{state};
 $job = TestHelper::call('GET','/api/wingman/jobs/'.$state, { session_id => $andy->{id} })->{result};
 is $job->{state}, $state, 'can fetch a job by state';
 
+my $jobs = TestHelper::call('GET','/api/wingman/tubes/'.$job->{tube}.'/jobs', { session_id => $andy->{id} })->{result};
+ok scalar(@{$jobs->{items}}) > 0, 'got the jobs of a tube';
+
+my $tubes = TestHelper::call('GET','/api/wingman/tubes', { session_id => $andy->{id} })->{result};
+ok scalar(@{$tubes->{items}}) > 0, 'got the list of tubes';
+
+$job = TestHelper::call('DELETE','/api/wingman/jobs/'.$job->{id}, { session_id => $andy->{id} })->{result};
+is $job->{success}, 1, 'can delete a job';
+
+
+
 
 done_testing();
 
