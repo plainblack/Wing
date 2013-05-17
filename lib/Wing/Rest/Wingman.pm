@@ -106,17 +106,29 @@ get '/api/wingman/jobs' => sub {
 
 get '/api/wingman/jobs/buried' => sub {
     my $user = get_user_by_session_id()->verify_is_admin();
-    return Wingman->new->peek_buried->describe;
+    my $job = Wingman->new->peek_buried;
+    if (defined $job) {
+        return $job->describe;
+    }
+    ouch 404, 'No ready jobs.';
 };
 
 get '/api/wingman/jobs/ready' => sub {
     my $user = get_user_by_session_id()->verify_is_admin();
-    return Wingman->new->peek_ready->describe;
+    my $job = Wingman->new->peek_ready;
+    if (defined $job) {
+        return $job->describe;
+    }
+    ouch 404, 'No ready jobs.';
 };
 
 get '/api/wingman/jobs/delayed' => sub {
     my $user = get_user_by_session_id()->verify_is_admin();
-    return Wingman->new->peek_delayed->describe;
+    my $job = Wingman->new->peek_delayed;
+    if (defined $job) {
+        return $job->describe;
+    }
+    ouch 404, 'No delayed jobs.';
 };
 
 
