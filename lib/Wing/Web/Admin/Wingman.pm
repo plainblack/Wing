@@ -25,9 +25,11 @@ get '/admin/wingman/tubes/:tube' => sub {
 get '/admin/wingman/jobs/:job_id' => sub {
     my $tube_name = params->{tube};
     my $job_id = params->{job_id};
+    my $wingman = Wingman->new;
     template 'admin/wingman_job', {
         job_id          => $job_id,
         config          => Wing->config->get('wingman'),
+        stats           => $wingman->stats_job_as_hashref($job_id),
     };
 };
 
