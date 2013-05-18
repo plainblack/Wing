@@ -462,6 +462,20 @@ Shows this document
 
 =back
 
+=head1 TODO
+
+=over 4
+
+=item List sites
+
+Add a switch to list the hostnames and names of all tenant sites
+
+=item Info on all sites
+
+Let --info and --all_tenants work together, so we can find the status of all sites at once.
+
+=back
+
 =head1 AUTHOR
 
 Copyright 2012-2013 Plain Black Corporation.
