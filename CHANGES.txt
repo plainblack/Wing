@@ -6,8 +6,9 @@ with respect to new features and compatibility changes.
 
 2013-05-19
  * Added EmailAllAdmins Wingman plugin.
- * WARNING: By this point all Wing apps should have a block similar to this
-	added to their config files. 
+ * WARNING: By this point all Wing apps should have a block similar 
+	to this added to their config files if they want to start
+	using Wingman services.
 
     "wingman" : {
         "max_workers" : 2,

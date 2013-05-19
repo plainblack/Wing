@@ -164,6 +164,8 @@ the option.
 
 Boolean. If this option is true the email will be sent in the background via L<Wingman> instead of immediately.
 
+B<NOTE:> To use this feature you must have a C<wingman> section in your config file configured properly, and a live C<beanstalkd> server.
+
 =cut
 
 sub send_templated_email {
