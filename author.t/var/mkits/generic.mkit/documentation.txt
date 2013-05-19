@@ -1,0 +1,10 @@
+Use this to send a generic email message. Most of the time you should be creating a separate mkit so you're not including templating info in your code.
+
+
+PARAMS
+
+me = A describe of a user object this message will be sent to including private info.
+
+subject = The subject line of the email to send.
+
+message = The text message you'd like to send to the user.

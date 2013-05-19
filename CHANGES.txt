@@ -4,6 +4,11 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2013-05-18
+ * Added SendTemplatedEmail Wingman plugin.
+ * Added generic.mkit
+ * Added reset_password.mkit
+
 2013-05-16
  * Added Wingman manager rest and web interfaces.
 

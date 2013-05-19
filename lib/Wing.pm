@@ -160,24 +160,40 @@ A hashref of options for changing the behavior of this method
 If this option exists, then a copy of the email will be sent to the value of
 the option.
 
+=head4 wingman
+
+Boolean. If this option is true the email will be sent in the background via L<Wingman> instead of immediately.
+
 =cut
 
 sub send_templated_email {
     my ($class, $template, $params, $options) = @_; 
-    $params->{sitename} = $_config->get('sitename');
-    my $email = Email::MIME::Kit
-        ->new({ source => $_config->get('mkits').$template.'.mkit' })
-        ->assemble($params);
-    my $transport = Email::Sender::Transport::SMTP->new($_config->get('smtp'));
-    eval {
-        Email::Sender::Simple->send($email, { transport => $transport});
-        if ($options->{bcc}) {
-            Email::Sender::Simple->send($email, { transport => $transport, to => $options->{bcc} });
+    if ($options->{wingman}) {
+        delete $options->{wingman};
+        Wingman->new->put('SendTemplatedEmail',{
+            template    => $template,
+            params      => $params,
+            options     => $options,
+        }, {
+            ttr => 60,
+        });
+    }
+    else {
+        $params->{sitename} = $_config->get('sitename');
+        my $email = Email::MIME::Kit
+            ->new({ source => $_config->get('mkits').$template.'.mkit' })
+            ->assemble($params);
+        my $transport = Email::Sender::Transport::SMTP->new($_config->get('smtp'));
+        eval {
+            Email::Sender::Simple->send($email, { transport => $transport});
+            if ($options->{bcc}) {
+                Email::Sender::Simple->send($email, { transport => $transport, to => $options->{bcc} });
+            }
+        };
+        if (hug) {
+            __PACKAGE__->log->fatal('Email Problem: '.bleep);
+            ouch 504, 'Could not send email. Mail service down.', bleep;
         }
-    };
-    if (hug) {
-        __PACKAGE__->log->fatal('Email Problem: '.bleep);
-        ouch 504, 'Could not send email. Mail service down.';
     }
 }
 

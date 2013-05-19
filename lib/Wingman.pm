@@ -190,13 +190,18 @@ sub _instantiate_job {
     }
     my ($plugin_name, $args) = $beanstalk_job->args;
     $self->log_info($beanstalk_job, 'Instantiating job');
-    my $plugin = $self->plugins->get_plugin($plugin_name);
+    my $plugin = eval {$self->plugins->get_plugin($plugin_name)};
     if (defined $plugin) {
         return Wingman::Job->new(
             beanstalk_job   => $beanstalk_job, 
             wingman_plugin  => $plugin,
             job_args        => $args,
         );
+    }
+    elsif ($@) {
+        $self->log_error($beanstalk_job, 'Could not load plugin, because: '.$@);
+        $beanstalk_job->bury;
+        return ouch 500, 'Could not load plugin.', $plugin_name;
     }
     else {
         $self->log_error($beanstalk_job, 'Plugin not found.');

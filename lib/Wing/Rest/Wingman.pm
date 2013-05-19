@@ -110,7 +110,7 @@ get '/api/wingman/jobs/buried' => sub {
     if (defined $job) {
         return $job->describe;
     }
-    ouch 404, 'No ready jobs.';
+    ouch 404, 'No buried jobs.';
 };
 
 get '/api/wingman/jobs/ready' => sub {
