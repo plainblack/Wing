@@ -166,19 +166,25 @@ Boolean. If this option is true the email will be sent in the background via L<W
 
 B<NOTE:> To use this feature you must have a C<wingman> section in your config file configured properly, and a live C<beanstalkd> server.
 
+=head4 wingman_job_options 
+
+Hash reference. See L<Wingman/put> for details. 
+
+B<NOTE:> C<ttr> defaults to 60. 
+
 =cut
 
 sub send_templated_email {
     my ($class, $template, $params, $options) = @_; 
     if ($options->{wingman}) {
         delete $options->{wingman};
+        my $job_options = $options->{wingman_job_options} || { ttr => 60 };
+        delete $options->{wingman_job_options}
         Wingman->new->put('SendTemplatedEmail',{
             template    => $template,
             params      => $params,
             options     => $options,
-        }, {
-            ttr => 60,
-        });
+        }, $job_options);
     }
     else {
         $params->{sitename} = $_config->get('sitename');
