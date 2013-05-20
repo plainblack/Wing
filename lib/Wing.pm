@@ -179,7 +179,7 @@ sub send_templated_email {
     if ($options->{wingman}) {
         delete $options->{wingman};
         my $job_options = $options->{wingman_job_options} || { ttr => 60, priority => 1500 };
-        delete $options->{wingman_job_options}
+        delete $options->{wingman_job_options};
         unless (defined $job_options->{ttr}) {
             $job_options->{ttr} = 60;
         }
