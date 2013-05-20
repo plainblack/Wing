@@ -170,7 +170,7 @@ B<NOTE:> To use this feature you must have a C<wingman> section in your config f
 
 Hash reference. See L<Wingman/put> for details. 
 
-B<NOTE:> C<ttr> defaults to 60. 
+B<NOTE:> C<ttr> defaults to 60. C<priority> defaults to 1500.
 
 =cut
 
@@ -178,10 +178,13 @@ sub send_templated_email {
     my ($class, $template, $params, $options) = @_; 
     if ($options->{wingman}) {
         delete $options->{wingman};
-        my $job_options = $options->{wingman_job_options} || { ttr => 60 };
+        my $job_options = $options->{wingman_job_options} || { ttr => 60, priority => 1500 };
         delete $options->{wingman_job_options}
         unless (defined $job_options->{ttr}) {
             $job_options->{ttr} = 60;
+        }
+        unless (defined $job_options->{priority}) {
+            $job_options->{priority} = 1500;
         }
         Wingman->new->put('SendTemplatedEmail',{
             template    => $template,
