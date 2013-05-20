@@ -180,6 +180,9 @@ sub send_templated_email {
         delete $options->{wingman};
         my $job_options = $options->{wingman_job_options} || { ttr => 60 };
         delete $options->{wingman_job_options}
+        unless (defined $job_options->{ttr}) {
+            $job_options->{ttr} = 60;
+        }
         Wingman->new->put('SendTemplatedEmail',{
             template    => $template,
             params      => $params,
