@@ -9,8 +9,7 @@ with respect to new features and compatibility changes.
  * Now requires App::Cmd.
  * Converted wing_db.pl to Wing Command.
  * Converted wing_add_user.pl to Wing Command.
- * Added listing of admins via Wing Command.
- * Added modifying users via Wing Command.
+ * wing user can now search and list users, and list only admins.
  * Add wing do to Wing Command, for firing off Wingman jobs.
  * Converted wing_add_class.pl and wing_template_class.pl to Wing Command.
 

@@ -9,13 +9,23 @@ sub abstract { 'manage users' }
 
 sub usage_desc { 'Add and modify user accounts.' }
 
+sub description {'Examples:
+wing user --add=Joe --password=123qwe --admin
+
+wing user --modify=Joe --noadmin --username=joseph
+
+wing user --search=jo
+'}
+
 sub opt_spec {
     return (
-      [ 'add', 'add a new user' ],
-      [ 'modify', 'change an existing user' ],
+      [ 'add=s', 'add a new user' ],
+      [ 'modify=s', 'change an existing user' ],
+      [ 'search=s', 'search users by keyword' ],
+      [ 'list', 'list all users' ],
       [ 'list_admins', 'list all admin users' ],
-      [ 'username=s', 'the user to modify' ],
       [ 'password=s', 'the password for the user' ],
+      [ 'username=s', 'a new username for the user' ],
       [ 'admin!', 'whether the user should be an admin' ],
     );
 }
@@ -30,13 +40,9 @@ sub execute {
     my ($self, $opt, $args) = @_;
     my $users = Wing->db->resultset('User');
     if ($opt->{add}) {
-        if (!$opt->{username}) {
-            say "You must specify a username to add.";
-            exit;
-        }
         eval {
             my $user = $users->new({});
-            $user->username($opt->{username});
+            $user->username($opt->{add});
             $user->admin($opt->{admin});
             $user->encrypt_and_set_password($opt->{password});
             $user->insert;
@@ -46,19 +52,16 @@ sub execute {
             say bleep;
         }
         else {
-            say $opt->{username}, ' created';
+            say $opt->{add}, ' created';
         }
     }
     elsif ($opt->{modify}) {
-        if (!$opt->{username}) {
-            say "You must specify a username to modify.";
-            exit;
-        }
-        my $user = $users->search({username => $opt->{username}}, { rows => 1})->single;
+        my $user = $users->search({username => $opt->{modify}}, { rows => 1})->single;
         if (defined $user) {
             eval {
                 $user->encrypt_and_set_password($opt->{password}) if exists $opt->{password};
                 $user->admin($opt->{admin}) if exists $opt->{admin};
+                $user->username($opt->{username}) if exists $opt->{username};
                 $user->update;
             };
             
@@ -66,22 +69,42 @@ sub execute {
                 say bleep;
             }
             else {
-                say $opt->{username}, ' updated';
+                say $opt->{modify}, ' updated';
             }
         }
         else {
-            say $opt->{username}, ' not found';
+            say $opt->{modify}, ' not found';
         }
     }
+    elsif ($opt->{search}) {
+        my $list = $users->search({username => { like => '%'.$opt->{search}.'%'}});
+        list_users($list);
+    }
+    elsif ($opt->{list}) {
+        my $list = $users->search;
+        list_users($list);
+    }
     elsif ($opt->{list_admins}) {
-        my $admins = $users->search({admin => 1});
-        while (my $user = $admins->next) {
-            say $user->username;
-        }
+        my $list = $users->search({admin => 1});
+        list_users($list);
     }
     else {
         say "You must specify --add or --modify.";
     }
+}
+
+
+sub list_users {
+    my $resultset = shift;
+    my $users = $resultset->search(undef, {order_by => 'username'});
+    while (my $user = $users->next) {
+        my $suffix = '';
+        if ($user->admin) {
+            $suffix = ' (admin)';
+        }
+        say $user->username.$suffix;
+    }
+    say 'Total: ', $resultset->count;
 }
 
 1;
@@ -92,9 +115,11 @@ wing user - Add and modify user accounts.
 
 =head1 SYNOPSIS
 
- wing user --add --username=Joe --password=123qwe --admin
+ wing user --add=Joe --password=123qwe --admin
 
- wing user --modify --username=Joe --noadmin
+ wing user --modify=Joe --noadmin --username=joseph
+
+ wing user --search=jo
  
 =head1 DESCRIPTION
 
