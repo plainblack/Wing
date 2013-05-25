@@ -11,11 +11,7 @@ INSTALLATION
 
 2. Install the prereqs.
 
-  cd /data/Wing/bin/setup
-  ./01_download.sh
-  ./02_build.sh
-  ./03_install_perl_modules.sh
-  . /data/Wing/bin/dataapps.sh
+  /data/Wing/bin/setup/setup.sh
 
 3. Create a project:
 
