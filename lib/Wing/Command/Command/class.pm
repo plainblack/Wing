@@ -1,0 +1,160 @@
+package Wing::Command::Command::class;
+
+use Wing;
+use Wing::Perl;
+use Wing::Command -command;
+use Ouch;
+use File::Path qw(make_path);
+use Template;
+
+sub abstract { 'authoring tools for wing classes' }
+
+sub usage_desc { 'Tools that auto-generate code, templates, and more for Wing classes.' }
+
+sub description { 'Examples:
+wing class --add MyClass
+
+wing class --template MyClass
+
+'};
+
+sub opt_spec {
+    return (
+      [ 'add=s', 'generate a skeleton class' ],
+      [ 'template=s', 'generate a set of skeleton templates for a class' ],
+    );
+}
+
+sub validate_args {
+    my ($self, $opt, $args) = @_;
+    # no args allowed but options!
+    $self->usage_error("No args allowed, only options.") if @$args;
+}
+
+sub execute {
+    my ($self, $opt, $args) = @_;
+    if ($opt->{add}) {
+        add_class($opt->{add});
+    }
+    elsif ($opt->{template}) {
+        template_class($opt->{template});
+    }
+}
+
+sub add_class {
+    my $class_name = shift;
+    my $tt = Template->new({ABSOLUTE => 1});
+    
+    my $project = Wing->config->get('app_namespace');
+    
+    my $vars = {
+        project => $project,
+        class_name => $class_name,
+    };
+    
+    eval {
+      $tt->process($ENV{WING_HOME}.'/var/add_class/DB/Result.tt', $vars, $ENV{WING_APP}.'/lib/'.$project.'/DB/Result/'.$class_name.'.pm') || die $tt->error();
+      $tt->process($ENV{WING_HOME}.'/var/add_class/Rest/Rest.tt', $vars, $ENV{WING_APP}.'/lib/'.$project.'/Rest/'.$class_name.'.pm') || die $tt->error();
+      $tt->process($ENV{WING_HOME}.'/var/add_class/Web/Web.tt', $vars, $ENV{WING_APP}.'/lib/'.$project.'/Web/'.$class_name.'.pm') || die $tt->error();
+    
+    {
+        local ($^I, @ARGV) = ('', $ENV{WING_APP}.'/bin/rest.psgi');
+        my $added = 0;
+        while (<>) {
+            next if $added;
+            next unless /Wing::Rest::NotFound/;
+            $added = 1;
+            say "use ".$project."::Rest::".$class_name.';';
+        }
+        continue {
+            print;
+        }
+    }
+    
+    {
+        local ($^I, @ARGV) = ('', $ENV{WING_APP}.'/bin/web.psgi');
+        my $added = 0;
+        while (<>) {
+            next if $added;
+            next unless /Wing::Web::NotFound/;
+            $added = 1;
+            say "use ".$project."::Web::".$class_name.';';
+        }
+        continue {
+            print;
+        }
+    }
+    
+    };
+    
+    if ($@) {
+        say bleep;
+    }
+    else {
+        say $class_name, ' created';
+    }
+}
+
+sub template_class {
+    my $class_name = shift;
+    my $wing_templates = $ENV{WING_HOME}.'/var/template_class/';
+    my $app_templates = $ENV{WING_APP}.'/views/'.lc($class_name);
+    
+    say "Creating directory $app_templates";
+    
+    make_path($app_templates);
+        #or die "Could not create dir $app_templates: $!\n";
+    
+    my $project = Wing->config->get('app_namespace');
+    
+    my $object = Wing->db->resultset($class_name)->new({});
+    
+    my $t_alt = Template->new({ABSOLUTE => 1, START_TAG => quotemeta('[%['), END_TAG => quotemeta(']%]')});
+    
+    eval {
+        my $vars = {
+            project => $project,
+            class_name => $class_name,
+            lower_class => lc $class_name,
+            #Edit
+            postable_params => $object->postable_params,
+            required_params => $object->required_params,
+            admin_postable_params => $object->admin_postable_params,
+            #View
+            public_params         => $object->public_params,
+            private_params        => $object->private_params,
+            admin_viewable_params => $object->admin_viewable_params,
+        };
+        $t_alt->process($wing_templates.'/index.tt', $vars, $app_templates.'/index.tt') || die $t_alt->error();
+        $t_alt->process($wing_templates.'/view_edit.tt', $vars, $app_templates.'/view_edit.tt') || die $t_alt->error();
+    };
+    
+    if ($@) {
+        say bleep;
+    }
+    else {
+        say $class_name, ' templated';
+    }
+}
+
+1;
+
+=head1 NAME
+
+wing user - Add and modify user accounts.
+
+=head1 SYNOPSIS
+
+ wing user --add --username=Joe --password=123qwe --admin
+
+ wing user --modify --username=Joe --noadmin
+ 
+=head1 DESCRIPTION
+
+This provides simple user management. For all complex function, you should use the web interface. 
+
+=head1 AUTHOR
+
+Copyright 2012-2013 Plain Black Corporation.
+
+=cut
