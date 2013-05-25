@@ -7,6 +7,9 @@ with respect to new features and compatibility changes.
 2013-05-25
  * Added Wing Command, the new CLI for Wing.
  * Converted wing_db.pl to Wing Command.
+ * Converted wing_add_user.pl to Wing Command.
+ * Added listing of admins via Wing Command.
+ * Added modifying users via Wing Command.
 
 2013-05-19
  * Added EmailAllAdmins Wingman plugin.
