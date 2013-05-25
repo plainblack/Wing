@@ -12,6 +12,11 @@ __PACKAGE__->wing_fields(
         view                => 'public',
         edit                => 'unique',
     },
+    web_url                     => {
+        dbic                => { data_type => 'varchar', size => 255, is_nullable => 1 },
+        view                => 'public',
+        edit                => 'postable',
+    },
 );
 
 __PACKAGE__->wing_child(
