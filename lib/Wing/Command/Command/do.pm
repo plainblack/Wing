@@ -54,17 +54,19 @@ sub execute {
 
 =head1 NAME
 
-wing user - Add and modify user accounts.
+wing do - Launch Wingman jobs.
 
 =head1 SYNOPSIS
 
- wing user --add --username=Joe --password=123qwe --admin
+ wing do HelloWorld
 
- wing user --modify --username=Joe --noadmin
+ wing do --delay=60 --priority=9999 HelloWorld 
+
+ wing do --priority=500 EmailAllAdmins {\"template\":\"generic\", \"params\":{\"subject\":\"foo\", \"message\":\"bar\"}}
  
 =head1 DESCRIPTION
 
-This provides simple user management. For all complex function, you should use the web interface. 
+We recommend using your operating system's cron scheduler to kick off jobs. You can use this Wing Command to kick off jobs from the command line, and therefore from cron as well.
 
 =head1 AUTHOR
 
