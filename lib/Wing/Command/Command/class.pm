@@ -141,17 +141,17 @@ sub template_class {
 
 =head1 NAME
 
-wing user - Add and modify user accounts.
+wing class - Generate skeletons for your custom code.
 
 =head1 SYNOPSIS
 
- wing user --add --username=Joe --password=123qwe --admin
+ wing class --add MyCustomClass
 
- wing user --modify --username=Joe --noadmin
+ wing class --template MyCustomClass
  
 =head1 DESCRIPTION
 
-This provides simple user management. For all complex function, you should use the web interface. 
+This provides simple skeleton generation to eliminate blank page syndrome.
 
 =head1 AUTHOR
 
