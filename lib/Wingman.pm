@@ -256,7 +256,7 @@ sub put {
     my ($self, $job_type, $args, $options) = @_;
     $args = {} unless defined $args; # must be a hashref
     $options = {} unless defined $options; # must be a hashref
-    my $default_tube = Wing->config->get('wingman/default_tube');
+    my $default_tube = Wing->config->get('wingman/beanstalkd/default_tube');
     if ($job_type ~~ $self->job_types) {
         if (exists $options->{tube} && defined $options->{tube} && $options->{tube} ne $default_tube) {
             $self->use($options->{tube});
