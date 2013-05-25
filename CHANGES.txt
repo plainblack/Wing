@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2013-05-25
  * Added Wing Command, the new CLI for Wing.
+ * Now requires App::Cmd.
  * Converted wing_db.pl to Wing Command.
  * Converted wing_add_user.pl to Wing Command.
  * Added listing of admins via Wing Command.
@@ -49,4 +50,5 @@ with respect to new features and compatibility changes.
 
 2013-05-12
  * Added the Wingman job server.
+ * Now requires Parallel::ForkManager, Beanstalk::Client, and Plugin::Tiny.
 
