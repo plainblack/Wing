@@ -39,7 +39,7 @@ INSTALLATION
   export WING_APP=/data/MyApp/
   export WING_CONFIG=/data/MyApp/etc/wing.conf
 
-  perl $WING_HOME/bin/wing_db.pl --install --ok
+  perl $WING_HOME/bin/wing db --install --force
 
 6. Start up the rest server and/or web server:
 
