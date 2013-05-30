@@ -37,6 +37,7 @@ sub opt_spec {
       [ 'show_create', 'show the SQL that would be used to create a new database'],
       [ 'prepare_install', 'run to initialize the dbicdh folder'],
       [ 'initialize', 'prepare a database that has not yet been upgraded to use DBIx::Class::DeploymentHandler (depricated)'],
+      [ 'doom|do=s', 'execute a SQL statement on one or more databases'],
     );
 }
 
@@ -62,6 +63,7 @@ sub execute {
         say "Switching from $master_schema_name to $schema_name";
     }
     
+    ##Swap out the default Wing->db connection
     if (exists $opt->{tenant}) {
         warn "using tenant";
         my $site;
@@ -69,7 +71,9 @@ sub execute {
             $site = Wing->db->resultset('Site')->new({});
         }
         else {
-            $site = Wing->db->resultset('Site')->search({hostname => $opt->{tenant}})->single;
+            $site = Wing->db->resultset('Site')->search({
+                -or => [ { shortname => $opt->{tenant}}, {hostname => $opt->{tenant}}]
+            })->single;
             if (! $site) {
                 die "Could not find a tenant with name ".$opt->{tenant};
             }
@@ -184,27 +188,27 @@ sub execute {
                     die "You didn't say that it was ok to nuke your db by using --force\n";
                 }
                 say "Installing a new database with version ".$opt->{version};
-                Wing->db->storage->dbh->do('drop table if exists dbix_class_deploymenthandler_versions');
+                $schema->storage->dbh->do('drop table if exists dbix_class_deploymenthandler_versions');
                 $dh->install({ version => $opt->{version}, });
                 say "done";
             }
             elsif ($opt->{initialize} and $opt->{all_tenants}) {
                 say "Adding DeploymentHandler to your current db";
-            my $sites = Wing->db->resultset('Site')->search();
-            while (my $site = $sites->next) {
-                my $schema = $site->connect_to_database;
-                my $dh = DBIx::Class::DeploymentHandler->new( {
-                    schema              => $schema,
-                    databases           => [qw/ MySQL /],
-                    sql_translator_args => { add_drop_table => 0 },
-                    script_directory    => $app."/dbicdh",
-                    force_overwrite     => 0,
-                });
-                say "Adding DeploymentHandler to ".$site->name;
-                $dh->install_version_storage;
-                $dh->add_database_version({ version => $schema->schema_version });
-                say "done";
-            }
+                my $sites = Wing->db->resultset('Site')->search();
+                while (my $site = $sites->next) {
+                    my $schema = $site->connect_to_database;
+                    my $dh = DBIx::Class::DeploymentHandler->new( {
+                        schema              => $schema,
+                        databases           => [qw/ MySQL /],
+                        sql_translator_args => { add_drop_table => 0 },
+                        script_directory    => $app."/dbicdh",
+                        force_overwrite     => 0,
+                    });
+                    say "Adding DeploymentHandler to ".$site->name;
+                    $dh->install_version_storage;
+                    $dh->add_database_version({ version => $schema->schema_version });
+                    say "done";
+                }
             }
             elsif ($opt->{initialize}) {
                 say "Adding DeploymentHandler to your current db";
@@ -232,6 +236,20 @@ sub execute {
                             version_set  => [ $code_version, $previous_version ],
                         } );
                 }
+                say "done";
+            }
+            elsif ($opt->{doom} && $opt->{all_tenants}) {
+                say "Doing $opt->{doom} to all of your sites";
+                my $sites = Wing->db->resultset('Site')->search();
+                while (my $site = $sites->next) {
+                    my $schema = $site->connect_to_database;
+                    $schema->storage->dbh->do($opt->{doom});
+                }
+                say "done";
+            }
+            elsif ($opt->{doom}) {
+                say "Doing $opt->{doom} to your site";
+                $schema->storage->dbh->do($opt->{doom});
                 say "done";
             }
             elsif ($opt->{info}) {
