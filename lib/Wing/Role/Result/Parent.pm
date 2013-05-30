@@ -49,7 +49,7 @@ sub wing_parent_field {
                 my $out = $orig->($self);
                 my @parent_ids;
                 my %parent_options;
-                my $parents = $self->result_source->schema->db->resultset($options->{related_class})->search(undef,{order_by => 'name'});
+                my $parents = $self->result_source->schema->resultset($options->{related_class})->search(undef,{order_by => 'name'});
                 while (my $parent = $parents->next) {
                     push @parent_ids, $parent->id;
                     $parent_options{$parent->id} = $parent->name;
