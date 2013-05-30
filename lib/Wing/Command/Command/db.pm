@@ -190,21 +190,21 @@ sub execute {
             }
             elsif ($opt->{initialize} and $opt->{all_tenants}) {
                 say "Adding DeploymentHandler to your current db";
-            my $sites = Wing->db->resultset('Site')->search();
-            while (my $site = $sites->next) {
-                my $schema = $site->connect_to_database;
-                my $dh = DBIx::Class::DeploymentHandler->new( {
-                    schema              => $schema,
-                    databases           => [qw/ MySQL /],
-                    sql_translator_args => { add_drop_table => 0 },
-                    script_directory    => $app."/dbicdh",
-                    force_overwrite     => 0,
-                });
-                say "Adding DeploymentHandler to ".$site->name;
-                $dh->install_version_storage;
-                $dh->add_database_version({ version => $schema->schema_version });
-                say "done";
-            }
+                my $sites = Wing->db->resultset('Site')->search();
+                while (my $site = $sites->next) {
+                    my $schema = $site->connect_to_database;
+                    my $dh = DBIx::Class::DeploymentHandler->new( {
+                        schema              => $schema,
+                        databases           => [qw/ MySQL /],
+                        sql_translator_args => { add_drop_table => 0 },
+                        script_directory    => $app."/dbicdh",
+                        force_overwrite     => 0,
+                    });
+                    say "Adding DeploymentHandler to ".$site->name;
+                    $dh->install_version_storage;
+                    $dh->add_database_version({ version => $schema->schema_version });
+                    say "done";
+                }
             }
             elsif ($opt->{initialize}) {
                 say "Adding DeploymentHandler to your current db";
