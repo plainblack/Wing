@@ -95,6 +95,42 @@ if (defined $site_namespace) {
 }
 
 
+=head2 tenant ( shortname )
+
+=over
+
+=item shortname
+
+The name of the tenant site. Example: B<name>.domain.com
+
+=back
+
+=cut
+
+sub tenant {
+    my ($class, $name) = @_;
+    return Wing->db->resultset('Site')->search({shortname => $name},{rows => 1})->single;
+}
+
+=head2 tenant_db( shortname )
+
+Return a database handle for a tenant database as a L<DBIx::Class> object.
+
+=over
+
+=item shortname
+
+The name of the tenant site. Example: B<name>.domain.com
+
+=back
+
+=cut
+
+sub tenant_db {
+    my ($class, $name) = @_;
+    return $class->tenant($name)->connect_to_database;
+}
+
 # cache
 die "'cache' directive missing from config file" unless $_config->get('cache');
 my $_cache = CHI->new(%{$_config->get('cache')});
