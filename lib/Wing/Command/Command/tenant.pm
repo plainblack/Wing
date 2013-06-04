@@ -13,6 +13,8 @@ sub description {'Examples:
 wing tenant --user=dude --add=dude
 
 wing tenant --delete=dude
+
+wing tenant --list
 '}
 
 sub opt_spec {
@@ -20,6 +22,7 @@ sub opt_spec {
       [ 'user=s', 'assign a user to a newly added tenant' ],
       [ 'add=s', 'adds the specified tenant, requires --user' ],
       [ 'delete=s', 'deletes the specified tenant by name' ],
+      [ 'list', 'list all tenant sites' ],
     );
 }
 
@@ -60,9 +63,22 @@ sub execute {
         say "Deleting $opt->{delete}";
         $site->delete;
     }
+    elsif ($opt->{list}) {
+        my $sites = Wing->db->resultset('Site')->search({});
+        list_tenants($sites);
+    }
     else {
         say "You must specify --add or --delete.";
     }
+}
+
+sub list_tenants {
+    my $resultset = shift;
+    my $tenants = $resultset->search(undef, {order_by => 'shortname'});
+    while (my $tenant = $tenants->next) {
+        say $tenant->shortname;
+    }
+    say 'Total: ', $resultset->count;
 }
 
 
@@ -77,6 +93,8 @@ wing tenant - Add and delete Wing tenant sites.
  wing tenant --add=Joe --user=Joseph
 
  wing tenant --delete=Joe
+
+ wing tenant --list
 
 =head1 DESCRIPTION
 
