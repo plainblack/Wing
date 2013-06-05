@@ -60,12 +60,12 @@ sub execute {
         $schema_name = $tenant_namespace;
         say "Switching from $master_schema_name to $schema_name";
     }
-    
+
     my $code_version = eval "use ${schema_name}::DB; ${schema_name}::DB->VERSION;";
 
     ##Swap out the default Wing->db connection
     if (exists $opt->{tenant}) {
-        warn "using tenant";
+        say "Using tenant: ".$opt->{tenant};
         my $site;
         if ($opt->{prepare_install} || $opt->{prepare_update}) {
             $site = Wing->db->resultset('Site')->new({});
@@ -80,7 +80,7 @@ sub execute {
         }
         $schema = $site->connect_to_database;
     }
-    
+
     if ($opt->{show_classes}) {
         foreach my $name ($schema->sources) {
             say $name;
@@ -90,7 +90,7 @@ sub execute {
         say $schema->deployment_statements();
     }
     else { # schema manipulation
-     
+
         ##Note, install below has a separate but almost identical DH object
         my $dh = DBIx::Class::DeploymentHandler->new( {
             schema              => $schema,
@@ -99,7 +99,7 @@ sub execute {
             script_directory    => $app."/dbicdh",
             force_overwrite     => $opt->{force},
         });
-    
+
         say "For $ENV{WING_CONFIG}...";
         if ($opt->{tenant}) {
             say "\t\t tenant site = ".$opt->{tenant};
@@ -111,7 +111,7 @@ sub execute {
         else {
             say "\tNo version control installed in this database.";
         }
-    
+
         if ($opt->{downgrade} and $opt->{all_tenants}) {
             my $sites = Wing->db->resultset('Site')->search();
             while (my $site = $sites->next) {
@@ -132,20 +132,20 @@ sub execute {
                 else {
                     say "No downgrades required for ".$site->name.".  Code version = $code_version, database version = $db_version";
                 }
-                }
             }
-            elsif ($opt->{downgrade}) {
-                say "Downgrading";
-                my $db_version = $dh->database_version;
-                if ($db_version > $code_version) {
-                    $dh->downgrade;
-                    say "done";
-                }
-                else {
-                    say "No downgrades required.  Code version = $code_version, database version = $db_version";
-                }
+        }
+        elsif ($opt->{downgrade}) {
+            say "Downgrading";
+            my $db_version = $dh->database_version;
+            if ($db_version > $code_version) {
+                $dh->downgrade;
+                say "done";
             }
-            elsif ($opt->{upgrade} and $opt->{all_tenants}) {
+            else {
+                say "No downgrades required.  Code version = $code_version, database version = $db_version";
+            }
+        }
+        elsif ($opt->{upgrade} and $opt->{all_tenants}) {
             my $sites = Wing->db->resultset('Site')->search();
             while (my $site = $sites->next) {
                 my $schema = $site->connect_to_database;
@@ -165,100 +165,101 @@ sub execute {
                 else {
                     say "No upgrades required.  Code version = $code_version, database version = $db_version";
                 }
-                }
             }
-            elsif ($opt->{upgrade}) {
-                say "Upgrading";
-                my $db_version = $dh->database_version;
-                if ($code_version > $db_version) {
-                    $dh->upgrade;
-                    say "done";
-                }
-                else {
-                    say "No upgrades required.  Code version = $code_version, database version = $db_version";
-                }
+        }
+        elsif ($opt->{upgrade}) {
+            say "Upgrading";
+            my $db_version = $dh->database_version;
+            if ($code_version > $db_version) {
+                $dh->upgrade;
+                say "done";
             }
-            elsif ($opt->{prepare_install}) {
+            else {
+                say "No upgrades required.  Code version = $code_version, database version = $db_version";
+            }
+        }
+        elsif ($opt->{prepare_install}) {
             say "Preparing files to install a new database with version ".$opt->{version};
             $dh->prepare_install();
-                say "done";
+            say "done";
+        }
+        elsif ($opt->{install}) {
+            unless ($opt->{force}) {
+                die "You didn't say that it was ok to nuke your db by using --force\n";
             }
-            elsif ($opt->{install}) {
-                unless ($opt->{force}) {
-                    die "You didn't say that it was ok to nuke your db by using --force\n";
-                }
-                say "Installing a new database with version ".$opt->{version};
-                $schema->storage->dbh->do('drop table if exists dbix_class_deploymenthandler_versions');
-                $dh->install({ version => $opt->{version}, });
-                say "done";
-            }
-            elsif ($opt->{initialize} and $opt->{all_tenants}) {
-                say "Adding DeploymentHandler to your current db";
-                my $sites = Wing->db->resultset('Site')->search();
-                while (my $site = $sites->next) {
-                    my $schema = $site->connect_to_database;
-                    my $dh = DBIx::Class::DeploymentHandler->new( {
-                        schema              => $schema,
-                        databases           => [qw/ MySQL /],
-                        sql_translator_args => { add_drop_table => 0 },
-                        script_directory    => $app."/dbicdh",
-                        force_overwrite     => 0,
-                    });
-                    say "Adding DeploymentHandler to ".$site->name;
-                    $dh->install_version_storage;
-                    $dh->add_database_version({ version => $schema->schema_version });
-                    say "done";
-                }
-            }
-            elsif ($opt->{initialize}) {
-                say "Adding DeploymentHandler to your current db";
+            my $install_version = $opt->{version} ? $opt->{version} : $code_version;
+            say "Installing a new database with version ".$install_version;
+            $schema->storage->dbh->do('drop table if exists dbix_class_deploymenthandler_versions');
+            $dh->install({ version => $install_version, });
+            say "done";
+        }
+        elsif ($opt->{initialize} and $opt->{all_tenants}) {
+            say "Adding DeploymentHandler to your current db";
+            my $sites = Wing->db->resultset('Site')->search();
+            while (my $site = $sites->next) {
+                my $schema = $site->connect_to_database;
+                my $dh = DBIx::Class::DeploymentHandler->new( {
+                    schema              => $schema,
+                    databases           => [qw/ MySQL /],
+                    sql_translator_args => { add_drop_table => 0 },
+                    script_directory    => $app."/dbicdh",
+                    force_overwrite     => 0,
+                });
+                say "Adding DeploymentHandler to ".$site->name;
                 $dh->install_version_storage;
                 $dh->add_database_version({ version => $schema->schema_version });
                 say "done";
             }
-            elsif ($opt->{prepare_update}) {
-                say "Prepare upgrade information";
-                say "\tgenerating deploy script";
-                $dh->prepare_deploy;
-                if ( $code_version > 1 ) {
-                    say "\tgenerating upgrade script";
-                    my $previous_version = $code_version - 1;
-                    $dh->prepare_upgrade( {
-                            from_version => $previous_version,
-                            to_version   => $code_version,
-                            version_set  => [ $previous_version, $code_version ],
-                        } );
-                 
-                    say "\tgenerating downgrade script";
-                    $dh->prepare_downgrade( {
-                            from_version => $code_version,
-                            to_version   => $previous_version,
-                            version_set  => [ $code_version, $previous_version ],
-                        } );
-                }
-                say "done";
+        }
+        elsif ($opt->{initialize}) {
+            say "Adding DeploymentHandler to your current db";
+            $dh->install_version_storage;
+            $dh->add_database_version({ version => $schema->schema_version });
+            say "done";
+        }
+        elsif ($opt->{prepare_update}) {
+            say "Prepare upgrade information";
+            say "\tgenerating deploy script";
+            $dh->prepare_deploy;
+            if ( $code_version > 1 ) {
+                say "\tgenerating upgrade script";
+                my $previous_version = $code_version - 1;
+                $dh->prepare_upgrade( {
+                        from_version => $previous_version,
+                        to_version   => $code_version,
+                        version_set  => [ $previous_version, $code_version ],
+                    } );
+
+                say "\tgenerating downgrade script";
+                $dh->prepare_downgrade( {
+                        from_version => $code_version,
+                        to_version   => $previous_version,
+                        version_set  => [ $code_version, $previous_version ],
+                    } );
             }
-            elsif ($opt->{doom} && $opt->{all_tenants}) {
-                say "Doing $opt->{doom} to all of your sites";
-                my $sites = Wing->db->resultset('Site')->search();
-                while (my $site = $sites->next) {
-                    my $schema = $site->connect_to_database;
-                    $schema->storage->dbh->do($opt->{doom});
-                }
-                say "done";
-            }
-            elsif ($opt->{doom}) {
-                say "Doing $opt->{doom} to your site";
+            say "done";
+        }
+        elsif ($opt->{doom} && $opt->{all_tenants}) {
+            say "Doing $opt->{doom} to all of your sites";
+            my $sites = Wing->db->resultset('Site')->search();
+            while (my $site = $sites->next) {
+                my $schema = $site->connect_to_database;
                 $schema->storage->dbh->do($opt->{doom});
-                say "done";
             }
-            elsif ($opt->{info}) {
-                ##Do nothing, but don't generate the message below
-            }
-            else {
-                say "You didn't tell me to do anything that I recognize";
-            }
-    } 
+            say "done";
+        }
+        elsif ($opt->{doom}) {
+            say "Doing $opt->{doom} to your site";
+            $schema->storage->dbh->do($opt->{doom});
+            say "done";
+        }
+        elsif ($opt->{info}) {
+            ##Do nothing, but don't generate the message below
+        }
+        else {
+            say "You didn't tell me to do anything that I recognize";
+        }
+    }
 }
 
 1;
