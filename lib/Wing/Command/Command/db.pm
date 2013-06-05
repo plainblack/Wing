@@ -16,8 +16,6 @@ my $app    = $master_app;
 my $schema = $master_schema;
 my $schema_name = $master_schema_name;
 
-my $code_version = eval "use ${schema_name}::DB; ${schema_name}::DB->VERSION;";
-
 sub abstract { 'manipulate the database schema' }
 
 sub usage_desc { 'Manipulate database schema, handling installs, upgrades and downgrades.' }
@@ -31,7 +29,7 @@ sub opt_spec {
       [ 'force!', 'normally destructive functions die with a warning, this overrides that', { default => 0 } ],
       [ 'tenant:s', 'work on a particular tenant database by the hostname'],
       [ 'all_tenants', 'work on all tenant databases'],
-      [ 'version|ver=i', 'allows you to install versions other than "$PROJECT::DB::VERSION"', { default => $code_version }],
+      [ 'version|ver=i', 'allows you to install versions other than "$PROJECT::DB::VERSION"'],
       [ 'info', 'show the current versions of the code and the database'],
       [ 'show_classes', 'list the DB classes Wing loads at startup'],
       [ 'show_create', 'show the SQL that would be used to create a new database'],
@@ -63,6 +61,8 @@ sub execute {
         say "Switching from $master_schema_name to $schema_name";
     }
     
+    my $code_version = eval "use ${schema_name}::DB; ${schema_name}::DB->VERSION;";
+
     ##Swap out the default Wing->db connection
     if (exists $opt->{tenant}) {
         warn "using tenant";
