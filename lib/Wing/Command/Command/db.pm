@@ -55,13 +55,11 @@ sub execute {
         }
         my $tenant_namespace = Wing->config->get('tenants/namespace');
         $app = '/data/'.$tenant_namespace;
-        my $lib = $app . '/lib';
-        unshift @INC, $lib;
         $schema_name = $tenant_namespace;
         say "Switching from $master_schema_name to $schema_name";
     }
 
-    my $code_version = eval "use ${schema_name}::DB; ${schema_name}::DB->VERSION;";
+    my $code_version = eval "${schema_name}::DB->VERSION;";
 
     ##Swap out the default Wing->db connection
     if (exists $opt->{tenant}) {
