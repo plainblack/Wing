@@ -17,8 +17,6 @@ else
  yum -y install ncurses-devel gcc make glibc-devel gcc-c++ zlib-devel openssl-devel expat-devel glib2-devel mysql-libs libxml2-devel mysql-common mysql-devel mysql
 fi
 
-ln -s /etc/profile.d/dataapps.sh /data/Wing/bin/dataapps.sh
-
 cd perl-5.16.2
 ./Configure -Dprefix=/data/apps -des
 make
