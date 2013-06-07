@@ -12,6 +12,7 @@ if [ uname=='Darwin' ]; then
  ./configure --prefix=/data/apps --with-pcre=../pcre-8.32
  make
  make install
+ cd ..
  
 else 
  yum -y install ncurses-devel gcc make glibc-devel gcc-c++ zlib-devel openssl-devel expat-devel glib2-devel mysql-libs libxml2-devel mysql-common mysql-devel mysql
