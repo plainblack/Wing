@@ -13,6 +13,10 @@ INSTALLATION
 
   /data/Wing/bin/setup/setup.sh
 
+  NOTE: If you want Wing's environment to be set up in your account at start you may want to do something like:
+
+  	ln -s /etc/profile.d/dataapps.sh /data/Wing/bin/dataapps.sh
+
 3. Create a project:
 
   cd /data/Wing/bin
