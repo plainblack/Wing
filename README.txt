@@ -13,7 +13,7 @@ INSTALLATION
 
   /data/Wing/bin/setup/setup.sh
 
-3. Create a project:
+3. Create a project in /data/MyApp:
 
   cd /data/Wing/bin
   export WING_HOME=/data/Wing
