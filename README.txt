@@ -17,7 +17,7 @@ INSTALLATION
 
   	ln -s /etc/profile.d/dataapps.sh /data/Wing/bin/dataapps.sh
 
-3. Create a project:
+3. Create a project in /data/MyApp:
 
   cd /data/Wing/bin
   export WING_HOME=/data/Wing
@@ -34,13 +34,13 @@ INSTALLATION
 
 5. Initialize the database:
 
-  cd /data/MyProject/bin
+  cd /data/MyApp/bin
   export WING_HOME=/data/Wing
   export WING_APP=/data/MyApp/
   export WING_CONFIG=/data/MyApp/etc/wing.conf
 
-  perl $WING_HOME/bin/wing db --prepare_install
-  perl $WING_HOME/bin/wing db --install --force
+  wing db --prepare_install
+  wing db --install --force
 
 6. Start up the rest server and/or web server:
 
@@ -65,7 +65,7 @@ ADDING FUNCTIONALITY
 
 We also provide you with tools to build out your app. For example, if you want to add a new class to your app, you can:
 
- wing_add_class.pl --class=NewObject
+ wing class --add=NewObject
  
 This will dynamically generate a NewObject.pm class file for you in /data/MyApp/lib/MyApp/DB/Result/, and create a Rest
 interface at /data/MyApp/lib/MyApp/Rest/NewObject.pm, and create a Web interface at /data/MyApp/lib/MyApp/Web/NewObject.pm.
@@ -73,7 +73,7 @@ It will even add the lines needed in /data/MyApp/bin/rest.psgi and /data/MyApp/b
 
 Once you've built out your object and you're ready to generate some web templates for it you can do:
 
- wing_template_class.pl --class=NewObject
+ wing class --template=NewObject
  
 That will add templates in /data/MyApp/views/newobject/*.tt. 
 
