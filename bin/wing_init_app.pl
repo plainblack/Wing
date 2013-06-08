@@ -1,6 +1,7 @@
 #!/data/apps/bin/perl
 
 use strict;
+use feature 'say';
 use Config::JSON;
 use Template;
 use Getopt::Long;
@@ -97,6 +98,11 @@ template($t_alt,'views/account/ssosuccess.tt', $vars);
 
 # set privs
 system('cd /data/'.$project.'/bin;chmod 755 *');
+
+# tell them what to do next
+say "Be sure to export the environment variables you need for your app:\n";
+say "export WING_APP=/data/".$project;
+say "export WING_CONFIG=/data/".$project."/etc/wing.conf";
 
 sub template {
   my ($tt, $from, $vars, $to) = @_;
