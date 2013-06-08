@@ -30,7 +30,7 @@ INSTALLATION
 
 5. Initialize the database:
 
-  cd /data/MyProject/bin
+  cd /data/MyApp/bin
   export WING_HOME=/data/Wing
   export WING_APP=/data/MyApp/
   export WING_CONFIG=/data/MyApp/etc/wing.conf
