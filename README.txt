@@ -13,7 +13,7 @@ INSTALLATION
 
   /data/Wing/bin/setup/setup.sh
 
-3. Create a project:
+3. Create a project in /data/MyApp:
 
   cd /data/Wing/bin
   export WING_HOME=/data/Wing
@@ -30,12 +30,12 @@ INSTALLATION
 
 5. Initialize the database:
 
-  cd /data/MyProject/bin
+  cd /data/MyApp/bin
   export WING_HOME=/data/Wing
   export WING_APP=/data/MyApp/
   export WING_CONFIG=/data/MyApp/etc/wing.conf
 
-  perl $WING_HOME/bin/wing db --install --force
+  /data/apps/bin/perl $WING_HOME/bin/wing db --install --force
 
 6. Start up the rest server and/or web server:
 
