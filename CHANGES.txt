@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2013-06-08
+ * Site's trashed property is now available to admins.
+
 2013-06-06
  * Many bug-fixes with tenant handling in wing db
 

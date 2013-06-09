@@ -20,6 +20,7 @@ before wing_finalize_class => sub {
         },
         trashed                 => {
             dbic    => { data_type => 'tinyint', default_value => 0 },
+            view    => 'admin',
         },
         database_name           => {
             dbic    => { data_type => 'varchar', size => 50, default_value => 0 },

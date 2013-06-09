@@ -33,7 +33,7 @@ sub opt_spec {
       [ 'info', 'show the current versions of the code and the database'],
       [ 'show_classes', 'list the DB classes Wing loads at startup'],
       [ 'show_create', 'show the SQL that would be used to create a new database'],
-      [ 'prepare_install', 'run to initialize the dbicdh folder'],
+      [ 'prepare_install', 'run to create files for installing the current version'],
       [ 'initialize', 'prepare a database that has not yet been upgraded to use DBIx::Class::DeploymentHandler (depricated)'],
       [ 'doom|do=s', 'execute a SQL statement on one or more databases'],
     );
@@ -234,6 +234,9 @@ sub execute {
                         to_version   => $previous_version,
                         version_set  => [ $code_version, $previous_version ],
                     } );
+
+                say "\tgenerating install script";
+                $dh->prepare_install();
             }
             say "done";
         }
@@ -328,8 +331,8 @@ wish to use this code, type:
 
   wing db --prep
 
-this will create all the SQL and DDL changes required for the upgrade.  Then
-chant
+this will create all the SQL and DDL changes required for the upgrade, and for
+installing new sites with this version.  Then chant
 
   wing db --up
 
