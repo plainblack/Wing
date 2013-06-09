@@ -331,7 +331,7 @@ A reference to a user object.
 sub can_edit {
     my ($self, $user) = @_;
     return 1 if defined $user && $user->is_admin;
-    ouch(450, 'Insufficient privileges.');
+    ouch(450, 'Insufficient privileges for '.$self->wing_object_name.'.');
 }
 
 =head2 can_view(user)
