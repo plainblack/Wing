@@ -234,6 +234,9 @@ sub execute {
                         to_version   => $previous_version,
                         version_set  => [ $code_version, $previous_version ],
                     } );
+
+                say "\tgenerating install script";
+                $dh->prepare_install();
             }
             say "done";
         }
@@ -327,7 +330,6 @@ Continue by making your database changes in the Results and ResultSets.  When yo
 wish to use this code, type:
 
   wing db --prep
-  wing db --prepare_install
 
 this will create all the SQL and DDL changes required for the upgrade, and for
 installing new sites with this version.  Then chant
