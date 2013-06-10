@@ -20,7 +20,7 @@ before wing_finalize_class => sub {
         },
         trashed                 => {
             dbic    => { data_type => 'tinyint', default_value => 0 },
-            view    => 'admin',
+            view    => 'private',
         },
         database_name           => {
             dbic    => { data_type => 'varchar', size => 50, default_value => 0 },
@@ -76,9 +76,19 @@ before delete => sub {
 
 sub trash {
     my $self = shift;
+    return if $self->trashed;
     $self->trashed(1);
     $self->hostname(undef);
     $self->update({shortname => '_'.$self->shortname}); # do this to override the validation
+}
+
+sub restore {
+    my $self = shift;
+    return unless $self->trashed;
+    $self->trashed(0);
+    my $orig_shortname = $self->shortname;
+    substr $orig_shortname, 0, 1, '';
+    $self->update({shortname => $orig_shortname}); # do this to override the validation
 }
 
 sub connect_to_database {
