@@ -43,10 +43,10 @@ with respect to new features and compatibility changes.
            "default_tube" : "wingman",
         },
         "plugins" : {
-           "Wing::Wingman::SendTemplatedEmail" : {
+           "Wingman::Plugin::SendTemplatedEmail" : {
                 "phase" : "SendTemplatedEmail",
            },
-           "Wing::Wingman::EmailAllAdmins" : {
+           "Wingman::Plugin::EmailAllAdmins" : {
                 "phase" : "EmailAllAdmins",
            },
         }
