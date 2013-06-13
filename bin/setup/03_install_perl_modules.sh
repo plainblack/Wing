@@ -1,5 +1,5 @@
 . /data/Wing/bin/dataapps.sh
-cpanm List::MoreUtils\
+cpanm List::MoreUtils \
 DBIx::Class \
 Moose \
 DBIx::Class::InflateColumn::DateTime \
