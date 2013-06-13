@@ -7,6 +7,10 @@ BEGIN {
 }
 
 use lib $ENV{WING_APP}.'/lib', $ENV{WING_HOME}.'/lib';
+
+if (exists $ENV{'WING_OWNER'}) {
+    eval q|use lib $ENV{WING_OWNER}.'/lib';|;
+}
  
 use Wing::Command;
 
