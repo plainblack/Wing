@@ -65,7 +65,7 @@ sub execute {
     if (exists $opt->{tenant}) {
         say "Using tenant: ".$opt->{tenant};
         my $site;
-        if ($opt->{prepare_install} || $opt->{prepare_update}) {
+        if ($opt->{prepare_install} || $opt->{prepare_update} || $opt->{show_classes}) {
             $site = Wing->db->resultset('Site')->new({});
         }
         else {
