@@ -13,6 +13,10 @@ INSTALLATION
 
   /data/Wing/bin/setup/setup.sh
 
+ NOTE: If you're trying to install DBD::mysql on Mac and it's giving you trouble, make sure you do first:
+
+  export DYLD_LIBRARY_PATH=/usr/local/mysql/lib:$DYLD_LIBRARY_PATH
+
 3. Create a project in /data/MyApp:
 
   cd /data/Wing/bin
