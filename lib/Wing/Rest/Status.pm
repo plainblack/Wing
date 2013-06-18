@@ -4,6 +4,7 @@ use Wing::Perl;
 use Dancer;
 use Ouch;
 use Wing::Rest;
+use Data::GUID;
 
 
 get '/api/status' => sub {
@@ -13,10 +14,23 @@ get '/api/status' => sub {
 };
 
 any qr{/api/_test.*} => sub {
+    my $cookie = cookies->{tracer};
+    my $tracer;
+    if (defined $cookie) {
+        $tracer = $cookie->{value}->[0];
+    }
+    else {
+        $tracer = Data::GUID->new->as_string;
+        set_cookie tracer       => $tracer,
+            expires           => '+5y',
+            http_only         => 0,
+            path              => '/';
+    }
     my $out = { 
-        method => request->method, 
-        params => {params},
+        method  => request->method,
+        params  => {params},
         path    => request->path,
+        tracer  => $tracer,
     };
     delete $out->{params}{splat};
     my $uploads = request->uploads;
