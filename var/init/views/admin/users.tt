@@ -89,11 +89,10 @@ function search_users(page_index, pagination_container) {
         wing.pager('.pagination', search_users, data);
     });
 }
-</script>
-
 $(document).ready(function() {
     search_users();
 });
+</script>
 
 [% END %]
 [% INCLUDE admin/footer_include.tt %]
