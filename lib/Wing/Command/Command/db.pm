@@ -217,9 +217,9 @@ sub execute {
         }
         elsif ($opt->{prepare_update}) {
             say "Prepare upgrade information";
-            say "\tgenerating deploy script";
-            $dh->prepare_deploy;
             if ( $code_version > 1 ) {
+                say "\tgenerating install script";
+                $dh->prepare_install();
                 say "\tgenerating upgrade script";
                 my $previous_version = $code_version - 1;
                 $dh->prepare_upgrade( {
@@ -235,8 +235,6 @@ sub execute {
                         version_set  => [ $code_version, $previous_version ],
                     } );
 
-                say "\tgenerating install script";
-                $dh->prepare_install();
             }
             say "done";
         }
