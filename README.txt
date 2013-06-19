@@ -71,6 +71,14 @@ This will dynamically generate a NewObject.pm class file for you in /data/MyApp/
 interface at /data/MyApp/lib/MyApp/Rest/NewObject.pm, and create a Web interface at /data/MyApp/lib/MyApp/Web/NewObject.pm.
 It will even add the lines needed in /data/MyApp/bin/rest.psgi and /data/MyApp/bin/web.psgi.
 
+To upgrade your database with the schema changes for your new class:
+
+ increment the database version number in MyApp::DB
+ wing db --prepare-update
+ wing db --upgrade
+
+For more information on managing the database schema see the DBIx::Class::DeploymentHandler documentation.
+
 Once you've built out your object and you're ready to generate some web templates for it you can do:
 
  wing class --template=NewObject
