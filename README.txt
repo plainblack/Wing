@@ -55,11 +55,14 @@ INSTALLATION
    curl http://localhost:5001/account
 
  NOTE: By default there is one user named 'Admin' with a password of '123qwe'.
-   
+
 8. We also provide you with an nginx config file to give you a baseline for serving your apps. You can start it like this:
 
  nginx -c /data/MyApp/etc/nginx.conf
 
+ NOTE: This is required to merge together the two services, as well as serve up static files.
+
+ WARNING: There is no "home" page. Wing is expecting you to create it. After you start Nginx you'll be able to access /account and /admin. Everything is will 404. 
 
 ADDING FUNCTIONALITY
 
@@ -84,4 +87,11 @@ Once you've built out your object and you're ready to generate some web template
  wing class --template=NewObject
  
 That will add templates in /data/MyApp/views/newobject/*.tt. 
+
+
+For more information type:
+
+ perldoc lib/Wing/FirstApp.pod
+
+
 
