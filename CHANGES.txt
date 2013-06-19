@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2013-06-18
+ * Wing::Rest::Status now returns a tracer for checking cookie values.
+
 2013-06-08
  * Better support for sites, user-controlled deletion, restoration and list all/owned.
 
