@@ -1,4 +1,4 @@
-package Wing::Rest::User;
+package Wing::Rest::Status;
 
 use Wing::Perl;
 use Dancer;
