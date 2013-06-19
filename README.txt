@@ -74,7 +74,7 @@ It will even add the lines needed in /data/MyApp/bin/rest.psgi and /data/MyApp/b
 To upgrade your database with the schema changes for your new class:
 
  increment the database version number in MyApp::DB
- wing db --prepare-update
+ wing db --prepare
  wing db --upgrade
 
 For more information on managing the database schema see the DBIx::Class::DeploymentHandler documentation.
