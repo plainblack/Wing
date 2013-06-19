@@ -69,6 +69,8 @@ The L<DBIx::Class> field definition. Required.
 
 Can this field be viewed through web/rest? There are several options:
 
+=over
+
 =item public
 
 Anybody can view it.
@@ -80,6 +82,8 @@ Viewable by anybody that passes muster with the C<can_view> method.
 =item admin
 
 Viewable only by admins.
+
+=back
 
 =item edit
 
