@@ -9,6 +9,8 @@ engines:
   JSON:
     utf8: 1
     pretty: 1
+    allow_blessed: 1
+    convert_blessed: 1
 error_template: error
 layout: main
 log4perl:
