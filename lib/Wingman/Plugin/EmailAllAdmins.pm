@@ -59,7 +59,7 @@ See L<Wing/send_templated_email> for details. Leave out the C<me> (aka C<User>) 
 
 sub run {
     my ($self, $job, $args) = @_;
-    my $users = Wingman->db->resultset('User')->search({admin => 1});
+    my $users = Wing->db->resultset('User')->search({admin => 1});
     while (my $user = $users->next) {
         my %params = %{$args->{params}};
         $params{me} = $user->describe(include_private => 1);
