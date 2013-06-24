@@ -14,6 +14,7 @@ use Moose::Role;
 
 sub _log {
     my ($self, $method, $job, $message) = @_;
+    return unless defined $job;
     my $beanstalk_job = ($job->can('data')) ? $job : $job->beanstalk_job;
     Wing->log->$method(sprintf('Wingman: %s // Job ID %s %s', $message, $beanstalk_job->id, $beanstalk_job->data));
 }
