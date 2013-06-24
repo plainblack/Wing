@@ -65,7 +65,7 @@
 <script id="job_template" type="text/html">
 <tr class="job" id="job_${id}">
 	<td>${phase}</td>
-	<td>${JSON.stingify(arguments)}</td>
+	<td>${to_json(arguments)}</td>
 	<td><a href="/admin/wingman/tubes/${tube}">${tube}</a></td>
 	<td>${state}</td>
 	<td>${pri}</td>
@@ -90,6 +90,10 @@ function display_job(job) {
 	else {
 		$('#kick').addClass('hidden');
 	}
+}
+
+function to_json(object) {
+    return window.JSON.stringify(object);
 }
 
 wing.ajax('GET', 'wingman/jobs/'+job_id, {}, function(data) {
