@@ -64,6 +64,29 @@ post '/api/session' => sub {
     }
 };
 
+post '/api/session/tenantsso' => sub {
+    ouch(441, 'You need an tenant sso key.', 'api_key')   unless params->{api_key};
+    ouch(441, 'Wrong tenant sso key', 'api_key') unless params->{api_key} eq Wing->config->get('tenant/sso_key');
+    ouch(441, 'You must specify a password.', 'password') unless params->{password};
+    ouch(441, 'You must specify a username or user_id.', )
+        unless params->{username} || params->{user_id};
+    my $identifiers = [];
+    if (params->{username}) {
+        push @{ $identifiers }, (username => params->{username});
+    }
+    elsif (params->{user_id}) {
+        push @{ $identifiers }, (id => params->{user_id});
+    }
+    my $user = site_db()->resultset('User')->search({ -or => $identifiers },{rows=>1})->single;
+    ouch(440, 'User not found.') unless defined $user;
+
+    if ($user->is_password_valid(params->{password})) {
+        return describe($user, current_user => $user);
+    }
+    else {
+        ouch 454, 'Password incorrect.';
+    }
+};
 
 
 1;
