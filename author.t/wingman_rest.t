@@ -1,4 +1,5 @@
 use lib '/data/Wing/author.t/lib', '/data/Wing/lib';
+use Wing;
 use Wing::Perl;
 use Test::More;
 
@@ -10,7 +11,7 @@ use Test::Wing::Client;
 
 my $wing = Test::Wing::Client->new();
 
-my $andy = TestHelper::init($wing)->{result};
+my $andy = TestHelper::init($wing);
 
 my $job = $wing->post('wingman/jobs', { session_id => $andy->{id}, phase => 'howdy', ttr => 60 });
 ok $job->{id} > 0, 'can create a job';
@@ -30,9 +31,6 @@ ok scalar(@{$tubes->{items}}) > 0, 'got the list of tubes';
 
 $job = $wing->delete('wingman/jobs/'.$job->{id}, { session_id => $andy->{id} });
 is $job->{success}, 1, 'can delete a job';
-
-
-
 
 done_testing();
 
