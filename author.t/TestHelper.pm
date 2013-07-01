@@ -11,10 +11,12 @@ use HTTP::Request::Common;
 use Wing;
 use Wing::Perl;
 use Wing::Rest::Session;
+use Test::Wing::Client;
 
 our $DEBUG = 1;
 
 sub init {
+    my $wing = shift;
     my $andy = Wing->db->resultset('User')->new({
         username    => 'andy',
         real_name   => 'Andy Dufresne',
@@ -26,7 +28,13 @@ sub init {
     $andy->encrypt_and_set_password('Saywatanayo');
     $andy->insert;    
     my $key = Wing->db->resultset('APIKey')->new({user_id => $andy->id, name => 'Key for Andy', })->insert;
-    return call('POST','/api/session', { username => 'andy', password => 'Saywatanayo', api_key_id => $key->id, _include_related_objects => 1 });
+    
+    my $result = $wing->post('session', { username => 'andy', password => 'Saywatanayo', api_key_id => $key->id, _include_related_objects => 1 });
+    use Data::Dumper;
+    warn Dumper $result;
+    print Wing->cache->get('session'.$result->{id});
+    print "\n";
+    return $result;
 }
 
 sub call {
