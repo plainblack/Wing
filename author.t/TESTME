@@ -3,3 +3,10 @@ To run these tests, you need to have valid WING environment variables
 export WING_HOME=/data/Wing
 export WING_APP=/data/Wing/author.t/
 export WING_CONFIG=/data/Wing/author.t/etc/test.conf
+
+And you need to create a database:
+
+create database testwing;
+grant all privileges on testwing.* to testwing@localhost identified by 'testwing';
+flush privileges;
+
