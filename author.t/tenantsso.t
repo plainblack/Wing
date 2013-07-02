@@ -24,7 +24,7 @@ my $andrew = Wing->db->resultset('User')->new({
     email       => 'andrew@shawshank.jail',
     use_as_display_name => 'real_name',
 });
-$andrew->encrypt_and_set_password('rita_hayworth');
+$andrew->encrypt_and_set_password('Detroit');
 $andrew->insert;
 
 my $guid = Data::GUID->guid_string;
@@ -46,6 +46,37 @@ is $@->message, 'You must specify a password.', 'request with no password';
 
 eval { $wing->post('session/tenantsso', {api_key => $guid, password => 'foo-baz-bar', }); };
 is $@->message, 'You must specify a username or user_id.', 'request with no user identifier of any type';
+
+eval { $wing->post('session/tenantsso', {api_key => $guid, password => 'foo-baz-bar', username => 'warden'}); };
+is $@->message, 'User not found.', 'user not found due to no username match';
+
+eval { $wing->post('session/tenantsso', {api_key => $guid, password => 'foo-baz-bar', user_id => Data::GUID->guid_string, }); };
+is $@->message, 'User not found.', 'user not found due to no user_id match';
+
+eval { $wing->post('session/tenantsso', {api_key => $guid, password => 'foo-baz-bar', username => 'andy', }); };
+is $@->message, 'Password incorrect.', 'user not found due to username/password mismatch';
+
+eval { $wing->post('session/tenantsso', {api_key => $guid, password => 'foo-baz-bar', user_id => $andy->id, }); };
+is $@->message, 'Password incorrect.', 'user not found due to user_id/password mismatch';
+
+my $result;
+$result = $wing->post('session/tenantsso', {api_key => $guid, password => 'Saywatanayo', user_id => $andy->id, });
+cmp_deeply(
+    $result,
+    superhashof({
+        map { $_ => $andy->$_ } qw/id username is_admin display_name real_name email/
+    }),
+    'Got back the right user properties for andy and not andrew via user_id'
+);
+
+$result = $wing->post('session/tenantsso', {api_key => $guid, password => 'Saywatanayo', username => 'andy', });
+cmp_deeply(
+    $result,
+    superhashof({
+        map { $_ => $andy->$_ } qw/id username is_admin display_name real_name email/
+    }),
+    'Got back the right user properties for andy and not andrew via username'
+);
 
 done_testing();
 
