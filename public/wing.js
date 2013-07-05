@@ -1,4 +1,6 @@
 jQuery.ajaxSettings.traditional = true;
+jQuery.ajaxSettings.cache = false;
+
 var wing = new Object();
 
 wing.info = function(message) {
