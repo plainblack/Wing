@@ -27,14 +27,18 @@ my $andrew = Wing->db->resultset('User')->new({
 $andrew->encrypt_and_set_password('Detroit');
 $andrew->insert;
 
-my $guid = Data::GUID->guid_string;
-Wing->config->set('tenant/sso_key', $guid);
-
 my $wing = Test::Wing::Client->new();
 
 my $result;
 
 ##Failure testing
+
+eval { $wing->post('session/tenantsso', {}); };
+is $@->message, 'Tenant SSO not configured.', 'tenant SSO not configured';
+
+my $guid = Data::GUID->guid_string;
+Wing->config->set('tenant/sso_key', $guid);
+
 eval { $wing->post('session/tenantsso', {}); };
 is $@->message, 'You need a tenant sso key.', 'request with missing tenant sso key';
 

@@ -65,8 +65,10 @@ post '/api/session' => sub {
 };
 
 post '/api/session/tenantsso' => sub {
+    my $sso_key = Wing->config->get('tenant/sso_key');
+    ouch(501, 'Tenant SSO not configured.', 'api_key') unless $sso_key;
     ouch(441, 'You need a tenant sso key.', 'api_key')   unless params->{api_key};
-    ouch(441, 'Wrong tenant sso key', 'api_key') unless params->{api_key} eq Wing->config->get('tenant/sso_key');
+    ouch(441, 'Wrong tenant sso key', 'api_key') unless params->{api_key} eq $sso_key;
     ouch(441, 'You must specify a password.', 'password') unless params->{password};
     ouch(441, 'You must specify a username or user_id.', )
         unless params->{username} || params->{user_id};
