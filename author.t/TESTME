@@ -1,4 +1,4 @@
-To run these tests, you need to have valid WING environment variables
+#To run these tests, you need to have valid WING environment variables
 
 export WING_HOME=/data/Wing
 export WING_APP=/data/Wing/author.t/
