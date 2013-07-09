@@ -6,6 +6,7 @@ use Ouch;
 use Wing;
 use Wing::Web;
 use Wing::SSO;
+use Wing::Client;
 use String::Random qw(random_string);
 use Facebook::Graph;
 
@@ -339,5 +340,33 @@ sub facebook {
     return Facebook::Graph->new(Wing->config->get('facebook'));
 }
 
+sub check_master {
+    my ($username, $password, $user_id) = @_;
+    my $host = Wing->config->get('tenant/sso_hostname');
+    my $wing = Wing::Client->new( uri => $host );
+    my $lookup = eval { $wing->get('session/tenantsso', { username => $username, password => $password, }); };
+    if (kiss 440) {
+        if ($user_id) {
+            $lookup = eval { $wing->get('session/tenantsso', { user_id => $user_id, password => $password, }); };
+            if (kiss 440) {
+                ##User does not exist remotely, create local user
+                ##Log the user in
+                return;
+            }
+            elsif (hug) {
+                ##Remote error, bad news
+                return;
+            }
+            else {
+                ##Success!
+                ##Sync remote to local
+                ##Log the user in
+            }
+        }
+        else {
+
+        }
+    }
+}
 
 true;
