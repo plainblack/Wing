@@ -162,11 +162,6 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'idx_search', fields => ['real_name','username','email']);
 }
 
-before delete => sub {
-    my $self = shift;
-
-};
-
 around describe => sub {
     my ($orig, $self, %options) = @_;
     my $out = $orig->($self, %options);

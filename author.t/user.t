@@ -18,6 +18,9 @@ $user->username('_bubba_');
 $user->encrypt_and_set_password($password);
 $user->insert;
 
+my $key = Wing->db->resultset('APIKey')->new({user_id => $user->id, name => 'Key for User', })->insert;
+my $perm = Wing->db->resultset('APIKeyPermission')->new({user_id => $user->id, api_key_id => $key->id, permission => 'view_my_account', })->insert;
+
 ok $user->is_password_valid($password), 'can create and test a password';
 
 $user->password($md5_password);
@@ -34,8 +37,18 @@ $user->update;
 
 ok $user->is_password_valid($password), 'known working bcrypt password';
 
+my $user_api_keys = Wing->db->resultset('APIKey')->search({user_id => $user->id, });
+my $user_api_perms = Wing->db->resultset('APIKey')->search({user_id => $user->id, });
+is $user_api_keys->count, 1, 'User has 1 API key';
+is $user_api_perms->count, 1, 'User has 1 API key permission';
+
+$user->delete;
+is $user_api_keys->count, 0, 'API Key cleaned up for user';
+is $user_api_perms->count, 0, 'API Key permission cleaned up for user';
+
 done_testing;
 
 END {
-    $user->delete;
+    use TestHelper;
+    TestHelper::cleanup;
 }
