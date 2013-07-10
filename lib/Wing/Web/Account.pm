@@ -14,27 +14,61 @@ get '/login' => sub {
     template 'account/login';
 };
 
-if (my $host_sso = Wing->config->get('tenant/sso_key')) {
-    post '/login' => sub {
-        my $wing = Wing::Client->new( uri => $host_sso );
+post '/login' => sub {
+    return template 'account/login', { error_message => 'You must specify a username or email address.'} unless params->{login};
+    return template 'account/login', { error_message => 'You must specify a password.'} unless params->{password};
+    my $user = site_db()->resultset('User')->search({email => params->{login}},{rows=>1})->single;
+    unless (defined $user) {
+        $user = site_db()->resultset('User')->search({username => params->{login}},{rows=>1})->single;
     }
-}
-else {
-    post '/login' => sub {
-        return template 'account/login', { error_message => 'You must specify a username or email address.'} unless params->{login};
-        return template 'account/login', { error_message => 'You must specify a password.'} unless params->{password};
-        my $user = site_db()->resultset('User')->search({email => params->{login}},{rows=>1})->single;
-        unless (defined $user) {
-            $user = site_db()->resultset('User')->search({username => params->{login}},{rows=>1})->single;
-            return template 'account/login', { error_message => 'User not found.'} unless defined $user;
+    if (vars->{is_tenant} && Wing->config->get('tenant/sso_key')) {
+        ##Tenant SSO logins and sync
+        my $wing = Wing::Client->new( uri => Wing->config->get('tenant/sso_hostname') );
+        if (! defined $user) {
+            ##Do login check against remote.
+            my $lookup = eval { $wing->get('session/tenantsso', { username => $username, password => $password, api_key => Wing->config->get('tenant/sso_key'), }); };
+            if (hug) {
+                return template 'account/login', { error_message => 'Error doing tenant SSO: '.$@ };
+            }
+            else {
+                $user = site_db()->resultset('User')->new({});
+                $user->sync_with_remote_data($lookup);
+                $user->insert;
+                return login($user);
+            }
         }
-
-        # validate password
-        if ($user->is_password_valid(params->{password})) {
-            return login($user);
+        else {
+            if ($user->can('master_user_id') && $user->master_user_id) {
+                ##Do login check against remote and sync
+                my $lookup = eval { $wing->get('session/tenantsso', { user_id => $user->master_user_id, password => $password, api_key => Wing->config->get('tenant/sso_key'), }); };
+                if (hug) {
+                    return template 'account/login', { error_message => 'Error doing tenant SSO: '.$@ };
+                }
+                else {
+                    $user->sync_with_remote_data($lookup);
+                    return login($user);
+                }
+            }
+            else {
+                ##Standard login check
+                return standard_login_check($user);
+            }
         }
-        template 'account/login', { error_message => 'Password incorrect.'};
+    }
+    else {
+        ##Local logins only!
+        return standard_login_check($user);
     };
+}
+
+sub standard_login_check {
+    my $user = shift;
+    return template 'account/login', { error_message => 'User not found.'} unless defined $user;
+    # validate password
+    if ($user->is_password_valid(params->{password})) {
+        return login($user);
+    }
+    return template 'account/login', { error_message => 'Password incorrect.'};
 }
 
 any '/logout' => sub {
@@ -345,34 +379,6 @@ sub login {
 
 sub facebook {
     return Facebook::Graph->new(Wing->config->get('facebook'));
-}
-
-sub check_master {
-    my ($username, $password, $user_id) = @_;
-    my $host = Wing->config->get('tenant/sso_hostname');
-    my $lookup = eval { $wing->get('session/tenantsso', { username => $username, password => $password, }); };
-    if (kiss 440) {
-        if ($user_id) {
-            $lookup = eval { $wing->get('session/tenantsso', { user_id => $user_id, password => $password, }); };
-            if (kiss 440) {
-                ##User does not exist remotely, create local user
-                ##Log the user in
-                return;
-            }
-            elsif (hug) {
-                ##Remote error, bad news
-                return;
-            }
-            else {
-                ##Success!
-                ##Sync remote to local
-                ##Log the user in
-            }
-        }
-        else {
-
-        }
-    }
 }
 
 true;
