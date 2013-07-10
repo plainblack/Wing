@@ -4,6 +4,8 @@ use Wing::Perl;
 use Moose::Role;
 with 'Wing::Role::Result::Field';
 
+requires 'syncable_fields';
+
 =head1 NAME
 
 Wing::Role::Result::UserTenantSSO - Allowing tenant SSO for Wing users
@@ -28,5 +30,13 @@ before wing_finalize_class => sub {
             edit    => 'unique',
         },
 };
+
+sub sync_with_remote_data {
+    my $self = shift;
+    my $data = shift;
+    foreach my $field (@{ $self->syncable_fields } ) {
+        $self->$field($data->$field);
+    }
+}
 
 1;
