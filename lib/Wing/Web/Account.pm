@@ -14,21 +14,28 @@ get '/login' => sub {
     template 'account/login';
 };
 
-post '/login' => sub {
-    return template 'account/login', { error_message => 'You must specify a username or email address.'} unless params->{login};
-    return template 'account/login', { error_message => 'You must specify a password.'} unless params->{password};
-    my $user = site_db()->resultset('User')->search({email => params->{login}},{rows=>1})->single;
-    unless (defined $user) {
-        $user = site_db()->resultset('User')->search({username => params->{login}},{rows=>1})->single;
-        return template 'account/login', { error_message => 'User not found.'} unless defined $user;
+if (my $host_sso = Wing->config->get('tenant/sso_key')) {
+    post '/login' => sub {
+        my $wing = Wing::Client->new( uri => $host_sso );
     }
+}
+else {
+    post '/login' => sub {
+        return template 'account/login', { error_message => 'You must specify a username or email address.'} unless params->{login};
+        return template 'account/login', { error_message => 'You must specify a password.'} unless params->{password};
+        my $user = site_db()->resultset('User')->search({email => params->{login}},{rows=>1})->single;
+        unless (defined $user) {
+            $user = site_db()->resultset('User')->search({username => params->{login}},{rows=>1})->single;
+            return template 'account/login', { error_message => 'User not found.'} unless defined $user;
+        }
 
-    # validate password
-    if ($user->is_password_valid(params->{password})) {
-        return login($user);
-    }
-    template 'account/login', { error_message => 'Password incorrect.'};
-};
+        # validate password
+        if ($user->is_password_valid(params->{password})) {
+            return login($user);
+        }
+        template 'account/login', { error_message => 'Password incorrect.'};
+    };
+}
 
 any '/logout' => sub {
     my $session = get_session();
@@ -343,7 +350,6 @@ sub facebook {
 sub check_master {
     my ($username, $password, $user_id) = @_;
     my $host = Wing->config->get('tenant/sso_hostname');
-    my $wing = Wing::Client->new( uri => $host );
     my $lookup = eval { $wing->get('session/tenantsso', { username => $username, password => $password, }); };
     if (kiss 440) {
         if ($user_id) {
