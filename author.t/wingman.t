@@ -17,6 +17,13 @@ is $@->code, 442, 'cannot add invalid jobs';
 
 
 $wingman->put('howdy');
+
+
+my $job = $wingman->peek_ready;
+is ref $job, 'Wingman::Job', 'peek_ready returns a job';
+
+
+
 my $job = $wingman->reserve;
 is ref $job, 'Wingman::Job', 'its a wingman job';
 is ref $job->wingman_plugin, 'TestWing::Wingman::HelloWorld', 'can add Hello World job';

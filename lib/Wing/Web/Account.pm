@@ -6,6 +6,7 @@ use Ouch;
 use Wing;
 use Wing::Web;
 use Wing::SSO;
+use Wing::Client;
 use String::Random qw(random_string);
 use Facebook::Graph;
 
@@ -19,15 +20,56 @@ post '/login' => sub {
     my $user = site_db()->resultset('User')->search({email => params->{login}},{rows=>1})->single;
     unless (defined $user) {
         $user = site_db()->resultset('User')->search({username => params->{login}},{rows=>1})->single;
-        return template 'account/login', { error_message => 'User not found.'} unless defined $user;
     }
+    if (vars->{is_tenant} && Wing->config->get('tenant/sso_key')) {
+        ##Tenant SSO logins and sync
+        my $wing = Wing::Client->new( uri => Wing->config->get('tenant/sso_hostname') );
+        if (! defined $user) {
+            ##Do login check against remote.
+            my $lookup = eval { $wing->get('session/tenantsso', { username => $username, password => $password, api_key => Wing->config->get('tenant/sso_key'), }); };
+            if (hug) {
+                return template 'account/login', { error_message => 'Error doing tenant SSO: '.$@ };
+            }
+            else {
+                $user = site_db()->resultset('User')->new({});
+                $user->sync_with_remote_data($lookup);
+                $user->insert;
+                return login($user);
+            }
+        }
+        else {
+            if ($user->can('master_user_id') && $user->master_user_id) {
+                ##Do login check against remote and sync
+                my $lookup = eval { $wing->get('session/tenantsso', { user_id => $user->master_user_id, password => $password, api_key => Wing->config->get('tenant/sso_key'), }); };
+                if (hug) {
+                    return template 'account/login', { error_message => 'Error doing tenant SSO: '.$@ };
+                }
+                else {
+                    $user->sync_with_remote_data($lookup);
+                    return login($user);
+                }
+            }
+            else {
+                ##Standard login check
+                return standard_login_check($user);
+            }
+        }
+    }
+    else {
+        ##Local logins only!
+        return standard_login_check($user);
+    };
+}
 
+sub standard_login_check {
+    my $user = shift;
+    return template 'account/login', { error_message => 'User not found.'} unless defined $user;
     # validate password
     if ($user->is_password_valid(params->{password})) {
         return login($user);
     }
-    template 'account/login', { error_message => 'Password incorrect.'};
-};
+    return template 'account/login', { error_message => 'Password incorrect.'};
+}
 
 any '/logout' => sub {
     my $session = get_session();
@@ -338,6 +380,5 @@ sub login {
 sub facebook {
     return Facebook::Graph->new(Wing->config->get('facebook'));
 }
-
 
 true;
