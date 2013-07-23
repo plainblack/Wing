@@ -108,12 +108,13 @@ sub create_database {
     my $db = $self->connect_to_database;
     #$db->deploy({ add_drop_table => 1 });
     my $schema_name = Wing->config->get('tenants/namespace');
+    my $app_dir     = Wing->config->get('tenants/app_dir');
     my $install_version = eval "${schema_name}::DB->VERSION;";
     my $dh = DBIx::Class::DeploymentHandler->new( {
         schema              => $db,
         databases           => [qw/ MySQL /],
         sql_translator_args => { add_drop_table => 0 },
-        script_directory    => "/data/".$schema_name."/dbicdh",
+        script_directory    => $app_dir."/dbicdh",
         force_overwrite     => 0,
     });
     $dh->install({ version => $install_version, });

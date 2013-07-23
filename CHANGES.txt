@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2013-07-18
+ * Wing tenant sites now need a new configuration entry tenants/app_dir to tell Wing where to find the APP_DIR for tenants.  This allows the owner codebase to find it for doing database installs and library path handling.
+
 2013-06-18
  * Wing::Rest::Status now returns a tracer for checking cookie values.
 
