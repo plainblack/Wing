@@ -4,9 +4,9 @@ export WING_HOME=/data/Wing
 export WING_APP=/data/Wing/author.t/
 export WING_CONFIG=/data/Wing/author.t/etc/test.conf
 
-#And you need to create a database:
+#And you need to create a database and database user with the correct privileges:
 #
 #cd $WING_APP
-#mysql -uroot -e " create database testwing; grant all privileges on testwing.* to testwing@localhost identified by 'testwing'; flush privileges; "
+#mysql -uroot -e " create database testwing; grant all privileges on testwing.* to testwing@localhost identified by 'testwing'; GRANT CREATE, DROP ON *.* TO 'testwing'@'localhost'; flush privileges; "
 #wing db --install --force
 #
