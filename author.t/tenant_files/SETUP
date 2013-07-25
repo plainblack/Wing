@@ -3,6 +3,7 @@
 export WING_HOME=/data/Wing
 export WING_APP=/data/Wing/author.t/tenant_files
 export WING_CONFIG=/data/Wing/author.t/etc/test.conf
+export WING_OWNER=/data/Wing/author.t/
 
 #And you need to create a database and database user with the correct privileges, as shown by ../TESTME
 #The tests that use this will need to inject the tenant information into the config file
