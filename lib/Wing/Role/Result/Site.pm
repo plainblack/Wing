@@ -134,6 +134,7 @@ Wing::Role::Result::Site - Multi-tenancy for Wing.
 
 =head1 SYNOPSIS
 
+ package AppName::DB::Result::Site;
  with 'Wing::Role::Result::Site';
 
  # in another program
@@ -149,6 +150,8 @@ Wing::Role::Result::Site - Multi-tenancy for Wing.
 =head1 DESCRIPTION
 
 Add this to a AppName::DB::Result::Site class in your management app. This will set up this app to control multiple tenant apps. You can create and delete instances of those apps on the fly.
+
+B<NOTE:> You absoltely MUST have the final classname of this be C<Site>.  That classname is expected throughout Wing.
 
 B<NOTE:> We need to write up a cookbook example of this. 
 
