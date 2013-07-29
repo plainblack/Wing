@@ -21,12 +21,12 @@ post '/login' => sub {
     unless (defined $user) {
         $user = site_db()->resultset('User')->search({username => params->{login}},{rows=>1})->single;
     }
-    if (vars->{is_tenant} && Wing->config->get('tenant/sso_key')) {
+    if (vars->{is_tenant} && Wing->config->get('tenants/sso_key')) {
         ##Tenant SSO logins and sync
-        my $wing = Wing::Client->new( uri => Wing->config->get('tenant/sso_hostname') );
+        my $wing = Wing::Client->new( uri => Wing->config->get('tenants/sso_hostname') );
         if (! defined $user) {
             ##Do login check against remote.
-            my $lookup = eval { $wing->get('session/tenantsso', { username => $username, password => $password, api_key => Wing->config->get('tenant/sso_key'), }); };
+            my $lookup = eval { $wing->get('session/tenantsso', { username => $username, password => $password, api_key => Wing->config->get('tenants/sso_key'), }); };
             if (hug) {
                 return template 'account/login', { error_message => 'Error doing tenant SSO: '.$@ };
             }
@@ -40,7 +40,7 @@ post '/login' => sub {
         else {
             if ($user->can('master_user_id') && $user->master_user_id) {
                 ##Do login check against remote and sync
-                my $lookup = eval { $wing->get('session/tenantsso', { user_id => $user->master_user_id, password => $password, api_key => Wing->config->get('tenant/sso_key'), }); };
+                my $lookup = eval { $wing->get('session/tenantsso', { user_id => $user->master_user_id, password => $password, api_key => Wing->config->get('tenants/sso_key'), }); };
                 if (hug) {
                     return template 'account/login', { error_message => 'Error doing tenant SSO: '.$@ };
                 }

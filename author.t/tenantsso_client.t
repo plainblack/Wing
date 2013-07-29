@@ -1,4 +1,4 @@
-use lib '/data/Wing/author.t/lib', '/data/Wing/lib';
+use lib '/data/Wing/author.t/lib', '/data/Wing/lib', '/data/Wing/author.t/tenant_files';
 use Wing::Perl;
 use Data::GUID;
 use Test::More;
@@ -58,6 +58,7 @@ my $owner = Test::TCP->new(
     },
 );
 
+Wing->config->set('tenant/sso_hostname', 'http://127.0.0.1:'.$owner->port);
 Wing->config->set('tenant/sso_hostname', 'http://127.0.0.1:'.$owner->port);
 
 ok(1);

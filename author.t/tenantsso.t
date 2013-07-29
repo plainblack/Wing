@@ -37,7 +37,7 @@ eval { $wing->post('session/tenantsso', {}); };
 is $@->message, 'Tenant SSO not configured.', 'tenant SSO not configured';
 
 my $guid = Data::GUID->guid_string;
-Wing->config->set('tenant/sso_key', $guid);
+Wing->config->set('tenants/sso_key', $guid);
 
 eval { $wing->post('session/tenantsso', {}); };
 is $@->message, 'You need a tenant sso key.', 'request with missing tenant sso key';
@@ -63,7 +63,6 @@ is $@->message, 'Password incorrect.', 'user not found due to username/password 
 eval { $wing->post('session/tenantsso', {api_key => $guid, password => 'foo-baz-bar', user_id => $andy->id, }); };
 is $@->message, 'Password incorrect.', 'user not found due to user_id/password mismatch';
 
-my $result;
 $result = $wing->post('session/tenantsso', {api_key => $guid, password => 'Saywatanayo', user_id => $andy->id, });
 cmp_deeply(
     $result,
@@ -85,7 +84,6 @@ cmp_deeply(
 done_testing();
 
 END {
-    Wing->config->delete('tenant/sso_key');
-    Wing->config->delete('tenant');
+    Wing->config->delete('tenants/sso_key');
     TestHelper::cleanup();
 }
