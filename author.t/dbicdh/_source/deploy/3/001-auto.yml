@@ -2,184 +2,6 @@
 schema:
   procedures: {}
   tables:
-    acquisitions:
-      constraints:
-        - deferrable: 1
-          expression: ''
-          fields:
-            - id
-          match_type: ''
-          name: ''
-          on_delete: ''
-          on_update: ''
-          options: []
-          reference_fields: []
-          reference_table: ''
-          type: PRIMARY KEY
-        - deferrable: 1
-          expression: ''
-          fields:
-            - database_name
-          match_type: ''
-          name: acquisitions_database_name
-          on_delete: ''
-          on_update: ''
-          options: []
-          reference_fields: []
-          reference_table: ''
-          type: UNIQUE
-        - deferrable: 1
-          expression: ''
-          fields:
-            - shortname
-          match_type: ''
-          name: acquisitions_shortname
-          on_delete: ''
-          on_update: ''
-          options: []
-          reference_fields: []
-          reference_table: ''
-          type: UNIQUE
-        - deferrable: 1
-          expression: ''
-          fields:
-            - user_id
-          match_type: ''
-          name: acquisitions_fk_user_id
-          on_delete: ''
-          on_update: ''
-          options: []
-          reference_fields:
-            - id
-          reference_table: users
-          type: FOREIGN KEY
-      fields:
-        database_name:
-          data_type: varchar
-          default_value: 0
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 1
-          name: database_name
-          order: 4
-          size:
-            - 50
-        date_created:
-          data_type: datetime
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: date_created
-          order: 2
-          size:
-            - 0
-        date_updated:
-          data_type: datetime
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: date_updated
-          order: 3
-          size:
-            - 0
-        hostname:
-          data_type: varchar
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: hostname
-          order: 8
-          size:
-            - 255
-        id:
-          data_type: char
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 1
-          is_unique: 0
-          name: id
-          order: 1
-          size:
-            - 36
-        name:
-          data_type: varchar
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: name
-          order: 6
-          size:
-            - 60
-        shortname:
-          data_type: varchar
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 1
-          name: shortname
-          order: 9
-          size:
-            - 50
-        trashed:
-          data_type: tinyint
-          default_value: 0
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: trashed
-          order: 5
-          size:
-            - 0
-        user_id:
-          data_type: char
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: user_id
-          order: 7
-          size:
-            - 36
-      indices:
-        - fields:
-            - user_id
-          name: acquisitions_idx_user_id
-          options: []
-          type: NORMAL
-        - fields:
-            - date_created
-          name: idx_date_created
-          options: []
-          type: NORMAL
-        - fields:
-            - date_updated
-          name: idx_date_updated
-          options: []
-          type: NORMAL
-        - fields:
-            - shortname
-            - trashed
-          name: idx_find_by_shortname
-          options: []
-          type: NORMAL
-        - fields:
-            - hostname
-            - trashed
-          name: idx_find_by_hostname
-          options: []
-          type: NORMAL
-        - fields:
-            - hostname
-          name: idx_hostname
-          options: []
-          type: NORMAL
-      name: acquisitions
-      options: []
-      order: 3
     api_key:
       constraints:
         - deferrable: 1
@@ -318,7 +140,7 @@ schema:
           type: NORMAL
       name: api_key
       options: []
-      order: 4
+      order: 3
     api_key_permissions:
       constraints:
         - deferrable: 1
@@ -657,7 +479,7 @@ schema:
           type: NORMAL
       name: employees
       options: []
-      order: 5
+      order: 4
     equipment:
       constraints:
         - deferrable: 1
@@ -755,6 +577,184 @@ schema:
       name: equipment
       options: []
       order: 7
+    sites:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - database_name
+          match_type: ''
+          name: sites_database_name
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - shortname
+          match_type: ''
+          name: sites_shortname
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: sites_fk_user_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - id
+          reference_table: users
+          type: FOREIGN KEY
+      fields:
+        database_name:
+          data_type: varchar
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: database_name
+          order: 4
+          size:
+            - 50
+        date_created:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_created
+          order: 2
+          size:
+            - 0
+        date_updated:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_updated
+          order: 3
+          size:
+            - 0
+        hostname:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: hostname
+          order: 8
+          size:
+            - 255
+        id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 36
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 6
+          size:
+            - 60
+        shortname:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: shortname
+          order: 9
+          size:
+            - 50
+        trashed:
+          data_type: tinyint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: trashed
+          order: 5
+          size:
+            - 0
+        user_id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 7
+          size:
+            - 36
+      indices:
+        - fields:
+            - user_id
+          name: sites_idx_user_id
+          options: []
+          type: NORMAL
+        - fields:
+            - date_created
+          name: idx_date_created
+          options: []
+          type: NORMAL
+        - fields:
+            - date_updated
+          name: idx_date_updated
+          options: []
+          type: NORMAL
+        - fields:
+            - shortname
+            - trashed
+          name: idx_find_by_shortname
+          options: []
+          type: NORMAL
+        - fields:
+            - hostname
+            - trashed
+          name: idx_find_by_hostname
+          options: []
+          type: NORMAL
+        - fields:
+            - hostname
+          name: idx_hostname
+          options: []
+          type: NORMAL
+      name: sites
+      options: []
+      order: 5
     users:
       constraints:
         - deferrable: 1
@@ -949,7 +949,7 @@ translator:
       - Employee
       - User
       - APIKey
-      - Acquisition
+      - Site
       - APIKeyPermission
       - Company
       - Equipment

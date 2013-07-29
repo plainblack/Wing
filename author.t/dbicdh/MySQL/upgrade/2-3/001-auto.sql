@@ -7,7 +7,7 @@ BEGIN;
 SET foreign_key_checks=0;
 
 ;
-CREATE TABLE `acquisitions` (
+CREATE TABLE `sites` (
   `id` char(36) NOT NULL,
   `date_created` datetime NOT NULL,
   `date_updated` datetime NOT NULL,
@@ -17,16 +17,16 @@ CREATE TABLE `acquisitions` (
   `user_id` char(36) NOT NULL,
   `hostname` varchar(255) NOT NULL,
   `shortname` varchar(50) NOT NULL,
-  INDEX `acquisitions_idx_user_id` (`user_id`),
+  INDEX `sites_idx_user_id` (`user_id`),
   INDEX `idx_date_created` (`date_created`),
   INDEX `idx_date_updated` (`date_updated`),
   INDEX `idx_find_by_shortname` (`shortname`, `trashed`),
   INDEX `idx_find_by_hostname` (`hostname`, `trashed`),
   INDEX `idx_hostname` (`hostname`),
   PRIMARY KEY (`id`),
-  UNIQUE `acquisitions_database_name` (`database_name`),
-  UNIQUE `acquisitions_shortname` (`shortname`),
-  CONSTRAINT `acquisitions_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+  UNIQUE `sites_database_name` (`database_name`),
+  UNIQUE `sites_shortname` (`shortname`),
+  CONSTRAINT `sites_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB;
 
 ;

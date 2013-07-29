@@ -4,10 +4,10 @@
 BEGIN;
 
 ;
-ALTER TABLE acquisitions DROP FOREIGN KEY acquisitions_fk_user_id;
+ALTER TABLE sites DROP FOREIGN KEY sites_fk_user_id;
 
 ;
-DROP TABLE acquisitions;
+DROP TABLE sites;
 
 ;
 

@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Thu Jul 25 11:13:09 2013
+-- Created on Mon Jul 29 15:23:15 2013
 -- 
 ;
 SET foreign_key_checks=0;
@@ -41,30 +41,6 @@ CREATE TABLE `users` (
   UNIQUE `users_username` (`username`)
 ) ENGINE=InnoDB;
 --
--- Table: `acquisitions`
---
-CREATE TABLE `acquisitions` (
-  `id` char(36) NOT NULL,
-  `date_created` datetime NOT NULL,
-  `date_updated` datetime NOT NULL,
-  `database_name` varchar(50) NOT NULL DEFAULT '0',
-  `trashed` tinyint NOT NULL DEFAULT 0,
-  `name` varchar(60) NOT NULL,
-  `user_id` char(36) NOT NULL,
-  `hostname` varchar(255) NOT NULL,
-  `shortname` varchar(50) NOT NULL,
-  INDEX `acquisitions_idx_user_id` (`user_id`),
-  INDEX `idx_date_created` (`date_created`),
-  INDEX `idx_date_updated` (`date_updated`),
-  INDEX `idx_find_by_shortname` (`shortname`, `trashed`),
-  INDEX `idx_find_by_hostname` (`hostname`, `trashed`),
-  INDEX `idx_hostname` (`hostname`),
-  PRIMARY KEY (`id`),
-  UNIQUE `acquisitions_database_name` (`database_name`),
-  UNIQUE `acquisitions_shortname` (`shortname`),
-  CONSTRAINT `acquisitions_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB;
---
 -- Table: `api_key`
 --
 CREATE TABLE `api_key` (
@@ -99,6 +75,30 @@ CREATE TABLE `employees` (
   INDEX `idx_date_updated` (`date_updated`),
   PRIMARY KEY (`id`),
   CONSTRAINT `employees_fk_company_id` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB;
+--
+-- Table: `sites`
+--
+CREATE TABLE `sites` (
+  `id` char(36) NOT NULL,
+  `date_created` datetime NOT NULL,
+  `date_updated` datetime NOT NULL,
+  `database_name` varchar(50) NOT NULL DEFAULT '0',
+  `trashed` tinyint NOT NULL DEFAULT 0,
+  `name` varchar(60) NOT NULL,
+  `user_id` char(36) NOT NULL,
+  `hostname` varchar(255) NOT NULL,
+  `shortname` varchar(50) NOT NULL,
+  INDEX `sites_idx_user_id` (`user_id`),
+  INDEX `idx_date_created` (`date_created`),
+  INDEX `idx_date_updated` (`date_updated`),
+  INDEX `idx_find_by_shortname` (`shortname`, `trashed`),
+  INDEX `idx_find_by_hostname` (`hostname`, `trashed`),
+  INDEX `idx_hostname` (`hostname`),
+  PRIMARY KEY (`id`),
+  UNIQUE `sites_database_name` (`database_name`),
+  UNIQUE `sites_shortname` (`shortname`),
+  CONSTRAINT `sites_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB;
 --
 -- Table: `api_key_permissions`
