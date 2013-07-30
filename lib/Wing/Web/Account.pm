@@ -17,16 +17,18 @@ get '/login' => sub {
 post '/login' => sub {
     return template 'account/login', { error_message => 'You must specify a username or email address.'} unless params->{login};
     return template 'account/login', { error_message => 'You must specify a password.'} unless params->{password};
-    my $user = site_db()->resultset('User')->search({email => params->{login}},{rows=>1})->single;
+    my $username = params->{login};
+    my $password = params->{password};
+    my $user = site_db()->resultset('User')->search({email => $username },{rows=>1})->single;
     unless (defined $user) {
-        $user = site_db()->resultset('User')->search({username => params->{login}},{rows=>1})->single;
+        $user = site_db()->resultset('User')->search({username => $username },{rows=>1})->single;
     }
     if (vars->{is_tenant} && Wing->config->get('tenants/sso_key')) {
         ##Tenant SSO logins and sync
         my $wing = Wing::Client->new( uri => Wing->config->get('tenants/sso_hostname') );
         if (! defined $user) {
             ##Do login check against remote.
-            my $lookup = eval { $wing->get('session/tenantsso', { username => $username, password => $password, api_key => Wing->config->get('tenants/sso_key'), }); };
+            my $lookup = eval { $wing->get('session/tenantsso', { username => $username , password => $password, api_key => Wing->config->get('tenants/sso_key'), }); };
             if (hug) {
                 return template 'account/login', { error_message => 'Error doing tenant SSO: '.$@ };
             }
@@ -51,21 +53,22 @@ post '/login' => sub {
             }
             else {
                 ##Standard login check
-                return standard_login_check($user);
+                return standard_login_check($user, $password);
             }
         }
     }
     else {
         ##Local logins only!
-        return standard_login_check($user);
-    };
-}
+        return standard_login_check($user, $password);
+    }
+};
 
 sub standard_login_check {
     my $user = shift;
+    my $password = shift;
     return template 'account/login', { error_message => 'User not found.'} unless defined $user;
     # validate password
-    if ($user->is_password_valid(params->{password})) {
+    if ($user->is_password_valid($password)) {
         return login($user);
     }
     return template 'account/login', { error_message => 'Password incorrect.'};
