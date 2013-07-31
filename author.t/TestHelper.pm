@@ -1,17 +1,7 @@
 package TestHelper;
 
-use Dancer;
-use Dancer::Request;
-use Dancer::Test appdir => '../lib';
-use Plack::Test;
-use Dancer::Handler;
-use Ouch;
-use HTTP::Request::Common;
-
 use Wing;
 use Wing::Perl;
-use Wing::Rest::Session;
-use Test::Wing::Client;
 
 our $DEBUG = 1;
 
@@ -35,36 +25,6 @@ sub init {
     print Wing->cache->get('session'.$result->{id});
     print "\n";
     return $result;
-}
-
-sub call {
-    my ($method, $path, $params) = @_;
-    my $content = exists $params->{file} ? call_via_plack_test($method, $path, $params) : call_via_dancer_test($method, $path, $params);
-    say $content if $DEBUG;
-    my $out = eval{from_json($content)};
-    die "got garbage back from ".$method." ".$path." (".to_json($params)."): ".$content if ($@);
-    return $out;
-}
-
-sub call_via_dancer_test {
-    my ($method, $path, $params) = @_;
-    my $response = eval{dancer_response $method => $path, { params => $params }};
-    say bleep if $@;
-    return $response->{content};
-}
-
-sub call_via_plack_test { # for file uploads
-    my ($method, $path, $params) = @_;
-    my $app = Dancer::Handler->get_handler->psgi_app;
-    my $content;
-    test_psgi $app, sub {
-        my $cb = shift;
-        my $request = POST $path, Content_Type => 'form-data', Content => [%{$params}];
-        $request->method($method);
-        my $response = $cb->($request);
-        $content = $response->content;
-    };
-    return $content;
 }
 
 sub cleanup {
