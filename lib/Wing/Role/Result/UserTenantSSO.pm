@@ -1,4 +1,4 @@
-with 'Wing::Role::Result::UserTenantSSO';
+package 'Wing::Role::Result::UserTenantSSO';
 
 use Wing::Perl;
 use Moose::Role;
@@ -14,6 +14,8 @@ Wing::Role::Result::UserTenantSSO - Allowing tenant SSO for Wing users
 
  with 'Wing::Role;:Result::User';
  with 'Wing::Role::Result::UserTenantSSO';
+
+ use constant syncable_fields qw/email real_name username password password_type password_salt use_as_display_name/;
  
 =head1 DESCRIPTION
 
