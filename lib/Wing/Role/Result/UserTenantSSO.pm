@@ -27,7 +27,7 @@ before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_fields(
         master_user_id          => {
-            dbic    => { data_type => 'varchar', size => 30, is_nullable => 0 },
+            dbic    => { data_type => 'varchar', size => 36, is_nullable => 0 },
             view    => 'private',
             edit    => 'unique',
         },
@@ -37,8 +37,8 @@ before wing_finalize_class => sub {
 sub sync_with_remote_data {
     my $self = shift;
     my $data = shift;
-    foreach my $field (@{ $self->syncable_fields } ) {
-        $self->$field($data->$field);
+    foreach my $field ( $self->syncable_fields ) {
+        $self->$field($data->{$field});
     }
 }
 
