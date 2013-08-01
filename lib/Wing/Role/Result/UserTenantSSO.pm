@@ -1,4 +1,4 @@
-package 'Wing::Role::Result::UserTenantSSO';
+package Wing::Role::Result::UserTenantSSO;
 
 use Wing::Perl;
 use Moose::Role;
@@ -31,6 +31,7 @@ before wing_finalize_class => sub {
             view    => 'private',
             edit    => 'unique',
         },
+    );
 };
 
 sub sync_with_remote_data {
