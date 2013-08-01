@@ -1,0 +1,19 @@
+---
+appname: Acquisitions
+behind_proxy: 1
+charset: UTF-8
+engines:
+  JSON:
+    pretty: 1
+    utf8: 1
+  template_toolkit:
+    encoding: utf8
+    end_tag: '%]'
+    start_tag: '[%'
+error_template: error
+layout: main
+log4perl:
+  config_file: /data/Wing/author.t/etc/log4perl.conf
+logger: log4perl
+show_errors: 0
+template: template_toolkit

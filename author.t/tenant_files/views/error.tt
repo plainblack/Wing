@@ -1,0 +1,13 @@
+[% page_title = "Error" %]
+[% INCLUDE header_include.tt %]
+
+[% IF code == 401 %]
+    <h1>Login Required</h1>
+    [% INCLUDE account/authenticate_include.tt redirect_after=params.redirect_after || request.path %]
+[% ELSE %]
+    <h1>[% title %]</h1>
+    <p>You may <a href="javascript:history.go(-1);">go back from whence you came</a>.</p>
+    <p style="font-size: 1000%; color: #aaa; font-weight: bold; float: right;">[% code %]</p>
+[% END %]
+
+[% INCLUDE footer_include.tt %]

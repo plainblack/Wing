@@ -1,0 +1,12 @@
+[% message_types = ["error", "warn", "info", "success"] %]
+[% FOREACH message_type IN message_types %]
+ [% message_variable = "${message_type}_message" %]
+ [% IF params.$message_variable || $message_variable %]
+  <script type="text/javascript">
+  $(document).ready(function() {
+   wing.[% message_type %]("[% params.$message_variable || $message_variable FILTER html FILTER replace('\n','; ') %]");
+  });
+  </script>
+ [% END %]
+[% END %]
+
