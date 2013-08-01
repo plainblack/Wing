@@ -35,6 +35,7 @@ post '/login' => sub {
             else {
                 $user = site_db()->resultset('User')->new({});
                 $user->sync_with_remote_data($lookup);
+                $user->master_user_id($lookup->{id});
                 $user->insert;
                 return login($user);
             }
