@@ -301,6 +301,18 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - master_user_id
+          match_type: ''
+          name: users_master_user_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
             - username
           match_type: ''
           name: users_username
@@ -318,7 +330,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: admin
-          order: 4
+          order: 5
           size:
             - 0
         date_created:
@@ -348,7 +360,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: developer
-          order: 12
+          order: 13
           size:
             - 0
         email:
@@ -358,7 +370,7 @@ schema:
           is_primary_key: 0
           is_unique: 1
           name: email
-          order: 9
+          order: 10
           size:
             - 255
         id:
@@ -378,9 +390,19 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: last_login
-          order: 13
+          order: 14
           size:
             - 0
+        master_user_id:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: master_user_id
+          order: 4
+          size:
+            - 36
         password:
           data_type: char
           default_value: ~
@@ -388,7 +410,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: password
-          order: 10
+          order: 11
           size:
             - 50
         password_salt:
@@ -398,7 +420,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: password_salt
-          order: 7
+          order: 8
           size:
             - 16
         password_type:
@@ -408,7 +430,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: password_type
-          order: 6
+          order: 7
           size:
             - 10
         real_name:
@@ -418,7 +440,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: real_name
-          order: 5
+          order: 6
           size:
             - 255
         use_as_display_name:
@@ -428,7 +450,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: use_as_display_name
-          order: 11
+          order: 12
           size:
             - 10
         username:
@@ -438,7 +460,7 @@ schema:
           is_primary_key: 0
           is_unique: 1
           name: username
-          order: 8
+          order: 9
           size:
             - 30
       indices:

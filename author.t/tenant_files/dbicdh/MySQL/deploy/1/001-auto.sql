@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Thu Jul 25 14:37:49 2013
+-- Created on Thu Aug  1 14:58:11 2013
 -- 
 ;
 SET foreign_key_checks=0;
@@ -11,6 +11,7 @@ CREATE TABLE `users` (
   `id` char(36) NOT NULL,
   `date_created` datetime NOT NULL,
   `date_updated` datetime NOT NULL,
+  `master_user_id` varchar(36) NOT NULL,
   `admin` tinyint NOT NULL DEFAULT 0,
   `real_name` varchar(255) NOT NULL DEFAULT '',
   `password_type` varchar(10) NOT NULL DEFAULT 'bcrypt',
@@ -24,6 +25,7 @@ CREATE TABLE `users` (
   INDEX `idx_search` (`real_name`, `username`, `email`),
   PRIMARY KEY (`id`),
   UNIQUE `users_email` (`email`),
+  UNIQUE `users_master_user_id` (`master_user_id`),
   UNIQUE `users_username` (`username`)
 ) ENGINE=InnoDB;
 --
