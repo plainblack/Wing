@@ -30,6 +30,8 @@ post '/login' => sub {
             ##Do login check against remote.
             my $lookup = eval { $wing->post('session/tenantsso', { username => $username , password => $password, api_key => Wing->config->get('tenants/sso_key'), }); };
             if (hug) {
+                ##We expect a 440 error if username/pw cannot be found.  Need a separate error message?
+                ##Should Error doing tenant SSO only for 5xx errors?
                 return template 'account/login', { error_message => 'Error doing tenant SSO: '. $@};
             }
             else {
