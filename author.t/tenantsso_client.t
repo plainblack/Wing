@@ -36,6 +36,15 @@ $prison->insert;  ##also builds the tenant db for us
 
 my $site_db = Wing->tenant_db('localhost');
 
+my $heywood = $site_db->resultset('User')->new({
+    username    => 'heywood',
+    real_name   => 'heywood',
+    email       => 'heywood@shawshank.jail',
+    use_as_display_name => 'real_name',
+});
+$heywood->encrypt_and_set_password('Dumas');
+$heywood->insert;
+
 my $guid = Data::GUID->guid_string;
 Wing->config->set('tenants/sso_key', $guid);
 diag 'Tenant sso key: '.$guid;
@@ -64,6 +73,7 @@ my $mech = Test::WWW::Mechanize::Dancer->new(
 )->mech;
 $mech->cookie_jar(HTTP::CookieJar::LWP->new());
 
+note "User with no accounts on any server";
 my $tommies = $site_db->resultset('User')->search({ username => 'Tommy', })->count;
 is $tommies, 0, 'No Tommy users';
 
@@ -73,6 +83,7 @@ $tommies = $site_db->resultset('User')->search({ username => 'Tommy', })->count;
 is $tommies, 0, 'No users created on a failed login';
 is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 0, 'no cookie set since there was no login';
 
+note "User with an owner account";
 my $reds = $site_db->resultset('User')->search({ username => 'red', })->count;
 is $reds, 0, 'No red users';
 
@@ -83,12 +94,14 @@ is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'on
 my $tenant_red = $site_db->resultset('User')->search({ username => 'red', })->single;
 is $tenant_red->master_user_id, $red->id, 'master_user_id set for red after SSO';
 
+note "Site owner with an owner account";
 $mech->cookie_jar(HTTP::CookieJar::LWP->new());
 $mech->post_ok('http://localhost.localdomain/login', { login => 'andy', password => 'Saywatanayo', });
 is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'one cookie set for login';
 my $local_andy = $site_db->resultset('User')->search({ username => 'andy', })->single;
 ok $local_andy->is_admin, 'local copy is still an admin';
 
+note "Site owner who changes email address gets it updated locally";
 $mech->cookie_jar(HTTP::CookieJar::LWP->new());
 $andy->email('randall_stephens@zihuatanejo.mx');
 $andy->update;
@@ -97,6 +110,13 @@ $mech->post_ok('http://localhost.localdomain/login', { login => 'andy', password
 is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'one cookie set for login';
 $local_andy = $local_andy->get_from_storage;
 is $local_andy->email, $andy->email, 'email updated locally';
+
+note "Tenant user logs into to tenant site";
+$mech->cookie_jar(HTTP::CookieJar::LWP->new());
+$mech->post_ok('http://localhost.localdomain/login', { login => 'heywood', password => 'Dumas', });
+is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'one cookie set for login';
+$heywood = $heywood->get_from_storage;
+ok !$heywood->master_user_id, 'master_user_id still blank after local user login';
 
 done_testing();
 
