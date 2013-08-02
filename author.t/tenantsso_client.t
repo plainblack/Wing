@@ -83,6 +83,21 @@ is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'on
 my $tenant_red = $site_db->resultset('User')->search({ username => 'red', })->single;
 is $tenant_red->master_user_id, $red->id, 'master_user_id set for red after SSO';
 
+$mech->cookie_jar(HTTP::CookieJar::LWP->new());
+$mech->post_ok('http://localhost.localdomain/login', { login => 'andy', password => 'Saywatanayo', });
+is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'one cookie set for login';
+my $local_andy = $site_db->resultset('User')->search({ username => 'andy', })->single;
+ok $local_andy->is_admin, 'local copy is still an admin';
+
+$mech->cookie_jar(HTTP::CookieJar::LWP->new());
+$andy->email('randall_stephens@zihuatanejo.mx');
+$andy->update;
+isnt $local_andy->email, $andy->email, 'email changed for andy on owner site';
+$mech->post_ok('http://localhost.localdomain/login', { login => 'andy', password => 'Saywatanayo', });
+is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'one cookie set for login';
+$local_andy = $local_andy->get_from_storage;
+is $local_andy->email, $andy->email, 'email updated locally';
+
 done_testing();
 
 END {

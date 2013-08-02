@@ -49,6 +49,7 @@ post '/login' => sub {
                 }
                 else {
                     $user->sync_with_remote_data($lookup);
+                    $user->update;
                     return login($user);
                 }
             }
