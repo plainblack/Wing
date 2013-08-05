@@ -78,7 +78,8 @@ my $tommies = $site_db->resultset('User')->search({ username => 'Tommy', })->cou
 is $tommies, 0, 'No Tommy users';
 
 $mech->post_ok('http://localhost.localdomain/login', { login => 'Tommy', password => 'rockAndRollah', });
-$mech->content_contains('User not found', 'user not found message in web interface');
+$mech->content_contains('Error doing tenant SSO', 'SSO remote error message');
+$mech->content_contains('User not found', '... remote message');
 $tommies = $site_db->resultset('User')->search({ username => 'Tommy', })->count;
 is $tommies, 0, 'No users created on a failed login';
 is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 0, 'no cookie set since there was no login';
