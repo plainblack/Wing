@@ -30,9 +30,8 @@ post '/login' => sub {
             ##Do login check against remote.
             my $lookup = eval { $wing->post('session/tenantsso', { username => $username , password => $password, api_key => Wing->config->get('tenants/sso_key'), }); };
             if (hug) {
-                ##We expect a 440 error if username/pw cannot be found.  Need a separate error message?
-                ##Should Error doing tenant SSO only for 5xx errors?
-                return template 'account/login', { error_message => 'Error doing tenant SSO: '. $@};
+                Wing->log->warn('Error with tenant sso: '.$@);
+                return template 'account/login', { error_message => $@};
             }
             else {
                 $user = site_db()->resultset('User')->new({});
@@ -47,7 +46,8 @@ post '/login' => sub {
                 ##Do login check against remote and sync
                 my $lookup = eval { $wing->post('session/tenantsso', { user_id => $user->master_user_id, password => $password, api_key => Wing->config->get('tenants/sso_key'), }); };
                 if (hug) {
-                    return template 'account/login', { error_message => 'Error doing tenant SSO: '.$@ };
+                    Wing->log->warn('Error with tenant sso: '.$@);
+                    return template 'account/login', { error_message => $@ };
                 }
                 else {
                     $user->sync_with_remote_data($lookup);
