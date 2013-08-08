@@ -16,5 +16,6 @@ get '/api/[% String.new(class_name).lower %]' => sub {
 };
 
 generate_crud('[% class_name %]');
+generate_all_relationships('[% class_name %]');
 
 1;

@@ -4,6 +4,11 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2013-08-08
+ * Wing::Rest now has generate_relationship() and generate_all_relationships() so that
+	you need not hand-create your relationship web services any longer. These are
+	also enabled by default when you 'wing class --add=NewClass'
+
 2013-06-18
  * Wing::Rest::Status now returns a tracer for checking cookie values.
 
