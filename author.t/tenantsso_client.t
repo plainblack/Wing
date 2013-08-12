@@ -47,7 +47,6 @@ $heywood->insert;
 
 my $guid = Data::GUID->guid_string;
 Wing->config->set('tenants/sso_key', $guid);
-diag 'Tenant sso key: '.$guid;
 
 my $owner = Test::TCP->new(
     code => sub {
@@ -58,7 +57,6 @@ my $owner = Test::TCP->new(
 );
 
 Wing->config->set('tenants/sso_hostname', 'http://127.0.0.1:'.$owner->port);
-diag 'tenant SSO hostname: http://127.0.0.1:'.$owner->port;
 
 my $username = 'Tommy';
 my $password = 'whatever';
@@ -78,7 +76,6 @@ my $tommies = $site_db->resultset('User')->search({ username => 'Tommy', })->cou
 is $tommies, 0, 'No Tommy users';
 
 $mech->post_ok('http://localhost.localdomain/login', { login => 'Tommy', password => 'rockAndRollah', });
-$mech->content_contains('Error doing tenant SSO', 'SSO remote error message');
 $mech->content_contains('User not found', '... remote message');
 $tommies = $site_db->resultset('User')->search({ username => 'Tommy', })->count;
 is $tommies, 0, 'No users created on a failed login';
