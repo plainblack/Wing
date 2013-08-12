@@ -34,6 +34,13 @@ before wing_finalize_class => sub {
     );
 };
 
+around describe => sub {
+    my ($orig, $self, %options) = @_;
+    my $out = $self->$orig(%options);
+    $out->{tenant_user} = $self->master_user_id ? 1 : 0;
+    return $out;
+};
+
 sub sync_with_remote_data {
     my $self = shift;
     my $data = shift;
