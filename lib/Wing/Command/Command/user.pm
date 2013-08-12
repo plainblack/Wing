@@ -36,45 +36,48 @@ sub validate_args {
     $self->usage_error("No args allowed, only options.") if @$args;
 }
 
+sub list_users {
+    my $resultset = shift;
+    my $users = $resultset->search(undef, {order_by => 'username'});
+    while (my $user = $users->next) {
+        my $suffix = '';
+        if ($user->admin) {
+            $suffix = ' (admin)';
+        }
+        say $user->username.$suffix;
+    }
+    say 'Total: ', $resultset->count;
+}
+
+sub add_user {
+    my ($users, $username, $password, $admin) = @_;
+    my $user = $users->new({});
+    $user->username($username);
+    $user->admin($admin);
+    $user->encrypt_and_set_password($password);
+    $user->insert;
+}
+
+sub modify_user {
+    my ($users, $old_username, $new_username, $password, $admin) = @_;
+    my $user = $users->search({username => $old_username}, { rows => 1})->single;
+    ouch(440, $old_username.' not found.') unless defined $user;
+    $user->encrypt_and_set_password($password) if defined $password;
+    $user->admin($admin) if defined $admin;
+    $user->username($new_username) if defined $new_username;
+    $user->update;
+}
+
 sub execute {
     my ($self, $opt, $args) = @_;
     my $users = Wing->db->resultset('User');
     if ($opt->{add}) {
-        eval {
-            my $user = $users->new({});
-            $user->username($opt->{add});
-            $user->admin($opt->{admin});
-            $user->encrypt_and_set_password($opt->{password});
-            $user->insert;
-        };
-        
-        if ($@) {
-            say bleep;
-        }
-        else {
-            say $opt->{add}, ' created';
-        }
+        eval { add_user($users, $opt->{add}, $opt->{password}, $opt->{admin}) };
+        say($@ ? bleep : $opt->{add}. ' created'); 
     }
     elsif ($opt->{modify}) {
-        my $user = $users->search({username => $opt->{modify}}, { rows => 1})->single;
-        if (defined $user) {
-            eval {
-                $user->encrypt_and_set_password($opt->{password}) if exists $opt->{password};
-                $user->admin($opt->{admin}) if exists $opt->{admin};
-                $user->username($opt->{username}) if exists $opt->{username};
-                $user->update;
-            };
-            
-            if ($@) {
-                say bleep;
-            }
-            else {
-                say $opt->{modify}, ' updated';
-            }
-        }
-        else {
-            say $opt->{modify}, ' not found';
-        }
+        eval { modify_user($users, $opt->{modify}, $opt->{username}, $opt->{password}, $opt->{admin}) };
+        say($@ ? bleep : $opt->{modify}. ' updated'); 
     }
     elsif ($opt->{search}) {
         my $list = $users->search({username => { like => '%'.$opt->{search}.'%'}});
@@ -93,19 +96,6 @@ sub execute {
     }
 }
 
-
-sub list_users {
-    my $resultset = shift;
-    my $users = $resultset->search(undef, {order_by => 'username'});
-    while (my $user = $users->next) {
-        my $suffix = '';
-        if ($user->admin) {
-            $suffix = ' (admin)';
-        }
-        say $user->username.$suffix;
-    }
-    say 'Total: ', $resultset->count;
-}
 
 1;
 
