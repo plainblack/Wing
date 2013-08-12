@@ -1,0 +1,26 @@
+<div class="control-group">
+    <label class="control-label" class="control-label" for="name">Application Name</label>
+    <div class="controls">
+    <input type="text" name="name" id="name" value="[% apikey.name FILTER html %]">
+    <span class="help-block">This must be unique among all applications in our system.</span>
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" class="control-label" for="uri">Application URL</label>
+    <div class="controls">
+    <input type="text" name="uri" id="uri" value="[% apikey.uri FILTER html %]">
+    <span class="help-block">Optional, but appreciated. The URL of your application if it is a web app.</span>
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" class="control-label" for="reason">Reason</label>
+    <div class="controls">
+    <input type="text" name="reason" id="reason" value="[% apikey.reason FILTER html %]">
+    <span class="help-block">Optional, but appreciated. The reason you are building your app. What does it do?</span>
+    </div>
+</div>
+<div class="control-group">
+    <div class="controls">
+    <input class="btn" type="submit" value="[% button_label %]">
+    </div>
+</div>

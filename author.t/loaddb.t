@@ -16,7 +16,9 @@ isa_ok $db, 'TestWing::DB';
 
 my @sources = $db->sources;
 
-is scalar(@sources), 6, 'source count is right';
+diag explain \@sources;
+
+is scalar(@sources), 7, 'source count is right';
 
 ok 'Employee' ~~ \@sources, 'we have the sources we think we do';
 
@@ -26,7 +28,7 @@ $db->deploy({ add_drop_table => 1 });
 
 my $tables = $db->storage->dbh->selectcol_arrayref('show tables');
 
-is scalar(@$tables), scalar(@sources), 'table count matches source count';
+is scalar(@$tables), scalar(@sources)+1, 'table count matches source count, including version control';
 
 ok 'employees' ~~ $tables, 'we have the tables we think we do';
 

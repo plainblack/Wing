@@ -1,0 +1,21 @@
+[% page_title = "Profile for ${profile_user.display_name} %]
+[% INCLUDE account/header_include.tt %]
+
+
+
+<table class="table">
+    <tr>
+        <th>Known As</th>
+        <td>[% profile_user.display_name %]</td>
+    </tr>
+    <tr>
+        <th>Member Since</th>
+        <td>[% date(profile_user.date_created,'%F') %]</td>
+    </tr>
+    <tr>
+        <th>Last Login</th>
+        <td>[% date(profile_user.last_login,'%F') %]</td>
+    </tr>
+</table>
+
+[% INCLUDE account/footer_include.tt %]

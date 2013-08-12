@@ -17,24 +17,25 @@ use POSIX qw/ceil/;
 
 =head2 find_tenant_site()
 
-When Wing is running in multi-tenant mode, this subroutine can be used to look up a site record. See L<Wing::Role::Result::Site> for details.
+When Wing is running in multi-tenant mode, this subroutine can be used to look up a site record. See L<Wing::Role::Result::Site> for details.  If a site record is found, it will set the Dancer variable C<is_tenant>.
 
 =cut
 
 sub find_tenant_site {
     my $domain = Wing->config->get('tenants/domain');
-    if ($domain) {
-        my $hostname = request->env->{HTTP_HOST};
-        my $search = {trashed => 0};
-        if ($hostname =~ m/^(.*)\.$domain$/) {
-            $search->{-or} = [ { shortname => $1 }, {hostname => $hostname} ];
-        }
-        else {
-            $search->{hostname} = $hostname;
-        }
-        return Wing->db->resultset('Site')->search($search,{rows => 1})->single;
+    var is_tenant => 0;
+    return undef unless $domain;
+    my $hostname = request->env->{HTTP_HOST};
+    my $search = {trashed => 0};
+    if ($hostname =~ m/^(.*)\.$domain$/) {
+        $search->{-or} = [ { shortname => $1 }, {hostname => $hostname} ];
     }
-    return undef;
+    else {
+        $search->{hostname} = $hostname;
+    }
+    my $tenant = Wing->db->resultset('Site')->search($search,{rows => 1})->single;
+    var is_tenant => defined $tenant ? 1 : 0;
+    return $tenant;
 }
 
 =head2 site_db()
@@ -51,7 +52,7 @@ register site_db => sub {
     }
     my $domain = Wing->config->get('tenants/domain');
     my $tenant = find_tenant_site();
-    if (defined $tenant) {
+    if (vars->{is_tenant}) {
         site( $tenant );
         var wing_site_db => $tenant->connect_to_database;
         return vars->{wing_site_db};

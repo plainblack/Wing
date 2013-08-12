@@ -53,9 +53,8 @@ sub execute {
         if (! Wing->config->get('tenants')) {
             die "No tenants defined for this project\n";
         }
-        my $tenant_namespace = Wing->config->get('tenants/namespace');
-        $app = '/data/'.$tenant_namespace;
-        $schema_name = $tenant_namespace;
+        $app         = Wing->config->get('tenants/app_dir');
+        $schema_name = Wing->config->get('tenants/namespace');
         say "Switching from $master_schema_name to $schema_name";
     }
 

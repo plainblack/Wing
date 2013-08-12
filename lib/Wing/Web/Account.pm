@@ -6,6 +6,7 @@ use Ouch;
 use Wing;
 use Wing::Web;
 use Wing::SSO;
+use Wing::Client;
 use String::Random qw(random_string);
 use Facebook::Graph;
 
@@ -16,18 +17,66 @@ get '/login' => sub {
 post '/login' => sub {
     return template 'account/login', { error_message => 'You must specify a username or email address.'} unless params->{login};
     return template 'account/login', { error_message => 'You must specify a password.'} unless params->{password};
-    my $user = site_db()->resultset('User')->search({email => params->{login}},{rows=>1})->single;
+    my $username = params->{login};
+    my $password = params->{password};
+    my $user = site_db()->resultset('User')->search({email => $username },{rows=>1})->single;
     unless (defined $user) {
-        $user = site_db()->resultset('User')->search({username => params->{login}},{rows=>1})->single;
-        return template 'account/login', { error_message => 'User not found.'} unless defined $user;
+        $user = site_db()->resultset('User')->search({username => $username },{rows=>1})->single;
     }
+    if (vars->{is_tenant} && Wing->config->get('tenants/sso_key')) {
+        ##Tenant SSO logins and sync
+        my $wing = Wing::Client->new( uri => Wing->config->get('tenants/sso_hostname') );
+        if (! defined $user) {
+            ##Do login check against remote.
+            my $lookup = eval { $wing->post('session/tenantsso', { username => $username , password => $password, api_key => Wing->config->get('tenants/sso_key'), }); };
+            if (hug) {
+                Wing->log->warn('Error with tenant sso: '.$@);
+                return template 'account/login', { error_message => $@};
+            }
+            else {
+                $user = site_db()->resultset('User')->new({});
+                $user->sync_with_remote_data($lookup);
+                $user->master_user_id($lookup->{id});
+                $user->insert;
+                return login($user);
+            }
+        }
+        else {
+            if ($user->can('master_user_id') && $user->master_user_id) {
+                ##Do login check against remote and sync
+                my $lookup = eval { $wing->post('session/tenantsso', { user_id => $user->master_user_id, password => $password, api_key => Wing->config->get('tenants/sso_key'), }); };
+                if (hug) {
+                    Wing->log->warn('Error with tenant sso: '.$@);
+                    return template 'account/login', { error_message => $@ };
+                }
+                else {
+                    $user->sync_with_remote_data($lookup);
+                    $user->update;
+                    return login($user);
+                }
+            }
+            else {
+                ##Standard login check
+                return standard_login_check($user, $password);
+            }
+        }
+    }
+    else {
+        ##Local logins only!
+        return standard_login_check($user, $password);
+    }
+};
 
+sub standard_login_check {
+    my $user = shift;
+    my $password = shift;
+    return template 'account/login', { error_message => 'User not found.'} unless defined $user;
     # validate password
-    if ($user->is_password_valid(params->{password})) {
+    if ($user->is_password_valid($password)) {
         return login($user);
     }
-    template 'account/login', { error_message => 'Password incorrect.'};
-};
+    return template 'account/login', { error_message => 'Password incorrect.'};
+}
 
 any '/logout' => sub {
     my $session = get_session();
@@ -338,6 +387,5 @@ sub login {
 sub facebook {
     return Facebook::Graph->new(Wing->config->get('facebook'));
 }
-
 
 true;

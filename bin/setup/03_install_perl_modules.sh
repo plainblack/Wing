@@ -57,4 +57,5 @@ DBIx::Class::DeploymentHandler \
 Beanstalk::Client \
 Plugin::Tiny \
 Parallel::ForkManager \
+Wing::Client \
 App::Cmd

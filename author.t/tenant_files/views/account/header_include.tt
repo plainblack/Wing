@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
+<link href="//cdn.jsdelivr.net/pnotify/1.2/jquery.pnotify.default.css" rel="stylesheet">
+<meta charset="UTF-8">
+[% section_head_tags %]
+[% head_tags %]
+<title>[% page_title %]</title>
+</head>
+<body>
+<div class="container">
+
+
+<div class="navbar">
+  <div class="navbar-inner">
+    <ul class="nav">
+      <li><a href="/">Home</a></li>
+      <li><a href="/account">Account</a></li>
+      [% IF current_user.developer %]
+        <li><a href="/account/apikeys">API Keys</a></li>
+      [% END %]
+      [% IF current_user.admin %]
+        <li><a href="/admin/users">Admin</a></li>
+      [% END %]
+      <li><a href="/logout">Log Out</a></li>
+    </ul>
+    <ul class="nav pull-right">
+      <li><a href="/account">[% IF current_user %][% current_user.display_name %][% ELSE %]Login[% END %]</a></li>
+    </ul>
+  </div>
+</div>
+
+<h1>[% page_title %]</h1>
+
