@@ -119,14 +119,16 @@ sub create_database {
     });
     $dh->install({ version => $install_version, });
 
-    my $remote_copy = $db->resultset('User')->new({});
     my $owner = $self->user;
-    foreach my $prop (qw/username email real_name use_as_display_name password password_salt password_type/) {
-        $remote_copy->$prop($owner->$prop);
+    if ($owner->username ne 'Admin') {
+        my $remote_copy = $db->resultset('User')->new({});
+        foreach my $prop (qw/username email real_name use_as_display_name password password_salt password_type/) {
+            $remote_copy->$prop($owner->$prop);
+        }
+        $remote_copy->master_user_id($owner->id);
+        $remote_copy->admin(1);
+        $remote_copy->insert;
     }
-    $remote_copy->master_user_id($owner->id);
-    $remote_copy->admin(1);
-    $remote_copy->insert;
     $db->storage->disconnect;
 }
 
