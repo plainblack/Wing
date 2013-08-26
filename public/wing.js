@@ -5,10 +5,11 @@ var wing = new Object();
 
 wing.info = function(message) {
     $.pnotify({
+        addclass: 'alert-info',
         type: 'info',
         title: 'Info',
         text: message,
-        icon: 'picon icon16 brocco-icon-info white',
+        icon: 'glyphicon glyphicon-info-sign',
         opacity: 0.95,
         history: false,
         sticker: false
@@ -17,9 +18,10 @@ wing.info = function(message) {
 
 wing.warn = function(message) {
     $.pnotify({
+        addclass: 'alert-warning',
         title: 'Warning',
         text: message,
-        icon: 'picon icon16 entypo-icon-warning white',
+        icon: 'glyphicon glyphicon-exclamation-sign',
         opacity: 0.95,
         hide: false,
         history: false,
@@ -29,10 +31,11 @@ wing.warn = function(message) {
 
 wing.error = function(message) {
     $.pnotify({
+        addclass: 'alert-danger',
         type: 'error',
         title: 'Error',
         text: message,
-        icon: 'picon icon24 typ-icon-cancel white',
+        icon: 'glyphicon glyphicon-warning-sign',
         opacity: 0.95,
         hide:false,
         history: false,
@@ -42,10 +45,11 @@ wing.error = function(message) {
 
 wing.success = function(message) {
     $.pnotify({
+        addclass: 'alert-success',
         type: 'success',
         title: 'Success',
         text: message,
-        icon: 'picon icon16 iconic-icon-check-alt white',
+        icon: 'glyphicon glyphicon-ok-sign',
         opacity: 0.95,
         history: false,
         sticker: false
@@ -252,7 +256,7 @@ jQuery.fn.pagination = function(maxentries, opts){
          */
         function drawLinks() {
             panel.empty();
-            var list = jQuery("<ul></ul>");
+            var list = jQuery('<ul class="pagination"></ul>');
             panel.append(list);
 
             var interval = getInterval();
