@@ -1,67 +1,67 @@
 [% INCLUDE admin/header_include.tt %]
 
 <div class="row">
-<div class="span6">
+<div class="col-sm-6">
 <form class="form-horizontal">
 <fieldset>
 <legend>Account Information</legend>
-<div class="control-group">
-    <label class="control-label" for="username">Username</label>
-    <div class="controls">
-    <input class="autosave" type="text" name="username" value="[% params.username || user.username FILTER html %]" id="username">
+<div class="form-group">
+    <label class="col-sm-4 control-label" for="username">Username</label>
+    <div class="col-sm-8">
+    <input class="form-control autosave" type="text" name="username" value="[% params.username || user.username FILTER html %]" id="username">
     </div>
 </div>
-<div class="control-group">
-    <label class="control-label" for="real_name">Real Name</label>
-    <div class="controls">
-    <input class="autosave" type="text" name="real_name" value="[% params.real_name || user.real_name FILTER html %]" id="real_name">
+<div class="form-group">
+    <label class="col-sm-4 control-label" for="real_name">Real Name</label>
+    <div class="col-sm-8">
+    <input class="form-control autosave" type="text" name="real_name" value="[% params.real_name || user.real_name FILTER html %]" id="real_name">
     </div>
 </div>
-<div class="control-group">
-    <label class="control-label" for="email">Email Address</label>
-    <div class="controls">
-    <input class="autosave" type="email" name="email" value="[% params.email || user.email FILTER html %]" id="email">
+<div class="form-group">
+    <label class="col-sm-4 control-label" for="email">Email Address</label>
+    <div class="col-sm-8">
+    <input class="form-control autosave" type="email" name="email" value="[% params.email || user.email FILTER html %]" id="email">
     </div>
 </div>
-<div class="control-group">
-    <label class="control-label" for="password">New Password</label>
-    <div class="controls">
-    <input class="autosave" type="text" name="password" id="password">
+<div class="form-group">
+    <label class="col-sm-4 control-label" for="password">New Password</label>
+    <div class="col-sm-8">
+    <input class="form-control autosave" type="text" name="password" id="password">
     </div>
 </div>
 </fieldset>
 </form>
 </div>
 
-<div class="span6">
+<div class="col-sm-6">
 <form class="form-horizontal">
 <fieldset>
 <legend>Preferences</legend>
-<div class="control-group">
-    <label class="control-label" for="use_as_display_name">Use As Display Name</label>
-    <div class="controls">
-    <select class="autosave" name="use_as_display_name" id="use_as_display_name">
+<div class="form-group">
+    <label class="col-sm-4 control-label" for="use_as_display_name">Use As Display Name</label>
+    <div class="col-sm-8">
+    <select class="form-control autosave" name="use_as_display_name" id="use_as_display_name">
         <option value="username"[% IF user.use_as_display_name == 'username' %] selected="1"[% END %]>Username</option>
         <option value="email"[% IF user.use_as_display_name == 'email' %] selected="1"[% END %]>Email Address</option>
         <option value="real_name"[% IF user.use_as_display_name == 'real_name' %] selected="1"[% END %]>Real Name</option>
     </select>
     </div>
 </div>
-<div class="control-group">
-    <label class="control-label">Developer</label>
-    <div class="controls">
-    <label class="radio inline" for="developer_yes"><input class="autosave" type="radio" name="developer" value="1" id="developer_yes"[% IF user.developer %] checked=1[% END %]>Yes</label>
-    <label class="radio inline" for="developer_no"><input class="autosave" type="radio" name="developer" value="0" id="developer_no"[% UNLESS user.developer %] checked=1[% END %]>No</label>
+<div class="form-group">
+    <label class="col-sm-4 control-label">Developer</label>
+    <div class="col-sm-8">
+    <label class="radio-inline" for="developer_yes"><input class="autosave" type="radio" name="developer" value="1" id="developer_yes"[% IF user.developer %] checked=1[% END %]>Yes</label>
+    <label class="radio-inline" for="developer_no"><input class="autosave" type="radio" name="developer" value="0" id="developer_no"[% UNLESS user.developer %] checked=1[% END %]>No</label>
     </div>
 </div>
 </fieldset>
 <fieldset>
 <legend>Special Privileges</legend>
-<div class="control-group">
-    <label class="control-label">Admin</label>
-    <div class="controls">
-    <label class="radio inline" for="admin_yes"><input class="autosave" type="radio" name="admin" value="1" id="admin_yes"[% IF user.admin %] checked=1[% END %]>Yes</label>
-    <label class="radio inline" for="admin_no"><input class="autosave" type="radio" name="admin" value="0" id="admin_no"[% UNLESS user.admin %] checked=1[% END %]>No</label>
+<div class="form-group">
+    <label class="col-sm-4 control-label">Admin</label>
+    <div class="col-sm-8">
+    <label class="radio-inline" for="admin_yes"><input class="autosave" type="radio" name="admin" value="1" id="admin_yes"[% IF user.admin %] checked=1[% END %]>Yes</label>
+    <label class="radio-inline" for="admin_no"><input class="autosave" type="radio" name="admin" value="0" id="admin_no"[% UNLESS user.admin %] checked=1[% END %]>No</label>
     </div>
 </div>
 </fieldset>
@@ -72,7 +72,7 @@
 </div><!-- row -->
 
 <div class="row">
-<div class="span6">
+<div class="col-sm-6">
 <fieldset>
 <legend>Become This User</legend>
  <p>You can become a user so you can easily test what they see.</p>

@@ -2,7 +2,7 @@
 [% INCLUDE account/header_include.tt %]
 
 <div class="row">
-<div class="span6">
+<div class="col-sm-6">
 <fieldset>
 <legend>API Key</legend>
 
@@ -13,8 +13,8 @@
 <div>[% apikey.private_key %]</div><br><br>
 
 <form action="/account/apikey/[% apikey.id %]?X-HTTP-Method=DELETE" method="POST" enctype="multipart/form-data" class="form-horizontal">
-<div class="control-group">
- <div class="controls">
+<div class="form-group">
+ <div class="col-sm-8">
 <input class="btn btn-danger" type="submit" value="Delete This Key" onclick="return confirm('Are you sure?');">
  </div>
 </div>
@@ -22,7 +22,7 @@
 
 </fieldset>
 </div>
-<div class="span6">
+<div class="col-sm-6">
 <form action="/account/apikey/[% apikey.id %]" method="POST" enctype="multipart/form-data"class=" form-horizontal">
 <fieldset>
 <legend>Update API Key Details</legend>

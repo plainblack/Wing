@@ -23,24 +23,24 @@
 
 <h3>Actions</h3>
 <div class="row">
-	<div class="span2">
+	<div class="col-sm-2">
 		<fieldset>
 			<legend>Delete</legend>
 			<form>
-				<div class="control-group">
-					<div class="controls">
+				<div class="form-group">
+					<div class="col-sm-8">
 						<button class="btn btn-danger" onclick="return delete_job();">Delete Job</button>
 					</div>
 				</div>				
 			</form>
 		</fieldset>
 	</div>
-	<div class="span2 hidden" id="kick">
+	<div class="col-sm-2 hidden" id="kick">
 		<fieldset>
 			<legend>Kick</legend>
 			<form>
-				<div class="control-group">
-					<div class="controls">
+				<div class="form-group">
+					<div class="col-sm-offset-4 col-sm-8">
 						<button class="btn btn-primary" onclick="return kick_job();">Kick Job</button>
 					</div>
 				</div>				

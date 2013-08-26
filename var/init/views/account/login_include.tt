@@ -1,27 +1,27 @@
 <form action="/login" method="POST" enctype="multipart/form-data" class="form-horizontal">
 [% IF redirect_after || params.redirect_after %]
-<input type="hidden" name="redirect_after" value="[% redirect_after || params.redirect_after %]">
+<input class="form-control" type="hidden" name="redirect_after" value="[% redirect_after || params.redirect_after %]">
 [% END %]
 [% IF sso_id || params.sso_id %]
-<input type="hidden" name="sso_id" value="[% sso_id || params.sso_id %]">
+<input class="form-control" type="hidden" name="sso_id" value="[% sso_id || params.sso_id %]">
 [% END %]
 <fieldset>
 <legend>Login</legend>
-  <div class="control-group">
-    <label class="control-label" for="login">Username or Email Address</label>
-    <div class="controls"> 
-      <input type="text" name="login" value="[% params.login %]" id="login">
+  <div class="form-group">
+    <label class="col-sm-4 control-label" for="login">Username or Email Address</label>
+    <div class="col-sm-8"> 
+      <input class="form-control" type="text" name="login" value="[% params.login %]" id="login">
     </div>
   </div>
-  <div class="control-group">
-    <label class="control-label" for="password">Password</label>
-    <div class="controls"> 
-      <input type="password" name="password" value="[% params.password %]" id="password">
+  <div class="form-group">
+    <label class="col-sm-4 control-label" for="password">Password</label>
+    <div class="col-sm-8"> 
+      <input class="form-control" type="password" name="password" value="[% params.password %]" id="password">
     </div>
   </div>
-  <div class="control-group">
-    <div class="controls"> 
-       <input class="btn" type="submit" value="Login">
+  <div class="form-group">
+    <div class="col-sm-offset-4 col-sm-8"> 
+       <input class="btn btn-primary" type="submit" value="Login">
     </div>
   </div>
 [% IF params.login %]

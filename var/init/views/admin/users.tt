@@ -3,12 +3,14 @@
 
 <div class="row">
 
-<div class="span7">
+<div class="col-sm-7">
 
         <form class="form-search" onsubmit="search_users(0); return false;">
-            <div class="input-append">
-                <input type="text" id="query" class="search-query">
-                <button type="submit" class="btn btn-primary">Search</button>
+            <div class="input-group">
+                <input class="form-control" type="text" id="query" class="search-query">
+                <span class="input-group-btn">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                </span>
             </div>
         </form>
 
@@ -19,52 +21,53 @@
     <th>Real Name</th>
     <th>Email</th>
     <th>Last Login</th>
+    <th></th>
 </tr>
 </thead>
 <tbody id="users">
 <tr><td colspan="4"></td></tr>
 </tbody>
 </table>
-<div class="pagination"></div>
-</div><!-- span7 -->
+<div class="pager"></div>
+</div><!-- col-sm-7 -->
 
     
-<div class="span5">
-<form action="/admin/user" method="POST" class="form-horizontal">
-<fieldset>
-<legend>Add A User</legend>
-<div class="control-group">
-    <label class="control-label" for="username">Username</label>
-    <div class="controls">
-    <input class="input-block-level" type="text" name="username" id="username">
-    </div>
-</div>
-<div class="control-group">
-    <label class="control-label" for="real_name">Real Name</label>
-    <div class="controls">
-    <input class="input-block-level" type="text" name="real_name" id="real_name">
-    </div>
-</div>
-<div class="control-group">
-    <label class="control-label" for="email">Email</label>
-    <div class="controls">
-    <input class="input-block-level" type="text" name="email" id="email">
-    </div>
-</div>
-<div class="control-group">
-    <label class="control-label" for="password">Password</label>
-    <div class="controls">
-    <input class="input-block-level" type="text" name="password" id="password">
-    </div>
-</div>
-<div class="control-group">
-    <div class="controls">
-    <input class="btn" type="submit" value="Create">
-    </div>
-</div>
-</fieldset>
-</form>
-</div><!-- span5 -->
+<div class="col-sm-5">
+        <form action="/admin/user" method="POST" class="form-horizontal">
+                <fieldset>
+                        <legend>Add A User</legend>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="username">Username</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" type="text" name="username" id="username">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="real_name">Real Name</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" type="text" name="real_name" id="real_name">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="email">Email</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" type="text" name="email" id="email">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="password">Password</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" type="text" name="password" id="password">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-4 col-sm-8">
+                                <input class="btn btn-primary" type="submit" value="Create">
+                            </div>
+                        </div>
+                </fieldset>
+        </form>
+</div><!-- col-sm-5 -->
 
 </div><!-- row -->
 
@@ -76,7 +79,7 @@
     <td>${real_name}</td>
     <td>${email}</td>
     <td>${last_login}</td>
-    <td><form action="/admin/user/${id}/become" method="POST"><input type="submit" value="Become" class="btn btn-inverse"></form></td>
+    <td><form action="/admin/user/${id}/become" method="POST"><input type="submit" value="Become" class="btn"></form></td>
 </tr>
 </script>
 <script type="text/javascript">
@@ -86,7 +89,7 @@ function search_users(page_index, pagination_container) {
     wing.ajax('GET','user',params, function(data, text_status, jqxhr) {
         $('#users tr').remove();
         $('#user_template').tmpl(data.result.items).appendTo('#users');
-        wing.pager('.pagination', search_users, data);
+        wing.pager('.pager', search_users, data);
     });
 }
 $(document).ready(function() {

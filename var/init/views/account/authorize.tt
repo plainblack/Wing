@@ -30,7 +30,7 @@
 
 <form action="/sso/authorize" method="POST" enctype="multipart/form-data">
 <a href="[% api_key.uri %]" target="_new">[% api_key.name %]</a> has requested the following permissions from your account:
-<input type="hidden" name="sso_id" value="[% sso_id || params.sso_id %]">
+<input class="form-control" type="hidden" name="sso_id" value="[% sso_id || params.sso_id %]">
     <br><br>
 [% FOREACH permission IN requested_permissions %]
         <div class="permission">
@@ -38,7 +38,7 @@
             <span>[% permissions.${permission} %]</span>
             <div class="clearer"></div>
         </div>
-        <input type="hidden" name="permission" value="[% permission %]">
+        <input class="form-control" type="hidden" name="permission" value="[% permission %]">
 [% END %]
 <div class="clearer"></div>
     <br>

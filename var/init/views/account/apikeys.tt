@@ -4,7 +4,7 @@
 
 <div class="row">
 
-<div class="span6">
+<div class="col-sm-6">
 <form action="/account/apikey" method="POST" enctype="multipart/form-data" class="form-horizontal">
 <fieldset>
 <legend>Create An API Key</legend>
@@ -14,7 +14,7 @@
 </form>
 </div>
 
-<div class="span6">
+<div class="col-sm-6">
 <fieldset>
 <legend>Existing API Keys</legend>
 <table class="table table-striped">
