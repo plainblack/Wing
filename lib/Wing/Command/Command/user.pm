@@ -24,6 +24,7 @@ sub opt_spec {
       [ 'search=s', 'search users by keyword' ],
       [ 'list', 'list all users' ],
       [ 'list_admins', 'list all admin users' ],
+      [ 'email=s', 'the email address for the user' ],
       [ 'password=s', 'the password for the user' ],
       [ 'username=s', 'a new username for the user' ],
       [ 'admin!', 'whether the user should be an admin' ],
@@ -50,21 +51,23 @@ sub list_users {
 }
 
 sub add_user {
-    my ($users, $username, $password, $admin) = @_;
+    my ($users, $username, $password, $admin, $email) = @_;
     my $user = $users->new({});
     $user->username($username);
     $user->admin($admin);
+    $user->email($email);
     $user->encrypt_and_set_password($password);
     $user->insert;
 }
 
 sub modify_user {
-    my ($users, $old_username, $new_username, $password, $admin) = @_;
+    my ($users, $old_username, $new_username, $password, $admin, $email) = @_;
     my $user = $users->search({username => $old_username}, { rows => 1})->single;
     ouch(440, $old_username.' not found.') unless defined $user;
     $user->encrypt_and_set_password($password) if defined $password;
     $user->admin($admin) if defined $admin;
     $user->username($new_username) if defined $new_username;
+    $user->email($email) if defined $email;
     $user->update;
 }
 
@@ -72,11 +75,11 @@ sub execute {
     my ($self, $opt, $args) = @_;
     my $users = Wing->db->resultset('User');
     if ($opt->{add}) {
-        eval { add_user($users, $opt->{add}, $opt->{password}, $opt->{admin}) };
+        eval { add_user($users, $opt->{add}, $opt->{password}, $opt->{admin}, $opt->{email},) };
         say($@ ? bleep : $opt->{add}. ' created'); 
     }
     elsif ($opt->{modify}) {
-        eval { modify_user($users, $opt->{modify}, $opt->{username}, $opt->{password}, $opt->{admin}) };
+        eval { modify_user($users, $opt->{modify}, $opt->{username}, $opt->{password}, $opt->{admin}, $opt->{email},) };
         say($@ ? bleep : $opt->{modify}. ' updated'); 
     }
     elsif ($opt->{search}) {
@@ -105,7 +108,7 @@ wing user - Add and modify user accounts.
 
 =head1 SYNOPSIS
 
- wing user --add=Joe --password=123qwe --admin
+ wing user --add=Joe --password=123qwe --admin --email=joe@blow.com
 
  wing user --modify=Joe --noadmin --username=joseph
 
