@@ -213,7 +213,7 @@ sub describe {
         $out->{can_edit} = (eval { $self->can_edit($options{current_user}) }) ? 1 : 0;
     }
     if ($options{include_options}) {
-        $out->{_options} = $self->field_options;
+        $out->{_options} = $self->field_options(%options);
     }
     if ($options{include_relationships}) {
         $out->{_relationships}{self} = $self->wing_object_api_uri;
@@ -221,9 +221,17 @@ sub describe {
     return $out;
 }
 
-=head2 field_options()
+=head2 field_options( options )
 
 Returns options for each field. Is wrapped by roles like L<Wing::Role::Result::Field> to expose enumerated options that some fields require.
+
+=over
+
+=item options
+
+Same options as the c<describe> method.
+
+=back
 
 =cut
 
