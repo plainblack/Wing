@@ -121,7 +121,26 @@ An array reference where the first value is the minimum value in the range and t
 
 =item options
 
-An enumerated list of scalars as options for this field. 
+An enumerated list of scalars as options for this field. Alternatively you can pass in a coe reference. The code reference will be passed a reference to this object (though it may not be inserted into the database yet), and the L<Wing::DB::Result> C<describe> options, if they are available.
+
+Example of using a code ref:
+
+ options => sub {
+     my ($self, %options) = @_;
+     if (exists $options{current_user} && defined $options{current_user}) {
+         return [1..$options{current_user}->age];
+     },
+     else {
+         return [1..120];
+     }
+ },
+
+Including options will also generate a method in your class called C<field_name_options>. So if your field name is C<color> then the method generated would be C<color_options>. This method is then called by C<field_options> for generating the options on web services.
+
+
+=item _options
+
+A hash where the keys are the previously defined C<options> array, and the values are the human readable labels. 
 
 =item describe_method
 
@@ -259,17 +278,23 @@ sub wing_field {
     
         # enumerated validation
         if (exists $options->{options}) {
-            if (ref $options->{options} ne 'ARRAY') {
-                ouch 500, 'Options for "'.$field.'" must be specified with an array reference.';
+            if (ref $options->{options} ne 'ARRAY' && ref $options->{options} ne 'CODE') {
+                ouch 500, 'Options for "'.$field.'" must be specified with an array reference or code reference.';
             }
-            $class->meta->add_method( $field.'_options' => sub {
-                my $self = shift;
-                return $options->{options};
+            my $field_options_method = $field.'_options';
+            $class->meta->add_method( $field_options_method => sub {
+                my ($self, %describe_options) = @_;
+                if (ref $options->{options} eq 'CODE') {
+                    return $options->{options}->($self, %describe_options);
+                }
+                else {
+                    return $options->{options};
+                }
             });
             $class->meta->add_around_method_modifier(field_options => sub {
-                my ($orig, $self) = @_;
-                my $existing = $orig->($self);
-                $existing->{$field} = $options->{options};
+                my ($orig, $self, %describe_options) = @_;
+                my $existing = $orig->($self, %describe_options);
+                $existing->{$field} = $self->$field_options_method(%describe_options);
                 if (exists $options->{_options}) {
                     if (ref $options->{_options} ne 'HASH') {
                         ouch 500, 'Human readable options for "'.$field.'" must be specified with a hash reference.';
@@ -277,7 +302,7 @@ sub wing_field {
                     $existing->{'_'.$field} = $options->{_options};
                 }
                 else {
-                    foreach my $option (@{$options->{options}}) {
+                    foreach my $option (@{$existing->{$field}}) {
                         $existing->{'_'.$field}{$option} = $option;
                     }
                 }
@@ -286,8 +311,9 @@ sub wing_field {
             $class->meta->add_before_method_modifier($field => sub {
                 my ($self, $value) = @_;
                 if (scalar(@_) > 1) {
-                    unless ($value ~~ $options->{options}) {
-                        ouch 442, $field.' must be one of: '.join(', ', @{$options->{options}}). " and not ".$value, $field;
+                    my $options = $self->$field_options_method;
+                    unless ($value ~~ $options) {
+                        ouch 442, $field.' must be one of: '.join(', ', @{$options}). " and not ".$value, $field;
                     }
                 }
             });

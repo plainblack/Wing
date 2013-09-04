@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2013-09-03
+ * Wing::Role::Result::Field now allows you to pass a code reference into the options parameter so you can dynamically generate field options.
+
 2013-08-12
  * Wing tenant sites now need a new configuration entry tenants/app_dir to tell Wing where to find the APP_DIR for tenants.  This allows the owner codebase to find it for doing database installs and library path handling.
  * Wing tenant sites have a limited SSO to use their owner's sites to log into tenant sites.

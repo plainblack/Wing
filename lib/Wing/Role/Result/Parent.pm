@@ -45,8 +45,8 @@ sub wing_parent_field {
         # generate options
         if ($options->{generate_options_by_name}) {
             $class->meta->add_around_method_modifier(field_options => sub {
-                my ($orig, $self) = @_;
-                my $out = $orig->($self);
+                my ($orig, $self, %describe_options) = @_;
+                my $out = $orig->($self, %describe_options);
                 my @parent_ids;
                 my %parent_options;
                 my $parents = $self->result_source->schema->resultset($options->{related_class})->search(undef,{order_by => 'name'});
