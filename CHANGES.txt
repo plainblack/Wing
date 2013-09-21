@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2013-09-21
+ * Fixed a major security hole where it was possible to create new objects in some cases when you shouldn't be able to.
+
 2013-09-03
  * Wing::Role::Result::Field now allows you to pass a code reference into the options parameter so you can dynamically generate field options.
 

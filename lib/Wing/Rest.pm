@@ -80,6 +80,7 @@ register generate_create => sub {
         my $object = site_db()->resultset($wing_object_type)->new({});
         my $params = expanded_params();
         my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
+        $object->can_edit($current_user);
         $object->verify_creation_params($params, $current_user);
         $object->verify_posted_params($params, $current_user);
         if (defined $options{extra_processing}) {
