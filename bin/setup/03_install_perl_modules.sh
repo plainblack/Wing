@@ -58,4 +58,5 @@ Beanstalk::Client \
 Plugin::Tiny \
 Parallel::ForkManager \
 Wing::Client \
-App::Cmd
+App::Cmd \
+Daemon::Control

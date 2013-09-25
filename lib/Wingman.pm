@@ -95,6 +95,22 @@ use List::Util qw(min max);
 use POSIX qw(ceil);
 with 'Wingman::Role::Logger';
 
+our @children;
+
+sub BUILD {
+    my $clean_up_and_shut_down = sub {
+        kill 15, @children;
+        exit;    
+    };
+    $SIG{'INT'} = $clean_up_and_shut_down;
+    $SIG{'TERM'} = $clean_up_and_shut_down;
+    $SIG{'HUP'} = sub {
+        kill 15, @children;
+        @children = [];
+        return 1;
+    };
+}
+
 has plugins => (
     is      => 'ro',
     lazy    => 1,
@@ -371,11 +387,17 @@ Starts the Wingman task master. This will fork off child processes and start exe
 sub run {
     my $self = shift;
     while (1) {
-        my $pid = $self->pfm->start and next;
+        my $pid = $self->pfm->start;
+        if ($pid != 0) {    # Parent process
+            push @children, $pid;
+            next;
+        }
         $self->reserve->run;
         $self->pfm->finish;
     }
+    $self->pfm->wait_all_children();
 }
+
 
 =head2 stats_tube_as_hashref ()
 
