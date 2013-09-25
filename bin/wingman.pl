@@ -8,7 +8,21 @@ use lib $ENV{WING_APP}.'/lib', $ENV{WING_HOME}.'/lib';
 
 use Wingman;
 use Wing::Perl;
+use Daemon::Control;
 
-print "Wingman Running\n";
-Wingman->new->run();
-
+Daemon::Control->new({
+    name        => "Wingman",
+    lsb_start   => '$syslog $remote_fs',
+    lsb_stop    => '$syslog',
+    lsb_sdesc   => 'Wingman is a job server for Wing.',
+    lsb_desc    => 'Wingman is a job server for Wing.',
+ 
+    program     => sub { Wingman->new->run(); },
+ 
+    pid_file    => Wing->config->get('wingman/pid_file_path') || '/var/run/wingman.pid',
+    #stderr_file => '/tmp/mydaemon.out',
+    #stdout_file => '/tmp/mydaemon.out',
+ 
+    fork        => 2,
+ 
+})->run;
