@@ -13,10 +13,27 @@ use Getopt::Long;
 
 my @tubes;
 GetOptions(
-    'watch-only=s' =>  sub { push @tubes, split /,/, $_[1] },
+    'help'              => \my $help,
+    'debug-path=s'         => \my $debug,
+    'watch-only=s'  =>  sub { push @tubes, split /,/, $_[1] },
 );
 
-Daemon::Control->new({
+if ($help) {
+    say <<STOP;
+
+    Usage: $0 [ options ]
+
+    --help                              Show this message.
+
+    --debug-path=/tmp/wingman.log       Pipe STDOUT and STDERR to that file.
+
+    --watch-only=foo,bar                Watch some new tubes instead of the default one.
+
+STOP
+    exit;
+}
+
+my $config = {
     name        => "Wingman",
     lsb_start   => '$syslog $remote_fs',
     lsb_stop    => '$syslog',
@@ -26,9 +43,13 @@ Daemon::Control->new({
     program     => sub { Wingman->new->run( @tubes ); },
  
     pid_file    => Wing->config->get('wingman/pid_file_path') || '/var/run/wingman.pid',
-    #stderr_file => '/tmp/mydaemon.out',
-    #stdout_file => '/tmp/mydaemon.out',
  
     fork        => 2,
- 
-})->run;
+};
+
+if ($debug) {
+    $config->{stderr_file} = $debug;
+    $config->{stdout_file} = $debug;
+}
+
+Daemon::Control->new($config)->run;
