@@ -9,6 +9,12 @@ use lib $ENV{WING_APP}.'/lib', $ENV{WING_HOME}.'/lib';
 use Wingman;
 use Wing::Perl;
 use Daemon::Control;
+use Getopt::Long;
+
+my @tubes;
+GetOptions(
+    'watch-only=s' =>  sub { push @tubes, split /,/, $_[1] },
+);
 
 Daemon::Control->new({
     name        => "Wingman",
@@ -17,7 +23,7 @@ Daemon::Control->new({
     lsb_sdesc   => 'Wingman is a job server for Wing.',
     lsb_desc    => 'Wingman is a job server for Wing.',
  
-    program     => sub { Wingman->new->run(); },
+    program     => sub { Wingman->new->run( @tubes ); },
  
     pid_file    => Wing->config->get('wingman/pid_file_path') || '/var/run/wingman.pid',
     #stderr_file => '/tmp/mydaemon.out',

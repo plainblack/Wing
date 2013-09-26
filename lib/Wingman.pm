@@ -378,14 +378,23 @@ sub peek_buried {
     return undef;
 }
 
-=head2 run ()
+=head2 run ( tubes )
 
 Starts the Wingman task master. This will fork off child processes and start executing jobs as fast as the hardware will allow. 
+
+=over
+
+=item tubes
+
+An array of tube names to watch. If not specified, defaults to the wingman/beanstalkd/default_tube specified in the wing config file.
+
+=back
 
 =cut
 
 sub run {
-    my $self = shift;
+    my ($self, @tubes) = @_;
+    $self->watch_only(scalar @tubes ? @tubes : Wing->config->get('wingman/beanstalkd/default_tube'));
     while (1) {
         my $pid = $self->pfm->start;
         if ($pid != 0) {    # Parent process
