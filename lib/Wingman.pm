@@ -88,28 +88,12 @@ use Wingman::Job;
 use Moose;
 use Plugin::Tiny;
 use Beanstalk::Client;
-use Parallel::ForkManager;
 use JSON::XS;
 use Ouch;
 use List::Util qw(min max);
 use POSIX qw(ceil);
 with 'Wingman::Role::Logger';
 
-our @children;
-
-sub BUILD {
-    my $clean_up_and_shut_down = sub {
-        kill 15, @children;
-        exit;    
-    };
-    $SIG{'INT'} = $clean_up_and_shut_down;
-    $SIG{'TERM'} = $clean_up_and_shut_down;
-    $SIG{'HUP'} = sub {
-        kill 15, @children;
-        @children = [];
-        return 1;
-    };
-}
 
 has plugins => (
     is      => 'ro',
@@ -180,11 +164,6 @@ The following is a list of methods that are direct pass-through's to L<Beanstalk
 
 =cut
 
-has pfm => (
-    is      => 'ro',
-    lazy    => 1,
-    default => sub { Parallel::ForkManager->new(Wing->config->get('wingman/max_workers')) },
-);
 
 has job_types => (
     is      => 'ro',
@@ -376,35 +355,6 @@ sub peek_buried {
         return $self->_instantiate_job($beanstalk_job);
     }
     return undef;
-}
-
-=head2 run ( tubes )
-
-Starts the Wingman task master. This will fork off child processes and start executing jobs as fast as the hardware will allow. 
-
-=over
-
-=item tubes
-
-An array of tube names to watch. If not specified, defaults to the wingman/beanstalkd/default_tube specified in the wing config file.
-
-=back
-
-=cut
-
-sub run {
-    my ($self, @tubes) = @_;
-    $self->watch_only(scalar @tubes ? @tubes : Wing->config->get('wingman/beanstalkd/default_tube'));
-    while (1) {
-        my $pid = $self->pfm->start;
-        if ($pid != 0) {    # Parent process
-            push @children, $pid;
-            next;
-        }
-        $self->reserve->run;
-        $self->pfm->finish;
-    }
-    $self->pfm->wait_all_children();
 }
 
 
