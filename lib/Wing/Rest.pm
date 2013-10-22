@@ -65,7 +65,7 @@ register generate_update => sub {
         my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
         my $object = fetch_object($wing_object_type);
         $object->can_edit($current_user, get_tracer());
-        $object->verify_posted_params(expanded_params(), $current_user);
+        $object->verify_posted_params(expanded_params($current_user), $current_user);
         if (exists $options{extra_processing}) {
             $options{extra_processing}->($object, $current_user);
         }
@@ -79,8 +79,8 @@ register generate_create => sub {
     my $object_url = lc($wing_object_type);
     post '/api/'.$object_url => sub {
         my $object = site_db()->resultset($wing_object_type)->new({});
-        my $params = expanded_params();
         my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
+        my $params = expanded_params($current_user);
         $object->verify_creation_params($params, $current_user);
         $object->verify_posted_params($params, $current_user);
         if (defined $options{extra_processing}) {
