@@ -143,10 +143,10 @@ register generate_all_relationships => sub {
     }
 };
 
-hook after => sub {
+hook before_serializer => sub {
     my $response = shift;
-    $response->content(to_json({ result => from_json($response->content) }));
-    debug $response->content;
+    my $content  = $response->{content};
+    $response->{content} = { result => $content, };
     return $response;
 };
 
