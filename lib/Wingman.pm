@@ -312,45 +312,90 @@ sub peek {
     return undef;
 }
 
-=head2 peek_ready ( )
+=head2 peek_ready ( [ tube ] )
 
 Fetch the next ready job without reserving it.
+
+=over
+
+=item tube
+
+What tube to peek into. Defaults to default tube.
+
+=back
 
 =cut
 
 sub peek_ready {
-    my ($self) = @_;
+    my ($self, $tube) = @_;
+    my $default_tube = Wing->config->get('wingman/beanstalkd/default_tube');
+    if (defined $tube && $tube ne $default_tube) {
+        $self->use($tube);
+    }
     my $beanstalk_job = $self->beanstalk->peek_ready;
+    if (defined $tube && $tube ne $default_tube) {
+        $self->use($default_tube);
+    }
     if (defined $beanstalk_job) {
         return $self->_instantiate_job($beanstalk_job);
     }
     return undef;
 }
 
-=head2 peek_delayed ( )
+=head2 peek_delayed ( [ tube ] )
 
 Fetch the next delayed job without reserving it.
+
+=over
+
+=item tube
+
+What tube to peek into. Defaults to default tube.
+
+=back
 
 =cut
 
 sub peek_delayed {
-    my ($self) = @_;
+    my ($self, $tube) = @_;
+    my $default_tube = Wing->config->get('wingman/beanstalkd/default_tube');
+    if (defined $tube && $tube ne $default_tube) {
+        $self->use($tube);
+    }
     my $beanstalk_job = $self->beanstalk->peek_delayed;
+    if (defined $tube && $tube ne $default_tube) {
+        $self->use($default_tube);
+    }
     if (defined $beanstalk_job) {
         return $self->_instantiate_job($beanstalk_job);
     }
     return undef;
 }
 
-=head2 peek_buried ( )
+=head2 peek_buried ( [ tube ] )
 
 Fetch the next buried job without reserving it.
+
+=over
+
+=item tube
+
+What tube to peek into. Defaults to default tube.
+
+=back
 
 =cut
 
 sub peek_buried {
-    my ($self) = @_;
+    my ($self, $tube) = @_;
+    my $default_tube = Wing->config->get('wingman/beanstalkd/default_tube');
+    if (defined $tube && $tube ne $default_tube) {
+        $self->use($tube);
+    }
     my $beanstalk_job = $self->beanstalk->peek_buried;
+    if (defined $tube && $tube ne $default_tube) {
+        $self->use($default_tube);
+    }
     if (defined $beanstalk_job) {
         return $self->_instantiate_job($beanstalk_job);
     }

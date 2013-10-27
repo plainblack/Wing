@@ -15,6 +15,12 @@ wing.info = function(message) {
     });
 };
 
+wing.dump_keys = function(object) {
+    var keys = [];
+    for(var k in object) keys.push(k);
+    wing.info(keys.join(' '));
+};
+
 wing.warn = function(message) {
     $.pnotify({
         title: 'Warning',
