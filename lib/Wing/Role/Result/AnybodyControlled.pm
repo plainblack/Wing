@@ -89,6 +89,9 @@ around can_edit => sub {
     if ($self->user_id) {
         return 1 if $self->user->can_edit($user);
     }
+    elsif ($self->tracer && $tracer) {
+        return 1 if $self->tracer eq $tracer;
+    }
     return $orig->($self, $user);
 };
 

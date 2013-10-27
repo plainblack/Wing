@@ -51,7 +51,8 @@ register generate_delete => sub {
     my $object_url = lc($wing_object_type);
     del '/api/'.$object_url.'/:id'  => sub {
         my $object = fetch_object($wing_object_type);
-        $object->can_edit(get_user_by_session_id(permissions => $options{permissions}));
+        my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
+        $object->can_edit($current_user, get_tracer());
         $object->delete;
         return { success => 1 };
     };
@@ -61,10 +62,10 @@ register generate_update => sub {
     my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     put '/api/'.$object_url.'/:id'  => sub {
-        my $current_user = get_user_by_session_id(permissions => $options{permissions});
+        my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
         my $object = fetch_object($wing_object_type);
-        $object->can_edit($current_user);
-        $object->verify_posted_params(expanded_params(), $current_user);
+        $object->can_edit($current_user, get_tracer());
+        $object->verify_posted_params(expanded_params($current_user), $current_user);
         if (exists $options{extra_processing}) {
             $options{extra_processing}->($object, $current_user);
         }
@@ -78,14 +79,14 @@ register generate_create => sub {
     my $object_url = lc($wing_object_type);
     post '/api/'.$object_url => sub {
         my $object = site_db()->resultset($wing_object_type)->new({});
-        my $params = expanded_params();
         my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
+        my $params = expanded_params($current_user);
         $object->verify_creation_params($params, $current_user);
         $object->verify_posted_params($params, $current_user);
         if (defined $options{extra_processing}) {
             $options{extra_processing}->($object, $current_user);
         }
-        $object->can_edit($current_user);
+        $object->can_edit($current_user, get_tracer());
         $object->insert;
         return describe($object, current_user => $current_user);
     };
@@ -96,7 +97,9 @@ register generate_read => sub {
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id' => sub {
         my $current_user = eval{ get_user_by_session_id(permissions => $options{permissions}) };
-        return describe(fetch_object($wing_object_type), current_user => $current_user);
+        my $object = fetch_object($wing_object_type);
+        $object->can_view($current_user, get_tracer());
+        return describe($object, current_user => $current_user);
     };
 };
 
@@ -140,10 +143,10 @@ register generate_all_relationships => sub {
     }
 };
 
-hook after => sub {
+hook before_serializer => sub {
     my $response = shift;
-    $response->content(to_json({ result => from_json($response->content) }));
-    debug $response->content;
+    my $content  = $response->{content};
+    $response->{content} = { result => $content, };
     return $response;
 };
 

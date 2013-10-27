@@ -12,6 +12,7 @@ These subroutines get included into L<Wing::Rest> and L<Wing::Web>. These subs a
 
 use Wing;
 use POSIX qw/ceil/; 
+use Data::GUID;
 
 =head1 SUBROUTINES
 
@@ -286,7 +287,7 @@ register get_tracer => sub {
     return undef;
 };
 
-=head2 expanded_params()
+=head2 expanded_params($current_user)
 
 Does the same thing as Dancer C<params> but also added a few new automatic keys: C<tracer>, C<ipaddress>, C<useragent>
 
@@ -295,11 +296,36 @@ Registered as a Dancer keyword.
 =cut
 
 register expanded_params => sub {
+    my $current_user = shift;
     my %params = params;
     $params{tracer} = get_tracer();
     $params{ipaddress} = request->env->{HTTP_X_REAL_IP} || request->remote_address;
     $params{useragent} = request->user_agent;
+    if ($current_user && ! exists $params{user_id}) {
+        $params{user_id} = $current_user->id;
+    }
     return \%params
 };
 
+=head2 track_user()
+
+Attempt to track users by setting a cookie, without requiring the user to log in.
+
+=cut
+
+register track_user => sub {
+    my $cookie = cookies->{tracer};
+    my $tracer;
+    if (defined $cookie) {
+        $tracer = $cookie->value;
+    }
+    else {
+        $tracer = Data::GUID->new->as_string;
+        set_cookie tracer       => $tracer,
+            expires             => '+5y',
+            http_only           => 0,
+            path                => '/';
+    }
+    return ($tracer, eval{get_user_by_session_id()});
+};
 
