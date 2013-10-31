@@ -30,7 +30,7 @@ post '/admin/user' => sub {
 
 get '/admin/user/:id' => sub {
     my $current_user = get_admin_by_session_id();
-    template 'admin/user', { current_user => describe($current_user, current_user => $current_user), page_title => 'Edit User', user => describe(fetch_object('User'), current_user => $current_user)};
+    template 'admin/user', { current_user => describe($current_user, current_user => $current_user), page_title => 'Edit User', user => describe(fetch_object('User'), current_user => $current_user, include_options => 1)};
 };
 
 post '/admin/user/:id' => sub {
@@ -66,9 +66,8 @@ post '/admin/user/:id' => sub {
 post '/admin/user/:id/become' => sub {
     my $current_user = get_admin_by_session_id();
     my $object = fetch_object('User');
-    my $session = $current_user->current_session;
-    $session->user_id($object->id);
-    $session->extend;
+    $current_user->current_session->end;
+    my $session = $object->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => request->remote_address });
     set_cookie session_id   => $session->id,
                 expires     => '+5y',
                 http_only   => 0,
