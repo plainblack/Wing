@@ -77,6 +77,34 @@ post '/api/wingman/tubes/:tube/pause' => sub {
     }
 };
 
+get '/api/wingman/tubes/:tube/jobs/buried' => sub {
+    my $user = get_user_by_session_id()->verify_is_admin();
+    my $job = Wingman->new->peek_buried(params->{tube});
+    if (defined $job) {
+        return $job->describe;
+    }
+    ouch 404, 'No buried jobs.';
+};
+
+get '/api/wingman/tubes/:tube/jobs/ready' => sub {
+    my $user = get_user_by_session_id()->verify_is_admin();
+    my $job = Wingman->new->peek_ready(params->{tube});
+    if (defined $job) {
+        return $job->describe;
+    }
+    ouch 404, 'No ready jobs.';
+};
+
+get '/api/wingman/tubes/:tube/jobs/delayed' => sub {
+    my $user = get_user_by_session_id()->verify_is_admin();
+    my $job = Wingman->new->peek_delayed(params->{tube});
+    if (defined $job) {
+        return $job->describe;
+    }
+    ouch 404, 'No delayed jobs.';
+};
+
+
 ### JOBS
 
 get '/api/wingman/jobs' => sub {

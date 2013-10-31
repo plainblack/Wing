@@ -15,6 +15,9 @@
 		<th># Kicks</th>
 	</tr>
 </table>
+<button class="btn btn-primary" onclick="return peek('ready');">Peek Ready</button>
+<button class="btn btn-primary" onclick="return peek('delayed');">Peek Delayed</button>
+<button class="btn btn-primary" onclick="return peek('buried');">Peek Buried</button>
 
 <h3>Actions</h3>
 <div class="row">
@@ -140,6 +143,12 @@ function add_job() {
 		wing.success('Job added.');
 	});
 	return false;
+}
+
+function peek(type) {
+	wing.ajax('GET', 'wingman/tubes/[% tube_name %]/jobs/' + type, {}, function(data) {
+		window.location = '/admin/wingman/jobs/' + data.result.id;
+	});
 }
 </script>
 [% END %]
