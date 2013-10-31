@@ -147,7 +147,7 @@ post '/account/apikey/:id' => sub {
 
 get '/account' => sub {
     my $user = get_user_by_session_id();
-    template 'account/index', { current_user => describe($user, current_user => $user) };
+    template 'account/index', { current_user => describe($user, current_user => $user, include_options => 1, include_relationships => 1) };
 };
 
 post '/account' => sub {
@@ -169,6 +169,7 @@ post '/account' => sub {
     }
     else {
         $user->update;
+        login($user); # in case they changed their password
         redirect '/account?success_message=Updated successfully.';
     }
 };

@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2013-10-30
+ * Changed session to compare the password hash stored in the session with the one stored in the database. This way all existing sessions will get logged out if the user changes their password. 
+
 2013-09-25
  * Daemonized wingman.pl. You now need the Daemon::Control perl module. You can also add a "wingman/pid_file_path" directive to your config file if you want to control where the pid is stored. 
  * Added --watch-only as a command line flag to wingman.pl so that you can specify a tube to watch other than the default tube. This is useful when you have different servers that you wish to handle different tubes. 

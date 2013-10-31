@@ -23,6 +23,7 @@ sub BUILD {
     my $self = shift;
     my $session_data = Wing->cache->get('session'.$self->id);
     if (defined $session_data && ref $session_data eq 'HASH') {
+        $self->password_hash($session_data->{password_hash});
         $self->user_id($session_data->{user_id});
         $self->extended($session_data->{extended});
         $self->ip_address($session_data->{ip_address});
@@ -57,6 +58,11 @@ has user_id => (
         my $self = shift;
         $self->clear_user;
     },
+);
+
+has password_hash => (
+    is          => 'rw',
+    predicate   => 'has_password_hash',
 );
 
 has user => (
@@ -104,10 +110,15 @@ sub check_permissions {
 
 sub extend {
     my $self = shift;
+    if ($self->password_hash ne $self->user->password) {
+        $self->end;
+        return;
+    }
     $self->extended( $self->extended + 1 );
     Wing->cache->set(
         'session'.$self->id,
         {
+            password_hash    => $self->password_hash, # this hash is stored here so that if the user changes their password we can log out all existing sessions
             user_id     => $self->user_id,
             extended    => $self->extended,
             sso         => $self->sso,
@@ -136,6 +147,7 @@ sub end {
 sub start {
     my ($self, $user, $options) = @_;
     $self->user_id($user->id);
+    $self->password_hash($user->password);
     $user->current_session($self);
     $self->user($user);
     $self->sso($options->{sso});
