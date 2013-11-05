@@ -121,7 +121,7 @@ An array reference where the first value is the minimum value in the range and t
 
 =item options
 
-An enumerated list of scalars as options for this field. Alternatively you can pass in a coe reference. The code reference will be passed a reference to this object (though it may not be inserted into the database yet), and the L<Wing::DB::Result> C<describe> options, if they are available.
+An enumerated list of scalars as options for this field. Alternatively you can pass in a code reference. The code reference will be passed a reference to this object (though it may not be inserted into the database yet), and the L<Wing::DB::Result> C<describe> options, if they are available.
 
 Example of using a code ref:
 
