@@ -30,7 +30,7 @@ post '/admin/user' => sub {
 
 get '/admin/user/:id' => sub {
     my $current_user = get_admin_by_session_id();
-    template 'admin/user', { current_user => describe($current_user, current_user => $current_user), page_title => 'Edit User', user => describe(fetch_object('User'), current_user => $current_user, include_related_objects => 1, include_options => 1, include_private => 1, i    nclude_relationships => 1)};
+    template 'admin/user', { current_user => describe($current_user, current_user => $current_user), page_title => 'Edit User', user => describe(fetch_object('User'), current_user => $current_user, include_related_objects => 1, include_options => 1, include_private => 1, include_relationships => 1)};
 };
 
 post '/admin/user/:id' => sub {
