@@ -1,0 +1,86 @@
+=head1 NAME
+
+Wing SSO Login process
+
+=head1 Web based SSO logins
+
+Logging into a Wing site via SSO is a multi-stage process involving both web and rest calls, using
+the following Wing modules
+
+=over 4
+
+=item L<Wing::SSO>
+
+=item L<Wing::Web::Account>
+
+=item L<Wing::Rest::Session>
+
+=back
+
+=head2 Process
+
+In this example, C<http://www.mysite.com> will refer to the developer's site, and C<http://www.remotesite.com>
+will refer to the site the developer wishes to authenticate against.  C<www.mysite.com> does not need to be a
+Wing site.
+
+To begin the process, any user wishing to use SSO needs to register as a developer on C<www.remotesite.com>
+and create an API key.  The key and the private key along with it are required to do SSO.
+
+Then, on their own site, they create code that sends the user to the following URL:
+
+  https://www.remotesite.com/sso?api_key=api_key_id&permission=view_my_account&postback_uri=https%3A%2F%2Fwww.mysite.com%2Fsso_login
+
+=over 4
+
+=item api_key
+
+The API key that they created on the remote site.
+
+=item permission
+
+A list of permissions.  At the least you need C<view_my_account>.
+
+=item postback_uri
+
+The URL that the remote site should return the user to after they authenticate.  It needs to be URL encoded because it's
+passed as a query parameter.
+
+=back
+
+=head3 Authenticating site, Wing::Web::Account
+
+The URL is processed by the GET /sso route, and it validates the query parameters.
+The authenticating site will prompt the user to login and permit the developer's site to access
+the requested permissions.  All SSO users are required to go through the permission
+step once.  After granting permissions, they will be redirected to the C<postback_uri>.
+If the user is already logged in on the authenticating site, and have granted permissions to the developer's site,
+they will immediately be redirected to the C<postback_uri>.
+
+Note, an SSO token, C<sso_id>, will be appended to the C<postback_uri> before redirection.
+
+=head3 Back on the developer's site
+
+In the code that handles the C<postback_uri>, the developer will recieve the C<sso_id>, and will need
+to make two REST requests back to the authenticating site.
+
+=over 4
+
+=item Open an SSO session
+
+  https://www.remotesite.com/api/$sso_id?private_key=api_private_key
+
+The results of that call need to be checked for a successful call.  If so, then the C<id> parameter
+will be the session ID that's returned, and C<user_id> is the remote user_id.
+
+=item Fetch the user's remote account
+
+  https://www.remotesite.com/api/$user_id?session_id=$id
+
+As with the last API call, you should check this for any errors and handle them correctly.  A
+successful return will contain the full details for that user's account on the remote site.
+
+=back
+
+=head1 Rest based SSO logins
+
+=cut
