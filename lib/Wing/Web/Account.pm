@@ -20,6 +20,7 @@ post '/login' => sub {
     my $username = params->{login};
     my $password = params->{password};
     my $user = site_db()->resultset('User')->search({email => $username },{rows=>1})->single;
+    my @syncable_fields = qw/username email real_name use_as_display_name/;
     unless (defined $user) {
         $user = site_db()->resultset('User')->search({username => $username },{rows=>1})->single;
     }
@@ -35,7 +36,7 @@ post '/login' => sub {
             }
             else {
                 $user = site_db()->resultset('User')->new({});
-                $user->sync_with_remote_data($lookup);
+                $user->sync_with_remote_data($lookup, @syncable_fields);
                 $user->master_user_id($lookup->{id});
                 $user->insert;
                 return login($user);
@@ -50,7 +51,7 @@ post '/login' => sub {
                     return template 'account/login', { error_message => $@ };
                 }
                 else {
-                    $user->sync_with_remote_data($lookup);
+                    $user->sync_with_remote_data($lookup, @syncable_fields);
                     $user->update;
                     return login($user);
                 }
