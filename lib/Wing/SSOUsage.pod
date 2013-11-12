@@ -67,14 +67,14 @@ to make two REST requests back to the authenticating site.
 
 =item Open an SSO session
 
-  https://www.remotesite.com/api/$sso_id?private_key=api_private_key
+  https://www.remotesite.com/api/session/sso/$sso_id?private_key=api_private_key
 
 The results of that call need to be checked for a successful call.  If so, then the C<id> parameter
 will be the session ID that's returned, and C<user_id> is the remote user_id.
 
 =item Fetch the user's remote account
 
-  https://www.remotesite.com/api/$user_id?session_id=$id
+  https://www.remotesite.com/api/user/$user_id?session_id=$id
 
 As with the last API call, you should check this for any errors and handle them correctly.  A
 successful return will contain the full details for that user's account on the remote site.
