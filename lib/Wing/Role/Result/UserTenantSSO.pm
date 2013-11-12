@@ -4,15 +4,13 @@ use Wing::Perl;
 use Moose::Role;
 with 'Wing::Role::Result::Field';
 
-requires 'syncable_fields';
-
 =head1 NAME
 
 Wing::Role::Result::UserTenantSSO - Allowing tenant SSO for Wing users
 
 =head1 SYNOPSIS
 
- with 'Wing::Role;:Result::User';
+ with 'Wing::Role::Result::User';
  with 'Wing::Role::Result::UserTenantSSO';
 
  use constant syncable_fields qw/email real_name username password password_type password_salt use_as_display_name/;
@@ -44,7 +42,8 @@ around describe => sub {
 sub sync_with_remote_data {
     my $self = shift;
     my $data = shift;
-    foreach my $field ( $self->syncable_fields ) {
+    my @syncable_fields = @_;
+    foreach my $field ( @syncable_fields ) {
         $self->$field($data->{$field});
     }
 }
