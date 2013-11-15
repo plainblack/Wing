@@ -287,7 +287,7 @@ register get_tracer => sub {
     return undef;
 };
 
-=head2 expanded_params($current_user)
+=head2 expanded_params()
 
 Does the same thing as Dancer C<params> but also added a few new automatic keys: C<tracer>, C<ipaddress>, C<useragent>
 
@@ -296,14 +296,10 @@ Registered as a Dancer keyword.
 =cut
 
 register expanded_params => sub {
-    my $current_user = shift;
     my %params = params;
     $params{tracer} = get_tracer();
     $params{ipaddress} = request->env->{HTTP_X_REAL_IP} || request->remote_address;
     $params{useragent} = request->user_agent;
-    if ($current_user && ! exists $params{user_id}) {
-        $params{user_id} = $current_user->id;
-    }
     return \%params
 };
 
