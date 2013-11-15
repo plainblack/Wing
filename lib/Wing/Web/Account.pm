@@ -85,7 +85,7 @@ any '/logout' => sub {
         $session->end;
     }
     #session->destroy; #enable if we start using dancer sessions
-    return redirect params->{redirect_after} || '/account';
+    return redirect params->{redirect_after} || '/login';
 };
 
 get '/account/apikeys' => sub {
@@ -360,7 +360,7 @@ get '/account/profile/:id' => sub {
 };
 
 sub login {
-    my ($user) = @_;
+    my ($user, $landing_page) = @_;
     my $session = $user->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => request->remote_address });
     set_cookie session_id   => $session->id,
                 expires     => '+5y',
@@ -382,7 +382,7 @@ sub login {
     }
     my $cookie = cookies->{redirect_after};
     my $uri = $cookie->value if defined $cookie;
-    $uri ||= params->{redirect_after} || '/account';
+    $uri ||= params->{redirect_after} || $landing_page || '/account';
     return redirect $uri;
 }
 
