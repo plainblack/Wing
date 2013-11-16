@@ -85,7 +85,7 @@ any '/logout' => sub {
         $session->end;
     }
     #session->destroy; #enable if we start using dancer sessions
-    return redirect params->{redirect_after} || '/account';
+    return redirect params->{redirect_after} || '/login';
 };
 
 get '/account/apikeys' => sub {
