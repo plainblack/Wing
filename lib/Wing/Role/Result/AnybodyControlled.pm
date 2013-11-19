@@ -95,4 +95,12 @@ around can_edit => sub {
     return $orig->($self, $user);
 };
 
+##Automatically set the user on this object when created
+
+around verify_creation_params => sub {
+    my ($orig, $self, $params, $current_user) = @_;
+    $self->$orig($params, $current_user);
+    $self->user($current_user) if $current_user;
+};
+
 1;
