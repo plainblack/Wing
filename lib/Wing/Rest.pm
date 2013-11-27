@@ -98,7 +98,8 @@ register generate_read => sub {
     get '/api/'.$object_url.'/:id' => sub {
         my $current_user = eval{ get_user_by_session_id(permissions => $options{permissions}) };
         my $object = fetch_object($wing_object_type);
-        $object->can_view($current_user, get_tracer());
+        ##No object level permission checking here.  Wing objects are public, and only fields
+        ##have permissions for reading.
         return describe($object, current_user => $current_user);
     };
 };
