@@ -1,0 +1,45 @@
+#CLI's
+## Change control-group class to form-group
+find . -name '*.tt' | xargs perl -pi -e 's/control-group/form-group/g;'
+## Change span\d to col-sm-\d
+find . -name '*.tt' | xargs perl -pi -e 's/class="span(\d+)/class="col-sm-$1/g;'
+## Give submit buttons a default class of btn-primary
+find . -name '*.tt' | xargs perl -pi -e 's/class="btn"/class="btn btn-primary"/g;'
+## hidden input types need a class
+find . -name '*.tt' | xargs perl -pi -e 's/type="hidden"/class="form-control" type="hidden"/g unless /class=/;'
+
+#Manual's
+
+## All pages with custom headers and footers should include the main header and footer to
+## reduce copy/paste includes.
+
+See var/init/views/account/{header,footer}_include.tt.
+
+## form controls and input wrappers need individual width controls, for example
+:1,$s/\<controls/col-sm-8
+:1,$s/control-label/col-sm-4 control-label/
+
+##Shortcuts
+
+## Copy over /data/Wing/var/init/views/account/{footer,header}_include.tt /data/MyProject/views/account
+## Restore any project customizations to the nav for account
+
+##Handlebars
+
+#Change the template script include
+<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.min.js" type="text/javascript"></script>
+
+#Convert the type on all templates
+<script id="user_template" type="text/x-handlebars-template">
+:1,$s/text="text\/html"/type="text\/x-handlebars-template"/
+
+#Fix the template syntax
+:'<,'>perldo s/\$\{(\w+)}/{{$1}}/g;
+
+#Compile and cache the template inside a script tag
+<script type="text/javascript">
+var template = Handlebars.compile($('#user_template').html());
+
+#Update the template usage line:
+$('#users').append(template(data.result));
+
