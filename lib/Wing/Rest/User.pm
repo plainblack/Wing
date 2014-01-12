@@ -8,7 +8,6 @@ use Wing::Rest;
 
 get '/api/user' => sub {
     my $user = get_user_by_session_id();
-    ouch(450, 'You must be an administrator to get a list of all users.') unless $user->admin;
     my $users = site_db()->resultset('User')->search({ -or => {
         username    => { like => '%'.params->{query}.'%'}, 
         email       => { like => '%'.params->{query}.'%'},
