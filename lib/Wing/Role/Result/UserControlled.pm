@@ -56,8 +56,8 @@ around can_edit => sub {
 
 around verify_creation_params => sub {
     my ($orig, $self, $params, $current_user) = @_;
-    $self->$orig($params, $current_user);
     $self->user($current_user);
+    $self->$orig($params, $current_user);
 };
 
 1;
