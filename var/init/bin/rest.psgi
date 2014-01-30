@@ -1,12 +1,6 @@
 #!/usr/bin/env perl
 use lib '/data/[% project %]/lib', '/data/Wing/lib';
-use Dancer;
-use Wing::Rest::APIKey;
-use Wing::Rest::Session;
-use Wing::Rest::User;
-use Wing::Rest::Status;
-use Wing::Rest::Wingman;
-use Wing::Rest::NotFound;
+use [% project %]::Rest;
 use Plack::Builder;
 
 

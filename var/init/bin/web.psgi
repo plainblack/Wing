@@ -1,12 +1,7 @@
 #!/usr/bin/env perl
 use lib '/data/[% project %]/lib', '/data/Wing/lib';
 
-use Dancer;
-# your modules here
-use Wing::Web::Account;
-use Wing::Web::Admin::User;
-use Wing::Web::Admin::Wingman;
-use Wing::Web::NotFound;
+use [% project %]::Web;
 use Plack::Builder;
 
 my $app = sub {

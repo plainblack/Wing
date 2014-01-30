@@ -46,6 +46,7 @@ sub add_class {
     my $tt = Template->new({ABSOLUTE => 1});
     
     my $project = Wing->config->get('app_namespace');
+    my $project_lib = $ENV{WING_APP}.'/lib/'.$project;
     
     my $vars = {
         project => $project,
@@ -53,12 +54,12 @@ sub add_class {
     };
     
     eval {
-      $tt->process($ENV{WING_HOME}.'/var/add_class/DB/Result.tt', $vars, $ENV{WING_APP}.'/lib/'.$project.'/DB/Result/'.$class_name.'.pm') || die $tt->error();
-      $tt->process($ENV{WING_HOME}.'/var/add_class/Rest/Rest.tt', $vars, $ENV{WING_APP}.'/lib/'.$project.'/Rest/'.$class_name.'.pm') || die $tt->error();
-      $tt->process($ENV{WING_HOME}.'/var/add_class/Web/Web.tt', $vars, $ENV{WING_APP}.'/lib/'.$project.'/Web/'.$class_name.'.pm') || die $tt->error();
+      $tt->process($ENV{WING_HOME}.'/var/add_class/DB/Result.tt', $vars, $project_lib.'/DB/Result/'.$class_name.'.pm') || die $tt->error();
+      $tt->process($ENV{WING_HOME}.'/var/add_class/Rest/Rest.tt', $vars, $project_lib.'/Rest/'.$class_name.'.pm') || die $tt->error();
+      $tt->process($ENV{WING_HOME}.'/var/add_class/Web/Web.tt', $vars,   $project_lib.'/Web/'.$class_name.'.pm') || die $tt->error();
     
     {
-        local ($^I, @ARGV) = ('', $ENV{WING_APP}.'/bin/rest.psgi');
+        local ($^I, @ARGV) = ('', $project_lib.'/Rest.pm');
         my $added = 0;
         while (<>) {
             next if $added;
@@ -72,7 +73,7 @@ sub add_class {
     }
     
     {
-        local ($^I, @ARGV) = ('', $ENV{WING_APP}.'/bin/web.psgi');
+        local ($^I, @ARGV) = ('', $project_lib.'/Web.pm');
         my $added = 0;
         while (<>) {
             next if $added;
