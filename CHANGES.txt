@@ -5,6 +5,9 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2014-02-27
+ * You can now add extra_processing to the Wing::Rest's generate_delete.
+
+2014-02-27
  * You can now make a class viewable using the PrivilegeControlled role.
 
 2013-10-30
