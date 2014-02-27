@@ -6,6 +6,9 @@ engines:
     encoding: utf8
     end_tag: '%]'
     start_tag: '[%'
+    ABSOLUTE: 1
+    ANYCASE: 1
+    INCLUDE_PATH: '/data/PROJECT/views'
   JSON:
     utf8: 1
     pretty: 1
