@@ -53,6 +53,9 @@ register generate_delete => sub {
         my $object = fetch_object($wing_object_type);
         my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
         $object->can_edit($current_user, get_tracer());
+        if (exists $options{extra_processing}) {
+            $options{extra_processing}->($object, $current_user);
+        }
         $object->delete;
         return { success => 1 };
     };
