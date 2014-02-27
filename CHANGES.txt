@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2014-02-27
+ * You can now make a class viewable using the PrivilegeControlled role.
+
 2013-10-30
  * Changed session to compare the password hash stored in the session with the one stored in the database. This way all existing sessions will get logged out if the user changes their password. 
 
