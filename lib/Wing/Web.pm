@@ -73,7 +73,7 @@ hook before_error_init => sub {
     }
     else {
         $error->{code} = 500;
-        $error->{title} = 'Somthing bad happened: '.$error->message;
+        $error->{title} = 'Something bad happened: '.$error->message;
     }
 };
 
