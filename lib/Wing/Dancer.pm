@@ -232,7 +232,8 @@ If you want to force the items in the description to include admin fields.
 
 =item include_private
 
-If you want to force the items in the description to include private fields.
+If you want to force the items in the description to include private fields.  By default, if user is logged in
+and can view the object, then the private fields are included.
 
 =item include_related_objects
 
