@@ -88,14 +88,18 @@ sub execute {
     }
     else { # schema manipulation
 
-        ##Note, install below has a separate but almost identical DH object
-        my $dh = DBIx::Class::DeploymentHandler->new( {
+        my $dh_opts = {
             schema              => $schema,
             databases           => [qw/ MySQL /],
             sql_translator_args => { add_drop_table => 0 },
             script_directory    => $app."/dbicdh",
             force_overwrite     => $opt->{force},
-        });
+        };
+        if ($opt->{version}) {
+            $dh_opts->{to_version} = $opt->{version};
+        }
+        ##Note, install below has a separate but almost identical DH object
+        my $dh = DBIx::Class::DeploymentHandler->new($dh_opts);
 
         say "For $ENV{WING_CONFIG}...";
         if ($opt->{tenant}) {
@@ -134,12 +138,12 @@ sub execute {
         elsif ($opt->{downgrade}) {
             say "Downgrading";
             my $db_version = $dh->database_version;
-            if ($db_version > $code_version) {
+            if ($db_version > $dh->to_version) {
                 $dh->downgrade;
                 say "done";
             }
             else {
-                say "No downgrades required.  Code version = $code_version, database version = $db_version";
+                say "No downgrades required.  Code version = $code_version, database version = ".$dh->to_version;
             }
         }
         elsif ($opt->{upgrade} and $opt->{all_tenants}) {
@@ -184,10 +188,9 @@ sub execute {
             unless ($opt->{force}) {
                 die "You didn't say that it was ok to nuke your db by using --force\n";
             }
-            my $install_version = $opt->{version} ? $opt->{version} : $code_version;
-            say "Installing a new database with version ".$install_version;
+            say "Installing a new database with version ".$dh->to_version;
             $schema->storage->dbh->do('drop table if exists dbix_class_deploymenthandler_versions');
-            $dh->install({ version => $install_version, });
+            $dh->install();
             say "done";
         }
         elsif ($opt->{initialize} and $opt->{all_tenants}) {
