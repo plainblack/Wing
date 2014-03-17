@@ -29,9 +29,9 @@
 <form action="/[%[ lower_class ]%]/[% [%[ lower_class ]%].id %]?X-HTTP-Method=PUT" method="POST" class="form-horizontal">
   [%[ IF postable_params.size ]%]
   [%[ FOREACH field IN postable_params ]%]
-  <div class="control-group">
-    <label class="control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-    <div class="controls">
+  <div class="form-group">
+    <label class="col-sm-4 control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+    <div class="col-sm-8">
       <input type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]">
     </div>
   </div>
@@ -40,19 +40,19 @@
   [%[ IF admin_postable_params.size ]%]
   [% IF current_user.is_admin %]
   [%[ FOREACH field IN admin_params ]%]
-  <div class="control-group">
-    <label class="control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-    <div class="controls">
+  <div class="form-group">
+    <label class="col-sm-4 control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+    <div class="col-sm-8">
       <input type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]">
     </div>
   </div>
   [%[ END ]%]
   [% END %]
   [%[ END ]%]
-  <div class="control-group">
-    <div class="controls">
+  <div class="form-group">
+    <div class="col-sm-8">
       <button type="submit" class="btn btn-success">Save</button>
-      <button class="btn" onclick="cancel_edit_page(); return false;">Cancel</button>
+      <button class="btn btn-primary" onclick="cancel_edit_page(); return false;">Cancel</button>
     </div>
   </div>
 </form>
