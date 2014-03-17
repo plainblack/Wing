@@ -45,6 +45,8 @@ YAML::DumpFile('/data/'.$project.'/config.yml', $dancer_config);
 my $tt = Template->new({ABSOLUTE => 1});
 my $vars = {project => $project, wing_home => $ENV{WING_HOME}, };
 template($tt,'lib/DB.pm', $vars, 'lib/'.$project.'/DB.pm') || die $tt->error();
+template($tt,'lib/Web.pm', $vars, 'lib/'.$project.'/Web.pm') || die $tt->error();
+template($tt,'lib/Rest.pm', $vars, 'lib/'.$project.'/Rest.pm') || die $tt->error();
 template($tt,'lib/DB/Result/APIKey.pm', $vars, 'lib/'.$project.'/DB/Result/APIKey.pm');
 template($tt,'lib/DB/Result/APIKeyPermission.pm', $vars, 'lib/'.$project.'/DB/Result/APIKeyPermission.pm');
 template($tt,'lib/DB/Result/User.pm', $vars, 'lib/'.$project.'/DB/Result/User.pm');
