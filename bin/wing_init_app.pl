@@ -33,6 +33,7 @@ $new_config->config($config->config);
 $new_config->set('mkits', '/data/'.$project.'/var/mkits/');
 $new_config->set('app_namespace', $project);
 $new_config->set("log4perl_config", "/data/".$project."/etc/log4perl.conf",);
+$new_config->get( 'db' )->[ 0 ] =~ s|PROJECT|lc( $project )|e;
 $new_config->write;
 
 # set up dancer config
@@ -105,6 +106,8 @@ system('cd /data/'.$project.'/bin;chmod 755 *');
 say "Be sure to export the environment variables you need for your app:\n";
 say "export WING_APP=/data/".$project;
 say "export WING_CONFIG=/data/".$project."/etc/wing.conf";
+say 'database name set to ' . lc( $project );
+say qq|for create database step, run command 'mysql -uroot -p -e "create database @{[ lc( $project ) ]}"'|;
 
 sub template {
   my ($tt, $from, $vars, $to) = @_;
