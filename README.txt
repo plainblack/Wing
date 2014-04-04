@@ -64,6 +64,24 @@ INSTALLATION
 
  WARNING: There is no "home" page. Wing is expecting you to create it. After you start Nginx you'll be able to access /account and /admin. Everything is will 404. 
 
+
+OPTIONAL
+
+9. Wing has a job server called Winman, which is backed by beanstalk. To run it you simply install beanstalkd, which you can download from here: http://kr.github.io/beanstalkd/
+
+Then you can run it like so:
+
+beanstalkd &
+
+And finally you run Wing's job server by typing:
+
+wingman.pl start
+
+
+
+
+
+
 ADDING FUNCTIONALITY
 
 We also provide you with tools to build out your app. For example, if you want to add a new class to your app, you can:
