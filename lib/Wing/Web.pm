@@ -12,6 +12,21 @@ $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
 
 require Wing::Dancer;
 
+hook 'before_template_render' => sub {
+    my $tokens = shift;
+    $tokens->{money}        = sub { sprintf '$%.2f', shift || 0 };
+    $tokens->{int}          = sub { my $value = shift; return $value ? int $value : 0; };
+    $tokens->{text_as_html} = sub {
+        my $text = shift;
+        $text =~ s/\&/&amp;/g;
+        $text =~ s/\</&lt;/g;
+        $text =~ s/\>/&gt;/g;
+        $text =~ s/\n/<br>/g;
+        return $text;
+    };
+    $tokens->{system_alert_message} = Wing->cache->get('system_alert_message');
+};
+
 register get_session => sub {
     my (%options) = @_;
     my $session_id = $options{session_id} || params->{session_id};
