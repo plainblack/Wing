@@ -12,7 +12,7 @@ get '/admin/wingman' => sub {
     my $wingman = Wingman->new;
     template 'admin/wingman', {
         stats => $wingman->stats_as_hashref,
-        current_user    => describe($user),
+        current_user    => $user,
     };
 };
 
@@ -24,7 +24,7 @@ get '/admin/wingman/tubes/:tube' => sub {
         stats           => $wingman->stats_tube_as_hashref($tube_name),
         tube_name       => $tube_name,
         config          => Wing->config->get('wingman'),
-        current_user    => describe($user),
+        current_user    => $user,
     };
 };
 
@@ -37,7 +37,7 @@ get '/admin/wingman/jobs/:job_id' => sub {
         job_id          => $job_id,
         config          => Wing->config->get('wingman'),
         stats           => $wingman->stats_job_as_hashref($job_id),
-        current_user    => describe($user),
+        current_user    => $user,
     };
 };
 

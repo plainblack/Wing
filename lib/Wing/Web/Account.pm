@@ -117,7 +117,10 @@ get '/account/apikey/:id' => sub {
     my $current_user = get_user_by_session_id();
     my $api_key = fetch_object('APIKey');
     $api_key->can_view($current_user);
-    template 'account/apikey', { current_user => describe($current_user, current_user => $current_user), apikey => describe($api_key, current_user => $current_user) };
+    template 'account/apikey', {
+        current_user => $current_user,
+        apikey => describe($api_key, current_user => $current_user),
+    };
 };
 
 del '/account/apikey/:id' => sub {
@@ -148,7 +151,7 @@ post '/account/apikey/:id' => sub {
 
 get '/account' => sub {
     my $user = get_user_by_session_id();
-    template 'account/index', { current_user => describe($user, current_user => $user, include_options => 1, include_relationships => 1) };
+    template 'account/index', { current_user => $user, };
 };
 
 post '/account' => sub {
@@ -286,7 +289,7 @@ get '/sso/authorize' => sub {
     my $sso = Wing::SSO->new(id => params->{sso_id}, db => site_db());
     ouch(401, 'User does not match SSO token.') unless $user->id eq $sso->user_id;
     template 'account/authorize', {
-        current_user            => describe($user, current_user => $user),
+        current_user            => $user,
         sso_id                  => $sso->id,
         requested_permissions   => $sso->requested_permissions,
         api_key                 => $sso->api_key->describe,
@@ -303,7 +306,7 @@ post '/sso/authorize' => sub {
 get '/sso/success' => sub {
     my $user = get_user_by_session_id();
     template 'account/ssosuccess', {
-        current_user            => describe($user, current_user => $user),
+        current_user            => $user,
     };    
 };
 
@@ -354,7 +357,7 @@ get '/account/profile/:id' => sub {
     my $current_user = eval{get_user_by_session_id()};
     my $user = fetch_object('User');
     template 'account/profile', {
-        current_user    => describe($current_user, current_user => $current_user),
+        current_user    => $current_user,
         profile_user    => describe($user, current_user => $current_user),
     };
 };
