@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2014-04-29
+ * Add a before_template_render hook to Wing::Web instead of using template_vars
+
 2014-04-2
  * Automatically set the database name in the config file, based on the project name.
 
