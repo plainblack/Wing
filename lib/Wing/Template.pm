@@ -8,7 +8,7 @@ use Dancer::Plugin;
 
 $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
 
-require Wing::Dancer;
+use Wing::Web;
 
 hook 'before_template_render' => sub {
     my $tokens = shift;
@@ -27,7 +27,7 @@ hook 'before_template_render' => sub {
         return $text;
     };
     $tokens->{system_alert_message} = Wing->cache->get('system_alert_message');
-    if (exists $tokens->{current_user} && $tokens->current_user) {
+    if (exists $tokens->{current_user} && $tokens->{current_user}) {
         my $current_user = delete $tokens->{current_user};
         $tokens->{current_user} = describe($current_user, current_user => $current_user, include_relationships => 1, include_options => 1);
     }
