@@ -34,6 +34,10 @@ The L<Wingman::Job> object that is running this plugin.
 
 B<IMPORTANT:> You must do something with the job in your C<run> method. Usually what you'll want to do is call C<delete> if everything processed properly. However, in some cases you may wish to alter the flow control a little. For example, if you have a long-running process you mway wish to reset the TTR  (by C<touch()>ing it) so that Wingman doesn't kill the process mid-way through. 
 
+To see how close you are to the TTR, use the job's stat's time_left method:
+
+    $job->stats->time_left
+
 =item args
 
 A hash reference containing the arguments that the job creator passed into the job.
