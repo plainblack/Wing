@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2014-05-27
+ * Add error handling to SendTemplateEmail Wingman job.
+
 2014-05-06
  * Add a file to hold a master before_template_render hook for all of wing.  This hook should always be the last hook processed, because it will call describe on the current_user object passed in.
 

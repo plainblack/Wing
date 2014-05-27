@@ -2,6 +2,7 @@ package Wingman::Plugin::SendTemplatedEmail;
 
 use Wing::Perl;
 use Wing;
+use Ouch;
 
 use Moose;
 with 'Wingman::Role::Plugin';
@@ -59,12 +60,24 @@ See L<Wing/send_templated_email> for details.
 
 sub run {
     my ($self, $job, $args) = @_;
-    Wing->send_templated_email(
-        $args->{template},
-        $args->{params},
-        $args->{options},
-    );
-    $job->delete;
+    eval {
+        Wing->send_templated_email(
+            $args->{template},
+            $args->{params},
+            $args->{options},
+        );
+    };
+    if (hug 442) { ##bad address
+        Wing->log->warn("Could not send templated email to user: $@");
+        $job->delete;
+    }
+    elsif (hug) {
+        Wing->log->error($@);
+        die $@;
+    }
+    else {
+        $job->delete;
+    }
 }
 
 1;
