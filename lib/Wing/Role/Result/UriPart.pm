@@ -5,6 +5,8 @@ use Ouch;
 use Moose::Role;
 use Data::GUID;
 
+with 'Wing::Role::Result::Urlize';
+
 =head1 NAME
 
 Wing::Role::Result::UriPart - Give your Wing object a URL fragment.
@@ -52,16 +54,7 @@ after wing_finalize_class => sub {
         my ($self, $name) = @_;
         if ($name) {
             # convert into a url
-            my $uri_part = lc($name);
-            $uri_part =~ s{^\s+}{};          # remove leading whitespace
-            $uri_part =~ s{\s+$}{};          # remove trailing whitespace
-            $uri_part =~ s{^/+}{};           # remove leading slashes
-            $uri_part =~ s{/+$}{};           # remove trailing slashes
-            $uri_part =~ s{[^\w/:.-]+}{-}g;  # replace anything aside from word or other allowed characters with dashes
-            $uri_part =~ tr{/-}{-}s;        # replace multiple slashes and dashes with single dashes.
-            if ($uri_part =~ m/^\s+$/) {
-                ouch 443, 'That name is not available because it contains too few word characters.', 'name';
-            }
+            my $uri_part = $self->urlize($name);
     
             # deal with duplicates
             my $objects = $self->result_source->schema->resultset($class);
