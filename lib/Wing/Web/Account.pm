@@ -91,7 +91,7 @@ any '/logout' => sub {
 get '/account/apikeys' => sub {
     my $user = get_user_by_session_id();
     my $api_keys = $user->api_keys;
-    template 'account/apikeys', {current_user => describe($user, current_user => $user), apikeys => format_list($api_keys, current_user => $user) };
+    template 'account/apikeys', {current_user => $user, apikeys => format_list($api_keys, current_user => $user) };
 };
 
 post '/account/apikey' => sub {
