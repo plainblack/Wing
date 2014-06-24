@@ -1,8 +1,9 @@
+package Wing::Dancer;
 # this gets included into Wing::Rest and Wing::Web to avoid duplcation of code
 
 =head1 NAME
 
-Wing::Dancer - A mixin of Dancer utilities.
+Wing::Dancer - A Dancer::Plugin subclass for Wing.
 
 =head1 DESCRIPTION
 
@@ -13,6 +14,9 @@ These subroutines get included into L<Wing::Rest> and L<Wing::Web>. These subs a
 use Wing;
 use POSIX qw/ceil/; 
 use Data::GUID;
+use Dancer qw/:syntax/;
+use Dancer::Plugin;
+use Ouch;
 
 =head1 SUBROUTINES
 
@@ -304,25 +308,5 @@ register expanded_params => sub {
     return \%params
 };
 
-=head2 track_user()
-
-Attempt to track users by setting a cookie, without requiring the user to log in.
-
-=cut
-
-register track_user => sub {
-    my $cookie = cookies->{tracer};
-    my $tracer;
-    if (defined $cookie) {
-        $tracer = $cookie->value;
-    }
-    else {
-        $tracer = Data::GUID->new->as_string;
-        set_cookie tracer       => $tracer,
-            expires             => '+5y',
-            http_only           => 0,
-            path                => '/';
-    }
-    return ($tracer, eval{get_user_by_session_id()});
-};
-
+register_plugin;
+1;

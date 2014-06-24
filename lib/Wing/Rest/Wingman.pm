@@ -1,5 +1,6 @@
 package Wing::Rest::Wingman;
 
+use Wing::Dancer;
 use Wing::Perl;
 use Ouch;
 use Wing::Session;

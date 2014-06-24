@@ -1,5 +1,6 @@
 package Wing::Rest::NotFound;
 
+use Wing::Dancer;
 use Wing::Perl;
 use Ouch;
 use Dancer;

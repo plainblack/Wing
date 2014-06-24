@@ -6,6 +6,7 @@ use Ouch;
 use Dancer ':syntax';
 use Wing::Session;
 use Dancer::Plugin;
+use Wing::Dancer;
 use DateTime::Format::Strptime;
 
 $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
@@ -75,6 +76,31 @@ hook before_error_init => sub {
         $error->{code} = 500;
         $error->{title} = 'Something bad happened: '.$error->message;
     }
+};
+
+=head2 track_user()
+
+Attempt to track users by setting a cookie, without requiring the user to log in.
+
+=cut
+
+register track_user => sub {
+    my $cookie = cookies->{tracer};
+    my $tracer;
+    if (defined $cookie) {
+        $tracer = $cookie->value;
+    }
+    else {
+        $tracer = Data::GUID->new->as_string;
+        set_cookie tracer       => $tracer,
+            expires             => '+5y',
+            http_only           => 0,
+            path                => '/';
+    }
+    if (hug) {
+        Wing->log->warn("track_user error: $@");
+    }
+    return ($tracer, eval{get_user_by_session_id()});
 };
 
 
