@@ -1,6 +1,5 @@
 package Wing::Rest::Status;
 
-use Wing::Dancer;
 use Wing::Perl;
 use Dancer;
 use Ouch;

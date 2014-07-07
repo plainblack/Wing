@@ -1,7 +1,6 @@
 package Wing::Web::Account;
 
 use Dancer ':syntax';
-use Wing::Dancer;
 use Wing::Perl;
 use Ouch;
 use Wing;

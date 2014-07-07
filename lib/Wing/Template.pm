@@ -5,9 +5,10 @@ use warnings;
 use Ouch;
 use Dancer ':syntax';
 use Dancer::Plugin;
-use Wing::Dancer;
 
 $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
+
+use Wing::Web;
 
 hook 'before_template_render' => sub {
     my $tokens = shift;
