@@ -5,9 +5,10 @@ use warnings;
 use Ouch;
 use Dancer ':syntax';
 use Dancer::Plugin;
-use Wing::Dancer;
 
 set serializer => 'JSON';
+
+require Wing::Dancer;
 
 register get_session => sub {
     my (%options) = @_;

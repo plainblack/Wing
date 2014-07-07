@@ -1,6 +1,5 @@
 package Wing::Rest::APIKey;
 
-use Wing::Dancer;
 use Wing::Perl;
 use Dancer;
 use Wing::Rest;

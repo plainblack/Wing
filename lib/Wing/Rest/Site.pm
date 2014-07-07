@@ -1,6 +1,5 @@
 package Wing::Rest::Site;
 
-use Wing::Dancer;
 use Wing::Perl;
 use Dancer;
 use Wing::Dancer;
