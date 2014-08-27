@@ -4,7 +4,7 @@ jQuery.ajaxSettings.cache = false;
 var wing = new Object();
 
 wing.info = function(message) {
-    $.pnotify({
+    new PNotify({
         addclass: 'alert-info',
         type: 'info',
         title: 'Info',
@@ -23,7 +23,7 @@ wing.dump_keys = function(object) {
 };
 
 wing.warn = function(message) {
-    $.pnotify({
+    new PNotify({
         addclass: 'alert-warning',
         title: 'Warning',
         text: message,
@@ -36,7 +36,7 @@ wing.warn = function(message) {
 };
 
 wing.error = function(message) {
-    $.pnotify({
+    new PNotify({
         addclass: 'alert-danger',
         type: 'error',
         title: 'Error',
@@ -50,7 +50,7 @@ wing.error = function(message) {
 };
 
 wing.success = function(message) {
-    $.pnotify({
+    new PNotify({
         addclass: 'alert-success',
         type: 'success',
         title: 'Success',
