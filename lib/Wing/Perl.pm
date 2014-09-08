@@ -22,7 +22,7 @@ use utf8    ();
 
 sub import {
     warnings->import();
-    warnings->unimport( 'uninitialized' );
+    warnings->unimport( qw/uninitialized experimental/ );
     strict->import();
     feature->import( ':5.10' );
     mro::set_mro( scalar caller(), 'c3' );
