@@ -135,7 +135,7 @@ wing.attach_autosave = function(uri, save_class) {
 
 // Consume Javascript Alerts
 window.alert = function(message) {
-    $.pnotify({
+    new PNotify({
         title: 'Alert',
         hide: false,
         text: message
