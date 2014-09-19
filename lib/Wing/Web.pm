@@ -66,7 +66,7 @@ hook before_error_init => sub {
     my $error = shift;
     if (ref $error->exception eq 'Ouch') {
         my $exception = $error->exception;
-        my $code = ($exception->code > 399 && $exception->code < 1000) ? $exception->code : 500; # gotta make sure it's an HTTP code
+        my $code = ($exception->code =~ m/^\d+$/ && $exception->code > 399 && $exception->code < 1000) ? $exception->code : 500; # gotta make sure it's an HTTP code
         $error->{code} = $code;
         $error->{title} = $exception->message;
         $error->{message} = $exception->scalar;
