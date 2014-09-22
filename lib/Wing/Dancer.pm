@@ -11,7 +11,6 @@ These subroutines get included into L<Wing::Rest> and L<Wing::Web>. These subs a
 =cut
 
 use Wing;
-use POSIX qw/ceil/; 
 use Data::GUID;
 
 =head1 SUBROUTINES
@@ -117,11 +116,13 @@ register fetch_object => sub {
     return $object;
 };
 
-=head format_list(result_set, options)
+=head2 format_list(result_set, options)
 
 Formats a result set as a hash reference for exposing to web/rest.
 
 Registered as a Dancer keyword.
+
+B<See Also:> C<format_list> in L<Wing::DB::ResultSet>.
 
 =over
 
@@ -135,6 +136,10 @@ A hash of formatting options.
 
 =over
 
+=item current_user
+
+A reference to a User object. Will be instanciated via C<get_user_by_session_id> if not specified.
+
 =item page_number
 
 Defaults to C<params> _page_number, or 1 if not specified.
@@ -145,7 +150,7 @@ A number between 1 and 100. Defaults to C<params> _items_per_page or 25 if not s
 
 =item include_admin
 
-If you want to force the items in the formatted list to include admin fields.
+If you want to force the items in the formatted list to include admin fields. Will be included automatically if the C<current_user> is an admin.
 
 =item include_private
 
@@ -175,36 +180,18 @@ If you need to pass additional object-specific options to the object, pass them 
 
 register format_list => sub {
     my ($result_set, %options) = @_;
-    my $page_number = $options{page_number} || params->{_page_number} || 1;
-    my $items_per_page = $options{items_per_page} || params->{_items_per_page} || 25;
-    $items_per_page = ($items_per_page < 1 || $items_per_page > 100 ) ? 25 : $items_per_page;
-    my $page = $result_set->search(undef, {rows => $items_per_page, page => $page_number });
-    my @list;
-    my $user = $options{current_user} || eval{ get_user_by_session_id() };
-    my $is_admin = defined $user && $user->is_admin ? 1 : 0;
-    while (my $item = $page->next) {
-        push @list, $item->describe(
-            %{ (exists $options{object_options} ? $options{object_options} : {}) },
-            include_admin           => $options{include_admin} || $is_admin ? 1 : 0, 
-            include_private         => $options{include_private} || (eval { $item->can_view($user) }) ? 1 : 0, 
-            include_relationships   => $options{include_relationships} || params->{_include_relationships}, 
-            include_related_objects => $options{include_related_objects} || params->{_include_related_objects}, 
-            include_options         => $options{include_options} || params->{_include_options}, 
-            tracer                  => get_tracer(),
-            current_user            => $user,
-        );
-    }
-    return {
-        paging => {
-            total_items             => $page->pager->total_entries,
-            total_pages             => ceil($page->pager->total_entries / $items_per_page),
-            page_number             => $page_number,
-            items_per_page          => $items_per_page,
-            next_page_number        => $page_number + 1,
-            previous_page_number    => $page_number < 2 ? 1 : $page_number - 1,
-        },
-        items   => \@list,
-    };
+    return $result_set->format_list(
+        page_number             => $options{page_number} || params->{_page_number},
+        items_per_page          => $options{items_per_page} || params->{_items_per_page},
+        include_relationships   => $options{include_relationships} || params->{_include_relationships}, 
+        include_related_objects => $options{include_related_objects} || params->{_include_related_objects}, 
+        include_options         => $options{include_options} || params->{_include_options}, 
+        include_admin           => $options{include_admin},
+        include_private         => $options{include_private}, 
+        object_options          => $options{object_options},
+        tracer                  => get_tracer(),
+        current_user            => $options{current_user} || eval{ get_user_by_session_id() } || undef,
+    );
 };
 
 

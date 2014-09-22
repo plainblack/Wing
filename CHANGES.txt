@@ -4,6 +4,16 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2014-09-21
+ * Now have a default Result Set object which is required for Wing to operate. This is a backward incompatible change, but is easily fixed. Simply edit YourApp::DB and add this line inside load_namespaces()
+
+  __PACKAGE__->load_namespaces(
+      default_resultset_class => '+Wing::DB::ResultSet',
+  );
+
+2014-09-20
+ * Switched to PNotify 2.0. This is backward incompatible with PNotify 1.0.
+
 2014-05-27
  * Add error handling to SendTemplateEmail Wingman job.
 
