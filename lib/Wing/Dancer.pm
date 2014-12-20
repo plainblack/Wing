@@ -255,7 +255,7 @@ register describe => sub {
         include_options         => $options{include_options} || params->{_include_options},
         include_related_objects => $options{include_related_objects} || params->{_include_related_objects},
         current_user            => $current_user,
-        tracer                  => $options{tracer} || get_tracer(),
+        tracer                  => $options{tracer} || get_tracer() || undef,  ##workaround for empty array
     );
 };
 
