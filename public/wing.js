@@ -108,8 +108,8 @@ wing.update_field = function(uri, id, callback) {
         wing.error('Field id "'+id+'" does not have a field name associated with it.');
     }
     params[field_name] = field.val();
-    wing.ajax('PUT', uri, params, function(){
-        callback();
+    wing.ajax('PUT', uri, params, function(data){
+        callback(data);
         wing.success('Saved '+ $('label[for="'+id+'"]').text()+'.');
     });
 };
@@ -124,11 +124,12 @@ wing.delete_object = function(wing_object_type, id) {
     return false;
 };
 
-wing.attach_autosave = function(uri, save_class) {
+wing.attach_autosave = function(uri, save_class, success) {
     $(save_class).each(function(index, tag) {
         var id = $(tag).attr('id');
         $('#'+id).change(function(){
-            wing.update_field(uri, id, function() {});
+	    success = success || function() {};
+            wing.update_field(uri, id, success);
         });
     });
 };

@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2014-12-30
+ * wing.js update_field() now passes the data result to the callback.
+ * wing.js attach_autosave() now allows a third parameter to be a callback that will be executed upon success.
+
 2014-09-21
  * Now have a default Result Set object which is required for Wing to operate. This is a backward incompatible change, but is easily fixed. Simply edit YourApp::DB and add this line inside load_namespaces()
 
