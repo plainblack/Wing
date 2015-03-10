@@ -236,6 +236,26 @@ That says, we're going to call C<PUT /api/page/xxx> every time a field with the 
 
 If you enable every field in the form with autosave, then you can actually remove the "Save" button from the form all together. You could even get rid of the C<put '/page/:id'> route if you wanted to, since we're not saving via the web form anymore, but instead using the auto-generate REST API. However, if you're in an environment where you'd prefer to have a non-AJAX backup, then just leave the form as is. Users can use the autosave or the save button just fine. 
 
+=head2 Integrating with AngularJS
+
+Wing supports AngularJS out of the box and even has a nice convenience wrapper for RESTful interaction. Here's how you take advantage of it in an example app:
+ 
+ var app = angular.module('myApp', []);
+ 
+ app.config( function($httpProvider) {
+    $httpProvider.defaults.withCredentials = true;
+    $httpProvider.interceptors.push(wing.angular_http_interceptor);
+ });
+
+Now you can write your AngularJS app as normal, and any calls like this will automatically get some Wing helpers added to them:
+
+ $http.get('/api/user', {})
+    .success(function(response) { 
+      ...
+    });
+
+This means that the Wing throbber will automatically load and unload. Exceptions will be displayed as C<wing.error()> messages. Warnings will be displayed as C<wing.warn()) messages, etc. 
+
 =head1 Conclusion
 
 You've now got a basic understanding of how to build apps using Wing. From here, it's all about practice and expertise. Plain Black (L<http://www.plainblack.com/>) has consulting services if you need professional assistance, or you can just post questions on Wing's GitHub page if you're more of a do-it-yourselfer. 

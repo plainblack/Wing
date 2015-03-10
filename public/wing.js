@@ -3,6 +3,43 @@ jQuery.ajaxSettings.cache = false;
 
 var wing = new Object();
 
+wing.angular_http_interceptor = function ($q) {
+    return {
+        request: function (config) {
+    	    wing.display_throbber();
+            return config;
+        },
+
+        response: function (response) {
+    	    wing.hide_throbber();
+	    if (response.headers()['content-type'] === "application/json; charset=utf-8" && "_warnings" in response.data.result) {
+                for (var warning in response.data.result._warnings) {
+                    wing.warn(response.data.result._warnings[warning].message);
+                } 
+            }
+            return response;
+        },
+
+        responseError: function (response) {
+    	    wing.hide_throbber();
+            if (response.headers()['content-type'] === "application/json; charset=utf-8" && "error" in response.data) {
+                var message = response.data.error.message;
+                var matches = message.split(/ /);
+                var field = matches[0].toLowerCase();
+                var label = $('label[for="'+field+'"]').text();
+                if (label) {
+                    message = message.replace(field,label);
+                }
+                wing.error(message);
+            }
+            else {
+                wing.error('Error communicating with server.');
+            }
+            return $q.reject(response);
+        }
+    }
+};
+
 wing.info = function(message) {
     new PNotify({
         addclass: 'alert-info',

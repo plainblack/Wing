@@ -4,6 +4,14 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-03-10
+ * wing.js added wing.angular_http_injector() which you can use like this:
+
+  app.config( function($httpProvider) {
+    $httpProvider.defaults.withCredentials = true;
+    $httpProvider.interceptors.push(wing.angular_http_interceptor);
+  });
+
 2014-12-30
  * wing.js update_field() now passes the data result to the callback.
  * wing.js attach_autosave() now allows a third parameter to be a callback that will be executed upon success.
