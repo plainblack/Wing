@@ -34,7 +34,7 @@
         </tr>
 </tbody>
 </table>
-<pagination items-per-page="paging.items_per_page" page="paging.page_number" total-items="paging.total_items" direction-links="true" boundary-links="false" rotate="true" max-size=9 on-select-page="search(page)"></pagination>
+<pagination ng-click="search()" items-per-page="paging.items_per_page" direction-links="false" boundary-links="true" total-items="paging.total_items" ng-model="paging.page_number"></pagination>
 </div><!-- col-sm-7 -->
 
     
@@ -98,35 +98,22 @@ userapp.controller('userCtrl', function($scope, $http, $filter, $q) {
     $scope.query   = ''; // what to search on
     $scope.users   = []  // list of user objects
     $scope.paging  = {}; // pagination data
-
-    // glue between wing's paging data and the pagination here
-    $scope.paginate = function (paging_data) {
-        var start_number = 0;
-        $scope.paging = paging_data;
-        if (paging_data.total_pages > 1) {
-            $scope.paging.has_pages = 1;
-            start_number = (paging_data.page_number-1) * paging_data.items_per_page;
-        }
-        else {
-            $scope.paging.has_pages = 0;
-        }
-        $scope.paging.start_number = start_number + 1;
-    };
     
     // get a list of users with paging
-    $scope.search = function (page_number) {
-        var current_page = page_number ? page_number : 1;
+    $scope.search = function () {
         var params = {
-            _page_number: current_page,
-            _items_per_page: 2,
+            _page_number: $scope.paging.page_number,
+            _items_per_page: $scope.paging.items_per_page || 2,
             query: $scope.query,
         };
         $http.get('/api/user', { params : params })
         .success(function (data) {
             $scope.users = data.result.items;
-            $scope.paginate(data.result.paging);
+            $scope.paging = data.result.paging;
         });
     };
+    
+    // for the "become user" button
     $scope.become_url = function() {
         var self = this;
         return '/admin/user/' + self.user.id  + '/become';
