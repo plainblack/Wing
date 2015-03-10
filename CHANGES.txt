@@ -5,6 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2015-03-10
+ * Fixed a bug where the default web.psgi and rest.psgi files were missing "use Dancer;" which caused everything to fail.
  * wing.js added wing.angular_http_injector() which you can use like this:
 
   app.config( function($httpProvider) {

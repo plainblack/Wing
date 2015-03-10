@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 use lib '/data/[% project %]/lib', '/data/Wing/lib';
+
+use Dancer;
 use [% project %]::Rest;
 use Plack::Builder;
 
