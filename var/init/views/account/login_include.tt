@@ -29,5 +29,5 @@
 [% END %]
 </fieldset>
 </form>
-
-<p><a href="/account/facebook?sso_id=[% sso_id || params.sso_id %]&redirect_after=[% redirect_after || params.redirect_after %]"><img src="//photos-c.ak.fbcdn.net/hphotos-ak-ash3/11832_234341106728_6386255_a.jpg" alt="Facebook" title="Connect With Facebook"></a></p>
+<hr>
+<p><a href="/account/facebook?sso_id=[% sso_id || params.sso_id %]&redirect_after=[% redirect_after || params.redirect_after %]" class="btn btn-default">Connect Using Facebook</a></p>
