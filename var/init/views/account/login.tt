@@ -1,6 +1,8 @@
 [% page_title = "Log In" %]
 [% INCLUDE header_include.tt %]
 
+<div class="container">
 [% INCLUDE account/authenticate_include.tt %]
+</div>
 
 [% INCLUDE footer_include.tt %]
