@@ -3,6 +3,14 @@ jQuery.ajaxSettings.cache = false;
 
 var wing = new Object();
 
+wing.angular_datetime_filter = function($filter) {
+	return function(datetime, format) {
+        if (datetime == null){ return ""; }
+		datetime = datetime.replace(/\s/,'T') + 'Z';
+        return $filter('date')(new Date(datetime), format);
+    };
+};
+
 wing.angular_http_interceptor = function ($q) {
     return {
         request: function (config) {

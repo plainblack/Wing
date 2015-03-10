@@ -7,12 +7,17 @@ with respect to new features and compatibility changes.
 2015-03-10
  * Fixed a bug where the default web.psgi and rest.psgi files were missing "use Dancer;" which caused everything to fail.
  * Did a lot of cleanup of the default templates to more modern practices.
+ * Rewrote the user manager app to use AngularJS instead of Handlebars
  * wing.js added wing.angular_http_injector() which you can use like this:
 
   app.config( function($httpProvider) {
     $httpProvider.defaults.withCredentials = true;
     $httpProvider.interceptors.push(wing.angular_http_interceptor);
   });
+
+ * wing.js added wing.angular_datetime_filter() which you can use like this:
+
+  app.filter('datetime', ['$filter', wing.angular_datetime_filter]);
 
 2014-12-30
  * wing.js update_field() now passes the data result to the callback.

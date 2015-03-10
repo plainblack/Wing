@@ -1,15 +1,15 @@
 [% page_title = "Users" %]
 [% INCLUDE admin/header_include.tt %]
 
-<div class="row">
+<div class="row" ng-app="userApp" ng-controller="userCtrl" ng-cloak>
 
 <div class="col-sm-7">
 
-        <form class="form-search" onsubmit="search_users(0); return false;">
+        <form class="form-search">
             <div class="input-group">
-                <input class="form-control" type="text" id="query" class="search-query">
+                <input class="form-control" type="text" ng-model="query" class="search-query">
                 <span class="input-group-btn">
-                        <button type="submit" class="btn btn-primary">Search</button>
+                        <button ng-click="search();" type="button" class="btn btn-primary">Search</button>
                 </span>
             </div>
         </form>
@@ -25,10 +25,16 @@
 </tr>
 </thead>
 <tbody id="users">
-<tr><td colspan="4"></td></tr>
+        <tr ng-repeat="user in users" id="{{user.id}}">
+            <td><a href="/admin/user/{{user.id}}">{{user.username}}</a></td>
+            <td>{{user.real_name}}</td>
+            <td>{{user.email}}</td>
+            <td>{{user.last_login|datetime:'medium'}}</td>
+            <td><form action="{{become_url()}}" method="POST"><input type="submit" value="Become" class="btn btn-default"></form></td>
+        </tr>
 </tbody>
 </table>
-<div class="pager"></div>
+<pagination items-per-page="paging.items_per_page" page="paging.page_number" total-items="paging.total_items" direction-links="true" boundary-links="false" rotate="true" max-size=9 on-select-page="search(page)"></pagination>
 </div><!-- col-sm-7 -->
 
     
@@ -72,31 +78,60 @@
 </div><!-- row -->
 
 [% foot_tags = BLOCK %]
-<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.min.js" type="text/javascript"></script>
-<script id="user_template" type="text/x-handlebars-template">
-{{#each items}}
-        <tr>
-            <td><a href="/admin/user/{{id}}">{{username}}</a></td>
-            <td>{{real_name}}</td>
-            <td>{{email}}</td>
-            <td>{{last_login}}</td>
-            <td><form action="/admin/user/{{id}}/become" method="POST"><input type="submit" value="Become" class="btn"></form></td>
-        </tr>
-{{/each}}
-</script>
+[% INCLUDE angular_js_include.tt %]
+[% INCLUDE bootstrapui_js_include.tt %]
+
 <script type="text/javascript">
-var template = Handlebars.compile($('#user_template').html());
-function search_users(page_index, pagination_container) {
-    page_index = page_index || 0;
-    var params = { _page_number : page_index + 1, query : $('#query').val(), _items_per_page : 10 };
-    wing.ajax('GET','user',params, function(data, text_status, jqxhr) {
-        $('#users tr').remove();
-        $('#users').append(template(data.result));
-        wing.pager('.pager', search_users, data);
-    });
-}
-$(document).ready(function() {
-    search_users();
+'use strict';
+
+var userapp = angular.module('userApp', ['ui.bootstrap']);
+
+userapp.config( function($httpProvider) {
+    $httpProvider.defaults.withCredentials = true;
+    $httpProvider.interceptors.push(wing.angular_http_interceptor);
+});
+
+userapp.filter('datetime', ['$filter', wing.angular_datetime_filter]);
+
+userapp.controller('userCtrl', function($scope, $http, $filter, $q) {
+
+    $scope.query   = ''; // what to search on
+    $scope.users   = []  // list of user objects
+    $scope.paging  = {}; // pagination data
+
+    // glue between wing's paging data and the pagination here
+    $scope.paginate = function (paging_data) {
+        var start_number = 0;
+        $scope.paging = paging_data;
+        if (paging_data.total_pages > 1) {
+            $scope.paging.has_pages = 1;
+            start_number = (paging_data.page_number-1) * paging_data.items_per_page;
+        }
+        else {
+            $scope.paging.has_pages = 0;
+        }
+        $scope.paging.start_number = start_number + 1;
+    };
+    
+    // get a list of users with paging
+    $scope.search = function (page_number) {
+        var current_page = page_number ? page_number : 1;
+        var params = {
+            _page_number: current_page,
+            _items_per_page: 2,
+            query: $scope.query,
+        };
+        $http.get('/api/user', { params : params })
+        .success(function (data) {
+            $scope.users = data.result.items;
+            $scope.paginate(data.result.paging);
+        });
+    };
+    $scope.become_url = function() {
+        var self = this;
+        return '/admin/user/' + self.user.id  + '/become';
+    };
+    
 });
 </script>
 
