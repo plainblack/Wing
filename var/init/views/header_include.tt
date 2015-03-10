@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
-<link href="//cdn.jsdelivr.net/pnotify/1.2/jquery.pnotify.default.css" rel="stylesheet">
-<meta charset="UTF-8">
-[% section_head_tags %]
-[% head_tags %]
-<title>[% page_title %]</title>
+  [% INCLUDE bootstrap_css_include.tt %]
+  [% INCLUDE pnotify_css_include.tt %]
+
+  <meta charset="UTF-8">
+  [% section_head_tags %]
+  [% head_tags %]
+  <title>[% page_title %]</title>
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.2/html5shiv.js"></script>
