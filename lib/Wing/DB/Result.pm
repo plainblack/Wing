@@ -217,8 +217,6 @@ sub describe {
     }
     if ($options{include_relationships}) {
         $out->{_relationships}{self} = $self->wing_object_api_uri;
-        $out->{_relationships}{_options} = $self->wing_object_api_uri.'/_options';
-        $out->{_relationships}{_base} = '/api/'.$self->wing_object_type;
     }
     return $out;
 }
