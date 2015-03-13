@@ -3,16 +3,20 @@ package [% project %]::Rest::[% class_name %];
 use Wing::Perl;
 use Wing;
 use Dancer;
-use Wing::Rest; 
+use Wing::Rest;[% USE String %][% lower_class = String.new(class_name).lower %]
 
-[% USE String %]
-
-get '/api/[% String.new(class_name).lower %]' => sub {
-    ##Uncomment for data accessible only by registered users
-    #my $user = get_user_by_session_id();
-    my $data = site_db()->resultset('[% class_name %]')->search(undef,{order_by => 'name'});
-    #return format_list($data, current_user => $user); 
-    return format_list($data); 
+get '/api/[% lower_class %]' => sub {
+    ##remove the eval for data accessible only by registered users
+    my $user = eval { get_user_by_session_id() };
+    my $[% lower_class %]s = site_db()->resultset('[% class_name %]')->search({
+        -or => {
+            name => { like => '%'.params->{query}.'%'}, 
+            #description => { like => '%'.params->{query}.'%'}, # pretty damn slow, suggest using a real search engine rather than a database
+        }
+    }, {
+        order_by => { -desc => 'date_created' }
+    });
+    return format_list($[% lower_class %]s, current_user => $user); 
 };
 
 generate_crud('[% class_name %]');
