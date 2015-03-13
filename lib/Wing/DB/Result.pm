@@ -382,7 +382,8 @@ A reference to the current user object.
 sub verify_creation_params {
     my ($self, $params, $current_user) = @_;
     foreach my $param (@{$self->required_params}) {
-        ouch(441, $param.' is required.', $param) unless $params->{$param} || $self->$param;
+        my $value = $params->{$param} || $self->$param;
+        ouch(441, $param.' is required.', $param) unless defined $value && $value ne '';
     }
 }
 
