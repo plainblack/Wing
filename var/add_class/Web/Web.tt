@@ -18,59 +18,32 @@ get '/[% lower_class %]' => sub {
     template '[% lower_class %]/index', $vars;
 };
 
-post '/[% lower_class %]' => sub {
-    my $current_user = get_user_by_session_id();
-    my $[% lower_class %] = site_db()->resultset('[% class_name %]')->new({});
-    my %params = params();
-    eval {
-        $[% lower_class %]->verify_creation_params(\%params, $current_user);
-        $[% lower_class %]->verify_posted_params(\%params, $current_user);
-    };
-    if (hug) {
-        return redirect '/[% lower_class %]?error_message='.bleep;
-    }
-    else {
-        $[% lower_class %]->insert;
-        return redirect '/[% lower_class %]/'.$[% lower_class %]->id.'?success_message=Created successfully';
-    }
-};
-
-get '/[% lower_class %]/:id' => sub {
+get '/[% lower_class %]/:uri_part' => sub {
     my $current_user = eval { get_user_by_session_id(); };
-    my $[% lower_class %] = fetch_object('[% class_name %]');
+    my $[% lower_class %] = Wing->db->resultset('[% class_name %]')->search({uri_part => param('uri_part')},{rows => 1})->single;
+    unless (defined $[% lower_class %]) {
+        ouch 440, '[% class_name %] not found.';
+    }
     my $vars = {
-        [% lower_class %]         => describe($[% lower_class %], current_user => $current_user),
+        [% lower_class %]         => describe($[% lower_class %], current_user => $current_user, include_relationships => 1),
     };
     if ($current_user) {
         $vars->{current_user} = describe($current_user, current_user => $current_user);
     }
-    template '[% lower_class %]/view_edit', $vars;
+    template '[% lower_class %]/view', $vars;
 };
 
-put '/[% lower_class %]/:id' => sub {
+get '/[% lower_class %]/:id/edit' => sub {
     my $current_user = get_user_by_session_id();
     my $[% lower_class %] = fetch_object('[% class_name %]');
-    $[% lower_class %]->can_edit($current_user);
-    my %params = params();
-    eval {
-        $[% lower_class %]->verify_posted_params(\%params, $current_user);
+    my $vars = {
+        [% lower_class %]         => describe($[% lower_class %], current_user => $current_user, include_relationships => 1),
     };
-    if (hug) {
-        return redirect '/[% lower_class %]/'.$[% lower_class %]->id.'?error_message='.bleep;
+    if ($current_user) {
+        $vars->{current_user} = describe($current_user, current_user => $current_user);
     }
-    else {
-        $[% lower_class %]->update;
-        return redirect '/[% lower_class %]/'.$[% lower_class %]->id.'?success_message=Created successfully';
-    }
-    return redirect '/[% project %]/'.$[% lower_class %]->id;
+    template '[% lower_class %]/edit', $vars;
 };
 
-del '/[% lower_class %]/:id' => sub {
-    my $current_user = get_user_by_session_id();
-    my $[% lower_class %] = fetch_object('[% class_name %]');
-    $[% lower_class %]->can_edit($current_user);
-    $[% lower_class %]->delete;
-    return redirect '/?success_message=Deleted successfully';
-};
 
 true;
