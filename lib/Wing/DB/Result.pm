@@ -217,6 +217,7 @@ sub describe {
     }
     if ($options{include_relationships}) {
         $out->{_relationships}{self} = $self->wing_object_api_uri;
+        $out->{_relationships}{_options} = $self->wing_object_api_uri.'/_options';
     }
     return $out;
 }
