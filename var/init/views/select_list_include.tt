@@ -1,0 +1,17 @@
+[% IF object %]
+      <select class="form-control [% class %]" name="[% field %]" id="[% field %]" [% ng %]>
+            [% IF choose %]<option value=""></option>[% END %]
+            [% FOREACH option IN object._options.$field %]
+                  [% label = "_$field" %]
+                <option value="[% option %]"[% IF option == object.$field %] selected="1"[% END %]>[% object._options.$label.$option || option || 'Choose...' %]</option>
+            [% END %]
+      </select>
+[% ELSIF options %]
+      <select class="form-control [% class %]" name="[% field %]" id="[% field %]" [% ng %]>
+            [% IF choose %]<option value=""></option>[% END %]
+            [% FOREACH option IN options.$field %]
+                  [% label = "_$field" %]
+                <option value="[% option %]"[% IF option == default_value %] selected="1"[% END %]>[% options.$label.$option || option || 'Choose...' %]</option>
+            [% END %]
+      </select>
+[% END %]
