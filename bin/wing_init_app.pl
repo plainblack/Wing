@@ -78,6 +78,7 @@ template($t_alt,'views/footer_include.tt', $vars);
 template($t_alt,'views/header_include.tt', $vars);
 template($t_alt,'views/bootstrap_css_include.tt', $vars);
 template($t_alt,'views/bootstrap_js_include.tt', $vars);
+template($t_alt,'views/select_list_include.tt', $vars);
 template($t_alt,'views/jquery_js_include.tt', $vars);
 template($t_alt,'views/wing_js_include.tt', $vars);
 template($t_alt,'views/pnotify_css_include.tt', $vars);

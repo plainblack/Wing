@@ -98,7 +98,7 @@ sub add_class {
 
 sub template_class {
     my $class_name = shift;
-    my $wing_templates = $ENV{WING_HOME}.'/var/template_class/';
+    my $wing_templates = $ENV{WING_HOME}.'/var/template_class';
     my $app_templates = $ENV{WING_APP}.'/views/'.lc($class_name);
     
     say "Creating directory $app_templates";
@@ -117,6 +117,7 @@ sub template_class {
             project => $project,
             class_name => $class_name,
             lower_class => lc $class_name,
+            field_options => $object->field_options,
             #Edit
             postable_params => $object->postable_params,
             required_params => $object->required_params,
@@ -127,7 +128,8 @@ sub template_class {
             admin_viewable_params => $object->admin_viewable_params,
         };
         $t_alt->process($wing_templates.'/index.tt', $vars, $app_templates.'/index.tt') || die $t_alt->error();
-        $t_alt->process($wing_templates.'/view_edit.tt', $vars, $app_templates.'/view_edit.tt') || die $t_alt->error();
+        $t_alt->process($wing_templates.'/view.tt', $vars, $app_templates.'/view.tt') || die $t_alt->error();
+        $t_alt->process($wing_templates.'/edit.tt', $vars, $app_templates.'/edit.tt') || die $t_alt->error();
     };
     
     if ($@) {

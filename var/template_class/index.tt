@@ -1,79 +1,134 @@
-[% page_title = "[%[ class_name ]%]" %]
+[% page_title = "[%[ class_name ]%]s" %]
 [% INCLUDE header_include.tt %]
 
-<div class="row">
-
-<div class="col-sm-6">
-<fieldset>
-<legend>Pages</legend>
-
-
-<table class="table table-striped">
-<thead>
-<tr>
-    <th>Name</th>
-    <th>Last Updated</th>
-</tr>
-</thead>
-<tbody id="pages">
-</tbody>
-</table>
-<div class="pagination"></div>
-</div>
-
-[%[ USE String; ]%]
-[%[ lower_project = String.new(project).lower ]%]
-
-[% IF current_user %]
-<div class="col-sm-6">
-<form action="/[%[ lower_class ]%]" method="POST" class="form-horizontal">
-<fieldset>
-<legend>Create A [%[ class_name ]%]</legend>
-  [%[ IF postable_params.size ]%]
-  [%[ FOREACH field IN postable_params ]%]
-  <div class="form-group">
-    <label class="col-sm-4 control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-    <div class="col-sm-8">
-      <input type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]">
-    </div>
-  </div>
-  [%[ END ]%]
-  [%[ END ]%]
-<div class="form-group">
-    <div class="col-sm-8">
-    <input class="btn btn-primary" type="submit" value="Create">
-    </div>
-</div>
-</fieldset>
-</form>
-</div>
-[% END %]
-
+<div class="container" ng-app="[%[ lower_class ]%]App" ng-controller="[%[ lower_class ]%]Ctrl" ng-cloak>
     
-</div><!-- row -->
+    <div class="row">
+    
+        <div class="col-sm-7">
+            <h1>[% page_title %]</h1>
+            
+            <form class="form-search">
+                <div class="input-group">
+                    <input class="form-control" type="text" ng-model="query" class="search-query">
+                    <span class="input-group-btn">
+                        <button ng-click="search();" type="button" class="btn btn-primary">Search</button>
+                    </span>
+                </div>
+            </form>
+            
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Last Updated</th>
+                        [% IF current_user.is_admin %]<th>Manage</th>[% END %]
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="[%[ lower_class ]%] in [%[ lower_class ]%]s" id="{{[%[ lower_class ]%].id}}">
+                        <td><a href="/[%[ lower_class ]%]/{{uri_part}}">{{[%[ lower_class ]%].name}}</a></td>
+                        <td>{{[%[ lower_class ]%].date_updated|datetime:'longDate'}}</td>
+                        [% IF current_user.is_admin %]<td>
+                            <a href="/[%[ lower_class ]%]/{{[%[ lower_class ]%].id}}/edit" class="btn btn-primary">Edit</a>
+                            <button class="btn btn-danger" ng-click="delete()">Delete</button>
+                        </td>[% END %]
+                    </tr>
+                </tbody>
+            </table>
+            
+            <pagination ng-click="search()" items-per-page="paging.items_per_page" direction-links="false" boundary-links="true" total-items="paging.total_items" ng-model="paging.page_number"></pagination>
+    
+        </div><!-- col-sm-7 -->
+        
+        [% IF current_user %]
+        <div class="col-sm-5">
+            <form class="form-horizontal">
+                <fieldset>
+                    <legend>Create A [%[ class_name ]%]</legend>
+                    [%[ IF required_params.size ]%][%[ FOREACH field IN required_params ]%][%[ NEXT IF field == 'user_id' ]%]
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+                        <div class="col-sm-8">
+                            [%[ IF field_options.exists(field) ]%][% INCLUDE select_list_include.tt options=options field="[%[ field ]%]" ng="ng-model=\"new_[%[ lower_class ]%].[%[ field ]%]\"" %][%[ ELSE ]%]<input class="form-control" type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]" ng-model="new_[%[ lower_class ]%].[%[ field ]%]">[%[ END ]%]
+                        </div>
+                    </div>
+                    [%[ END ]%][%[ END ]%]
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label"></label>
+                        <div class="col-sm-8">
+                            <button class="btn btn-primary" ng-click="create()">Create</button>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+        </div><!-- col-sm-5 -->
+        [% END %]
+    
+        
+    </div><!-- row -->
+</div><!-- container -->
 
 [% foot_tags = BLOCK %]
-<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.min.js" type="text/javascript"></script>
-<script id="page_template" type="text/x-handlebars-template">
-{{#each items}}
-<tr>
-    <td><a href="/[%[ lower_class ]%]/{{id}}">{{name}}</a></td>
-    <td>{{date_updated}}</td>
-</tr>
-{{/each}}
-</script>
+[% INCLUDE angular_js_include.tt %]
+[% INCLUDE bootstrapui_js_include.tt %]
+
 <script type="text/javascript">
-var template = Handlebars.compile($('#page_template').html());
-function load_pages(page_index, pagination_container) {
-    page_index = page_index || 0;
-    var params = { _page_number : page_index + 1, _items_per_page : 10 };
-    wing.ajax('GET','[%[ lower_class ]%]', params, function(data, text_status, jqxhr) {
-        $('#pages tr').remove();
-        $('#pages').append(template(data.result));
-        wing.pager('.pagination', load_pages, data);
-    });
-}
-load_pages();
+'use strict';
+
+var [%[ lower_class ]%]app = angular.module('[%[ lower_class ]%]App', ['ui.bootstrap']);
+
+[%[ lower_class ]%]app.config( function($httpProvider) {
+    $httpProvider.defaults.withCredentials = true;
+    $httpProvider.interceptors.push(wing.angular_http_interceptor);
+});
+
+[%[ lower_class ]%]app.filter('datetime', ['$filter', wing.angular_datetime_filter]);
+
+[%[ lower_class ]%]app.controller('[%[ lower_class ]%]Ctrl', function($scope, $http, $filter, $q) {
+
+    $scope.query = ''; // what to search on
+    $scope.new_[%[ lower_class ]%] = {}; // [%[ class_name ]%] to create
+    $scope.[%[ lower_class ]%]s = []; // list of [%[ class_name ]%]s
+    $scope.paging = {}; // pagination data
+    
+    // get a list of objects with paging
+    $scope.search = function () {
+        var params = {
+            _page_number: $scope.paging.page_number,
+            _items_per_page: $scope.paging.items_per_page || 10,
+            query: $scope.query,
+            _include_relationships: 1,
+        };
+        $http.get('/api/[%[ lower_class ]%]', { params : params })
+        .success(function (data) {
+            $scope.[%[ lower_class ]%]s = data.result.items;
+            $scope.paging = data.result.paging;
+        });
+    };
+    $scope.search(1); // initial population
+    
+    $scope.create = function() {
+        $http.post('/api/[%[ lower_class ]%]', $scope.new_[%[ lower_class ]%])
+        .success(function (data) {
+            $scope.[%[ lower_class ]%]s.push(data.result);
+            wing.success('[%[ class_name ]%] added.');
+            window.location.href = '/[%[ lower_class ]%]/'+data.result.id+'/edit';
+        });
+    };
+
+    $scope.delete = function() {
+        var self = this;
+        var item = self.item;
+        if (confirm('Are you sure you want to delete this [%[ class_name ]%]?')) {
+            $http.delete(item._relationships.self, {})
+            .success(function (data) {
+                $scope.[%[ lower_class ]%]s.splice(self.$index, 1);
+                wing.success('[%[ class_name ]%] deleted.');
+            });
+        }
+    };
+});
 </script>
 [% END %]
 [% INCLUDE footer_include.tt %]

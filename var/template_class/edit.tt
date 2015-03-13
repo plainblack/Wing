@@ -1,0 +1,81 @@
+[% page_title = "Edit [%[ class_name ]%]" %]
+[% INCLUDE header_include.tt %]
+<div class="container" ng-app="[%[ lower_class ]%]App" ng-controller="[%[ lower_class ]%]Ctrl" ng-cloak>
+    <h1>[% page_title %]</h1>
+
+    <form class="form-horizontal">
+        [%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%]
+        <div class="form-group">
+            <label class="col-sm-4 control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+            <div class="col-sm-8">
+                [%[ IF field_options.exists(field) ]%][% INCLUDE select_list_include.tt object=[%[ lower_class ]%] field="[%[ field ]%]" ng="ng-model=\"[%[ lower_class ]%].[%[ field ]%]\"" class="autosave" %][%[ ELSE ]%]<input class="form-control autosave" type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]" ng-model="[%[ lower_class ]%].[%[ field ]%]">[%[ END ]%]
+            </div>
+        </div>
+        [%[ END ]%][%[ END ]%]
+        [%[ IF admin_postable_params.size ]%]
+        [% IF current_user.is_admin %]
+            [%[ FOREACH field IN admin_params ]%]
+            <div class="form-group">
+                <label class="col-sm-4 control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+                <div class="col-sm-8">
+                    [%[ IF field_options.exists(field) ]%][% INCLUDE select_list_include.tt object=[%[ lower_class ]%] field="[%[ field ]%]" ng="ng-model=\"[%[ lower_class ]%].[%[ field ]%]\"" class="autosave" %][%[ ELSE ]%]<input class="form-control autosave" type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]" ng-model="[%[ lower_class ]%].[%[ field ]%]">[%[ END ]%]
+                </div>
+            </div>
+            [%[ END ]%]
+        [% END %]
+        [%[ END ]%]
+    </form>
+
+    <hr>
+    <a href="{{view_uri()}}" class="btn btn-default">View</a>
+
+</div>
+
+[% foot_tags = BLOCK %]
+[% INCLUDE angular_js_include.tt %]
+[% INCLUDE bootstrapui_js_include.tt %]
+
+<script type="text/javascript">
+'use strict';
+
+var [%[ lower_class ]%]app = angular.module('[%[ lower_class ]%]App', ['ui.bootstrap']);
+
+[%[ lower_class ]%]app.config( function($httpProvider) {
+    $httpProvider.defaults.withCredentials = true;
+    $httpProvider.interceptors.push(wing.angular_http_interceptor);
+});
+
+[%[ lower_class ]%]app.filter('datetime', ['$filter', wing.angular_datetime_filter]);
+
+[%[ lower_class ]%]app.controller('[%[ lower_class ]%]Ctrl', function($scope, $http, $filter, $q) {
+
+    $scope.[%[ lower_class ]%] = {};
+
+    $http.get('[% [%[ lower_class ]%]._relationships.self %]', {_include_relationships: 1})
+    .success(function (data) {
+        $scope.[%[ lower_class ]%] = data.result;
+    });
+    
+    $scope.update = function() {
+        $http.put('[% [%[ lower_class ]%]._relationships.self %]', $scope.[%[ lower_class ]%])
+        .success(function (data) {
+            $scope.[%[ lower_class ]%] = data.result;
+            wing.success('Saved');
+        });
+    };
+    
+    $('.autosave').each(function(index, tag) {
+        var id = $(tag).attr('id');
+        $('#'+id).change(function(){
+			$scope.update();
+        });
+    });
+    
+    $scope.view_uri = function() {
+        return '/[%[ lower_class ]%]/' + $scope.[%[ lower_class ]%].uri_part;
+    };
+});
+</script>
+[% END %]
+
+[% INCLUDE footer_include.tt %]

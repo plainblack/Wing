@@ -13,7 +13,8 @@ get '/[% lower_class %]' => sub {
     my $user = eval { get_user_by_session_id(); };
     my $vars = {};
     if ($user) {
-        $vars->{current_user} = describe($user, current_user => $user);
+        $vars->{current_user} = $user;
+        $vars->{options} = [% project %]::DB::Result::[% class_name %]->field_options;
     }
     template '[% lower_class %]/index', $vars;
 };
@@ -25,11 +26,10 @@ get '/[% lower_class %]/:uri_part' => sub {
         ouch 440, '[% class_name %] not found.';
     }
     my $vars = {
-        [% lower_class %]   => describe($[% lower_class %], current_user => $current_user, include_relationships => 1),
+        [% lower_class %]   => describe($[% lower_class %], current_user => $current_user, include_relationships => 1, include_related_objects => 1, include_options => 1),
     };
     if ($current_user) {
-        $vars->{current_user} = describe($current_user, current_user => $current_user);
-        $vars->{options} = [% project %]::DB::Result::[% class_name %]->field_options;
+        $vars->{current_user} = $current_user;
     }
     template '[% lower_class %]/view', $vars;
 };
@@ -38,10 +38,10 @@ get '/[% lower_class %]/:id/edit' => sub {
     my $current_user = get_user_by_session_id();
     my $[% lower_class %] = fetch_object('[% class_name %]');
     my $vars = {
-        [% lower_class %]   => describe($[% lower_class %], current_user => $current_user, include_relationships => 1),
+        [% lower_class %]   => describe($[% lower_class %], current_user => $current_user, include_relationships => 1, include_options => 1),
     };
     if ($current_user) {
-        $vars->{current_user} = describe($current_user, current_user => $current_user);
+        $vars->{current_user} = $current_user;
     }
     template '[% lower_class %]/edit', $vars;
 };

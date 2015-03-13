@@ -42,7 +42,7 @@ __PACKAGE__->wing_fields(
     is_cool => {
         dbic            => { data_type => 'tinyint', is_nullable => 0, default_value => 0 },
         view            => 'private',
-        edit            => 'postable',
+        edit            => 'required',
         options         => [0,1],
         _options        => { 0 => 'No', 1 => 'Yes' },
         skip_duplicate  => 1,

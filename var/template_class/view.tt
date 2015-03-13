@@ -1,0 +1,27 @@
+[% page_title = [%[ lower_class ]%].name %]
+[% INCLUDE header_include.tt %]
+<div class="container">
+    <h1>[% page_title %]</h1>
+    <div>
+    [%[ IF public_params.size ]%][%[ FOREACH field IN postable_params ]%]
+        <div>
+            <b>[%[ field.ucfirst ]%]:</b> [%[ IF field == 'user_id' ]%][% [%[ lower_class ]%].user.display_name %] ([% [%[ lower_class ]%].user_id %])[%[ ELSIF field_options.exists(field) ]%][% [%[ lower_class ]%]._options._[%[ field ]%].${[%[ lower_class ]%].[%[ field ]%]} %][%[ ELSE ]%][% [%[ lower_class ]%].[%[ field ]%] %][%[ END ]%]
+        </div>
+    [%[ END ]%][%[ END ]%]
+    [%[ IF admin_viewable_params.size ]%][%[ FOREACH field IN admin_viewable_params ]%]
+        [% IF current_user.is_admin %]
+            <div>
+                <b>[%[ field.ucfirst ]%]:</b> [%[ IF field == 'user_id' ]%][% [%[ lower_class ]%].user.display_name %] ([% [%[ lower_class ]%].user_id %])[%[ ELSIF field_options.exists(field) ]%][% [%[ lower_class ]%]._options._[%[ field ]%].${[%[ lower_class ]%].[%[ field ]%]} %][%[ ELSE ]%][% [%[ lower_class ]%].[%[ field ]%] %][%[ END ]%]
+            </div>
+        [% END %]
+    [%[ END ]%][%[ END ]%]
+    </div>
+
+    [% IF [%[ lower_class ]%].can_edit %]
+        <hr>
+        <a href="/[%[ lower_class ]%]/[% [%[ lower_class ]%].id %]/edit" class="btn btn-success">Edit</a>
+        <button class="btn btn-danger" onclick="wing.delete_object('[%[ lower_class ]%]','');">Delete</button>
+    [% END %]
+</div>
+   
+[% INCLUDE footer_include.tt %]

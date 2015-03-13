@@ -4,6 +4,11 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-03-12
+ * Fixed a bug where 0 didn't count as a defined value for required fields.
+ * Rebuilt the "wing class" command so that it more accurately reflects modern Wing development practices.
+ * wing.js added a callback parameter to wing.delete_object().
+
 2015-03-10
  * Fixed a bug where the default web.psgi and rest.psgi files were missing "use Dancer;" which caused everything to fail.
  * Did a lot of cleanup of the default templates to more modern practices.
