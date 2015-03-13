@@ -159,11 +159,13 @@ wing.update_field = function(uri, id, callback) {
     });
 };
 
-wing.delete_object = function(wing_object_type, id) {
+wing.delete_object = function(wing_object_type, id, callback) {
     if (confirm('Are you sure you want to delete it?')) {
-        wing.ajax('DELETE', wing_object_type + '/' + id, {}, function(){
+        wing.ajax('DELETE', wing_object_type + '/' + id, {}, function(data){
             wing.success('Deleted!');
             $('#'+id).remove();
+		    callback = callback || function() {};
+	        callback(data);
         });
     }
     return false;
@@ -173,7 +175,7 @@ wing.attach_autosave = function(uri, save_class, success) {
     $(save_class).each(function(index, tag) {
         var id = $(tag).attr('id');
         $('#'+id).change(function(){
-	    success = success || function() {};
+			success = success || function() {};
             wing.update_field(uri, id, success);
         });
     });
@@ -188,6 +190,7 @@ window.alert = function(message) {
     });
 };
 
+// this is deprecated and will eventually be removed
 wing.pager = function(selector, callback, data) {
     $(selector).pagination(data.result.paging.total_items, {
           items_per_page : data.result.paging.items_per_page,
@@ -202,6 +205,7 @@ wing.pager = function(selector, callback, data) {
       });  
 };
 
+// this is deprecated and will eventually be removed
 // auto-populate a page with data from an ajax call
 wing.populate = function(uri, params, ids, extra) {
     wing.ajax('GET', uri, params, function(data, text_status, jqxhr) {
@@ -246,7 +250,7 @@ wing.populate = function(uri, params, ids, extra) {
     });    
 };
 
-
+// this is deprecated and will eventually be removed
 jQuery.fn.pagination = function(maxentries, opts){
     opts = jQuery.extend({
         items_per_page:10,
