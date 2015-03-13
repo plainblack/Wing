@@ -103,7 +103,7 @@ userapp.controller('userCtrl', function($scope, $http, $filter, $q) {
     $scope.search = function () {
         var params = {
             _page_number: $scope.paging.page_number,
-            _items_per_page: $scope.paging.items_per_page || 2,
+            _items_per_page: $scope.paging.items_per_page || 10,
             query: $scope.query,
         };
         $http.get('/api/user', { params : params })
@@ -121,6 +121,5 @@ userapp.controller('userCtrl', function($scope, $http, $filter, $q) {
     
 });
 </script>
-
 [% END %]
 [% INCLUDE admin/footer_include.tt %]
