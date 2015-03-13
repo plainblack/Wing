@@ -69,7 +69,7 @@ __PACKAGE__->wing_datetime_fields(
 );
 
 #__PACKAGE__->wing_children(
-#    buys        => {
+#    votes        => {
 #        view            => 'public',
 #        related_class   => '[% project %]::DB::Result::[% class_name %]Vote',
 #        related_id      => '[% lower_class %]_id',
