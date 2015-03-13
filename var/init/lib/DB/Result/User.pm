@@ -4,6 +4,11 @@ use Moose;
 use Wing::Perl;
 extends 'Wing::DB::Result';
 with 'Wing::Role::Result::User';
+#with 'Wing::Role::Result::PrivilegeField';
+
+#__PACKAGE__->wing_privilege_fields(
+#    supervisor              => {},
+#);
 
 __PACKAGE__->wing_finalize_class( table_name => 'users');
 
