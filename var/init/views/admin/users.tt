@@ -21,7 +21,7 @@
     <th>Real Name</th>
     <th>Email</th>
     <th>Last Login</th>
-    <th></th>
+    <th>Become</th>
 </tr>
 </thead>
 <tbody id="users">
@@ -96,7 +96,7 @@ userapp.filter('datetime', ['$filter', wing.angular_datetime_filter]);
 userapp.controller('userCtrl', function($scope, $http, $filter, $q) {
 
     $scope.query   = ''; // what to search on
-    $scope.users   = []  // list of user objects
+    $scope.users   = [];  // list of user objects
     $scope.paging  = {}; // pagination data
     
     // get a list of users with paging
