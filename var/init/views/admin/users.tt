@@ -34,7 +34,7 @@
         </tr>
 </tbody>
 </table>
-<pagination ng-click="search()" items-per-page="paging.items_per_page" direction-links="false" boundary-links="true" total-items="paging.total_items" ng-model="paging.page_number"></pagination>
+<pagination max-size="10" rotate="false" ng-click="search()" items-per-page="paging.items_per_page" direction-links="false" boundary-links="true" total-items="paging.total_items" ng-model="paging.page_number"></pagination>
 </div><!-- col-sm-7 -->
 
     
