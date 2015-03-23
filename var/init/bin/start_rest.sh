@@ -10,5 +10,5 @@ if [ $UID == 0 ]
 	export RUNAS="--user nobody --group nobody"
 fi
 
-start_server --port 5000 -- starman --workers 2 --user nobody --group nobody --preload-app rest.psgi
+start_server --port 5000 -- starman --workers 2 $RUNAS --preload-app rest.psgi
 
