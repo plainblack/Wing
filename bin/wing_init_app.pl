@@ -77,7 +77,6 @@ my $t_alt = Template->new({ABSOLUTE => 1, START_TAG => quotemeta('[%['), END_TAG
 template($t_alt,'views/footer_include.tt', $vars);
 template($t_alt,'views/header_include.tt', $vars);
 template($t_alt,'views/bootstrap_css_include.tt', $vars);
-template($t_alt,'views/bootstrapui_css_include.tt', $vars);
 template($t_alt,'views/angular_js_include.tt', $vars);
 template($t_alt,'views/bootstrapui_js_include.tt', $vars);
 template($t_alt,'views/bootstrap_js_include.tt', $vars);
