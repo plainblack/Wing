@@ -82,7 +82,7 @@ __PACKAGE__->wing_datetime_fields(
 #    [% lower_class %]_container => {
 #        view           => 'public',
 #        edit           => 'required',
-#        related_class  => 'TGC::DB::Result::[% class_name %]Container',
+#        related_class  => '[% project %]::DB::Result::[% class_name %]Container',
 #    },
 #
 #    #Add parents here
