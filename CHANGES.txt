@@ -4,6 +4,40 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-03-29
+ * Added wing.angular.js. To use it simply do:
+
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular.min.js"></script>
+  <script src="/wing.angular.js"></script>
+
+  myApp = angular.module('MyApp',['wing']);
+
+  myApp.controller('MyCtrl', function($scope, $http, objectListManager) {
+    $scope.users = new objectListManager.object_map(
+        fetch_options : {
+            _include_options: 1,
+            _include_relationships: 1, // required
+        },
+        list_api : '/api/user',
+        create_api : '/api/user',
+        on_create : function(object, index) {
+            wing.success(object.username + ' created.');
+        },
+        on_update : function(object, index) {
+            wing.success(object.username + ' saved.');
+        },
+        on_delete : function(object, index) {
+            wing.success('Deleted.');
+        },
+    });
+  });
+
+  <!-- in html -->
+  <div ng-controller="MyCtrl">
+    <div ng-repeat="user in users.objects">{{user.username}} <button ng-click="users.delete($index)">Delete</button></div>
+  </div>
+
+
 2015-03-12
  * Fixed a bug where 0 didn't count as a defined value for required fields.
  * Rebuilt the "wing class" command so that it more accurately reflects modern Wing development practices.
