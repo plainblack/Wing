@@ -121,7 +121,7 @@ var [%[ lower_class ]%]app = angular.module('[%[ lower_class ]%]App', ['ui.boots
         var self = this;
         var item = self.item;
         if (confirm('Are you sure you want to delete this [%[ class_name ]%]?')) {
-            $http.delete(item._relationships.self, {})
+            $http.delete(self.[% lower_class %]._relationships.self, {})
             .success(function (data) {
                 $scope.[%[ lower_class ]%]s.splice(self.$index, 1);
                 wing.success('[%[ class_name ]%] deleted.');
