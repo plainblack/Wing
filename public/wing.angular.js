@@ -72,7 +72,7 @@ angular.module('wing',[])
                 .success(function (data) {
                     self.objects = self.objects.concat(data.result.items);
                     if (data.result.paging.page_number < data.result.paging.total_pages) {
-                        this.all(data.result.paging.next_page_number);
+                        self.all(data.result.paging.next_page_number);
                     }
                 });
             };
