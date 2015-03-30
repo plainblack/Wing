@@ -28,7 +28,7 @@ with respect to new features and compatibility changes.
             wing.success(object.username + ' saved.');
         },
         on_delete : function(object, index) {
-            wing.success('Deleted.');
+            wing.success('Deleted' + object.name +'.');
         },
     });
   });
