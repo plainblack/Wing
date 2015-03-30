@@ -5,6 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2015-03-29
+ * Added wing.merge() to wing.js, which is useful for merging parameter hashes to make a request back to the server.
  * Added wing.angular.js. To use it simply do:
 
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular.min.js"></script>

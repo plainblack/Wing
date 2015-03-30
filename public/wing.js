@@ -3,6 +3,24 @@ jQuery.ajaxSettings.cache = false;
 
 var wing = new Object();
 
+wing.merge = function (obj1,obj2) { 
+    var result = {}; // return result
+    for (var i in obj1) {      // for every property in obj1 
+        if ((i in obj2) && (typeof obj1[i] === "object") && (i !== null)) {
+            result[i] = merge(obj1[i],obj2[i]); // if it's an object, merge   
+        } else {
+           result[i] = obj1[i]; // add it to result
+        }
+    }
+    for (i in obj2) { // add the remaining properties from object 2
+        if (i in result) { //conflict
+            continue;
+        }
+        result[i] = obj2[i];
+    }
+    return result;
+};
+
 wing.angular_datetime_filter = function($filter) {
 	return function(datetime, format) {
         if (datetime == null){ return ""; }
