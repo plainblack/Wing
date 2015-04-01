@@ -4,6 +4,16 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-03-31
+ * A massive overhaul to wing.angular.js:
+ * Refactored objectListManager factory to be smaller and more flexible.
+ * Moved confirmations from objectListManager into it's own factory.
+ * Added objectManager factory and made objectListManager use objectManager objects.
+ * Added directive for input[number] to force the model to always be a number.
+ * Added autosave directive which works similar to wing.attach_autosave()
+ * Added wing-select directive, which autogenerates <select> lists from _options data.
+ * Added force-string directive, which forces numbers to be strings for display purposes on a model. This is needed because Perl hash keys aare always strings, but scalars can be strings or numbers, so when comparing them in js 1 != '1'. 
+
 2015-03-29
  * Added wing.merge() to wing.js, which is useful for merging parameter hashes to make a request back to the server.
  * Added wing.angular.js. To use it simply do:
@@ -14,7 +24,7 @@ with respect to new features and compatibility changes.
   myApp = angular.module('MyApp',['wing']);
 
   myApp.controller('MyCtrl', function($scope, $http, objectListManager) {
-    $scope.users = new objectListManager.object_map(
+    $scope.users = new objectListManager(
         fetch_options : {
             _include_options: 1,
             _include_relationships: 1, // required
@@ -35,7 +45,7 @@ with respect to new features and compatibility changes.
 
   <!-- in html -->
   <div ng-controller="MyCtrl">
-    <div ng-repeat="user in users.objects">{{user.username}} <button ng-click="users.delete($index)">Delete</button></div>
+    <div ng-repeat="user in users.objects">{{user.properties.username}} <button ng-click="user.delete()">Delete</button></div>
   </div>
 
 
