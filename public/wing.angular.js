@@ -57,7 +57,15 @@ angular.module('wing',[])
         this.objects = [];
         this.paging = [];
         
-        this._create_object_manager = function(properties, index) {
+        this.find_object = function(id) {
+            var self = this;
+            for (var i = 0, len = self.objects.length; i < len; i++) {
+                if (self.objects[i].properties.id === id) return i;
+            }
+            return -1;
+        }
+        
+        this._create_object_manager = function(properties) {
             var self = this;
             return new objectManager({
                 properties : properties,
@@ -66,8 +74,14 @@ angular.module('wing',[])
                 on_create : behavior.on_create,
                 on_update : behavior.on_update,
                 on_delete : function(properties) {
-                    behavior.on_delete(properties);
-                    self.objects.splice(index, 1);
+                    var myself = this;
+                    if ('on_delete' in behavior) {
+                        behavior.on_delete(properties);
+                    }
+                    var index = self.find_object(properties.id);
+                    if (index >= 0) {
+                        self.objects.splice(index, 1);
+                    }
                 },
             });
         };
@@ -86,7 +100,7 @@ angular.module('wing',[])
             .success(function (data) {
                 self.objects = [];
                 for (var index = 0; index < data.result.items.length; index++) {
-                    self.objects.push(self._create_object_manager(data.result.items[index], index));
+                    self.objects.push(self._create_object_manager(data.result.items[index]));
                 }
                 self.paging = data.result.paging;
             });
@@ -103,7 +117,7 @@ angular.module('wing',[])
             .success(function (data) {
                 var start = self.objects.length;
                 for (var index = start; index < start + data.result.items.length; index++) {
-                    self.objects.push(self._create_object_manager(data.result.items[index], index));
+                    self.objects.push(self._create_object_manager(data.result.items[index]));
                 }
                 if (data.result.paging.page_number < data.result.paging.total_pages) {
                     self.all(data.result.paging.next_page_number);
@@ -114,7 +128,7 @@ angular.module('wing',[])
         
         this.create = function(properties, options) {
             var self = this;
-            var new_object = self._create_object_manager(properties, self.objects.length);
+            var new_object = self._create_object_manager(properties);
             var add_it = function() {
                 self.objects.push(new_object);
             };
@@ -241,13 +255,13 @@ angular.module('wing',[])
             if (confirmations.disabled() || confirm(message)) {
                 $http.delete(object._relationships.self, {})
                 .success(function (data) {
-                    self.properties = {};
                     if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                         options.on_success(object);
                     }
                     if (typeof behavior.on_delete !== 'undefined') {
                         behavior.on_delete(object);
                     }
+                    self.properties = {};
                 });
             }
             return self;
