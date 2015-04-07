@@ -359,7 +359,9 @@ angular.module('wing',[])
         require: 'ngModel',
         link: function(scope, element, attrs, ngModel) {
             ngModel.$formatters.push(function(modelValue) {
-                return modelValue.toString();
+                if (typeof modelValue !== 'undefined') {
+                    return modelValue.toString();
+                }
             });
         }
     }
