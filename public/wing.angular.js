@@ -115,8 +115,7 @@ angular.module('wing',[])
             }, behavior.fetch_options);
             $http.get(behavior.list_api, { params : params })
             .success(function (data) {
-                var start = self.objects.length;
-                for (var index = start; index < start + data.result.items.length; index++) {
+                for (var index in data.result.items) {
                     self.objects.push(self._create_object_manager(data.result.items[index]));
                 }
                 if (data.result.paging.page_number < data.result.paging.total_pages) {
@@ -134,9 +133,10 @@ angular.module('wing',[])
             };
             if (typeof options !== 'undefined') {
                 if (typeof options.on_success !== 'undefined') {
+                    var success = options.on_success;
                     options.on_success = function(properties) {
-                        options.on_success(properties);
                         add_it();
+                        success(properties);
                     };
                 }
                 else {
