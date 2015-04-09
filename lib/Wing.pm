@@ -212,6 +212,7 @@ B<NOTE:> C<ttr> defaults to 60. C<priority> defaults to 1500.
 
 sub send_templated_email {
     my ($class, $template, $params, $options) = @_; 
+    my $result;
     if ($options->{wingman}) {
         delete $options->{wingman};
         my $job_options = $options->{wingman_job_options} || { ttr => 60, priority => 1500 };
@@ -235,9 +236,17 @@ sub send_templated_email {
             ->assemble($params);
         my $transport = Email::Sender::Transport::SMTP->new($_config->get('smtp'));
         eval {
-            Email::Sender::Simple->send($email, { transport => $transport});
+            my @send = (
+                $email,
+                { transport => $transport }
+                );
+            if ($_config->get('email_override')) {
+                $send[1]->{to} = $_config->get('email_override');
+            }
+            $result = Email::Sender::Simple->send(@send);
             if ($options->{bcc}) {
-                Email::Sender::Simple->send($email, { transport => $transport, to => $options->{bcc} });
+                $send[1]->{to} = $options->{bcc};
+                Email::Sender::Simple->send(@send);
             }
         };
         if (hug) {
@@ -245,6 +254,7 @@ sub send_templated_email {
             ouch 504, 'Could not send email. Mail service down.', bleep;
         }
     }
+    return $result;
 }
 
 
