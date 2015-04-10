@@ -101,6 +101,12 @@ angular.module('wing',[])
                 self.objects = [];
                 for (var index = 0; index < data.result.items.length; index++) {
                     self.objects.push(self._create_object_manager(data.result.items[index]));
+                    if (typeof options !== 'undefined' && typeof options.on_each !== 'undefined') {
+                        options.on_each(data.result.items[index]);
+                    }
+                    if (typeof behavior.on_each !== 'undefined') {
+                        behavior.on_each(data.result.items[index]);
+                    }
                 }
                 self.paging = data.result.paging;
             });
@@ -117,6 +123,12 @@ angular.module('wing',[])
             .success(function (data) {
                 for (var index in data.result.items) {
                     self.objects.push(self._create_object_manager(data.result.items[index]));
+                    if (typeof options !== 'undefined' && typeof options.on_each !== 'undefined') {
+                        options.on_each(data.result.items[index]);
+                    }
+                    if (typeof behavior.on_each !== 'undefined') {
+                        behavior.on_each(data.result.items[index]);
+                    }
                 }
                 if (data.result.paging.page_number < data.result.paging.total_pages) {
                     self.all(data.result.paging.next_page_number);
