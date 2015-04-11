@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-04-11
+ * Added timeago date filter in wing.angular.js.
+ * Added unshift option to create on objectListManager in wing.angular.js.
+
 2015-04-09
  * Added "email_override" option to the config file. If this is specified then any emails sent out will always go to that address rather than the intented recipient.
 
