@@ -198,6 +198,7 @@ register format_list => sub {
     }
     return $result_set->format_list(
         order_by                => $order_by,
+        page_number             => $options{page_number} || params->{_page_number},
         items_per_page          => $options{items_per_page} || params->{_items_per_page},
         include_relationships   => $options{include_relationships} || params->{_include_relationships}, 
         include_related_objects => $options{include_related_objects} || params->{_include_related_objects}, 
