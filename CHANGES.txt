@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-04-12
+ * Added _sort_order and _order_by handlers to Wing::Dancer::format_list().
+
 2015-04-11
  * Added timeago date filter in wing.angular.js.
  * Added unshift option to create on objectListManager in wing.angular.js.

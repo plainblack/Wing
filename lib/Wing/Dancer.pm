@@ -168,6 +168,14 @@ If you want to force the items in the formatted list to include relationships.
 
 If you want to force the items in the formatted list to include field options.
 
+=item order_by
+
+The field to order by. Defaults to whatever order C<result_set> would normally have, and that default can be overridden by C<params> _order_by.
+
+=item sort_order
+
+Must be C<asc> or C<desc>. Defaults to whatever sorder order C<result_set> would normally have, and that default can be overridden by C<params> _sort_order. If C<order_by> isn't specified then this is ignored.
+
 =item object_options
 
 If you need to pass additional object-specific options to the object, pass them in here. Is a hash reference.
@@ -180,8 +188,16 @@ If you need to pass additional object-specific options to the object, pass them 
 
 register format_list => sub {
     my ($result_set, %options) = @_;
+    my $order_by = $options{order_by} || param('_order_by');
+    unless (defined $order_by && $order_by =~ m/^[a-z0-9\_]+$/i) {
+        $order_by = undef;
+    }
+    my $sort_order = $options{sort_order} || param('_sort_order');
+    if (defined $order_by && $sort_order eq 'desc') {
+        $order_by = { -desc => $order_by };
+    }
     return $result_set->format_list(
-        page_number             => $options{page_number} || params->{_page_number},
+        order_by                => $order_by,
         items_per_page          => $options{items_per_page} || params->{_items_per_page},
         include_relationships   => $options{include_relationships} || params->{_include_relationships}, 
         include_related_objects => $options{include_related_objects} || params->{_include_related_objects}, 

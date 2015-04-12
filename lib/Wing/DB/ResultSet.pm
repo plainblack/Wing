@@ -87,7 +87,11 @@ sub format_list {
     my @list;
     my $user = $options{current_user};
     my $is_admin = defined $user && $user->is_admin ? 1 : 0;
-    my $page = $self->search(undef, {rows => $items_per_page, page => $page_number });
+    my $extra = {rows => $items_per_page, page => $page_number };
+    if (exists $options{order_by} && $options{order_by}) {
+        $extra->{order_by} = $options{order_by};
+    }
+    my $page = $self->search(undef, $extra);
     while (my $item = $page->next) {
         push @list, $item->describe(
             %{ (exists $options{object_options} ? $options{object_options} : {}) },
