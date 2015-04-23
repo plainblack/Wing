@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-04-23
+ * Added the "cache" module to Wing::Command so you can get, set, and remove items in the cache from the command line.
+
 2015-04-12
  * Added _sort_order and _order_by handlers to Wing::Dancer::format_list().
 
