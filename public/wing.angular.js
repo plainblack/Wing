@@ -286,6 +286,14 @@ angular.module('wing',[])
                 if (typeof behavior.on_fetch !== 'undefined') {
                     behavior.on_fetch(data.result);
                 }
+            })
+            .error(function (data) {
+                if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
+                    options.on_error(data.result);
+                }
+                if (typeof behavior.on_error !== 'undefined') {
+                    behavior.on_error(data.result);
+                }
             });
             return self;
         };
@@ -301,6 +309,14 @@ angular.module('wing',[])
                 }
                 if (typeof behavior.on_create !== 'undefined') {
                     behavior.on_create(data.result);
+                }
+            })
+            .error(function (data) {
+                if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
+                    options.on_error(data.result);
+                }
+                if (typeof behavior.on_error !== 'undefined') {
+                    behavior.on_error(data.result);
                 }
             });
             return self;
@@ -332,6 +348,14 @@ angular.module('wing',[])
                 if (typeof behavior.on_update !== 'undefined') {
                     behavior.on_update(data.result);
                 }
+            })
+            .error(function (data) {
+                if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
+                    options.on_error(data.result);
+                }
+                if (typeof behavior.on_error !== 'undefined') {
+                    behavior.on_error(data.result);
+                }
             });
             return self;
         };
@@ -353,6 +377,14 @@ angular.module('wing',[])
                         behavior.on_delete(object);
                     }
                     self.properties = {};
+                })
+                .error(function (data) {
+                    if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
+                        options.on_error(data.result);
+                    }
+                    if (typeof behavior.on_error !== 'undefined') {
+                        behavior.on_error(data.result);
+                    }
                 });
             }
             return self;
