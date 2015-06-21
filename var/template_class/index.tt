@@ -2,6 +2,9 @@
 [% INCLUDE header_include.tt %]
 
 <div class="container" ng-app="[%[ lower_class ]%]App" ng-controller="[%[ lower_class ]%]Ctrl" ng-cloak>
+    <p>
+        <button class="btn btn-danger" ng-click="confirmations.toggle()"><span class="glyphicon glyphicon-question-sign"></span> <span ng-if="confirmations.disabled()">Enable</span> <span ng-if="confirmations.enabled()">Disable</span> Confirmations</button>
+    </p>
     
     <div class="row">
     
@@ -78,10 +81,12 @@
 
 var [%[ lower_class ]%]app = angular.module('[%[ lower_class ]%]App', ['ui.bootstrap','wing']);
 
-[%[ lower_class ]%]app.controller('[%[ lower_class ]%]Ctrl', function($scope, $http, objectListManager) {
+[%[ lower_class ]%]app.controller('[%[ lower_class ]%]Ctrl', function($scope, $http, objectListManager, confirmations) {
 
     $scope.query = ''; // what to search on
     $scope.new_[%[ lower_class ]%] = {}; // [%[ class_name ]%] to create
+
+    $scope.confirmations = confirmations;
     
     $scope.search = function () {
         // get a list of objects with paging
