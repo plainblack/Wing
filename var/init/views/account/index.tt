@@ -1,93 +1,111 @@
 [% page_title = "${current_user.display_name}'s Account" %]
 [% INCLUDE account/header_include.tt %]
-<p>Welcome [% current_user.display_name FILTER html %]. Not [% current_user.display_name FILTER html %]? <a href="/logout">Click here</a>.</p>
-
-<form action="/account" method="POST" enctype="multipart/form-data" class="form-horizontal">
-
-<div class="row">
-    <div class="col-sm-6">
-        <fieldset>
-            <legend>Account Information</legend>
-            
-            <div class="form-group">
-                <label class="col-sm-4 control-label" for="username">Username</label>
-                <div class="col-sm-8">
-                  <input class="form-control" type="text" name="username" value="[% current_user.username FILTER html %]" id="username">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-4 control-label" for="real_name">Real Name</label>
-                <div class="col-sm-8">
-                <input class="form-control" type="text" name="real_name" value="[% current_user.real_name FILTER html %]" id="real_name">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-4 control-label" for="email">Email Address</label>
-                <div class="col-sm-8">
-                <input class="form-control" type="text" name="email" value="[% current_user.email FILTER html %]" id="email">
-                </div>
-            </div>
-        </fieldset>
-    </div>
-    <div class="col-sm-6">
-        <fieldset>
-            <legend>Change Password</legend>
-            <div class="form-group">
-                <label class="col-sm-4 control-label" for="password1">New Password</label>
-                <div class="col-sm-8">
-                <input class="form-control" type="password" name="password1" id="password1">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-4 control-label" for="password2">Verify New Password</label>
-                <div class="col-sm-8">
-                <input class="form-control" type="password" name="password2" id="password2">
-                </div>
-            </div>
-        </fieldset>
-    </div>
-</div><!-- row -->
-
-<div class="row">
-    <div class="col-sm-6">
-        <fieldset>
-            <legend>Preferences</legend>
-            <div class="form-group">
-                <label class="col-sm-4 control-label" for="use_as_display_name">Which would you like to be displayed on the site?</label>
-                <div class="col-sm-8">
-                <select class="form-control" name="use_as_display_name" id="use_as_display_name">
-                    <option value="username"[% IF current_user.use_as_display_name == 'username' %] selected="1"[% END %]>Username</option>
-                    <option value="email"[% IF current_user.use_as_display_name == 'email' %] selected="1"[% END %]>Email Address</option>
-                    <option value="real_name"[% IF current_user.use_as_display_name == 'real_name' %] selected="1"[% END %]>Real Name</option>
-                </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-4 control-label">Are you a software developer?</label>
-                <div class="col-sm-8">
-                 <label class="radio-inline" for="developer_yes"><input type="radio" name="developer" value="1" id="developer_yes"[% IF current_user.developer %] checked=1[% END %]>Yes</label>
-                 <label class="radio-inline" for="developer_no"><input type="radio" name="developer" value="0" id="developer_no"[% UNLESS current_user.developer %] checked=1[% END %]>No</label>
-                [% IF current_user.developer %]
-                <p><a href="/account/apikeys">Manage API keys.</a></p>
-                [% END %]
-                </div>
-            </div>
-        </fieldset>
+<div ng-app="AccountApp" ng-controller="AccountCtrl" ng-cloak>
+    <p>Welcome [% current_user.display_name FILTER html %]. Not [% current_user.display_name FILTER html %]? <a href="/logout">Click here</a>.</p>
     
-    </div>
-    <div class="col-sm-6">
-        <div class="form-group">
-            <div class="col-sm-offset-4 col-sm-8">
-                <input class="btn btn-primary" type="submit" value="Save">
-            </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <fieldset>
+                <legend>Account Information</legend>
+                
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="username">Username</label>
+                    <div class="col-sm-8">
+                      <input class="form-control" type="text" name="username" ng-model="user.properties.username" autosave="user" id="username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="real_name">Real Name</label>
+                    <div class="col-sm-8">
+                    <input class="form-control" type="text" name="real_name" ng-model="user.properties.real_name" autosave="user" id="real_name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="email">Email Address</label>
+                    <div class="col-sm-8">
+                    <input class="form-control" type="text" name="email" ng-model="user.properties.email" autosave="user" id="email">
+                    </div>
+                </div>
+            </fieldset>
         </div>
     </div>
 
-</div><!-- row -->
+    <div class="col-sm-6">
+        <form action="/account" method="POST" enctype="multipart/form-data" class="form-horizontal">
+            <fieldset>
+                <legend>Change Password</legend>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="password1">New Password</label>
+                    <div class="col-sm-8">
+                    <input class="form-control" type="password" name="password1" id="password1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="password2">Verify New Password</label>
+                    <div class="col-sm-8">
+                    <input class="form-control" type="password" name="password2" id="password2">
+                    </div>
+                </div>
+                <div class="form-group">
+                     <div class="col-sm-offset-4 col-sm-8">
+                        <input class="btn btn-primary" type="submit" value="Update Password">
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div><!-- row -->
+        
+    <div class="row">
+        <div class="col-sm-6">
+            <fieldset>
+                <legend>Preferences</legend>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="use_as_display_name">Which would you like to be displayed on the site?</label>
+                    <div class="col-sm-8">
+                        <wing-select object="user" property="use_as_display_name"></wing-select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Are you a software developer?</label>
+                    <div class="col-sm-8">
+                        <wing-select object="user" property="developer"></wing-select>
+                        <p ng-if="user.properties.developer == 1"><a href="/account/apikeys">Manage API keys.</a></p>
+                    </div>
+                </div>
+            </fieldset>
+        
+        </div>
+    
+    </div><!-- row -->
+    
+</div>
+[% foot_tags = BLOCK %]
 
+[% INCLUDE angular_js_include.tt %]
+[% INCLUDE bootstrapui_js_include.tt %]
+<script type="text/javascript">    
+'use strict';
 
+var AccountApp = angular.module('AccountApp', ['ui.bootstrap','wing']);
 
-</form>
+AccountApp.controller('AccountCtrl', function($scope, $http, objectManager) {
 
+    $scope.user = new objectManager({
+        fetch_options : {
+            _include_options: 1,
+            _include_related_objects: 1,
+            _include_relationships: 1,
+        },
+        on_update : function(object, index) {
+            wing.success('User saved.');
+        },
+        fetch_api : '[% current_user._relationships.self %]',
+    });
+    
+    $scope.user.fetch();
+    
+});
+</script>
 
+[% END %]
 [% INCLUDE account/footer_include.tt %]
