@@ -14,27 +14,27 @@
             </div>
         </form>
 
-<table class="table table-striped">
-<thead>
-<tr>
-    <th>Username</th>
-    <th>Real Name</th>
-    <th>Email</th>
-    <th>Last Login</th>
-    <th>Become</th>
-</tr>
-</thead>
-<tbody id="users">
-        <tr ng-repeat="user in users" id="{{user.id}}">
-            <td><a href="/admin/user/{{user.id}}">{{user.username}}</a></td>
-            <td>{{user.real_name}}</td>
-            <td>{{user.email}}</td>
-            <td>{{user.last_login|datetime:'medium'}}</td>
-            <td><form action="{{become_url()}}" method="POST"><input type="submit" value="Become" class="btn btn-default"></form></td>
-        </tr>
-</tbody>
-</table>
-<pagination max-size="10" rotate="false" ng-click="search()" items-per-page="paging.items_per_page" direction-links="false" boundary-links="true" total-items="paging.total_items" ng-model="paging.page_number"></pagination>
+        <table class="table table-striped">
+                <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Real Name</th>
+                            <th>Email</th>
+                            <th>Last Login</th>
+                            <th>Become</th>
+                        </tr>
+                </thead>
+                <tbody id="users">
+                        <tr ng-repeat="user in users.objects" id="{{user.properties.id}}">
+                            <td><a href="/admin/user/{{user.properties.id}}">{{user.properties.username}}</a></td>
+                            <td>{{user.properties.real_name}}</td>
+                            <td>{{user.properties.email}}</td>
+                            <td>{{user.properties.last_login|datetime:'medium'}}</td>
+                            <td><form action="{{become_url()}}" method="POST"><input type="submit" value="Become" class="btn btn-default"></form></td>
+                        </tr>
+                </tbody>
+        </table>
+        <pagination max-size="10" rotate="false" ng-click="search()" items-per-page="paging.items_per_page" direction-links="false" boundary-links="true" total-items="paging.total_items" ng-model="paging.page_number"></pagination>
 </div><!-- col-sm-7 -->
 
     
@@ -86,30 +86,27 @@
 
 var userapp = angular.module('userApp', ['ui.bootstrap','wing']);
 
-userapp.controller('userCtrl', function($scope, $http, $filter, $q) {
+userapp.controller('userCtrl', function($scope, objectListManager) {
 
     $scope.query   = ''; // what to search on
-    $scope.users   = [];  // list of user objects
-    $scope.paging  = {}; // pagination data
     
-    // get a list of users with paging
     $scope.search = function () {
-        var params = {
-            _page_number: $scope.paging.page_number,
-            _items_per_page: $scope.paging.items_per_page || 10,
-            query: $scope.query,
-        };
-        $http.get('/api/user', { params : params })
-        .success(function (data) {
-            $scope.users = data.result.items;
-            $scope.paging = data.result.paging;
+        $scope.users = new objectListManager({
+            fetch_options : {
+                _include_relationships: 1,
+                _include_related_objects: 1,
+                query: $scope.query,
+            },
+            list_api : '/api/user',
+            create_api : '/api/user',
         });
+        $scope.users.search();
     };
     
     // for the "become user" button
     $scope.become_url = function() {
         var self = this;
-        return '/admin/user/' + self.user.id  + '/become';
+        return '/admin/user/' + self.user.properties.id  + '/become';
     };
     
 });
