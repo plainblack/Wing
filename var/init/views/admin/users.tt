@@ -84,14 +84,7 @@
 <script type="text/javascript">
 'use strict';
 
-var userapp = angular.module('userApp', ['ui.bootstrap']);
-
-userapp.config( function($httpProvider) {
-    $httpProvider.defaults.withCredentials = true;
-    $httpProvider.interceptors.push(wing.angular_http_interceptor);
-});
-
-userapp.filter('datetime', ['$filter', wing.angular_datetime_filter]);
+var userapp = angular.module('userApp', ['ui.bootstrap','wing']);
 
 userapp.controller('userCtrl', function($scope, $http, $filter, $q) {
 
