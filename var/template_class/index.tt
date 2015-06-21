@@ -26,12 +26,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="[%[ lower_class ]%] in [%[ lower_class ]%]s" id="{{[%[ lower_class ]%].id}}">
-                        <td><a href="/[%[ lower_class ]%]/{{uri_part}}">{{[%[ lower_class ]%].name}}</a></td>
-                        <td>{{[%[ lower_class ]%].date_updated|datetime:'longDate'}}</td>
+                    <tr ng-repeat="[%[ lower_class ]%] in [%[ lower_class ]%]s.objects" id="{{[%[ lower_class ]%].properties.id}}">
+                        <td><a href="/[%[ lower_class ]%]/{{[%[ lower_class ]%].properties.uri_part}}">{{[%[ lower_class ]%].properties.name}}</a></td>
+                        <td>{{[%[ lower_class ]%].properties.date_updated|datetime:'longDate'}}</td>
                         [% IF current_user.is_admin %]<td>
-                            <a href="/[%[ lower_class ]%]/{{[%[ lower_class ]%].id}}/edit" class="btn btn-primary">Edit</a>
-                            <button class="btn btn-danger" ng-click="delete()">Delete</button>
+                            <a href="/[%[ lower_class ]%]/{{[%[ lower_class ]%].properties.id}}/edit" class="btn btn-primary">Edit</a>
+                            <button class="btn btn-danger" ng-click="[%[ lower_class ]%].delete()">Delete</button>
                         </td>[% END %]
                     </tr>
                 </tbody>
@@ -76,58 +76,43 @@
 <script type="text/javascript">
 'use strict';
 
-var [%[ lower_class ]%]app = angular.module('[%[ lower_class ]%]App', ['ui.bootstrap']);
+var [%[ lower_class ]%]app = angular.module('[%[ lower_class ]%]App', ['ui.bootstrap','wing']);
 
-[%[ lower_class ]%]app.config( function($httpProvider) {
-    $httpProvider.defaults.withCredentials = true;
-    $httpProvider.interceptors.push(wing.angular_http_interceptor);
-});
-
-[%[ lower_class ]%]app.filter('datetime', ['$filter', wing.angular_datetime_filter]);
-
-[%[ lower_class ]%]app.controller('[%[ lower_class ]%]Ctrl', function($scope, $http, $filter, $q) {
+[%[ lower_class ]%]app.controller('[%[ lower_class ]%]Ctrl', function($scope, $http, objectListManager) {
 
     $scope.query = ''; // what to search on
     $scope.new_[%[ lower_class ]%] = {}; // [%[ class_name ]%] to create
-    $scope.[%[ lower_class ]%]s = []; // list of [%[ class_name ]%]s
-    $scope.paging = {}; // pagination data
     
-    // get a list of objects with paging
     $scope.search = function () {
-        var params = {
-            _page_number: $scope.paging.page_number,
-            _items_per_page: $scope.paging.items_per_page || 10,
-            query: $scope.query,
-            _include_relationships: 1,
-        };
-        $http.get('/api/[%[ lower_class ]%]', { params : params })
-        .success(function (data) {
-            $scope.[%[ lower_class ]%]s = data.result.items;
-            $scope.paging = data.result.paging;
+        // get a list of objects with paging
+        $scope.[%[ lower_class ]%]s = new objectListManager({
+            fetch_options : {
+                query: $scope.query,
+                _include_relationships: 1,
+                _include_related_objects: 1,
+            },
+            list_api : '/api/[%[ lower_class ]%]',
+            create_api : '/api/[%[ lower_class ]%]',
+            on_update : function(properties, index) {
+                wing.success(properties.name + ' saved.');
+            },
+            on_delete : function(properties) {
+                wing.success(properties.name + ' deleted.');
+            },
         });
+        $scope.[%[ lower_class ]%]s.search(); // calling .list() instead of .search() would return all objects, instead of paging
     };
-    $scope.search(1); // initial population
-    
+    $scope.search();
+
     $scope.create = function() {
-        $http.post('/api/[%[ lower_class ]%]', $scope.new_[%[ lower_class ]%])
-        .success(function (data) {
-            $scope.[%[ lower_class ]%]s.push(data.result);
-            wing.success('[%[ class_name ]%] added.');
-            window.location.href = '/[%[ lower_class ]%]/'+data.result.id+'/edit';
-        });
+        $scope.[%[ lower_class ]%]s.create($scope.new_[%[ lower_class ]%], {
+            on_success : function(properties) {
+                wing.success('[%[ class_name ]%] added.');
+                window.location.href = '/[%[ lower_class ]%]/'+properties.id+'/edit';                
+            },
+        })
     };
 
-    $scope.delete = function() {
-        var self = this;
-        var item = self.item;
-        if (confirm('Are you sure you want to delete this [%[ class_name ]%]?')) {
-            $http.delete(self.[% lower_class %]._relationships.self, {})
-            .success(function (data) {
-                $scope.[%[ lower_class ]%]s.splice(self.$index, 1);
-                wing.success('[%[ class_name ]%] deleted.');
-            });
-        }
-    };
 });
 </script>
 [% END %]
