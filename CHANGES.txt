@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-06-22
+ * Better debug when an object is not found via fetch_object.
+
 2015-06-21
  * Added fetch_creation_options() to objectListManager in wing.angular.js.
  * Wing defaultly uses wing.angular.js now in its templates.

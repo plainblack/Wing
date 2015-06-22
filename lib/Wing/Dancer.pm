@@ -112,7 +112,7 @@ register fetch_object => sub {
     $id ||= params->{id};
     ouch(404, 'No id specified for '.$type) unless $id;
     my $object = site_db()->resultset($type)->find($id);
-    ouch(404, $type.' not found.') unless defined $object;
+    ouch(404, $type.' '.$id.' not found.') unless defined $object;
     return $object;
 };
 
