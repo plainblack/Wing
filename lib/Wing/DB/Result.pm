@@ -260,6 +260,8 @@ sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
     $sqlt_table->add_index(name => 'idx_date_created', fields => ['date_created']);
     $sqlt_table->add_index(name => 'idx_date_updated', fields => ['date_updated']);
+    $sqlt_table->extra(mysql_collate => 'utf8_unicode_ci');
+    $sqlt_table->extra(mysql_charset => 'utf8');
 }
 
 =head2 public_params()
