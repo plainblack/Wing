@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2015-06-23
  * wing db --prep now automatically adds charset and collate options to table generation.
+ * Added view_uri and edit_uri to make it easier for folks to template stuff.
 
 2015-06-22
  * Better debug when an object is not found via fetch_object.

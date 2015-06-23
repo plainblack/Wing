@@ -2,15 +2,15 @@
 [% INCLUDE header_include.tt %]
 
 <div class="container" ng-app="[%[ lower_class ]%]App" ng-controller="[%[ lower_class ]%]Ctrl" ng-cloak>
-    <p>
-        <button class="btn btn-danger" ng-click="confirmations.toggle()"><span class="glyphicon glyphicon-question-sign"></span> <span ng-if="confirmations.disabled()">Enable</span> <span ng-if="confirmations.enabled()">Disable</span> Confirmations</button>
-    </p>
-    
     <div class="row">
     
         <div class="col-sm-7">
             <h1>[% page_title %]</h1>
             
+            <p>
+                <button class="btn btn-danger" ng-click="confirmations.toggle()"><span class="glyphicon glyphicon-question-sign"></span> <span ng-if="confirmations.disabled()">Enable</span> <span ng-if="confirmations.enabled()">Disable</span> Confirmations</button>
+            </p>
+    
             <form class="form-search">
                 <div class="input-group">
                     <input class="form-control" type="text" ng-model="query" class="search-query">
@@ -30,10 +30,10 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="[%[ lower_class ]%] in [%[ lower_class ]%]s.objects" id="{{[%[ lower_class ]%].properties.id}}">
-                        <td><a href="/[%[ lower_class ]%]/{{[%[ lower_class ]%].properties.uri_part}}">{{[%[ lower_class ]%].properties.name}}</a></td>
+                        <td><a href="{{[%[ lower_class ]%].properties.view_uri}}">{{[%[ lower_class ]%].properties.name}}</a></td>
                         <td>{{[%[ lower_class ]%].properties.date_updated|datetime:'longDate'}}</td>
                         [% IF current_user.is_admin %]<td>
-                            <a href="/[%[ lower_class ]%]/{{[%[ lower_class ]%].properties.id}}/edit" class="btn btn-primary">Edit</a>
+                            <a href="{{[%[ lower_class ]%].properties.edit_uri}}" class="btn btn-primary">Edit</a>
                             <button class="btn btn-danger" ng-click="[%[ lower_class ]%].delete()">Delete</button>
                         </td>[% END %]
                     </tr>

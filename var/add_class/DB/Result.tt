@@ -98,6 +98,26 @@ __PACKAGE__->wing_finalize_class( table_name => '[% String.new(class_name).lower
 #    $sqlt_table->add_index(name => 'idx_ending_soon', fields => ['status','end_date']);
 #};
 
+around describe => sub {
+    my ($orig, $self, %options) = @_;
+    my $out = $orig->($self, %options);
+    $out->{view_uri} = $self->view_uri;
+    if ($options{include_private}) {
+        $out->{edit_uri} = $self->edit_uri;
+    }
+    return $out;
+};
+
+sub view_uri {
+    my $self = shift;
+    return '/[% String.new(class_name).lower.append('s') %]/'.$self->uri_part;
+}
+
+sub edit_uri {
+    my $self = shift;
+    return '/[% String.new(class_name).lower.append('s') %]/'.$self->id.'/edit';
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable(inline_constructor => 0);
 
