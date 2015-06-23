@@ -75,7 +75,7 @@ INSTALLATION
 
 OPTIONAL
 
-9. Wing has a job server called Winman, which is backed by beanstalk. To run it you simply install beanstalkd, which you can download from here: http://kr.github.io/beanstalkd/
+9. Wing has a job server called Wingman, which is backed by beanstalk. To run it you simply install beanstalkd, which you can download from here: http://kr.github.io/beanstalkd/
 
 Then you can run it like so:
 
