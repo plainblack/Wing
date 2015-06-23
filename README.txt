@@ -98,7 +98,7 @@ We also provide you with tools to build out your app. For example, if you want t
  
 This will dynamically generate a NewObject.pm class file for you in /data/MyApp/lib/MyApp/DB/Result/, and create a Rest
 interface at /data/MyApp/lib/MyApp/Rest/NewObject.pm, and create a Web interface at /data/MyApp/lib/MyApp/Web/NewObject.pm.
-It will even add the lines needed in /data/MyApp/bin/rest.psgi and /data/MyApp/bin/web.psgi.
+It will even add the lines needed in /data/MyApp/lib/MyQpp/Rest.pm and /data/MyApp/lib/MyApp/Web.pm.
 
 To upgrade your database with the schema changes for your new class:
 
@@ -113,6 +113,12 @@ Once you've built out your object and you're ready to generate some web template
   wing class --template=NewObject
  
 That will add templates in /data/MyApp/views/newobject/*.tt. 
+
+We can even generate some basic tests for you:
+
+  wing class --test=NewObject
+
+That will add tests in /data/MyApp/t
 
 
 For more information type:
