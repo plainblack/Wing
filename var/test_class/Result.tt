@@ -1,0 +1,20 @@
+use lib '[% wing_app_path %]/lib', '[% wing_home_path %]/lib';
+use Test::More;
+use Wing::Perl;
+use Wing;
+use Wing::TestHelper;
+
+my $th = Wing::TestHelper->new;
+
+use_ok('[% app_namespace %]::DB::Result::[% class_name %]');
+
+my $[% lower_class %] = [% app_namespace %]::DB::Result::[% class_name %]->new({});
+
+isa_ok($[% lower_class %], '[% app_namespace %]::DB::Result::[% class_name %]');
+
+done_testing();
+
+END {
+	$th->cleanup;
+}
+

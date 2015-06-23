@@ -6,6 +6,8 @@ with respect to new features and compatibility changes.
 
 2015-06-22
  * Better debug when an object is not found via fetch_object.
+ * Added Wing::TestHelper
+ * Added wing class --test=MyClass test generator
 
 2015-06-21
  * Added fetch_creation_options() to objectListManager in wing.angular.js.

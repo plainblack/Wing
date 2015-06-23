@@ -1,0 +1,55 @@
+use lib '[% wing_app_path %]/lib', '[% wing_home_path %]/lib';
+use Wing::Perl;
+use Test::More;
+
+use [% app_namespace %]::Rest::[% class_name %];
+use [% app_namespace %]::Rest::User;
+use Wing::Rest::Session;
+use Wing::Rest::NotFound;
+use Wing::TestHelper;
+
+my $th = Wing::TestHelper->new;
+
+my $session = $th->get_session->{result};
+
+# create
+my $[% lower_class %] = $th->call('POST', '/api/[% lower_class %]', {
+	session_id => $session->{id},[% FOREACH param IN required_params %][% NEXT IF param == 'user_id' %]
+	[% param %] => '', 
+	[% END %]})->{result};
+ok exists($[% lower_class %]->{id}), 'can create a [% class_name %]';
+$th->add_to_cleanup('[% class_name %]', $[% lower_class %]->{id});
+
+# read
+my $response = $th->call('GET', '/api/[% lower_class %]/'.$[% lower_class %]->{id}, { 
+	session_id => $session->{id}, 
+	_include_relationships => 1
+	});
+is $response->{result}{id}, $[% lower_class %]->{id}, 'can fetch the [% class_name %] created';
+
+# read all 
+$response = $th->call('GET', '/api/[% lower_class %]', {
+	session_id => $session->{id}, 
+	});
+ok scalar(@{$response->{result}{items}}), 'can fetch a list of [% class_name %]';
+
+# update
+$response = $th->call('PUT', '/api/[% lower_class %]/'.$[% lower_class %]->{id}, {
+	session_id => $session->{id}, 
+	name => 'New Name'
+});
+is $response->{result}{name}, 'New Name', 'can update [% class_name %]';
+
+# delete
+$response = $th->call('DELETE', '/api/[% lower_class %]/'.$[% lower_class %]->{id}, { session_id => $session->{id} });
+is $response->{result}{success}, 1, 'can delete [% class_name %]';
+
+done_testing();
+
+
+END {
+    $th->cleanup();
+}
+
+
+1;

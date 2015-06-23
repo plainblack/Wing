@@ -22,6 +22,7 @@ sub opt_spec {
     return (
       [ 'add=s', 'generate a skeleton class' ],
       [ 'template=s', 'generate a set of skeleton templates for a class' ],
+      [ 'test=s', 'generate a set of skeleton tests for a class' ],
     );
 }
 
@@ -38,6 +39,9 @@ sub execute {
     }
     elsif ($opt->{template}) {
         template_class($opt->{template});
+    }
+    elsif ($opt->{test}) {
+        test_class($opt->{test});
     }
 }
 
@@ -93,6 +97,40 @@ sub add_class {
     }
     else {
         say $class_name, ' created';
+    }
+}
+
+sub test_class {
+    my $class_name = shift;
+    my $tt = Template->new({ABSOLUTE => 1});
+    
+    my $project = Wing->config->get('app_namespace');
+    my $project_lib = $ENV{WING_APP}.'/lib/'.$project;
+    my $object = Wing->db->resultset($class_name)->new({});
+    
+    my $app_tests = $ENV{WING_APP}.'/t';
+    say "Creating directory $app_tests";
+    make_path($app_tests);
+
+    my $vars = {
+        app_namespace => $project,
+        class_name => $class_name,
+        lower_class => lc $class_name,
+        required_params => $object->required_params,
+        wing_app_path => $ENV{WING_APP},
+        wing_home_path => $ENV{WING_HOME},
+    };
+    
+    eval {
+      $tt->process($ENV{WING_HOME}.'/var/test_class/Result.tt', $vars, $app_tests.'/50_result_'.$class_name.'.t') || die $tt->error();
+      $tt->process($ENV{WING_HOME}.'/var/test_class/Rest.tt', $vars, $app_tests.'/70_rest_'.$class_name.'.t') || die $tt->error();
+    };
+    
+    if ($@) {
+        say bleep;
+    }
+    else {
+        say $class_name, ' test created';
     }
 }
 
