@@ -19,6 +19,18 @@ get '/[% lower_class %]s' => sub {
     template '[% lower_class %]/index', $vars;
 };
 
+get '/[% lower_class %]s/:id/edit' => sub {
+    my $current_user = get_user_by_session_id();
+    my $[% lower_class %] = fetch_object('[% class_name %]');
+    my $vars = {
+        [% lower_class %]   => describe($[% lower_class %], current_user => $current_user, include_relationships => 1, include_options => 1),
+    };
+    if ($current_user) {
+        $vars->{current_user} = $current_user;
+    }
+    template '[% lower_class %]/edit', $vars;
+};
+
 get '/[% lower_class %]s/:uri_part' => sub {
     my $current_user = eval { get_user_by_session_id(); };
     my $[% lower_class %] = site_db()->resultset('[% class_name %]')->search({uri_part => param('uri_part')},{rows => 1})->single;
@@ -35,18 +47,6 @@ get '/[% lower_class %]s/:uri_part' => sub {
         $vars->{current_user} = $current_user;
     }
     template '[% lower_class %]/view', $vars;
-};
-
-get '/[% lower_class %]s/:id/edit' => sub {
-    my $current_user = get_user_by_session_id();
-    my $[% lower_class %] = fetch_object('[% class_name %]');
-    my $vars = {
-        [% lower_class %]   => describe($[% lower_class %], current_user => $current_user, include_relationships => 1, include_options => 1),
-    };
-    if ($current_user) {
-        $vars->{current_user} = $current_user;
-    }
-    template '[% lower_class %]/edit', $vars;
 };
 
 

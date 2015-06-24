@@ -32,10 +32,10 @@
                     <tr ng-repeat="[%[ lower_class ]%] in [%[ lower_class ]%]s.objects" id="{{[%[ lower_class ]%].properties.id}}">
                         <td><a href="{{[%[ lower_class ]%].properties.view_uri}}">{{[%[ lower_class ]%].properties.name}}</a></td>
                         <td>{{[%[ lower_class ]%].properties.date_updated|datetime:'longDate'}}</td>
-                        [% IF current_user.is_admin %]<td>
+                        <td ng-if="[%[ lower_class ]%].properties.can_edit == 1">
                             <a href="{{[%[ lower_class ]%].properties.edit_uri}}" class="btn btn-primary">Edit</a>
                             <button class="btn btn-danger" ng-click="[%[ lower_class ]%].delete()">Delete</button>
-                        </td>[% END %]
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -44,30 +44,31 @@
     
         </div><!-- col-sm-7 -->
         
-        [% IF current_user %]
         <div class="col-sm-5">
             <form class="form-horizontal">
                 <fieldset>
                     <legend>Create A [%[ class_name ]%]</legend>
-                    [%[ IF required_params.size ]%][%[ FOREACH field IN required_params ]%][%[ NEXT IF field == 'user_id' ]%]
-                    <div class="form-group">
-                        <label class="col-sm-4 control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-                        <div class="col-sm-8">
-                            [%[ IF field_options.exists(field) ]%][% INCLUDE select_list_include.tt options=options field="[%[ field ]%]" ng="ng-model=\"new_[%[ lower_class ]%].[%[ field ]%]\"" %][%[ ELSE ]%]<input class="form-control" type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]" ng-model="new_[%[ lower_class ]%].[%[ field ]%]">[%[ END ]%]
+                    [% IF current_user %]
+                        [%[ IF required_params.size ]%][%[ FOREACH field IN required_params ]%][%[ NEXT IF field == 'user_id' ]%]
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+                            <div class="col-sm-8">
+                                [%[ IF field_options.exists(field) ]%][% INCLUDE select_list_include.tt options=options field="[%[ field ]%]" ng="ng-model=\"new_[%[ lower_class ]%].[%[ field ]%]\"" %][%[ ELSE ]%]<input class="form-control" type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]" ng-model="new_[%[ lower_class ]%].[%[ field ]%]">[%[ END ]%]
+                            </div>
                         </div>
-                    </div>
-                    [%[ END ]%][%[ END ]%]
-                    <div class="form-group">
-                        <label class="col-sm-4 control-label"></label>
-                        <div class="col-sm-8">
-                            <button class="btn btn-primary" ng-click="create()">Create</button>
+                        [%[ END ]%][%[ END ]%]
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label"></label>
+                            <div class="col-sm-8">
+                                <button class="btn btn-primary" ng-click="create()">Create</button>
+                            </div>
                         </div>
-                    </div>
+                    [% ELSE %]
+                        You must <a href="/account?redirect_after=/[%[ lower_class ]%]s">login or create an account</a> to create a new [%[ lower_class ]%].
+                    [% END %]
                 </fieldset>
             </form>
         </div><!-- col-sm-5 -->
-        [% END %]
-    
         
     </div><!-- row -->
 </div><!-- container -->
