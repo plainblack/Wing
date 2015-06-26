@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-06-26
+ * wing.angular.js objectListManager search() now uses then() instead of success() and returns its results to be compatible with bootstrap ui typeahead.
+
 2015-06-23
  * wing db --prep now automatically adds charset and collate options to table generation.
  * Added view_uri and edit_uri to make it easier for folks to template stuff.

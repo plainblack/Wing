@@ -194,8 +194,9 @@ angular.module('wing',[])
             if (typeof options !== 'undefined' && typeof options.query !== 'undefined') {
                 params = wing.merge(params, options.query);
             }
-            $http.get(behavior.list_api, { params : params })
-            .success(function (data) {
+            return $http.get(behavior.list_api, { params : params })
+            .then(function (response) {
+                var data = response.data;
                 self.objects = [];
                 for (var index = 0; index < data.result.items.length; index++) {
                     self.objects.push(self._create_object_manager(data.result.items[index]));
@@ -207,6 +208,7 @@ angular.module('wing',[])
                     }
                 }
                 self.paging = data.result.paging;
+                return data.result.items;
             });
             return self;
         };
