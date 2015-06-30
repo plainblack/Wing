@@ -60,5 +60,8 @@ Parallel::ForkManager \
 Wing::Client \
 App::Cmd \
 pQuery \
+Imager \
+Image::ExifTool \
 Data::OpenGraph \
+File::Temp \
 Daemon::Control

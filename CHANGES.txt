@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-06-30
+ * Now requires Imager and Image::ExifTool and File::Temp
+ * Added Wing::Role::Result::S3Image
+
 2015-06-29
  * Now requires pQuery and Data::OpenGraph.
  * Added Wing::ContentFilter

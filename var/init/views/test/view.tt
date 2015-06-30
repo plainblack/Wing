@@ -1,0 +1,47 @@
+[% page_title = test.name %]
+[% INCLUDE header_include.tt %]
+<div class="container">
+    <h1><a href="/tests">Tests</a> &gt; [% page_title %]</h1>
+    <div>
+    
+        <div>
+            <b>Is_cool:</b> [% test._options._is_cool.${test.is_cool} %]
+        </div>
+    
+        <div>
+            <b>Name:</b> [% test.name %]
+        </div>
+    
+        <div>
+            <b>Description:</b> [% test.description %]
+        </div>
+    
+        <div>
+            <b>End_date:</b> [% test.end_date %]
+        </div>
+    
+        <div>
+            <b>Start_date:</b> [% test.start_date %]
+        </div>
+    
+        <div>
+            <b>User_id:</b> [% test.user.display_name %] ([% test.user_id %])
+        </div>
+    
+    
+        [% IF current_user.is_admin %]
+            <div>
+                <b>Status:</b> [% test._options._status.${test.status} %]
+            </div>
+        [% END %]
+    
+    </div>
+
+    [% IF test.can_edit %]
+        <hr>
+        <a href="[% test.edit_uri %]" class="btn btn-success">Edit</a>
+        <button class="btn btn-danger" onclick="wing.delete_object('test','');">Delete</button>
+    [% END %]
+</div>
+   
+[% INCLUDE footer_include.tt %]

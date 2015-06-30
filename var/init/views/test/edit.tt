@@ -1,0 +1,99 @@
+[% page_title = "Edit Test" %]
+[% INCLUDE header_include.tt %]
+<div class="container" ng-app="testApp" ng-controller="testCtrl" ng-cloak>
+    <h1><a href="/tests">Tests</a> &gt; <a href="{{test.properties.view_uri}}">{{test.properties.name}}</a> &gt; Edit</h1>
+
+    <form class="form-horizontal">
+		<fieldset>
+			<legend>Test</legend>
+			
+			<div class="form-group">
+				<label class="col-sm-4 control-label" for="is_cool">Is_cool</label>
+				<div class="col-sm-8">
+					<wing-select object="test" property="is_cool"></wing-select>
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-sm-4 control-label" for="name">Name</label>
+				<div class="col-sm-8">
+					<input class="form-control" type="text" id="name" autosave="test" ng-model="test.properties.name">
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-sm-4 control-label" for="description">Description</label>
+				<div class="col-sm-8">
+					<input class="form-control" type="text" id="description" autosave="test" ng-model="test.properties.description">
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-sm-4 control-label" for="end_date">End_date</label>
+				<div class="col-sm-8">
+					<input class="form-control" type="text" id="end_date" autosave="test" ng-model="test.properties.end_date">
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-sm-4 control-label" for="start_date">Start_date</label>
+				<div class="col-sm-8">
+					<input class="form-control" type="text" id="start_date" autosave="test" ng-model="test.properties.start_date">
+				</div>
+			</div>
+			
+		</fieldset>
+        
+        [% IF current_user.is_admin %]
+			<fieldset>
+				<legend>Admin Only</legend>
+				
+				[% field %]
+				<div class="form-group">
+					<label class="col-sm-4 control-label" for="status">Status</label>
+					<div class="col-sm-8">
+						<wing-select object="test" property="status"></wing-select>
+					</div>
+				</div>
+				
+			</fieldset>
+        [% END %]
+        
+    </form>
+
+    <hr>
+    <a href="{{test.properties.view_uri}}" class="btn btn-default">View</a>
+
+</div>
+
+[% foot_tags = BLOCK %]
+[% INCLUDE angular_js_include.tt %]
+[% INCLUDE bootstrapui_js_include.tt %]
+
+<script type="text/javascript">
+'use strict';
+
+var testapp = angular.module('testApp', ['ui.bootstrap','wing']);
+
+testapp.controller('testCtrl', function($scope, $http, objectManager) {
+
+    $scope.test = new objectManager({
+		fetch_options : {
+			_include_relationships: 1,
+			_include_related_objects: 1,
+			_include_options: 1,
+		},
+		fetch_api : '[% test._relationships.self %]',
+		on_update : function(properties, index) {
+			wing.success(properties.name + ' saved.');
+		},
+		on_delete : function(properties) {
+			wing.success(properties.name + ' deleted.');
+		},
+	});
+	$scope.test.fetch();    
+});
+</script>
+[% END %]
+
+[% INCLUDE footer_include.tt %]
