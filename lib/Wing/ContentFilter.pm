@@ -22,7 +22,7 @@ sub format_html {
     ${$content} =~ s{((?:(\n\s*[+-]))(?s:.+?)(?:\z|\n(?!(\s*[+-]))))}{  # convert lines starting with - or + into bulleted lists
             my $list = "<ul>".$1."</ul>";
             $list =~ s/^\s*[+-]\s*(.*?)$/<li>$1<\/li>/gmr;
-    }gme;
+    }ge;
     ${$content} =~ s/\n/<br>/g;                                         # convert carriage returns into break tags
     ${$content} =~ s/(<\/(h1|h2|h3|h4|h5|h6|ul|ol|li)>)(<br>)+/$1/g;    # some tags should not be surrounded by break tags
     ${$content} =~ s/(<br>)+(<(h1|h2|h3|h4|h5|h6|ul|ol|li)>)/$2/g;
