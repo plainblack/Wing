@@ -59,8 +59,11 @@ too
 =====head5
 ====== head6
 bar';
-Wing::ContentFilter::format_html(\$heading);
+my $heading2 = $heading;
+Wing::ContentFilter::format_html(\$heading, {headings => [1,2,3,4,5,6]});
 is $heading, 'foo<h1>heading 1</h1><h2>heading2</h2><h3>heading 3 is good</h3><h4>head 4</h4>foo = head none<br>too<h5>head5</h5><h6>head6</h6>bar', 'can format headings';
+Wing::ContentFilter::format_html(\$heading2);
+is $heading2, 'foo<br>= heading 1<h2>heading2</h2><h2>=heading 3 is good</h2><h2>== head 4</h2>foo = head none<br>too<h2>===head5</h2><h2>==== head6</h2>bar', 'by default only allow level 2 headings';
 
 my $list = 'foo
 bar
