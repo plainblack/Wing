@@ -59,4 +59,6 @@ Plugin::Tiny \
 Parallel::ForkManager \
 Wing::Client \
 App::Cmd \
+pQuery \
+Data::OpenGraph \
 Daemon::Control
