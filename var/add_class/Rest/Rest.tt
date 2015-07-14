@@ -10,11 +10,11 @@ get '/api/[% lower_class %]' => sub {
     my $user = eval { get_user_by_session_id() };
     my $[% lower_class %]s = site_db()->resultset('[% class_name %]')->search({
         -or => {
-            name => { like => '%'.params->{query}.'%'}, 
-            #description => { like => '%'.params->{query}.'%'}, # pretty damn slow, suggest using a real search engine rather than a database
+            'me.name' => { like => '%'.params->{query}.'%'}, 
+            #'me.description' => { like => '%'.params->{query}.'%'}, # pretty damn slow, suggest using a real search engine rather than a database
         }
     }, {
-        order_by => { -desc => 'date_created' }
+        order_by => { -desc => 'me.date_created' }
     });
     return format_list($[% lower_class %]s, current_user => $user); 
 };
