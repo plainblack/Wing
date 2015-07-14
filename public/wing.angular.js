@@ -208,7 +208,11 @@ angular.module('wing',[])
                     }
                 }
                 self.paging = data.result.paging;
-                return data.result.items;
+                var items = data.result.items;
+                if (typeof options !== 'undefined' && typeof options.prepend_item !== 'undefined') { // useful for typeahead
+                    items.unshift(options.prepend_item);
+                }
+                return items;
             });
             return self;
         };

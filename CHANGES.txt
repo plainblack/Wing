@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-07-14
+ * Added an option to objectListManager fetch() to prepend an item.
+
 2015-06-30
  * Now requires Imager and Image::ExifTool and File::Temp
  * Added Wing::Role::Result::S3Image
