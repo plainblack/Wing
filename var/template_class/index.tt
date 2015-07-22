@@ -106,7 +106,7 @@ var [%[ lower_class ]%]app = angular.module('[%[ lower_class ]%]App', ['ui.boots
                 wing.success(properties.name + ' deleted.');
             },
         });
-        $scope.[%[ lower_class ]%]s.search(); // calling .list() instead of .search() would return all objects, instead of paging
+        $scope.[%[ lower_class ]%]s.search(); // calling .all() instead of .search() would return all objects, instead of paging
     };
     $scope.search();
 

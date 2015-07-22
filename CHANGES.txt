@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-07-22
+ * Added call() to objectManager in wing.angular.js to allow for methods that should automatically update the object that are not part of CRUD.
+ * Fixed a problem with the auto generated templates instructing to call .list() instead of .all()
+
 2015-07-14
  * Added an option to objectListManager fetch() to prepend an item.
 
