@@ -136,6 +136,17 @@ register generate_relationship => sub {
         my $current_user = eval{get_user_by_session_id(permissions => $options{permissions})};
         my $object = fetch_object($wing_object_type);
         my $data = $object->$relationship_name();
+        if (exists $options{queryable}) {
+            my %query;
+            foreach my $name (@{$options{queryable}}) {
+                $query{$name} = { like => '%'.param('query').'%' };
+            }
+            my %where = %query;
+            if (scalar(keys %query)) {
+                %where = ( -or => \%query );
+            }
+            $data = $data->search(\%where);
+        }
         return format_list($data, current_user => $current_user); 
     };
 };
@@ -143,7 +154,16 @@ register generate_relationship => sub {
 register generate_all_relationships => sub {
     my ($wing_object_type, %options) = @_;
     foreach my $name (site_db()->resultset($wing_object_type)->result_source->relationships) {
-        generate_relationship($wing_object_type, $name, %options);
+        my %rel_options;
+        if (exists $options{named_options}) {
+            if (exists $options{named_options}{$name}) {
+                %rel_options = (%{$options{named_options}{$name}});
+            }
+        }
+        if (exists $options{permissions}) {
+            $rel_options{permissions} = $options{permissions};
+        }
+        generate_relationship($wing_object_type, $name, %rel_options);
     }
 };
 

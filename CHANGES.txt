@@ -7,6 +7,8 @@ with respect to new features and compatibility changes.
 2015-07-22
  * Added call() to objectManager in wing.angular.js to allow for methods that should automatically update the object that are not part of CRUD.
  * Fixed a problem with the auto generated templates instructing to call .list() instead of .all()
+ * Added named_options option to generate_all_relationships() to be passed into individual generate_relationship() calls in Wing::Rest.
+ * Added queryable option to generate_relationship() in Wing::Rest.
 
 2015-07-14
  * Added an option to objectListManager fetch() to prepend an item.
