@@ -114,7 +114,7 @@ var [%[ lower_class ]%]app = angular.module('[%[ lower_class ]%]App', ['ui.boots
         $scope.[%[ lower_class ]%]s.create($scope.new_[%[ lower_class ]%], {
             on_success : function(properties) {
                 wing.success('[%[ class_name ]%] added.');
-                window.location.href = '/[%[ lower_class ]%]s/'+properties.id+'/edit';                
+                window.location.href = properties.edit_uri;
             },
         })
     };
