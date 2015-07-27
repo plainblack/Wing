@@ -83,14 +83,14 @@ sub extension {
 }
 
 sub initialize {
-    my ($class, $related_id, $filename, $path) = @_;
+    my ($class, $related_id, $filename, $path, $noresize) = @_;
     my $log = Wing->log;
     $log->info('Trying to handle upload for '.$path);
     my $self = Wing->db->resultset($class)->new({});
     $self->id(Data::GUID->new->as_string); # want the id and haven't inserted yet
     $self->image_relationship_id($related_id);
     $self->filename($self->fix_filename($filename));
-    $self->resize_image($path);
+    $self->resize_image($path) unless $noresize;
     my $info = Image::ExifTool::ImageInfo($path, [], { Exclude => ['FileName','Directory','FilePermissions']});
     my $meta;
     while ( my ($key, $value) = each %{$info}) {
@@ -118,9 +118,10 @@ sub generate_thumbnail {
     my ($self, $path) = @_;
     my ($fh, $filename) = tempfile(undef, SUFFIX => $self->extension);
     my $image = Imager->new(file => $path) or ouch(500, Imager->errstr);
-        $image = $image->scale(xpixels => $self->thumbnail_size) or ouch(500, $image->errstr);
-        $image->write(file => $filename) or ouch(500, $image->errstr);
-    return $path;
+    my $max = $self->thumbnail_size;
+    $image = $image->scale(xpixels => $max, ypixels => $max, type => 'min') or ouch(500, $image->errstr);
+    $image->write(file => $filename) or ouch(500, $image->errstr);
+    return $filename;
 }
 
 sub resize_image {
