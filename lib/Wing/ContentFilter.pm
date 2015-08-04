@@ -109,6 +109,7 @@ sub format_link {
         unless ($uri->host eq Wing->config->get('sitename')) {
             $link .= ' ['.$uri->host.']';
         }
+        return $link;
     }   
     else {
         warn $response->status_line;
