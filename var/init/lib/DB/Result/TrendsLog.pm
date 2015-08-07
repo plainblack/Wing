@@ -12,6 +12,12 @@ with 'Wing::Role::Result::TrendsLog';
 
 __PACKAGE__->wing_finalize_class( table_name => 'trends_logs');
 
+#around trend_deltas => sub {
+#    my ($orig, $self) = @_;
+#    my $out = $orig->($self);
+#    $out->{groups_total} = sub { Wing->db->resultset('Group')->count };
+#    return $out;
+#};
 
 no Moose;
 __PACKAGE__->meta->make_immutable(inline_constructor => 0);
