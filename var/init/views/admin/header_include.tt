@@ -13,6 +13,7 @@
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li><a href="/admin/users">Users</a></li>
+            <li><a href="/admin/trends/reports">Trends</a></li>
             <li><a href="/admin/wingman">Wingman</a></li>
           </ul>
         </div><!--/.nav-collapse -->

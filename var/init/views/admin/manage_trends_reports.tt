@@ -1,0 +1,156 @@
+[% page_title = "Manage Trends Reports" %]
+[% head_tags = BLOCK %]
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css">
+  <style>
+  ol { list-style-type: none; margin: 0; padding: 0; float: left; min-height: 600px; width: 250px; background-color: #555;}
+  ol li {  width: 240px; }
+  #allreports li { list-style-type: none; }
+  #report_root .glyphicon-arrow-left { display: none; }
+  </style>
+[% END %]
+[% INCLUDE admin/header_include.tt %]
+
+<div class="container">
+
+  
+            <input class="form-control" type="hidden" id="report_id">
+            <label for="report_name">Report Name</label> <input type="text" id="report_name" class="autosave form-control">
+    
+    <div class="row">
+        <div class="col-sm-4">
+            <h3>Report Trends</h3>
+            <ol class="dd-list" id="report_root"></ol>
+        </div>
+        <div class="col-sm-4">
+            <h3><form class="form-inline form-search">Available Trends</h3> 
+            <div class="input-group">
+                <div class="input-group-addon">Filter</div>
+                <input type="text" class="input-sm form-control" id="trend_filter"></div></form>
+            <ol id="available_fields" class="droptrue"></ol>
+        </div>
+        <div class="col-sm-4">
+ 
+             <h3>Add A Report</h3>
+                <input id="new_report" type="text" class="form-control"><br>
+                <button class="btn btn-success" onclick="add_report()">Add Report</button>
+             
+             <h3>Existing Reports</h3>
+             <ul id="allreports"></ul>
+        </div>
+    </div>
+
+
+
+</div>
+
+[% foot_tags = BLOCK %]
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/jquery-ui.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.1.2/handlebars.min.js" type="text/javascript"></script>
+<script id="field-template" type="text/x-handlebars-template">
+    <li class="ui-state-default" name="{{name}}">
+        <a onclick="move_trend('{{name}}')"><span class="glyphicon glyphicon-arrow-left"></span></a> <span class="glyphicon glyphicon-move"></span> <input type="text" class="input-medium" value="{{label}}" name="{{name}}" onchange="save_report()" title="{{name}}"> <span class="glyphicon glyphicon-info-sign" title="{{name}}" data-toggle="tooltip"></span>
+    </li>
+</script>
+<script id="report-link-template" type="text/x-handlebars-template">
+    <li id="{{id}}"><a href="javascript:wing.delete_object('trendsreport','{{id}}');" class="btn btn-danger btn-xs">X</a> <a href="javascript:load_report('{{id}}')">{{name}}</a></li>
+</script>
+<script type="text/javascript">
+var all_fields = [];
+var field_template = Handlebars.compile($("#field-template").html());
+var report_link_template = Handlebars.compile($("#report-link-template").html());
+
+$(document).ready(function() {
+    wing.ajax('GET','trendsnames',{}, function(data){
+        all_fields = data.result.names;
+        wing.ajax('GET','trendsreport',{}, function(data) {
+            var first = 1;
+            for (var x in data.result.items) {
+                if (first) {
+                    first = 0;
+                    build_report(data.result.items[x]);
+                }
+                $('#allreports').append(report_link_template({id : data.result.items[x].id , name : data.result.items[x].name}));
+            }
+        });
+    });
+    
+    $('#report_name').on('change', function() { save_report(); });
+
+    $( "#report_root" ).sortable({
+      connectWith: "ol",
+      update : function() {
+        save_report();
+      }
+      ,
+    });
+ 
+    $( "#available_fields" ).sortable({
+      connectWith: "ol"
+    });
+    
+    $('#trend_filter').on('keyup', function(){
+        var filter = $('#trend_filter').val();
+        $('#available_fields li').removeClass('hide');
+        if (filter != "") {
+            $('#available_fields li').addClass('hide');
+            $('#available_fields li[name*="'+filter+'"]').removeClass('hide');
+        }
+    })
+
+});
+
+function move_trend(name) {
+    wing.info(name);
+    $('#available_fields li[name="'+name+'"]').appendTo('#report_root');
+    save_report();
+}
+
+function save_report() {
+    var formatted = [];
+    $.each($('#report_root li input'), function(index,input) {
+        formatted.push({name : input.name, label : input.value});
+    });
+    wing.ajax('PUT','trendsreport/'+$('#report_id').val(), {
+        fields : window.JSON.stringify(formatted),
+        name : $('#report_name').val()
+    }, function(data, text_status, jqxhr) {
+        wing.success('Saved report.')
+    });
+}
+
+function build_report(report) {
+    var available_fields = all_fields.slice(0); // clone array
+    $('#report_id').val(report.id);
+    $('#report_name').val(report.name);
+    $('#report_root').html('');
+    for (var x in report.fields) {
+        var field = report.fields[x];
+        $('#report_root').append(field_template(field));
+        available_fields.splice(available_fields.indexOf(field.name),1);
+    }
+    $('#available_fields').html('');
+    for (var x in available_fields.sort()) {
+        var name = available_fields[x];
+        $('#available_fields').append(field_template({name : name, label : name}));
+    }
+    $('i').tooltip();
+}
+
+function load_report(id) {
+    wing.ajax('GET', 'trendsreport/'+id, {}, function(data) {
+        build_report(data.result);
+    });
+}
+
+function add_report() {
+    var name = $('#new_report').val();
+    $('#new_report').val('');
+    wing.ajax('POST','trendsreport', { name : name }, function(data) {
+        $('#allreports').append(report_link_template({ id : data.result.id, name : data.result.name}));
+        build_report(data.result);
+    });
+}
+
+</script>
+[% END %]
+[% INCLUDE admin/footer_include.tt %]

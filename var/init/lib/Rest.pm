@@ -6,6 +6,7 @@ use Wing::Rest::Session;
 use Wing::Rest::User;
 use Wing::Rest::Status;
 use Wing::Rest::Wingman;
+use Wing::Rest::Trends;
 use Wing::Rest::NotFound;
 
 1;
