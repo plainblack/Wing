@@ -11,7 +11,7 @@ with 'Wing::Role::Result::Trendy';
 #    supervisor              => {},
 #);
 
-before delete => sub {
+after delete => sub {
     my $self = shift;
     $self->log_trend('users_deleted', 1, $self->username.' / '.$self->id);
 };
