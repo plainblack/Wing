@@ -3,13 +3,13 @@
 <div class="container" ng-app="[%[ lower_class ]%]App" ng-controller="[%[ lower_class ]%]Ctrl" ng-cloak>
     <h1><a href="/[%[ lower_class ]%]s">[%[ class_name ]%]s</a> &gt; <a href="{{[%[ lower_class ]%].properties.view_uri}}">{{[%[ lower_class ]%].properties.name}}</a> &gt; Edit</h1>
 
-    <form class="form-horizontal">
+    <form>
 		<fieldset>
 			<legend>[%[ class_name ]%]</legend>
 			[%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%]
 			<div class="form-group">
-				<label class="col-sm-4 control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-				<div class="col-sm-8">
+				<label class="control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+				<div>
 					[%[ IF field_options.exists(field) ]%]<wing-select object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select>[%[ ELSE ]%]<input class="form-control" type="text" id="[%[ field ]%]" autosave="[%[ lower_class ]%]" ng-model="[%[ lower_class ]%].properties.[%[ field ]%]">[%[ END ]%]
 				</div>
 			</div>
@@ -22,8 +22,8 @@
 				[%[ FOREACH field IN admin_postable_params ]%]
 				[% field %]
 				<div class="form-group">
-					<label class="col-sm-4 control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-					<div class="col-sm-8">
+					<label class="control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+					<div>
 						[%[ IF field_options.exists(field) ]%]<wing-select object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select>[%[ ELSE ]%]<input class="form-control" type="text" id="[%[ field ]%]" autosave="[%[ lower_class ]%]" ng-model="[%[ lower_class ]%].properties.[%[ field ]%]">[%[ END ]%]
 					</div>
 				</div>
