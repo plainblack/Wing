@@ -4,7 +4,7 @@
 <div class="container" ng-app="[%[ lower_class ]%]App" ng-controller="[%[ lower_class ]%]Ctrl" ng-cloak>
     <div class="row">
     
-        <div class="col-sm-7">
+        <div class="col-sm-8">
             <h1>[% page_title %]</h1>
             
             <p>
@@ -42,24 +42,23 @@
             
             <pagination max-size="5" rotate="false" ng-click="[%[ lower_class ]%]s.search()" items-per-page="[%[ lower_class ]%]s.paging.items_per_page" direction-links="false" boundary-links="true" total-items="[%[ lower_class ]%]s.paging.total_items" ng-model="[%[ lower_class ]%]s.paging.page_number"></pagination>
     
-        </div><!-- col-sm-7 -->
+        </div><!-- col-sm-8 -->
         
-        <div class="col-sm-5">
-            <form class="form-horizontal">
+        <div class="col-sm-4">
+            <form>
                 <fieldset>
                     <legend>Create A [%[ class_name ]%]</legend>
                     [% IF current_user %]
                         [%[ IF required_params.size ]%][%[ FOREACH field IN required_params ]%][%[ NEXT IF field == 'user_id' ]%]
                         <div class="form-group">
-                            <label class="col-sm-4 control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-                            <div class="col-sm-8">
+                            <label class="control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+                            <div>
                                 [%[ IF field_options.exists(field) ]%][% INCLUDE select_list_include.tt options=options field="[%[ field ]%]" ng="ng-model=\"new_[%[ lower_class ]%].[%[ field ]%]\"" %][%[ ELSE ]%]<input class="form-control" type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]" ng-model="new_[%[ lower_class ]%].[%[ field ]%]">[%[ END ]%]
                             </div>
                         </div>
                         [%[ END ]%][%[ END ]%]
                         <div class="form-group">
-                            <label class="col-sm-4 control-label"></label>
-                            <div class="col-sm-8">
+                            <div>
                                 <button class="btn btn-primary" ng-click="create()">Create</button>
                             </div>
                         </div>
@@ -68,7 +67,7 @@
                     [% END %]
                 </fieldset>
             </form>
-        </div><!-- col-sm-5 -->
+        </div><!-- col-sm-4 -->
         
     </div><!-- row -->
 </div><!-- container -->
