@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-09-19
+ * Now generating the _field_name_options method in Wing::Role::Result::Field. Example: _color_options for a field called color.
+
 2015-08-07
  * Added the trends system to track stats over time.
 

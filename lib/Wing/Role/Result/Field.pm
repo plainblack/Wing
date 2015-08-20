@@ -142,6 +142,8 @@ Including options will also generate a method in your class called C<field_name_
 
 A hash where the keys are the previously defined C<options> array, and the values are the human readable labels. 
 
+Including options will also generate a method in your class called C<_field_name_options>. So if your field name is C<color> then the method generated would be C<_color_options>. This method is then called by C<field_options> for generating the options on web services.
+
 =item describe_method
 
 The name of a method in this class. This method will be called when C<describe> is called on the object to serialize this field. Most fields don't need special serialziation so most of the time this isn't necessary.
@@ -289,6 +291,16 @@ sub wing_field {
                 }
                 else {
                     return $options->{options};
+                }
+            });
+            my $_field_options_method = '_'.$field.'_options';
+            $class->meta->add_method( $_field_options_method => sub {
+                my ($self, %describe_options) = @_;
+                if (ref $options->{_options} eq 'CODE') {
+                    return $options->{_options}->($self, %describe_options);
+                }
+                else {
+                    return $options->{_options};
                 }
             });
             $class->meta->add_around_method_modifier(field_options => sub {
