@@ -324,6 +324,26 @@ sub admin_postable_params {
     return [];
 }
 
+=head2 can_delete(user)
+
+Can this user delete this object? By default if you C<can_edit> an object you can delete it.
+
+=over
+
+=item user
+
+A reference to a user object.
+
+=back
+
+=cut
+
+sub can_delete {
+    my ($self, $user) = @_;
+    return 1 if defined $user && $user->is_admin;
+    ouch(450, 'Insufficient privileges for '.$self->wing_object_name.'.');
+}
+
 =head2 can_edit(user)
 
 Can this user edit this object? By default C<is_admin> in L<Wing::Role::Result::User> can edit the object. All other privileges must be added. L<Ouch>es C<450> if the privileges are not sufficient.
