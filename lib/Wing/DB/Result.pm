@@ -340,6 +340,7 @@ A reference to a user object.
 
 sub can_edit {
     my ($self, $user) = @_;
+    Wing->log->debug(ref $user);
     return 1 if defined $user && $user->is_admin;
     ouch(450, 'Insufficient privileges for '.$self->wing_object_name.'.');
 }
@@ -378,7 +379,7 @@ A reference to a user object.
 =cut
 
 sub can_delete {
-    my ($self, $user) = @_;
+    my $self = shift;
     return $self->can_edit(@_);
 }
 
