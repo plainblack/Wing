@@ -48,7 +48,7 @@ before wing_finalize_class => sub {
 
 around can_edit => sub {
     my ($orig, $self, $user) = @_;
-    return 1 if $self->user->can_edit($user);
+    return 1 if eval { $self->user->can_edit($user) };
     return $orig->($self, $user);
 };
 

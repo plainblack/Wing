@@ -7,6 +7,7 @@ with respect to new features and compatibility changes.
 2015-08-25
  * Added local_cache_path requirement to Role::S3Image.
  * Added fetch() to Role::S3Image.
+ * Fixed a bug in Role::UserControlled where you couldn't stack multiple "Controlled" roles, becasue UserControlled would throw an exception if it didn't pass the first step.
 
 2015-08-24
  * Added can_delete() to Wing::DB::Result.

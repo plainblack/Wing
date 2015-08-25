@@ -87,7 +87,7 @@ before wing_finalize_class => sub {
 around can_edit => sub {
     my ($orig, $self, $user, $tracer) = @_;
     if ($self->user_id) {
-        return 1 if $self->user->can_edit($user);
+        return 1 if eval{ $self->user->can_edit($user) };
     }
     elsif ($self->tracer && $tracer) {
         return 1 if $self->tracer eq $tracer;
