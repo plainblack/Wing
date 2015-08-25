@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-08-25
+ * Added local_cache_path requirement to Role::S3Image.
+ * Added fetch() to Role::S3Image.
+
 2015-08-24
  * Added can_delete() to Wing::DB::Result.
 

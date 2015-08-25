@@ -15,6 +15,7 @@ requires 's3_bucket_name';
 requires 'image_relationship_name';
 requires 'max_image_size';
 requires 'thumbnail_size';
+requires 'local_cache_path';
 
 before wing_finalize_class => sub {
     my ($class) = @_;
@@ -191,5 +192,22 @@ around describe => sub {
     }
     return $out;
 };
+
+sub fetch {
+    my $self = shift;
+    my $uri = $self->image_uri;
+    my $filename = $self->filename;
+    my $path = $self->local_cache_path . '/' . $filename;
+    unless (-f $path) {
+        Wing->log->info('Fetching '.$filename.' from S3');
+        my $command = '/usr/bin/curl -S -o '.$path.' --retry 3 --create-dirs --url http:'.$uri;
+        Wing->log->debug($command);
+        unless (system($command) == 0) {# download with curl so not to eat up too much ram in this process
+            Wing->log->error('Could not retrieve file '.$filename.' from S3: '.$!);
+            ouch 504, 'Could not retrieve file '.$filename.' from S3: '.$!;
+        }
+    }
+    return $path;
+}
 
 1;
