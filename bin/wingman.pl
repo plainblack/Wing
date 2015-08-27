@@ -13,6 +13,7 @@ use Getopt::Long;
 use Parallel::ForkManager;
 
 my @tubes;
+my @cli = @ARGV;
 GetOptions(
     'help'              => \my $help,
     'debug-path=s'         => \my $debug,
@@ -33,6 +34,8 @@ if ($help) {
 STOP
     exit;
 }
+
+$0 = 'wingman '. join(' ', @cli);
 
 our @children;
 my $clean_up_and_shut_down = sub {
