@@ -35,7 +35,7 @@ STOP
     exit;
 }
 
-$0 = 'wingman '. join(' ', @cli);
+$0 = 'wingman';
 
 our @children;
 my $clean_up_and_shut_down = sub {
