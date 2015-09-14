@@ -64,7 +64,6 @@ has things_to_cleanup => (
 
 sub add_to_cleanup {
     my $self = shift;
-    my $thing = shift;
     push @{$self->things_to_cleanup}, [@_];
 }
 
@@ -113,7 +112,7 @@ sub cleanup {
                 warn "Could not delete ".ref($thing->[0])." with id ".$thing->[0]->id." because ".bleep($@);
             }
         }
-        else {
+        elsif ($thing->[0] && $thing->[1]) {
             my $object = Wing->db->resultset($thing->[0])->find($thing->[1]);
             if (defined $object) {
                 if ($self->debug_enabled) {
