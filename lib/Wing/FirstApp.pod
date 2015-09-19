@@ -46,15 +46,11 @@ C<edit> can be C<postable>, C<required>, C<unique>, C<admin>, or left out entire
 
 =head2 Using Roles
 
-There are other roles you can use in your app, and you can even create your own. Check out C</data/Wing/lib/Role/Result> for other roles. For now, let's use two.
+There are other roles you can use in your app, and you can even create your own. Check out C</data/Wing/lib/Role/Result> for other roles. For now, let's use one.
 
  with 'Wing::Role::Result::UserControlled';
 
-The C<UserControlled> role makes the object editable only by the user that owns the object (as well as admins). Let's also add:
-
- with 'Wing::Role::Result::UriPart';
-
-The C<UriPart> role auto-generates a URI Part based upon the name of the object. This allows us to make the object accessible via a human-friendly URL rather than an ID. 
+The C<UserControlled> role makes the object editable only by the user that owns the object (as well as admins). 
 
 =head2 The Completed Class
 
@@ -127,86 +123,13 @@ B<NOTE:> The templates that are created are functional, but not pretty. It's you
 
 =head2 Testing
 
-At this point we can test our app. Just fire up nginx and the other services using the description from README.txt. And then you can access it at C<http://localhost/page>
-
-=head2 Updating the Web Interface
-
-You may have noticed that when you view your page it's being accessed via it's ID still. We'll have a do a few updates to make it work via the URI Part.
-
-=head3 Updating The Routes
-
-We need to edit C<lib/MyApp/Web/Page.pm> to display via our URI part rather than the id. The first route we need to update is:
-
- post '/page'
-
-In the last line of that route we reference the page by ID so let's change that from 
-
- return redirect '/page/'.$page->id.'?success_message=Created successfully';
-
-To this:
-
- return redirect '/page/'.$page->uri_part.'?success_message=Created successfully';
-
-Then we need to update the view route itself. It is called:
-
- get '/page/:id'
-
-We need to change that route to:
-
- get '/page/:uri_part'
-
-And then we need to change how we fetch the page. Instead of:
-
- my $page = fetch_object('Page');
-
-We need to do:
-
- my $page = site_db()->resultset('Page')->search({uri_part => params->{uri_part}}, { rows => 1})->single;
-
-And finally, we need to update the put route:
-
- put '/page/:id'
-
-We're actually going to keep the route as ID here. We don't care if we're referencing the page by ID when editing it. We just care about this for viewing purposes. But we do need to update the route after redirection. From this:
-
-    if (hug) {
-        return redirect '/page/'.$page->id.'?error_message='.bleep;
-    }
-    else {
-        $page->update;
-        return redirect '/page/'.$page->id.'?success_message=Created successfully';
-    }
-
-To this:
-
-    if (hug) {
-        return redirect '/page/'.$page->uri_part.'?error_message='.bleep;
-    }
-    else {
-        $page->update;
-        return redirect '/page/'.$page->uri_part.'?success_message=Created successfully';
-    }
-
-=head3 Updating The Templates
-
-Updating the web handler alone won't do everything we need it to do. We also need to update the C<index.tt> template so that it's linking via the URI Part. Edit C<views/page/index.tt> and replace:
-
- <td><a href="/page/${id}">${name}</a></td>
-
-with this:
-
- <td><a href="/page/${uri_part}">${name}</a></td>
-
-
-=head3 More Testing
-
-At this point you should be able to browse your new class via URI parts instead of ids. 
+At this point we can test our app. Just fire up nginx and the other services using the description from README.txt. And then you can access it at C<http://localhost/pages>
 
 =head2 Making A Class Act As Your Home Page
 
 You may want to make a particular class respond as your home page. That's pretty simple. All you have to do is update this route:
 
- get '/page'
+ get '/pages'
 
 To be this:
 
@@ -215,37 +138,14 @@ To be this:
 Now it will respond at C<http://localhost/> rather than C<http://localhost/page>.  If you prefer, you can leave the route as it is, and just install another route that redirects you, like this:
 
  get '/' => sub {
-	redirect '/page';
+	redirect '/pages';
  };
-
-=head2 Enabling Autosave
-
-If you're running a site where it's safe to rely 100% on Javascript and Ajax, then you can start to take advantage of Wing's incredible REST API features. The first and easiest of these is called Autosave. How it works is that every time a user updates a field, autosave automatically posts that change back to the server, so they never have to hit the save button.
-
-To enable it, you'll edit your C<view/page/view_edit.tt> template and update all of your form fields to have a CSS class called C<autosave>. Here's an example:
-
- <input type="text' id="name" name="name" value="[% page.name FILTER html %]" class="autosave">
-
-And then at the bottom of the page in the C<foot_tags> block, you'll add this little bit of javascript.
-
- wing.attach_autosave('page/[% page.id %]', '.autosave');
-
-That says, we're going to call C<PUT /api/page/xxx> every time a field with the class C<.autosave> is modified and save the value of that field. There's no special magic to the class name. You could call it "quicksave" instead of "autosave" if you like.
-
-=head3 Advanced Autosave Usage
-
-If you enable every field in the form with autosave, then you can actually remove the "Save" button from the form all together. You could even get rid of the C<put '/page/:id'> route if you wanted to, since we're not saving via the web form anymore, but instead using the auto-generate REST API. However, if you're in an environment where you'd prefer to have a non-AJAX backup, then just leave the form as is. Users can use the autosave or the save button just fine. 
 
 =head2 Integrating with AngularJS
 
 Wing supports AngularJS out of the box and even has a nice convenience wrapper for RESTful interaction. Here's how you take advantage of it in an example app:
  
- var app = angular.module('myApp', []);
- 
- app.config( function($httpProvider) {
-    $httpProvider.defaults.withCredentials = true;
-    $httpProvider.interceptors.push(wing.angular_http_interceptor);
- });
+ var app = angular.module('myApp', ['wing']);
 
 Now you can write your AngularJS app as normal, and any calls like this will automatically get some Wing helpers added to them:
 
