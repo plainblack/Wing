@@ -29,6 +29,7 @@ any qr{/api/_test.*} => sub {
     my $out = { 
         method  => request->method,
         params  => {params},
+        env     => \%ENV,
         path    => request->path,
         tracer  => $tracer,
     };
