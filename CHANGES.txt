@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-09-05
+ * Added a line to bin/dataapps.sh to make Wing compatible with Mac OS X El Capitan.
+
 2015-08-25
  * Added local_cache_path requirement to Role::S3Image.
  * Added fetch() to Role::S3Image.
