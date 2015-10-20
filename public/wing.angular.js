@@ -488,7 +488,7 @@ angular.module('wing',[])
  *
  * which is the equivalent of
  *
- * <input ng-model="object.properties.property_name" options="{ updateOn: 'blur' }" ng-change="object.save('property_name')">
+ * <input ng-model="object.properties.property_name" ng-model-options="{ updateOn: 'blur' }" ng-change="object.save('property_name')">
  * 
  */
 
