@@ -139,12 +139,25 @@ register generate_relationship => sub {
         if (exists $options{queryable}) {
             my %query;
             foreach my $name (@{$options{queryable}}) {
-                $query{$name} = { like => '%'.param('query').'%' };
+                $query{$name} = { like => '%'.param('query').'%' } if defined param('query');
             }
             my %where = %query;
             if (scalar(keys %query)) {
                 %where = ( -or => \%query );
             }
+            $data = $data->search(\%where);
+        }
+        if (exists $options{qualifiers}) {
+            my %where;
+            foreach my $name (@{$options{qualifiers}}) {
+                warn $name;
+                if (param($name) ne '') {
+                    warn param($name);
+                    $where{$name} = param($name);
+                }
+            }
+            use Data::Dumper;
+            warn Dumper \%where;
             $data = $data->search(\%where);
         }
         return format_list($data, current_user => $current_user); 
