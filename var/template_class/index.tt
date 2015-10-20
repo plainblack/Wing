@@ -11,7 +11,7 @@
                 <button class="btn btn-danger" ng-click="confirmations.toggle()"><span class="glyphicon glyphicon-question-sign"></span> <span ng-if="confirmations.disabled()">Enable</span> <span ng-if="confirmations.enabled()">Disable</span> Confirmations</button>
             </p>
     
-            <form class="form-search">
+            <form class="form-search" ng-submit="search()">
                 <div class="input-group">
                     <input class="form-control" type="text" ng-model="query" class="search-query">
                     <span class="input-group-btn">

@@ -5,7 +5,7 @@
 
 <div class="col-sm-7">
 
-        <form class="form-search">
+        <form class="form-search" ng-submit="search()">
             <div class="input-group">
                 <input class="form-control" type="text" ng-model="query" class="search-query">
                 <span class="input-group-btn">
