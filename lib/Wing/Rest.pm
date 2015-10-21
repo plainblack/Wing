@@ -150,14 +150,10 @@ register generate_relationship => sub {
         if (exists $options{qualifiers}) {
             my %where;
             foreach my $name (@{$options{qualifiers}}) {
-                warn $name;
                 if (param($name) ne '') {
-                    warn param($name);
                     $where{$name} = param($name);
                 }
             }
-            use Data::Dumper;
-            warn Dumper \%where;
             $data = $data->search(\%where);
         }
         return format_list($data, current_user => $current_user); 
