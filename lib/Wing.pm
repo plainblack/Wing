@@ -251,6 +251,7 @@ sub send_templated_email {
         };
         if (hug) {
             __PACKAGE__->log->fatal('Email Problem: '.bleep);
+            __PACKAGE__->log->debug('Defective Email: '.$email->as_string);
             ouch 504, 'Could not send email. Mail service down.', bleep;
         }
     }
