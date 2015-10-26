@@ -3,7 +3,7 @@ jQuery.ajaxSettings.cache = false;
 
 var wing = new Object();
 
-wing.merge = function (obj1,obj2) { 
+wing.merge = function (obj2,obj1) {  // reverse obj1 and 2 because people expect that last write wins
     var result = {}; // return result
     for (var i in obj1) {      // for every property in obj1 
         if ((i in obj2) && (typeof obj1[i] === "object") && (i !== null)) {
