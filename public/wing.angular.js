@@ -330,7 +330,7 @@ angular.module('wing',[])
         
         this.create = function(properties, options) {
             var self = this;
-            var params = wing.merge(properties, behavior.fetch_options);
+            var params = wing.merge(behavior.fetch_options, properties);
             $http.post(behavior.create_api, params)
             .success(function (data) {
                 self.properties = data.result;
