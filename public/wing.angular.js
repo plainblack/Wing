@@ -240,7 +240,33 @@ angular.module('wing',[])
             });
             return self;
         };
+
+	this.options_api = function() {
+	    if (behavior.options_api != null) {
+                return behavior.options_api;
+            }
+            return behavior.create_api + '/_options';
+        };
         
+        this.fetch_options = function(store_data_here, options) {
+            var self = this;
+            $http.get(self.options_api(), {})
+            .success(function (data) {
+		for(var key in data.result) {
+    		    store_data_here[key] = data.result[key];
+		}
+                if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
+                    options.on_success(data.result);
+                }
+            })
+            .error(function (data) {
+                if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
+                    options.on_error(data.result);
+                }
+            });
+            return self;
+        };
+
         this.create = function(properties, options) {
             var self = this;
             var new_object = self._create_object_manager(properties);
