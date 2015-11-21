@@ -508,6 +508,30 @@ angular.module('wing',[])
 }])
 
 /*
+ * Force value to be a number. 
+ */
+
+.directive('forceNumber', [function() {
+    return {
+        restrict: 'A',
+        require: '?ngModel',
+        link: function(scope, element, attrs, ngModel) {
+            if (
+                ngModel
+            ) {
+                ngModel.$formatters.push(function(modelValue) {
+                    return Number(modelValue);
+                });
+
+                ngModel.$parsers.push(function(viewValue) {
+                    return Number(viewValue);
+                });
+            }
+        }
+    }
+}])
+
+/*
  * Gives you a nice wrapper so you can automatically save a field like wing.attach_autosave(). You can do:
  *
  * <input ng-model="object.properties.property_name" autosave="object">
