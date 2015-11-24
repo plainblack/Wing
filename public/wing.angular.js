@@ -212,12 +212,18 @@ angular.module('wing',[])
                 if (typeof options !== 'undefined' && typeof options.prepend_item !== 'undefined') { // useful for typeahead
                     items.unshift(options.prepend_item);
                 }
+                if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
+                    options.on_success();
+                }
+                if (typeof behavior.on_success !== 'undefined') {
+                    behavior.on_success();
+                }
                 return items;
             });
             return self;
         };
         
-        this.all = function(page_number) {
+        this.all = function(options, page_number) {
             var self = this;
             var params = wing.merge({
                 _page_number: page_number || 1,
@@ -235,7 +241,13 @@ angular.module('wing',[])
                     }
                 }
                 if (data.result.paging.page_number < data.result.paging.total_pages) {
-                    self.all(data.result.paging.next_page_number);
+                    self.all(options, data.result.paging.next_page_number);
+                }
+                if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
+                    options.on_success();
+                }
+                if (typeof behavior.on_success !== 'undefined') {
+                    behavior.on_success();
                 }
             });
             return self;
