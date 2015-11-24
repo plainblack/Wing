@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-11-24
+ * Changed Wing::Role::Result::Parent to allow undef to be set on a relationship that is not required or unique.
+
 2015-11-20
  * Added fetch_options() to wing.angular.js objectListManager.
  * Added force-number directive to wing.angular.js.

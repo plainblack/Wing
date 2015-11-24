@@ -34,11 +34,16 @@ sub wing_parent_field {
         $class->meta->add_before_method_modifier(verify_posted_params => sub {
             my ($self, $params, $current_user) = @_;
             if (exists $params->{$id}) {
-                ouch(441, $id.' is required.', $id) unless $params->{$id};
-                my $object = $self->result_source->schema->resultset($options->{related_class})->find($params->{$id});
-                ouch(440, $id.' not found.') unless defined $object;
-                $object->can_edit($current_user) unless $options->{skip_owner_check};
-                $self->$field($object);
+                if (! defined $params->{$id} && $options->{edit} !~ [qw(required unique)]) {
+                    $self->$id(undef);
+                }
+                else {
+                    ouch(441, $id.' is required.', $id) unless $params->{$id};
+                    my $object = $self->result_source->schema->resultset($options->{related_class})->find($params->{$id});
+                    ouch(440, $id.' not found.') unless defined $object;
+                    $object->can_edit($current_user) unless $options->{skip_owner_check};
+                    $self->$field($object);
+                }
             }
         });
     
