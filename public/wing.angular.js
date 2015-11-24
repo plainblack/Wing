@@ -345,7 +345,7 @@ angular.module('wing',[])
         
         this.fetch = function(options) {
             var self = this;
-            $http.get(behavior.fetch_api || self.properties._relationships.self, { params : behavior.fetch_options })
+            $http.get(self.properties._relationships.self || behavior.fetch_api, { params : behavior.fetch_options })
             .success(function (data) {
                 self.properties = data.result;
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
