@@ -1,5 +1,6 @@
 jQuery.ajaxSettings.traditional = true;
 jQuery.ajaxSettings.cache = false;
+PNotify.prototype.options.styling = "bootstrap3";
 
 var wing = new Object();
 
@@ -68,11 +69,8 @@ wing.angular_http_interceptor = function ($q) {
 
 wing.info = function(message) {
     new PNotify({
-        addclass: 'alert-info',
         type: 'info',
-        title: 'Info',
         text: message,
-        icon: 'glyphicon glyphicon-info-sign',
         opacity: 0.95,
         history: false,
         sticker: false
@@ -87,10 +85,8 @@ wing.dump_keys = function(object) {
 
 wing.warn = function(message) {
     new PNotify({
-        addclass: 'alert-warning',
-        title: 'Warning',
+	type : 'warning',
         text: message,
-        icon: 'glyphicon glyphicon-exclamation-sign',
         opacity: 0.95,
         hide: false,
         history: false,
@@ -100,11 +96,8 @@ wing.warn = function(message) {
 
 wing.error = function(message) {
     new PNotify({
-        addclass: 'alert-danger',
         type: 'error',
-        title: 'Error',
         text: message,
-        icon: 'glyphicon glyphicon-warning-sign',
         opacity: 0.95,
         hide:false,
         history: false,
@@ -114,11 +107,8 @@ wing.error = function(message) {
 
 wing.success = function(message) {
     new PNotify({
-        addclass: 'alert-success',
         type: 'success',
-        title: 'Success',
         text: message,
-        icon: 'glyphicon glyphicon-ok-sign',
         opacity: 0.95,
         history: false,
         sticker: false
