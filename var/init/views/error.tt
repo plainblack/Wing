@@ -2,7 +2,7 @@
 [% INCLUDE header_include.tt %]
 <div class="container">
 [% IF code == 401 %]
-    <h1>Login Required</h1>
+    <h1>Please Log In</h1>
     [% INCLUDE account/authenticate_include.tt redirect_after=params.redirect_after || request.path %]
 [% ELSE %]
     <h1>[% title %]</h1>
