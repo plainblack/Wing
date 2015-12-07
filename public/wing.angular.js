@@ -190,7 +190,7 @@ angular.module('wing',[])
                 _page_number : self.paging.page_number || 1,
                 _items_per_page : self.paging.items_per_page || 10,
             };
-            var params = wing.merge(behavior.fetch_options, pagination);
+            var params = wing.merge(pagination, behavior.fetch_options);
             if (typeof options !== 'undefined' && typeof options.query !== 'undefined') {
                 params = wing.merge(params, options.query);
             }
