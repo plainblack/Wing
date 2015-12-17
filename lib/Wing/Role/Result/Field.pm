@@ -65,6 +65,8 @@ A hash reference of the options that define the field.
 
 The L<DBIx::Class> field definition. Required.
 
+B<NOTE:> If you use C<is_auto_increment> then the field will automatically get a C<unique> index and Wing will automatically fetch the autoincremented value back from the database after C<insert()>.
+
 =item view
 
 Can this field be viewed through web/rest? There are several options:
@@ -114,6 +116,10 @@ The same as C<postable>, but only editable by users with the admin bit flipped.
 Boolean. Indicates whether this field should have an index applied to it in the database for quicker searching. This is automatic when C<edit> is set to C<unique>.
 
 B<NOTE:> If you set this specifically to C<unique> then it will create a unique index rather than a normal index.
+
+=item unique_qualifiers
+
+Array reference of field names. If the field gets marked unique as an index or by making edit unique, by default it needs to be unique amongst all objects of this type. However, you can add extra fields to qualify the uniqueness against and then it will be unique within that set. For example, if you have a field called C<name> that you want to be unique, but you have a column called C<category> then you could specify unique_qualifiers as C<['category']> and then have a unique name per category.
 
 =item range
 
@@ -250,8 +256,12 @@ sub wing_field {
         }
     
         # add index
-        if (exists $options->{indexed} && $options->{indexed} eq 'unique' || exists $options->{edit} && $options->{edit} eq 'unique') {
-            $class->add_unique_constraint([$field]);
+        if ((exists $options->{indexed} && $options->{indexed} eq 'unique') || (exists $options->{edit} && $options->{edit} eq 'unique') || (exists $options->{dbic}{is_auto_increment} && $options->{dbic}{is_auto_increment})) {
+            my @constraint = $field;
+            if ($options->{unique_qualifiers}) {
+                push @constraint, @{$options->{unique_qualifiers}};
+            }
+            $class->add_unique_constraint(\@constraint);
         }
         elsif (exists $options->{indexed} && $options->{indexed}) {
             $class->meta->add_around_method_modifier(sqlt_deploy_hook => sub {
@@ -260,7 +270,15 @@ sub wing_field {
                 $sqlt_table->add_index(name => 'idx_'.$field, fields => [$field]);
             });
         }
-        
+
+        # fetch values back from db
+        if (exists $options->{dbic}{is_auto_increment} && $options->{dbic}{is_auto_increment}) {
+            $class->meta->add_after_method_modifier(insert => sub {
+                my $self = shift;
+                $self->discard_changes;
+            });
+        }
+
         # range validation
         if (exists $options->{range}) {
             if (ref $options->{range} ne 'ARRAY') {
@@ -360,7 +378,7 @@ sub wing_field {
         $class->meta->add_around_method_modifier(duplicate => sub {
             my ($orig, $self) = @_;
             my $dup = $orig->($self);
-            if ($options->{skip_duplicate}) {
+            if ((exists $options->{skip_duplicate} && $options->{skip_duplicate}) || (exists $options->{dbic}{is_auto_increment} && $options->{dbic}{is_auto_increment})) {
                 # do nothing
             }
             else {

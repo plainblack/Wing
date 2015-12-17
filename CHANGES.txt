@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-12-17 
+ * Added support for is_auto_increment to Wing::Role::Result::Field dbic definitions.
+ * Added unique qualifiers, so you could have uniqueness within an object type.
+
 2015-11-24
  * Changed Wing::Role::Result::Parent to allow undef to be set on a relationship that is not required or unique.
  * Added on_success to options and behavior for all() and search() in objectListManager in wing.angular.js.
