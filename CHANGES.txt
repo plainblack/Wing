@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2015-12-29
+ * Updated the javascript libraries to the latest versions.
+
 2015-12-17 
  * Added support for is_auto_increment to Wing::Role::Result::Field dbic definitions.
  * Added unique qualifiers, so you could have uniqueness within an object type.

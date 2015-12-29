@@ -34,7 +34,7 @@
                         </tr>
                 </tbody>
         </table>
-        <pagination max-size="10" rotate="false" ng-click="users.search()" items-per-page="users.paging.items_per_page" direction-links="false" boundary-links="true" total-items="users.paging.total_items" ng-model="users.paging.page_number"></pagination>
+        <uib-pagination max-size="10" rotate="false" ng-click="users.search()" items-per-page="users.paging.items_per_page" direction-links="false" boundary-links="true" total-items="users.paging.total_items" ng-model="users.paging.page_number"></uib-pagination>
 </div><!-- col-sm-7 -->
 
     

@@ -40,7 +40,7 @@
                 </tbody>
             </table>
             
-            <pagination max-size="5" rotate="false" ng-click="[%[ lower_class ]%]s.search()" items-per-page="[%[ lower_class ]%]s.paging.items_per_page" direction-links="false" boundary-links="true" total-items="[%[ lower_class ]%]s.paging.total_items" ng-model="[%[ lower_class ]%]s.paging.page_number"></pagination>
+            <uib-pagination max-size="5" rotate="false" ng-click="[%[ lower_class ]%]s.search()" items-per-page="[%[ lower_class ]%]s.paging.items_per_page" direction-links="false" boundary-links="true" total-items="[%[ lower_class ]%]s.paging.total_items" ng-model="[%[ lower_class ]%]s.paging.page_number"></uib-pagination>
     
         </div><!-- col-sm-8 -->
         
