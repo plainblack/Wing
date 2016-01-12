@@ -1,0 +1,614 @@
+=head1 wing.angular.js
+
+A suite of AngularJS Wing utilities.
+
+
+=head1 SYNOPSIS
+
+
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular.min.js"></script>
+  <script src="/wing.js"></script>
+  <script src="/wing.angular.js"></script>
+
+  myApp = angular.module('MyApp',['wing']);
+
+  myApp.controller('MyCtrl', function($scope, $http, objectListManager) {
+    $scope.users = new objectListManager(
+        fetch_options : {
+            _include_options: 1,
+            _include_relationships: 1, // required
+        },
+        list_api : '/api/user',
+        create_api : '/api/user',
+        on_create : function(properties, index) {
+            wing.success(properties.username + ' created.');
+        },
+        on_update : function(properties, index) {
+            wing.success(properties.username + ' saved.');
+        },
+        on_delete : function(properties, index) {
+            wing.success('Deleted' + object.name +'.');
+        },
+    });
+  });
+
+  <!-- in html -->
+  <div ng-controller="MyCtrl">
+    <div ng-repeat="user in users.objects">{{user.properties.username}} <button ng-click="user.delete()">Delete</button></div>
+  </div>
+
+=head1 Filters
+
+=head2 datetime
+
+Converts a wing datetime field into a human readable string that is parsable by AngularJS.
+
+ {{some_object.some_date | datetime:'mediumDate'}}
+
+=head2 timeago
+
+Converts a wing datetime field into a human readable string like C<3 minutes ago>.
+
+ {{some_object.some_date | timeago}}
+
+
+=head1 Factories
+
+=head2 confirmations
+
+Enables and disables confirmations in C<objectManager> and C<objectListManager>.
+
+ myApp.controller('MyCtrl', function($scope, $http, confirmations) {
+  $scope.confirmations = confirmations;
+ });
+
+=head3 enabled()
+
+Returns true if confirmations are enabled.
+
+=head3 disabled()
+
+Returns true if confirmations are disabled.
+
+=head3 toggle()
+
+Sets confirmations equal to true if they are currently false and false if they are currently true. If they are currently true then the user will be asked to confirm whether they want to disable confirmations.
+
+=head2 objectManager
+
+Manages an instance of a Wing object, aka a row in the database.
+
+  myApp.controller('MyCtrl', function($scope, $http, objectManager) {
+    $scope.users = new objectManager(
+        fetch_options : {
+            _include_options: 1,
+            _include_relationships: 1, // required
+        },
+        fetch_api : '/api/user/XXX',
+        on_update : function(properties) {
+            wing.success(properties.username + ' saved.');
+        },
+        on_delete : function(properties) {
+            wing.success('Deleted' + object.name +'.');
+        },
+    });
+  });
+
+=over
+
+=item options
+
+An object of behavior changing options.
+
+=over
+
+=item properties
+
+Set the object's properties before it is fetched or created.
+
+=item fetch_api
+
+The URI used to fetch an object from Wing.
+
+ /api/user/XXX
+
+=item fetch_options
+
+A list of behavior changing options.
+
+ { 
+   "_include_relationships" : 1
+ }
+
+=item on_fetch
+
+A function to call when the object is initially fetched. It is passed the object's properties.
+
+=item on_error
+
+A function to call if anything errors with talking to Wing about the object. It is passed whatever it gets back from Wing.
+
+=item on_create
+
+A function to be called when the object is created.
+
+=item on_update
+
+A function to be called whenever this object is successfully updated.
+
+=item on_delete
+
+A function to be called when this object is deleted.
+
+=item create_api
+
+The URI used to create the object in Wing.
+
+ /api/user
+
+=back
+
+=back
+
+=head3 properties
+
+An object containing the list of properties retrieved from Wing.
+
+=head3 fetch(options)
+
+=over
+
+=item options
+
+An optional object containing a set of behavior modifiying options.
+
+=over
+
+=item on_success
+
+A function to call when the object is initially fetched. It is passed the object's properties.
+
+=item on_error
+
+A function to call if the fetch fails.
+
+=back
+
+=back
+
+=head3 create(properties, options)
+
+Create this object in Wing.
+
+=over
+
+=item properties
+
+A required object containing the properties to create the object in Wing with.
+
+=item options
+
+An optional object containing behavior changing options.
+
+=over
+
+=item on_success
+
+A function to be called if the creation is successful.
+
+=item on_error
+
+A function to be called if the creation fails.
+
+=back
+
+=back
+
+=head3 update(options)
+
+Updates the database with the properties in this object.
+
+=over
+
+=item options
+
+See C<partial_update()> for details.
+
+=back
+
+=head3 save(property)
+
+Updates the value of C<property> in the database with the value of C<property> in this object.
+
+=head3 partial_update(properties, options)
+
+Updates this object and the database with C<properties>. 
+
+=over
+
+=item properties
+
+A required object containing properties for this object.
+
+=item options
+
+An optional object containing behavior changing options.
+
+=over
+
+=item on_success
+
+A function to be called after the update succeeds.
+
+=item on_error
+
+A function to be called if the update fails.
+
+=back
+
+=back
+
+=head3 call(method, uri, properties, options)
+
+Make a call to an arbitrary web service, the result of which is expected to be a property list for this object. This object is then updated with that property list.
+
+=over
+
+=item method
+
+C<GET>, C<PUT>, C<DELETE>, or C<POST>.
+
+=item uri
+
+The URI you wish to call.
+
+ /api/user/XXX/check-in
+
+=item properties
+
+An object containing any parameters you wish to pass to the service you're calling.
+
+=item options
+
+An optional object containing behavior changing options.
+
+=over
+
+=item on_success
+
+A function to be called when this call is successful.
+
+=item on_error
+
+A function to be called if this call errors.
+
+=back
+
+=back
+
+=head3 delete(options)
+
+Deletes this object from Wing. Will ask for confirmation before delete. Confirmations can be managed by the confirmations factory.
+
+=over
+
+=item options
+
+An optional object containing behavior changing options.
+
+=over
+
+=item on_success
+
+A function to be called when this delete succeeds.
+
+=item on_error
+
+A function to be called if the delete fails.
+
+=back
+
+=back
+
+
+=head2 objectListManager
+
+Manages a list of Wing objects, aka a selection of rows in the database. This is a list of C<objectManager>s.
+
+  myApp.controller('MyCtrl', function($scope, $http, objectListManager) {
+    $scope.users = new objectListManager(
+        fetch_options : {
+            _include_options: 1,
+            _include_relationships: 1, // required
+        },
+        list_api : '/api/user',
+        create_api : '/api/user',
+        on_create : function(properties, index) {
+            wing.success(properties.username + ' created.');
+        },
+        on_update : function(properties, index) {
+            wing.success(properties.username + ' saved.');
+        },
+        on_delete : function(properties, index) {
+            wing.success('Deleted' + object.name +'.');
+        },
+    });
+  });
+
+=over
+
+=item list_api
+
+Required if you want to retrieve a list of objects. The URI to fetch a list of objects of this type from Wing.
+
+ /api/user
+
+=item fetch_options
+
+An object containing the parameters used to filter the list of objects retrieved. This all comes from the Wing REST API (L<RestUsage>).
+
+ { 
+   _sort_by : 'name',
+   query : 'blue'
+   _include_relationships : 1,
+   _include_related_objects : 1
+ }
+
+=item create_api
+
+Required if you want to create objects. The URI to post to to create an object of this type.
+
+ /api/user
+
+=item options_api
+
+Normally auto generated from the create_api, but you can override it here. Used with the C<fetch_options()> method.
+
+ /api/user/_options
+
+=item on_create
+
+A function to be executed when a new object is created. It will be passed the properties of the object and an index number.
+
+=item on_update
+
+A function to be executed when an object is updated. It will be passed the properties of the object and an index number.
+
+=item on_delete
+
+A function to be executed when an object is deleted. It will be passed the properties of the object and an index number.
+
+=item on_each
+
+A function to be executed when an object is initially retrieved. It will be passed the C<objectManager> instance of the object.
+
+=back
+
+
+=head3 objects
+
+A list of C<objectManager> objects currently managed by the list manager.
+
+=head3 paging
+
+An object containing pagination information about the current list.
+
+ {
+  "total_pages" : 1,
+  "next_page_number" : 2,
+  "total_items" : "3",
+  "previous_page_number" : 1,
+  "items_per_page" : "10",
+  "page_number" : "1"
+ }
+
+=head3 find_object(id)
+
+Return the index number of a specific object in the list based upon C<id>. Returns C<-1> if the object is not found.
+
+=over
+
+=item id
+
+The unique id of the object in the database.
+
+=back
+
+=head3 search(options)
+
+=over
+
+=item options
+
+An object containing various search behavior modifications.
+
+=over
+
+=item query
+
+A string to search the database on.
+
+=item on_create
+
+A function to be executed when a new object is created. It will be passed the properties of the object and an index number.
+
+=item on_update
+
+A function to be executed when an object is updated. It will be passed the properties of the object and an index number.
+
+=item on_delete
+
+A function to be executed when an object is deleted. It will be passed the properties of the object and an index number.
+
+=item on_each
+
+A function to be executed when an object is initially retrieved. It will be passed the C<objectManager> instance of the object.
+
+
+=back
+
+=back
+
+=head3 fetch_options(store_data_here, options)
+
+Fetches object creation options. The URI it fetches them from is based upon the C<create_uri> passed into the constructor, unless you specified C<options_api> in the constructor. Stores an object containing information retrieved by C<fetch_creation_options>. This data provides enumerated lists of data that can be used to create or update an object.
+
+ {
+      "registration" : [
+         "pending",
+         "open",
+         "closed"
+      ],
+      "_registration" : {
+         "closed" : "Closed",
+         "open" : "Open",
+         "pending" : "Pending"
+      },
+      "private" : [
+         0,
+         1
+      ],
+      "_private" : {
+         "1" : "Private",
+         "0" : "Public"
+      }
+ }
+
+=over
+
+=item store_data_here
+
+Pass in an existing object and the options retrieved will be stored in this location.
+
+=item options
+
+An optional object that modifies the behavior of the request.
+
+=over
+
+=item on_success
+
+This method will be executed if the options fetch is successful. Gets passed the result of the request.
+
+=item on_error
+
+This method will be executed if the options fetch is an error. Gets passed the result of the request.
+
+=back
+
+=back
+
+=head3 create(properties, options)
+
+Create a new object in the database and insert it into this list. 
+
+=over
+
+=item unshift
+
+By default new objects are pushed on to the end of the list. If this property is set to true then the new object will be prepended to the list.
+
+=item on_success
+
+A function to be executed if the object is sucessfully created. It is passed a list of properties.
+
+=back
+
+=head3 update(index, options)
+
+Updates the object's properties in the database with the object's properties in objectManager. See C<update()> in C<objectManager> for details.
+
+=over
+
+=item index
+
+The index number of the object in the C<objects> list.
+
+=item options
+
+See C<update()> in C<objectManager> for details.
+
+=back
+
+=head3 save(index, property)
+
+Updates the value of C<property> in the database with the value of C<property> in objectManager. See C<save()> in C<objectManager> for details.
+
+=over
+
+=item index
+
+The index number of the object in the C<objects> list.
+
+=item options
+
+See C<save()> in C<objectManager> for details.
+
+=back
+
+=head3 partial_update(index, properties, options)
+
+Updates a specific set of properties in the database and objectManager specified by C<properties>. See C<partial_update()> in C<objectManager> for details.
+
+=over
+
+=item index
+
+The index number of the object in the C<objects> list.
+
+=item options
+
+See C<partial_update()> in C<objectManager> for details.
+
+=back
+
+=head3 delete(index, options)
+
+Deletes the object from the database and objectListManager. See C<delete()> in C<objectManager> for details.
+
+=over
+
+=item index
+
+The index number of the object in the C<objects> list.
+
+=item options
+
+See C<delete_update()> in C<objectManager> for details.
+
+=back
+
+=head1 Directives
+
+=head2 input[number]
+
+If an C<input> tag is of type C<number> then it will force the value to be a number even if it is cast as a string.
+
+ <input type="number" model="user.age">
+
+=head2 forceNumber
+
+Forces a model value to be a number.
+
+ <input type="text" model="user.employee_number" force-number>
+
+=head2 autosave
+
+Automatically save the value of a form element anytime the model is updated.
+
+ <input ng-model="object.properties.property_name" autosave="object">
+
+=head2 forceString
+
+Forces a model value to be a string.
+
+ <input type="text" model="user.employee_number" force-string>
+
+=head2 wingSelect
+
+If an object included C<_include_options> in its C<fetch_properties> then you can display those options easily as a list using this directive.
+
+ <wing-select object="object_name" property="property_name"></wing-select>
+
+
+=cut

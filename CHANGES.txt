@@ -4,6 +4,11 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-01-12
+ * Removed fetch_create_options from wing.angular.js because fetch_options is better.
+ * Added WingAngular.pod documentation for wing.angular.js.
+ * Added the Wing Command kick module so that you can kick buried wingman jobs.
+
 2015-12-29
  * Updated the javascript libraries to the latest versions.
 

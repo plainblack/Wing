@@ -144,16 +144,6 @@ angular.module('wing',[])
     return function(behavior) {
         this.objects = [];
         this.paging = [];
-        this.creation_options = {};
-        
-        this.fetch_creation_options = function() {
-            var self = this;
-            var uri = behavior.create_api + '/_options';
-            $http.get(uri, {})
-            .success(function(data) {
-                self.creation_options = data.result;
-            });
-        };
         
         this.find_object = function(id) {
             var self = this;
