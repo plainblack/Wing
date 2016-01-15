@@ -1,5 +1,6 @@
 . /data/Wing/bin/dataapps.sh
 cpanm List::MoreUtils \
+Test::Trap \
 DBIx::Class \
 Moose \
 DBIx::Class::InflateColumn::DateTime \
@@ -27,6 +28,7 @@ Server::Starter \
 Starman \
 Pod::Simple::HTML \
 XML::Simple \
+JSON::XS \
 Config::JSON \
 DateTime::Format::Duration \
 Cache::FastMmap \

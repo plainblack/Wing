@@ -37,10 +37,13 @@ INSTALLATION
   mysql -uroot -p -e "grant all privileges on my_project.* to some_user@localhost identified by 'some_pass'" 
   mysql -uroot -p -e "flush privileges" 
 
-  vi /data/MyApp/etc/wing.conf  
-  # edit the "db" section and add the username and password.
+6. Modify the config file. You need to at least edit the "db" section to tell Wing how to log in to your database. You may also wish to update other settings.
 
-6. Initialize the database:
+  vi /data/MyApp/etc/wing.conf  
+
+NOTE: You can also edit the location of the logs in /data/MyApp/etc/log4perl.conf. It is defaultly set to /data/apps/logs/MyApp.log
+
+7. Initialize the database:
 
   cd /data/MyApp/bin
   export WING_HOME=/data/Wing
@@ -50,13 +53,13 @@ INSTALLATION
   wing db --prepare_install
   wing db --install --force
 
-7. Start up the rest server and/or web server:
+8. Start up the rest server and/or web server:
 
   cd /data/MyApp/bin
   ./start_rest.sh
   ./start_web.sh
 
-8. Now you can connect to the rest server and see if it's alive:
+9. Now you can connect to the rest server and see if it's alive:
 
   curl http://localhost:5000/api/status
 
@@ -64,7 +67,7 @@ INSTALLATION
 
   NOTE: By default there is one user named 'Admin' with a password of '123qwe'.
 
-9. We also provide you with an nginx config file to give you a baseline for serving your apps. You can start it like this:
+10. We also provide you with an nginx config file to give you a baseline for serving your apps. You can start it like this:
 
   nginx -c /data/MyApp/etc/nginx.conf
 
@@ -75,7 +78,7 @@ INSTALLATION
 
 OPTIONAL
 
-9. Wing has a job server called Wingman, which is backed by beanstalkd. To run it you simply install beanstalkd, which you can download from here: http://kr.github.io/beanstalkd/
+11. Wing has a job server called Wingman, which is backed by beanstalkd. To run it you simply install beanstalkd, which you can download from here: http://kr.github.io/beanstalkd/
 
 Then you can run it like so:
 
@@ -99,6 +102,13 @@ We also provide you with tools to build out your app. For example, if you want t
 This will dynamically generate a NewObject.pm class file for you in /data/MyApp/lib/MyApp/DB/Result/, and create a Rest
 interface at /data/MyApp/lib/MyApp/Rest/NewObject.pm, and create a Web interface at /data/MyApp/lib/MyApp/Web/NewObject.pm.
 It will even add the lines needed in /data/MyApp/lib/MyQpp/Rest.pm and /data/MyApp/lib/MyApp/Web.pm.
+
+After adding a new class you'll need to restart a few services:
+
+  cd /data/MyApp/bin
+  ./restart_web.sh
+  ./restart_rest.sh
+  wingman.pl restart
 
 To upgrade your database with the schema changes for your new class:
 

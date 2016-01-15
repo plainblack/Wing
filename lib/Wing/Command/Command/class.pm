@@ -34,14 +34,19 @@ sub validate_args {
 
 sub execute {
     my ($self, $opt, $args) = @_;
+    my $message = "%s is available via REST at /api/%s and via web at /%ss\n";
     if ($opt->{add}) {
         add_class($opt->{add});
+        $message = 'After you restart services, '.$message;
+        printf $message, $opt->{add}, lc($opt->{add}), lc($opt->{add});
     }
     elsif ($opt->{template}) {
         template_class($opt->{template});
+        printf $message, $opt->{template}, lc($opt->{template}), lc($opt->{template});
     }
     elsif ($opt->{test}) {
         test_class($opt->{test});
+        printf $message, $opt->{test}, lc($opt->{test}), lc($opt->{test});
     }
 }
 
