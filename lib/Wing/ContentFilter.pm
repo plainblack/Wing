@@ -105,11 +105,12 @@ sub format_link {
             $title = pQuery($response->decoded_content)->find('title')->html();
         }   
         format_html(\$title);
-        my $link = sprintf '<a href="%s">%s</a>', $uri->as_string, $title || $uri->as_string;
-        unless ($uri->host eq Wing->config->get('sitename')) {
-            $link .= ' ['.$uri->host.']';
+        if ($uri->host eq Wing->config->get('sitename')) {
+            return sprintf '<a href="%s">%s</a>', $uri->as_string, $title || $uri->as_string;
         }
-        return $link;
+        else {
+            return sprintf '<a href="%s" target="_new" title="Links to external site: %s">%s <small><span class="glyphicon glyphicon-new-window"></span></a></small>', $uri->as_string, $uri->host, $title || $uri->as_string;
+        }
     }   
     else {
         warn $response->status_line;

@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-01-26
+ * Wing::ContentFilter makes a shorter prettier note for external links now.
+
 2016-01-15
  * Thanks to Chan Wilson for all his feedback on this set of changes.
  * Added a message to wing class to let you know where you can access your newly created object.
