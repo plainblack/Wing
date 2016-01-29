@@ -33,7 +33,7 @@ sub wing_datetime_fields {
 sub wing_datetime_field {
     my ($object_class, $field, $options) = @_;
 
-    my %dbic = ( data_type => 'datetime', is_nullable => 0 );
+    my %dbic = ( data_type => 'datetime', is_nullable => 0, datetime_undef_if_invalid => 1, timezone => 'UTC', floating_tz_ok => 1 );
     if ($options->{set_on_create}) {
         $dbic{set_on_create} = 1;
     }

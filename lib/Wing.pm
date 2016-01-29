@@ -167,7 +167,9 @@ Format an mysql date as DateTime
 
 sub from_mysql {
     my ($class, $date) = @_;
-    return DateTime::Format::MySQL->new->parse_datetime($date);
+    my $dt = DateTime::Format::MySQL->new->parse_datetime($date);
+    $dt->set_time_zone('UTC');
+    return $dt;
 }
 
 =head2 send_templated_email ($class, $template, $params, $options)
