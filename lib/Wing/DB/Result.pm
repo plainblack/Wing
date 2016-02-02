@@ -340,7 +340,6 @@ A reference to a user object.
 
 sub can_edit {
     my ($self, $user) = @_;
-    Wing->log->debug(ref $user);
     return 1 if defined $user && $user->is_admin;
     ouch(450, 'Insufficient privileges for '.$self->wing_object_name.'.');
 }
