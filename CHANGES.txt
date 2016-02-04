@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-02-04
+ * wing.js errors now go away after 12 seconds and warnings go away after 10 seconds.
+
 2016-01-28
  * Force UTC time zone on DateTime objects going into/out of the database.
 

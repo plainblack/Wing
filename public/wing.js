@@ -88,7 +88,7 @@ wing.warn = function(message) {
 	type : 'warning',
         text: message,
         opacity: 0.95,
-        hide: false,
+        delay: 10000,
         history: false,
         sticker: false
     });
@@ -99,7 +99,7 @@ wing.error = function(message) {
         type: 'error',
         text: message,
         opacity: 0.95,
-        hide:false,
+        delay: 12000,
         history: false,
         sticker: false
     });
