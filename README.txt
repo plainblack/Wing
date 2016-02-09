@@ -7,7 +7,7 @@ INSTALLATION
 
   mkdir /data
   cd /data
-  git clone git@github.com:plainblack/Wing.git
+  git clone https://github.com/plainblack/Wing.git
 
 2. Install the prereqs.
 
