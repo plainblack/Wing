@@ -63,6 +63,8 @@ Wing::Client \
 App::Cmd \
 pQuery \
 Imager \
+Imager::File::JPEG \
+Imager::File::PNG \
 Image::ExifTool \
 Data::OpenGraph \
 File::Temp \
