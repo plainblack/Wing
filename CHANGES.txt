@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-02-21
+ * Added Wing::Role::Result::UriPartOnInit to set a uri_part only when an object is first created.
+
 2016-02-04
  * wing.js errors now go away after 12 seconds and warnings go away after 10 seconds.
 

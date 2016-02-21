@@ -1,4 +1,4 @@
-package Wing::Role::Result::UriPart;
+package Wing::Role::Result::UriPartOnInit;
 
 use Wing::Perl;
 use Ouch;
@@ -9,7 +9,7 @@ with 'Wing::Role::Result::Urlize';
 
 =head1 NAME
 
-Wing::Role::Result::UriPart - Give your Wing object a URL fragment.
+Wing::Role::Result::UriPartOnInit - Give your Wing object a URL fragment when it is created.
 
 =head1 SYNOPSIS
 
@@ -17,12 +17,12 @@ Wing::Role::Result::UriPart - Give your Wing object a URL fragment.
 
 =head1 DESCRIPTION
 
-Create an automatically defined URL for an object based upon it's name. The uri_part will be unique amongst other objects of the same type, by appending an integer to the end if necessary. If the name cannot be turned into a uri_part for some reason it will ouch 443. The C<uri_part> is automatically set whenever the C<name> field is modified.
+Identical to L<Wing::Role::Result::UriPart> except that the C<uri_part> field is only automatically generated if C<uri_part> is currently empty or null.
 
 =head1 SEE ALSO
 
 L<Wing::Role::Result::Urlize>
-L<Wing::Role::Result::UriPartOnInit>
+L<Wing::Role::Result::UriPart>
 
 =head1 REQUIREMENTS
 
@@ -59,7 +59,9 @@ after wing_finalize_class => sub {
     $class->meta->add_after_method_modifier('name', sub {
         my $self = shift;
         my $name = shift;
-        $self->set_uri_part($name, $class);
+        if (!$self->uri_part) {
+            $self->set_uri_part($name, $class);
+        }
     });
 };
 
