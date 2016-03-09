@@ -38,7 +38,7 @@ Edit C<lib/MyApp/DB/Result/Page.pm> and add some fields to it. Let's start by ad
   },
  );
 
-We set the C<dbic> field to a L<DBIx::Class> definition for the field. 
+We set the C<dbic> field to a L<DBIx::Class> definition for the field. You can consult L<DBIx::Class::ResultSource> to find what fields can be set for the C<dbic> definition. 
 
 C<view> can be C<public>, C<private>, C<admin>, or left out entirely if we don't want to expose it via web/REST. More information can be found in L<Wing::Role::Result::Field>.
 
