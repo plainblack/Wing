@@ -12,20 +12,6 @@ Start by prepping the system:
  sudo /usr/bin/mysql_secure_installation
 
 
-Fix MySQL:
-==========
-
-Make sure you've updated your my.cnf file to the specs described in README.txt.
-
- sudo bash
-
- service mysql stop
-
- mv /var/log/mysql/ib_logfile /tmp/
-
- service mysql start
-
-
 Now perform all the steps in README.txt.
 ========================================
 
