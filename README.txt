@@ -3,6 +3,8 @@ Wing is a modern web services platform written in Perl. It allows you to define 
 
 INSTALLATION
 
+0. Do the prep for your OS. For example, if you're on Amazon Linux, then look at README.Amazon.txt to see the prep steps.
+
 1. Clone this repository into /data/Wing on your machine:
 
   mkdir /data
@@ -12,10 +14,6 @@ INSTALLATION
 2. Install the prereqs.
 
   /data/Wing/bin/setup/setup.sh
-
-  NOTE: If you're trying to install DBD::mysql on Mac and it's giving you trouble, make sure you do first:
-
-  export DYLD_LIBRARY_PATH=/usr/local/mysql/lib:$DYLD_LIBRARY_PATH
 
 3. Verify/set apps paths.
 
