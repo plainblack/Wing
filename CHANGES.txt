@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-03-12
+ * Added "generate_password_reset_code" method to Wing::Role::Result::User.
+
 2016-03-11
  * Added the can_link_to method in Wing::DB::Result, which is used for owner checking in Wing::Role::Result::Parent.
 

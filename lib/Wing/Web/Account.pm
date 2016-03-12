@@ -212,8 +212,7 @@ post '/account/reset-password' => sub {
 
     # validate password
     if ($user->email) {
-        my $code = random_string('ssssssssssssssssssssssssssssssssssss');
-        Wing->cache->set('password_reset'.$code, $user->id, 60 * 60 * 24);
+        my $code = $user->generate_password_reset_code();
         $user->send_templated_email(
             'reset_password',
             {

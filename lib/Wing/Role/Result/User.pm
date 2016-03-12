@@ -9,7 +9,7 @@ use DateTime;
 use Data::GUID;
 use Ouch;
 use Moose::Role;
-use String::Random;
+use String::Random qw(random_string);
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::DateTimeField';
 with 'Wing::Role::Result::PrivilegeField';
@@ -208,6 +208,10 @@ Returns a reference to the current L<Wing::Session> object if any.
 
 Sends a templated email to this user. See C<send_templated_email> in L<Wing> for details.
 
+=item generate_password_reset_code ( )
+
+Generates a password reset code that is valid for 24 hours and returns it.
+
 =back
 
 =cut
@@ -325,6 +329,13 @@ sub send_templated_email {
     $params->{me} = $self->describe(include_private => 1);
     Wing->send_templated_email($template, $params, $options);
     return $self;
+}
+
+sub generate_password_reset_code {
+    my $self = shift;
+    my $code = random_string('ssssssssssssssssssssssssssssssssssss');
+    Wing->cache->set('password_reset'.$code, $self->id, 60 * 60 * 24);
+    return $code;
 }
 
 
