@@ -38,7 +38,6 @@ URI::Escape \
 Ouch \
 Template \
 Plack::Middleware::MethodOverride \
-Log::Log4perl \
 Dancer::Logger::Log4perl \
 DateTime::Format::HTTP \
 Plack::Middleware::CrossOrigin \

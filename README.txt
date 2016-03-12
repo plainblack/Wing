@@ -43,6 +43,7 @@ INSTALLATION
 6. Modify the config file. You need to at least edit the "db" section to tell Wing how to log in to your database. You may also wish to update other settings.
 
   vi /data/MyApp/etc/wing.conf  
+  chown nobody /data/apps/logs
 
   NOTE: You can also edit the location of the logs in /data/MyApp/etc/log4perl.conf. It is defaultly set to /data/apps/logs/MyApp.log
 
