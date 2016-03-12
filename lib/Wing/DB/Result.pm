@@ -344,6 +344,25 @@ sub can_edit {
     ouch(450, 'Insufficient privileges for '.$self->wing_object_name.'.');
 }
 
+=head2 can_link_to($user) 
+
+Can this user link to this object?  By default, if you C<can_edit> then you can link to it with the L<Wing::Role::Result::Parent> role.
+
+=over
+
+=item user
+
+A reference to a user object.
+
+=back
+
+=cut
+
+sub can_link_to {
+    my $self = shift;
+    return $self->can_edit(@_);
+}
+
 =head2 can_view(user)
 
 Can this user view this object?  By default, if you C<can_edit> then you can view it. 

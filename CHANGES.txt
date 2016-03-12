@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-03-11
+ * Added the can_link_to method in Wing::DB::Result, which is used for owner checking in Wing::Role::Result::Parent.
+
 2016-03-09
  * Broke out installs for different systems into their own README files. Thanks to Jim Edwards for his help on this.
 
