@@ -3,6 +3,7 @@ package [% project %]::Rest::[% class_name %];
 use Wing::Perl;
 use Wing;
 use Dancer;
+use Ouch;
 use Wing::Rest;[% USE String %][% lower_class = String.new(class_name).lower %]
 
 get '/api/[% lower_class %]' => sub {
