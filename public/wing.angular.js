@@ -358,7 +358,7 @@ angular.module('wing',[])
         
         this.create = function(properties, options) {
             var self = this;
-            var params = wing.merge(behavior.fetch_options, properties);
+            var params = wing.merge(behavior.fetch_options||{}, properties);
             $http.post(behavior.create_api, params)
             .success(function (data) {
                 self.properties = data.result;
@@ -396,7 +396,7 @@ angular.module('wing',[])
 
         this.call =  function(method, uri, properties, options) {
             var self = this;
-            var params = wing.merge(behavior.fetch_options, properties);
+            var params = wing.merge(behavior.fetch_options||{}, properties);
             var q;
             if (method.toLowerCase() == 'get') {
                 q = $http.get(uri, { params : params });
@@ -429,7 +429,7 @@ angular.module('wing',[])
         
         this.partial_update =  function(properties, options) {
             var self = this;
-            var params = wing.merge(behavior.fetch_options, properties);
+            var params = wing.merge(behavior.fetch_options||{}, properties);
             $http.put(self.properties._relationships.self, params)
             .success(function (data) {
                 self.properties = data.result;
