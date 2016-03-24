@@ -459,7 +459,7 @@ angular.module('wing',[])
                 message = 'Are you sure you want to delete ' + object.name + '?';
             }
             if (confirmations.disabled() || confirm(message)) {
-                $http.delete(object._relationships.self, {})
+                $http.delete(object._relationships.self, { params : behavior.fetch_options||{} })
                 .success(function (data) {
                     if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                         options.on_success(object);
