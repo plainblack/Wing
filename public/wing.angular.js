@@ -243,8 +243,46 @@ angular.module('wing',[])
             return self;
         };
 
-	this.options_api = function() {
-	    if (behavior.options_api != null) {
+        this.reset = function() {
+            var self = this;
+            self.objects = [];
+            return self;
+        };
+
+        this.call =  function(method, uri, properties, options) {
+            var self = this;
+            var params = wing.merge(behavior.fetch_options||{}, properties);
+            var q;
+            if (method.toLowerCase() == 'get') {
+                q = $http.get(uri, { params : params });
+            }
+            else if (method.toLowerCase() == 'delete') {
+                q = $http.delete(uri, { params : params });
+            }
+            else if (method.toLowerCase() == 'post') {
+                q = $http.post(uri, params);
+            }
+            else if (method.toLowerCase() == 'put') {
+                q = $http.put(uri, params);
+            }
+            q.success(function (data) {
+                if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
+                    options.on_success(data.result);
+                }
+            })
+            .error(function (data) {
+                if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
+                    options.on_error(data.result);
+                }
+                if (typeof behavior.on_error !== 'undefined') {
+                    behavior.on_error(data.result);
+                }
+            });
+            return self;
+        };
+        
+	    this.options_api = function() {
+	        if (behavior.options_api != null) {
                 return behavior.options_api;
             }
             return behavior.create_api + '/_options';
@@ -254,9 +292,9 @@ angular.module('wing',[])
             var self = this;
             $http.get(self.options_api(), {})
             .success(function (data) {
-		for(var key in data.result) {
-    		    store_data_here[key] = data.result[key];
-		}
+		        for(var key in data.result) {
+    		        store_data_here[key] = data.result[key];
+		        }
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                     options.on_success(data.result);
                 }
@@ -555,7 +593,7 @@ angular.module('wing',[])
                 var property_name = attrs.ngModel.match(/(?=[^.]*$)(\w+)/)[1];
                 scope.autosave.save(property_name);
             });
-        }
+        },
     }
 }])
 
