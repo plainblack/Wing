@@ -74,7 +74,7 @@ sub wing_parent_relationship {
     # create relationship
     my @relationship = ($field, $options->{related_class}, $id);
     unless ($options->{edit} ~~ [qw(required unique)]) {
-        push @relationship, { on_delete => 'set null' };
+        push @relationship, { on_delete => 'set null', join_type => 'left' };
     }
     $class->meta->add_after_method_modifier(wing_apply_relationships => sub {
         my $my_class = shift;

@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-04-14
+ * Added { join_type => 'left' } on parent relationships that are not required, which will allow prefetches and joins where the object doesn't exist.
+
 2016-03-30
  * Added checklist directive to wing.angular.js
 
