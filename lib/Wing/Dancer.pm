@@ -200,6 +200,7 @@ register format_list => sub {
     if (defined $include_related_objects) {
         if (ref $include_related_objects ne 'ARRAY' && $include_related_objects !~ m/^\d$/) {
             $include_related_objects = [$include_related_objects];
+            $result_set = $result_set->search(undef, {prefetch => $include_related_objects });
         }
     }
     return $result_set->format_list(
