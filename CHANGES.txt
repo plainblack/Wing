@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2016-04-14
  * Added { join_type => 'left' } on parent relationships that are not required, which will allow prefetches and joins where the object doesn't exist.
+ * You can now specify _include_related_objects=relationshipname and pull back only the objects you want, not all related objects.
 
 2016-03-30
  * Added checklist directive to wing.angular.js

@@ -86,9 +86,11 @@ sub wing_parent_relationship {
         my ($orig, $self, %describe_options) = @_;
         my $out = $orig->($self, %describe_options);
         my $describe = sub {
-            if ($describe_options{include_related_objects}) {
-                if ($self->$id) {
-                    $out->{$field} = $self->$field->describe;
+            if (exists $describe_options{include_related_objects}) {
+                if ((ref $describe_options{include_related_objects} eq 'ARRAY' && $field ~~ $describe_options{include_related_objects}) || (ref $describe_options{include_related_objects} ne 'ARRAY' && $describe_options{include_related_objects})) {
+                    if ($self->$id) {
+                        $out->{$field} = $self->$field->describe;
+                    }
                 }
             }
             if ($describe_options{include_relationships} && $self->$id) {
