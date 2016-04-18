@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-04-18
+ * Changed the default path for the fastmmap cache so projects don't trounce on each other's cache.
+
 2016-04-14
  * Added { join_type => 'left' } on parent relationships that are not required, which will allow prefetches and joins where the object doesn't exist.
  * You can now specify _include_related_objects=relationshipname and pull back only the objects you want, not all related objects.
