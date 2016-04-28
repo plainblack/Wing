@@ -233,6 +233,11 @@ angular.module('wing',[])
                 if (data.result.paging.page_number < data.result.paging.total_pages) {
                     self.all(options, data.result.paging.next_page_number);
                 }
+                else {
+                    if (typeof options !== 'undefined' && typeof options.on_all_done !== 'undefined') {
+                        options.on_all_done();
+                    }
+                }
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                     options.on_success();
                 }

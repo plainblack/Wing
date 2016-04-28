@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-04-28
+ * Added "on_all_done" option for the .all() method in objectListManager in wing.angular.js.
+
 2016-04-18
  * Changed the default path for the fastmmap cache so projects don't trounce on each other's cache.
 
