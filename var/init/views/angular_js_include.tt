@@ -1,2 +1,2 @@
-<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
 <script src="/wing.angular.js?v=1"></script>
