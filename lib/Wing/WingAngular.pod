@@ -449,6 +449,39 @@ A function to be executed when an object is initially retrieved. It will be pass
 
 =back
 
+=head3 all(options) 
+
+Similar to C<search()> except that it fetches the complete list of objects, not just one page of them.
+
+=over
+
+=item options
+
+=over
+
+=item on_each
+
+A function to be executed when an object is initially retrieved. It will be passed the C<objectManager> instance of the object.
+
+=item on_all_done
+
+A function to be executed once all objects have been fetched.
+
+=item on_success
+
+A function to be executed after each page of objects has been retrieved.
+
+=back
+
+=back
+
+
+
+=head3 reset()
+
+Sets the object list to empty and then returns a reference to the objectListManager.
+
+
 =head3 fetch_options(store_data_here, options)
 
 Fetches object creation options. The URI it fetches them from is based upon the C<create_uri> passed into the constructor, unless you specified C<options_api> in the constructor. Stores an object containing information retrieved by C<fetch_creation_options>. This data provides enumerated lists of data that can be used to create or update an object.
@@ -609,6 +642,44 @@ Forces a model value to be a string.
 If an object included C<_include_options> in its C<fetch_properties> then you can display those options easily as a list using this directive.
 
  <wing-select object="object_name" property="property_name"></wing-select>
+
+
+=head2 checklist
+
+In Angular one checkbox C<input type="checkbox" ng-model="..."> is linked with one model.  But in practice we usually want one model to store array of checked values from several checkboxes.  Checklist solves that task without additional code in controller.
+
+=over
+
+=item checklist-model
+
+Required. Use instead of C<ng-model>.
+
+=item checklist-value
+
+What should be picked as array item.
+
+=item value
+
+What should be picked as item, but unlike C<checklist-value>, this does not evaluate as an angular expression, but rather a static value.
+
+=item ng-model
+
+Every checkbok will span a new scope and define a variable named C<checked> to hold its state. You can modify this name by using this attribute.
+
+=item checklist-comparator
+
+A custom comparator. If it starts with dot(C<.>) then it will be an expression applied to the array item. Otherwise it should evaluate to a function as an angular expression. The function return true if the first two arguments are equal and false otherwise.
+
+=item checklist-before-change
+
+An angular expression evaluated each time before the C<checklist-model> has changed. If it evaluates to 'false' then the model will not change anymore.
+
+=item checklist-change
+
+An angular expression evaluated each time the C<checklist-model> has changed.
+
+
+=back
 
 
 =cut

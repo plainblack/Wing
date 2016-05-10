@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2016-05-10
  * Added a --force option to wing class --add so that you don't accidentally overwrite your classes.
+ * Added documentation for undocumented features of wing.angular.js.
 
 2016-05-05
  * Upgraded to latest angular and angular-ui.
