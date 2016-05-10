@@ -23,6 +23,7 @@ sub opt_spec {
       [ 'add=s', 'generate a skeleton class' ],
       [ 'template=s', 'generate a set of skeleton templates for a class' ],
       [ 'test=s', 'generate a set of skeleton tests for a class' ],
+      [ 'force', 'force overwrite' ],
     );
 }
 
@@ -36,7 +37,7 @@ sub execute {
     my ($self, $opt, $args) = @_;
     my $message = "%s is available via REST at /api/%s and via web at /%ss\n";
     if ($opt->{add}) {
-        add_class($opt->{add});
+        add_class($opt->{add}, $opt->{force});
         $message = 'After you restart services, '.$message;
         printf $message, $opt->{add}, lc($opt->{add}), lc($opt->{add});
     }
@@ -51,17 +52,24 @@ sub execute {
 }
 
 sub add_class {
-    my $class_name = shift;
+    my ($class_name, $force) = @_;
     my $tt = Template->new({ABSOLUTE => 1});
     
     my $project = Wing->config->get('app_namespace');
     my $project_lib = $ENV{WING_APP}.'/lib/'.$project;
+
+    if (-f $project_lib.'/DB/Result/'.$class_name.'.pm') {
+        unless ($force) {
+            say $class_name.' already exists.';
+            exit;
+        }
+    }
     
     my $vars = {
         project => $project,
         class_name => $class_name,
     };
-    
+
     eval {
       $tt->process($ENV{WING_HOME}.'/var/add_class/DB/Result.tt', $vars, $project_lib.'/DB/Result/'.$class_name.'.pm') || die $tt->error();
       $tt->process($ENV{WING_HOME}.'/var/add_class/Rest/Rest.tt', $vars, $project_lib.'/Rest/'.$class_name.'.pm') || die $tt->error();
