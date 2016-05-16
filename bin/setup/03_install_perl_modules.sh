@@ -15,7 +15,6 @@ Email::Sender::Simple \
 Crypt::Eksblowfish \
 Dancer \
 DateTime::Format::MySQL \
-Net::Amazon::S3 \
 Config::IniFiles \
 XML::DOM \
 Log::Log4perl \
@@ -67,4 +66,5 @@ Imager::File::PNG \
 Image::ExifTool \
 Data::OpenGraph \
 File::Temp \
-Daemon::Control
+Daemon::Control \
+Net::Amazon::S3
