@@ -197,7 +197,7 @@ sub wing_field {
                         return $params;
                     });
                     $class->meta->add_before_method_modifier($field => sub {
-                        if (scalar @_ == 2 && ! defined $_[1]) {
+                        if (scalar @_ == 2 && (! defined $_[1] || $_[1] eq '')) {
                             ouch 441, $field.' is required.', $field;
                         }
                     });

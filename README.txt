@@ -31,7 +31,7 @@ INSTALLATION
 
 5. Create a database on your MySQL server to host the project, and edit the Wing config to match:
 
-  NOTE: It is important that your my.cnf file for MySQL contain the following lines. If not, add them and restart it:
+  NOTE: It is important that your my.cnf file for MySQL contain the following lines in the [mysqld] section. If not, add them and restart it:
 
     collation_server=utf8_unicode_ci
     character_set_server=utf8
@@ -43,6 +43,7 @@ INSTALLATION
 6. Modify the config file. You need to at least edit the "db" section to tell Wing how to log in to your database. You may also wish to update other settings.
 
   vi /data/MyApp/etc/wing.conf  
+  mkdir /data/apps/logs
   chown nobody /data/apps/logs
 
   NOTE: You can also edit the location of the logs in /data/MyApp/etc/log4perl.conf. It is defaultly set to /data/apps/logs/MyApp.log
