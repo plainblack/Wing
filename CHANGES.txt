@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-05-30
+ * A few changes and bug fixes for better testing.
+
 2016-05-24
  * If a field is defined as required or unique then we no longer allow empty string '' as a valid value.
 
