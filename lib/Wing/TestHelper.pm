@@ -107,28 +107,28 @@ sub cleanup {
         if (ref $thing->[0]) {
             eval { 
                 if ($self->debug_enabled) {
-                    warn "Cleaning up ".ref($thing->[0])." with id ".$thing->[0]->id;
+                    say "Cleaning up ".ref($thing->[0])." with id ".$thing->[0]->id;
                 }
                 $thing->[0]->delete;
             };
             if ($@) {
-                warn "Could not delete ".ref($thing->[0])." with id ".$thing->[0]->id." because ".bleep($@);
+                say "Could not delete ".ref($thing->[0])." with id ".$thing->[0]->id." because ".bleep($@);
             }
         }
         elsif ($thing->[0] && $thing->[1]) {
             my $object = Wing->db->resultset($thing->[0])->find($thing->[1]);
             if (defined $object) {
                 if ($self->debug_enabled) {
-                    warn "Cleaning up ".$thing->[0]." with id ".$thing->[1];
+                    say "Cleaning up ".$thing->[0]." with id ".$thing->[1];
                 }
                 $object->delete;
                 if ($@) {
-                    warn "Could not delete ".$thing->[0]." with id ".$thing->[1]." because ".bleep($@);
+                    say "Could not delete ".$thing->[0]." with id ".$thing->[1]." because ".bleep($@);
                 }
             }
         }
         else {
-            warn "Don't know how to clean up ".$thing->[0];
+            say "Don't know how to clean up ".$thing->[0];
         }
     }
 }
