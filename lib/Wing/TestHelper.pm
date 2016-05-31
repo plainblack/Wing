@@ -69,8 +69,11 @@ sub add_to_cleanup {
 
 sub rest {
     my ($self, $method, $path, $params) = @_;
+    say "REQUEST:" if $self->debug_enabled; 
     say $method.' '.$path if $self->debug_enabled;
+    say to_json($params) if $self->debug_enabled;
     my $content = exists $params->{file} ? $self->rest_via_plack_test($method, $path, $params) : $self->rest_via_dancer_test($method, $path, $params);
+    say "RESPONSE:" if $self->debug_enabled; 
     say $content if $self->debug_enabled;
     my $out = eval{from_json($content)};
     die "got garbage back from ".$method." ".$path." (".to_json($params)."): ".$content if ($@);
