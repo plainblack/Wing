@@ -69,6 +69,8 @@ sub add_to_cleanup {
 
 sub rest {
     my ($self, $method, $path, $params) = @_;
+    $ENV{REMOTE_ADDR} = '127.0.0.1';
+    $ENV{HTTP_USER_AGENT} = 'WingTestHelper';
     say "REQUEST:" if $self->debug_enabled; 
     say $method.' '.$path if $self->debug_enabled;
     say to_json($params) if $self->debug_enabled;
