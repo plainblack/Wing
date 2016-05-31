@@ -69,6 +69,8 @@ sub add_to_cleanup {
 
 sub rest {
     my ($self, $method, $path, $params) = @_;
+    ouch(441, 'You must set a method of GET/POST/PUT/DELETE to test a REST call.') unless $method;
+    ouch(441, 'You must set a path to test a REST call.') unless $path;
     $ENV{REMOTE_ADDR} = '127.0.0.1';
     $ENV{HTTP_USER_AGENT} = 'WingTestHelper';
     say "REQUEST:" if $self->debug_enabled; 
