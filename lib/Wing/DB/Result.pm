@@ -84,6 +84,9 @@ Constructor. No parameters.
 sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_);
+    unless (defined $self->id) {
+        $self->id(Data::GUID->new->as_string);
+    }
     foreach my $col ($self->result_source->columns) {
         my $default = $self->result_source->column_info($col)->{default_value};
         $self->$col($default) if (defined $default && !defined $self->$col());

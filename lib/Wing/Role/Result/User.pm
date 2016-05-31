@@ -287,7 +287,7 @@ sub encrypt {
 
 around can_edit => sub {
     my ($orig, $self, $user) = @_;
-    return 1 if defined $user && defined $self->id && $user->id eq $self->id;
+    return 1 if defined $user && $user->id eq $self->id;
     return $orig->($self, $user);
 };
 
