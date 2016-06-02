@@ -80,7 +80,10 @@ sub rest {
     say "RESPONSE:" if $self->debug_enabled; 
     say $content if $self->debug_enabled;
     my $out = eval{from_json($content)};
-    die "got garbage back from ".$method." ".$path." (".to_json($params)."): ".$content if ($@);
+    ouch(500, "got garbage back from ".$method." ".$path." (".to_json($params)."): ".$content) if ($@);
+    if (exists $out->{error}) {
+        ouch $out->{error}{code}, $out->{error}{message}, $out->{error}{data};
+    }
     return $out;
 }
 
