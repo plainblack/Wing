@@ -178,6 +178,13 @@ This is a class method for sending out a templated email.  It is a
 light wrapper around L<Email::MIME::Kit>.  If an error
 occurs during the sending of any email it will throw an exception.
 
+If the environment variable C<WING_NO_EMAIL> is set to 1, then this method
+will return without doing anything. 
+
+If the config directive C<email_override> is set to an email address, that email
+address will receive all email rather than the original recipient. CC and BCC
+will still go to intended targets.
+
 =head3 $template
 
 The name of a template to use for building the email.  This should be a directory
@@ -214,6 +221,10 @@ B<NOTE:> C<ttr> defaults to 60. C<priority> defaults to 1500.
 
 sub send_templated_email {
     my ($class, $template, $params, $options) = @_; 
+    if ($ENV{WING_NO_EMAIL}) {
+        Wing->log->info('Skipping sending email '.$template.' due to WING_NO_EMAIL environment variable.');
+        return;
+    }
     my $result;
     if ($options->{wingman}) {
         delete $options->{wingman};

@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-06-03
+ * Added WING_NO_EMAIL environment variable to skip sending email all together.
+
 2016-05-30
  * A few changes and bug fixes for better testing.
 
