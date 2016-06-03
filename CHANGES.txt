@@ -6,6 +6,8 @@ with respect to new features and compatibility changes.
 
 2016-06-03
  * Added WING_NO_EMAIL environment variable to skip sending email all together.
+ * Added wait_on_wingman() and cleanup_wait_on_wingman() to Wing::TestHelper. 
+ * Wing::TestHelper automatically recovers from a bad cleanup of the Andy test user.
 
 2016-05-30
  * A few changes and bug fixes for better testing.
