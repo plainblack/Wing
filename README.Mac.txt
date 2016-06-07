@@ -32,3 +32,8 @@ Then perform the remaining steps in README.txt.
 ===============================================
 
 
+Then make the environment import happen after each login:
+=========================================================
+
+echo ". /data/Wing/bin/dataapps.sh" >> ~/.bash_profile
+

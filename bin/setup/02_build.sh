@@ -3,9 +3,6 @@ mkdir -p /data/apps
 # import into the environment
 . /data/Wing/bin/dataapps.sh
 
-# make the import happen after each login
-ln -s /data/Wing/bin/dataapps.sh /etc/profile.d/dataapps.sh
-
 cd perl-5.16.2
 ./Configure -Dprefix=/data/apps -des
 make

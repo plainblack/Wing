@@ -9,3 +9,10 @@ Start by prepping the system:
 Then perform all the steps in README.txt.
 =========================================
 
+
+Then make the environment import happen after each login:
+=========================================================
+
+ln -s /data/Wing/bin/dataapps.sh /etc/profile.d/dataapps.sh
+
+
