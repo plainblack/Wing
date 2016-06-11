@@ -99,7 +99,7 @@ before wing_finalize_class => sub {
             edit    => 'unique',
         },
         real_name               => {
-            dbic    => { data_type => 'varchar', size => 255, is_nullable => 0, default_value => '' },
+            dbic    => { data_type => 'varchar', size => 255, is_nullable => 1, default_value => '' },
             view    => 'private',
             edit    => 'postable',
         },
@@ -116,7 +116,7 @@ before wing_finalize_class => sub {
             _options=> { username => 'Username', real_name => 'Real Name', email => 'Email Address' },
         },
         password                => {
-            dbic    => { data_type => 'char', size => 50 },
+            dbic    => { data_type => 'char', size => 50, is_nullable => 1 },
         },
         password_salt           => {
             dbic    => { data_type => 'char', size => 16, is_nullable => 0, default_value => 'abcdefghijklmnop' }, # the default is here in case someone creates a user without a password, so we don't error all over the place

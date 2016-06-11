@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2016-06-11
  * Added Wing::Role::Result::Warnings to give a standardized way of creating warnings in classes.
+ * Change a couple fields that shouldn't be not null in the User role.
 
 2016-06-06
  * Moved environment setup into various OS specific readme files.
