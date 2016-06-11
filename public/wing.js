@@ -39,7 +39,7 @@ wing.angular_http_interceptor = function ($q) {
 
         response: function (response) {
     	    wing.hide_throbber();
-	    if (response.headers()['content-type'] === "application/json; charset=utf-8" && "_warnings" in response.data.result) {
+	        if (response.headers()['content-type'] === "application/json; charset=utf-8" && "_warnings" in response.data.result) {
                 for (var warning in response.data.result._warnings) {
                     wing.warn(response.data.result._warnings[warning].message);
                 } 
