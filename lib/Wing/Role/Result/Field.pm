@@ -22,6 +22,7 @@ Wing::Role::Result::Field - Some sugar to add fields to your wing classes.
 use Wing::Perl;
 use Ouch;
 use Moose::Role;
+use List::MoreUtils qw(any);
 
 
 =head2 wing_fields(fields)
@@ -111,6 +112,17 @@ The same as C<postable>, but only editable by users with the admin bit flipped.
 
 =back
 
+=item check_privilege
+
+Specifies the name of a method to call to verify whether the current user is allowed to update this field. The method needs to take an array of arguments including C<current_user>, C<field_name>, and C<new_field_value>. And must return either a 1 if the field is allowed to be updated, or L<Ouch> 450 if the field is not allowed to be updated. Example method:
+
+ sub check_user_is_cool {
+     my ($self, $current_user, $field, $value) = @_;
+     unless ($current_user->is_in_group('Cool People')) { # using a hypothetical is_in_group method
+         ouch 450, $current_user->display_name.' not cool enough to edit '.$field;
+     }
+ }
+
 =item indexed
 
 Boolean. Indicates whether this field should have an index applied to it in the database for quicker searching. This is automatic when C<edit> is set to C<unique>.
@@ -180,7 +192,7 @@ sub wing_field {
         
         # add field to postable params
         if (exists $options->{edit}) {
-            if ($options->{edit} ~~ [qw(postable required unique)]) {
+            if (any {$_ eq $options->{edit}} (qw(postable required unique))) {
                 $class->meta->add_around_method_modifier(postable_params => sub {
                     my ($orig, $self) = @_;
                     my $params = $orig->($self);
@@ -189,7 +201,7 @@ sub wing_field {
                 });
     
                 # make required
-                if ($options->{edit} ~~ [qw(required unique)]) {
+                if (any {$_ eq $options->{edit}} (qw(required unique))) {
                     $class->meta->add_around_method_modifier(required_params => sub {
                         my ($orig, $self) = @_;
                         my $params = $orig->($self);
@@ -215,6 +227,17 @@ sub wing_field {
                             }
                         });
                     }
+                }
+
+                # add privilege check 
+                if (exists $options->{check_privilege}) {
+                    $class->meta->add_around_method_modifier(privileged_params => sub {
+                        my ($orig, $self) = @_;
+                        my $params = $orig->($self);
+                        $params->{$field} = $options->{check_privilege};
+                        return $params;
+                    });
+
                 }
             }
             elsif ($options->{edit} eq 'admin') {
@@ -342,7 +365,7 @@ sub wing_field {
                 my ($self, $value) = @_;
                 if (scalar(@_) > 1) {
                     my $options = $self->$field_options_method;
-                    unless ($value ~~ $options) {
+                    unless (any {$_ eq $value} @$options) {
                         ouch 442, $field.' must be one of: '.join(', ', @{$options}). " and not ".$value, $field;
                     }
                 }

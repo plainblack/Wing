@@ -3,6 +3,7 @@ package Wing::DB::Result;
 use Wing::Perl;
 use DateTime;
 use Ouch;
+use List::MoreUtils qw(any);
 use base 'DBIx::Class::Core';
 
 =head1 NAME
@@ -317,6 +318,16 @@ sub required_params {
     return [];
 }
 
+=head2 privileged_params()
+
+Is wrapped by roles like L<Wing::Role::Result::Field> to not allow an object instance to updated unless that field passes its privilege check.
+
+=cut
+
+sub privileged_params {
+    return {};
+}
+
 =head2 admin_postable_params()
 
 Is wrapped by roles like L<Wing::Role::Result::Field> to only allow this field to be postable by admin users.
@@ -444,27 +455,36 @@ A hash reference of parameters to verify.
 
 A reference to the current user object.
 
+=item tracer
+
+See L<Wing::Rest> C<get_tracer()>
+
 =back
 
 =cut
 
 sub verify_posted_params {
-    my ($self, $params, $current_user) = @_;
+    my ($self, $params, $current_user, $tracer) = @_;
+    my $can_edit = eval { $self->can_edit($current_user, $tracer) };
+    my $cant_edit = $@;
     my $required_params = $self->required_params;
+    my $privileged_params = $self->privileged_params;
+    my @privileged_keys = keys %{$privileged_params}; 
+    my @postable_params = @{$self->postable_params};
     if (defined $current_user && $current_user->is_admin) {
-        foreach my $param (@{$self->admin_postable_params}) {
-            if (exists $params->{$param}) {
-                if ($param ~~ $required_params && $params->{$param} eq '') {
-                    ouch(441, $param.' is required.', $param) unless $params->{$param};
-                }
-                $self->$param($params->{$param});
-            }
-        }
+        push @postable_params, @{$self->admin_postable_params};
     }
-    foreach my $param (@{$self->postable_params}) {
+    foreach my $param (@postable_params) {
         if (exists $params->{$param}) {
-            if ($param ~~ $required_params && $params->{$param} eq '') {
+            if (any {$_ eq $param} @$required_params && $params->{$param} eq '') {
                 ouch(441, $param.' is required.', $param) unless $params->{$param};
+            }
+            if (any {$_ eq $param} @privileged_keys) {
+                my $method = $privileged_params->{$param};
+                $self->$method($current_user, $param, $params->{$param}) if $method;
+            }
+            elsif (!$can_edit) {
+                die $cant_edit;
             }
             $self->$param($params->{$param});
         }
