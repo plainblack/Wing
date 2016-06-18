@@ -161,7 +161,7 @@ register generate_relationship => sub {
 
 register generate_all_relationships => sub {
     my ($wing_object_type, %options) = @_;
-    foreach my $name (site_db()->resultset($wing_object_type)->result_source->relationships) {
+    foreach my $name (@{site_db()->resultset($wing_object_type)->new({})->relationship_accessors}) {
         my %rel_options;
         if (exists $options{named_options}) {
             if (exists $options{named_options}{$name}) {

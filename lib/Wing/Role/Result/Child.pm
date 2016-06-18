@@ -22,6 +22,14 @@ sub wing_child {
         $my_class->has_many(@relationship);
     });
         
+    # make note of the relationship
+    $class->meta->add_around_method_modifier(relationship_accessors => sub {
+        my ($orig, $self) = @_;
+        my $params = $orig->($self);
+        push @$params, $field;
+        return $params;
+    });
+
     # add relationship to describe
     $class->meta->add_around_method_modifier(describe => sub {
         my ($orig, $self, %describe_options) = @_;

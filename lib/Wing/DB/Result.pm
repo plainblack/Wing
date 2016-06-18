@@ -338,6 +338,16 @@ sub admin_postable_params {
     return [];
 }
 
+=head2 relationship_accessors()
+
+Is wrapped by roles like L<Wing::Role::Result::Parent>, L<Wing::Role::Result::Child>, and L<Wing::Role::Result::Cousin> to return an array reference of accessor names for relationships of this object. This is then used to automatically generate relationships in L<Wing::Rest>.
+
+=cut
+
+sub relationship_accessors {
+    return [];
+}
+
 =head2 can_edit(user)
 
 Can this user edit this object? By default C<is_admin> in L<Wing::Role::Result::User> can edit the object. All other privileges must be added. L<Ouch>es C<450> if the privileges are not sufficient.
