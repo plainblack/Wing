@@ -150,7 +150,7 @@ register generate_relationship => sub {
             foreach my $name (@{$options{qualifiers}}) {
                 my $value = param($name);
                 if (defined $value && $value ne '') {
-                    $where{$name} = $value;
+                    $where{'me.'.$name} = $value;
                 }
             }
             $data = $data->search(\%where);
