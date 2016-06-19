@@ -444,6 +444,10 @@ A function to be executed when an object is deleted. It will be passed the prope
 
 A function to be executed when an object is initially retrieved. It will be passed the C<objectManager> instance of the object.
 
+=item on_success
+
+A function to be executed when an a result set comes back on successful search. It will be passed the result set.
+
 
 =back
 
@@ -469,7 +473,7 @@ A function to be executed once all objects have been fetched.
 
 =item on_success
 
-A function to be executed after each page of objects has been retrieved.
+A function to be executed after each page of objects has been retrieved. 
 
 =back
 

@@ -9,6 +9,7 @@ with respect to new features and compatibility changes.
  * Added the Rest param _include and the method param include to describe() and format_list() in Wing::Dancer so that you can arbitrarily add stuff to class describe methods.
  * Documented the options in Wing::Rest for generate_relationship() and generate_all_relationships().
  * Fixed a bug relating to the object prefetch created by generate_relationship().
+ * wing.angular.js objectListManager search() now has an on_success option that is passed the successful result set.
 
 2016-06-16
  * Added privileged_params() to Wing::DB::Result.

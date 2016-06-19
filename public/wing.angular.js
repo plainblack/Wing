@@ -203,10 +203,10 @@ angular.module('wing',[])
                     items.unshift(options.prepend_item);
                 }
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
-                    options.on_success();
+                    options.on_success(data.result);
                 }
                 if (typeof behavior.on_success !== 'undefined') {
-                    behavior.on_success();
+                    behavior.on_success(data.result);
                 }
                 return items;
             });
