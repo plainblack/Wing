@@ -196,6 +196,13 @@ register format_list => sub {
     if (defined $order_by && $sort_order eq 'desc') {
         $order_by = { -desc => $order_by };
     }
+    my $include = param('_include');
+    if (defined $include) {
+        if (ref $include ne 'ARRAY') {
+            $include = [$include];
+        }
+    }
+    my $include_related_objects = param('_include_related_objects');
     my $include_related_objects = param('_include_related_objects');
     if (defined $include_related_objects) {
         if (ref $include_related_objects ne 'ARRAY' && $include_related_objects !~ m/^\d$/) {
@@ -209,6 +216,7 @@ register format_list => sub {
         items_per_page          => $options{items_per_page} || param('_items_per_page'),
         include_relationships   => $options{include_relationships} || param('_include_relationships'), 
         include_related_objects => $options{include_related_objects} || $include_related_objects, 
+        include                 => $options{include} || $include,
         include_options         => $options{include_options} || param('_include_options'), 
         include_admin           => $options{include_admin},
         include_private         => $options{include_private}, 
@@ -248,7 +256,7 @@ and can view the object, then the private fields are included.
 
 =item include_related_objects
 
-If you want to force the items in the description to include related objects.
+Can either be a 1 or an array reference. If you want to force the items in the description to include related objects.
 
 =item include_relationships
 
@@ -257,6 +265,10 @@ If you want to force the items in the description to include relationships.
 =item include_options
 
 If you want to force the items in the description to include field options.
+
+=item include
+
+Must be an array reference. If you want to trigger something custom to be included in the output of your object, this is where you do it. Then in your class's describe method you'll include the custom thing.
 
 =item object_options
 
@@ -271,6 +283,12 @@ If you need to pass additional object-specific options to the object, pass them 
 register describe => sub {
     my ($object, %options) = @_;
     my $current_user = $options{current_user} || eval { get_user_by_session_id() };
+    my $include = param('_include');
+    if (defined $include) {
+        if (ref $include ne 'ARRAY') {
+            $include = [$include];
+        }
+    }
     my $include_related_objects = param('_include_related_objects');
     if (defined $include_related_objects) {
         if (ref $include_related_objects ne 'ARRAY' && $include_related_objects !~ m/^\d$/) {
@@ -282,7 +300,8 @@ register describe => sub {
         include_private         => $options{include_private} || (eval { $object->can_view($current_user) }) ? 1 : 0,
         include_admin           => $options{include_admin} || (eval { defined $current_user && $current_user->is_admin }) ? 1 : 0,
         include_relationships   => $options{include_relationships} || param('_include_relationships'),
-        include_options         => $options{include_options} || param('_include_options'),
+        include                 => $options{include} || $include,
+        include_options         => $options{include_options} || $include,
         include_related_objects => $options{include_related_objects} || $include_related_objects,
         current_user            => $current_user,
         tracer                  => $options{tracer} || get_tracer() || undef,  ##workaround for empty array

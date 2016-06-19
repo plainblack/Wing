@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2016-06-18
  * Added Wing::Role::Result::Cousin, which sets up many to many relationships between classes in a Wing way.
+ * Added the Rest param _include and the method param include to describe() and format_list() in Wing::Dancer so that you can arbitrarily add stuff to class describe methods.
 
 2016-06-16
  * Added privileged_params() to Wing::DB::Result.
