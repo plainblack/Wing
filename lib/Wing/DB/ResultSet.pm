@@ -65,6 +65,10 @@ If you want to force the items in the formatted list to include related objects.
 
 If you want to force the items in the formatted list to include relationships.
 
+=item include
+
+An array reference that will be passed to your object and you can use that to include arbitrary data by adding custom stuff to your class's C<describe()> method.
+
 =item include_options
 
 If you want to force the items in the formatted list to include field options.
@@ -99,6 +103,7 @@ sub format_list {
             include_private         => $options{include_private} || (eval { $item->can_view($user) }) ? 1 : 0, 
             include_relationships   => $options{include_relationships}, 
             include_related_objects => $options{include_related_objects}, 
+            include                 => $options{include}, 
             include_options         => $options{include_options}, 
             tracer                  => $options{tracer},
             current_user            => $user,

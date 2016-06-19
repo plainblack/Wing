@@ -148,6 +148,10 @@ Defaults to C<params> _page_number, or 1 if not specified.
 
 A number between 1 and 100. Defaults to C<params> _items_per_page or 25 if not specified.
 
+=item include
+
+An array reference of arbitrary things to include in your class's describe method.
+
 =item include_admin
 
 If you want to force the items in the formatted list to include admin fields. Will be included automatically if the C<current_user> is an admin.
