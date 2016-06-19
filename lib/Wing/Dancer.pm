@@ -203,10 +203,11 @@ register format_list => sub {
         }
     }
     my $include_related_objects = param('_include_related_objects');
-    my $include_related_objects = param('_include_related_objects');
     if (defined $include_related_objects) {
         if (ref $include_related_objects ne 'ARRAY' && $include_related_objects !~ m/^\d$/) {
             $include_related_objects = [$include_related_objects];
+        }
+        if (ref $include_related_objects eq 'ARRAY') {
             $result_set = $result_set->search(undef, {prefetch => $include_related_objects });
         }
     }
@@ -293,6 +294,9 @@ register describe => sub {
     if (defined $include_related_objects) {
         if (ref $include_related_objects ne 'ARRAY' && $include_related_objects !~ m/^\d$/) {
             $include_related_objects = [$include_related_objects];
+        }
+        if (ref $include_related_objects eq 'ARRAY') {
+            $result_set = $result_set->search(undef, {prefetch => $include_related_objects });
         }
     }
     return $object->describe(

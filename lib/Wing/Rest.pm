@@ -137,7 +137,8 @@ register generate_relationship => sub {
         if (exists $options{queryable}) {
             my %query;
             foreach my $name (@{$options{queryable}}) {
-                $query{$name} = { like => '%'.param('query').'%' } if defined param('query');
+                my $key = $name =~ m/\./ ? $name : 'me.'.$name;
+                $query{$key} = { like => '%'.param('query').'%' } if defined param('query');
             }
             my %where = %query;
             if (scalar(keys %query)) {
@@ -150,7 +151,8 @@ register generate_relationship => sub {
             foreach my $name (@{$options{qualifiers}}) {
                 my $value = param($name);
                 if (defined $value && $value ne '') {
-                    $where{$name} = $value;
+                    my $key = $name =~ m/\./ ? $name : 'me.'.$name;
+                    $where{$key} = $value;
                 }
             }
             $data = $data->search(\%where);
@@ -309,9 +311,65 @@ Does C<generate_create>, C<generate_read>, C<generate_update>, C<generate_delete
 
  generate_relationship('User','apikeys'); # GET /api/user/xxx/apikeys
 
+=over
+
+=item object_type
+
+The short version of the class name for a result. So instead of C<MyApp::DB::Result::User> you use C<User>.
+
+=item relationship_name
+
+The name of the relationship to generate. Must be a relationship created using L<Wing::Role::Result::Parent> or L<Wing::Role::Result::Child> or L<Wing::Role::Result::Cousin> or a relationship of your own design that conforms to one of those.
+
+=item options
+
+A hash reference.
+
+=over
+
+=item permissions
+
+See L<Wing::Role::Result::APIKeyPermission>.
+
+=item queryable
+
+An array reference of field names that be queried via wildcard search.
+
+=item qualifiers
+
+An array reference of field names that may be used as a hard limit on a query of this relationship. For example, if the array reference includes C<public>, then there must be a field on the class named C<public> and if the query comes through as C<public = 1> then only the related objects where that is true will be returned.
+
+=back
+
+=back
+
 =head2 generate_all_relationships ( object_type, options )
 
  generate_all_relationships('User'); # GET /api/user/xxx/yyy
+
+=over
+
+=item object_type
+
+The short version of the class name for a result. So instead of C<MyApp::DB::Result::User> you use C<User>.
+
+=item options
+
+A hash reference of options.
+
+=over
+
+=item named_options
+
+A hash reference containing the options to pass to C<generate_relationship>.
+
+=item permissions
+
+See L<Wing::Role::Result::APIKeyPermission>.
+
+=bacl
+
+=back
  
 where C<yyy> is any relationship defined using L<Wing::Role::Result::Parent> or L<Wing::Role::Result::Child>.
 
