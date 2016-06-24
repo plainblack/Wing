@@ -62,10 +62,6 @@ These errors have to do with authentication and authorization.
 
 You do not have the privileges necessary to complete that operation.
 
-=head3 451 Session Expired
-
-The session you are using has expired. Request a new one before continuing.
-
 =head3 452 RPC Request Limit Exceeded
 
 You have exceeded the maximum number of requests allowed per minute. This exception is telling you to slow down so you don't denial of service the server with your requests.

@@ -28,7 +28,7 @@ register get_session => sub {
         return $session;
     }
     else {
-        ouch 451, 'Session expired.', $session_id;
+        ouch 401, 'You must log in to do that.', $session_id;
     }
 };
 
@@ -243,7 +243,7 @@ This L<Dancer> plugin generates restful web services from a Wing class definitio
 
 =head2 get_session( options )
 
-Unless for some reason you're only mucking around with the session and not the user, you should use C<get_user_by_session_id> instead. Will L<Ouch> a 451 if it can't find a session or the session has expired.
+Unless for some reason you're only mucking around with the session and not the user, you should use C<get_user_by_session_id> instead. Will L<Ouch> a 401 if it can't find a session or the session has expired.
 
 =over
 

@@ -325,7 +325,7 @@ get '/account/facebook/postback' => sub {
     my $fbuser = $fb->query->find('me')->request->as_hashref;
 
     unless (exists $fbuser->{id}) {
-        ouch 451, 'Could not authenticate your Facebook account.';
+        ouch 401, 'Could not authenticate your Facebook account.';
     }
     
     my $users = site_db()->resultset('User');

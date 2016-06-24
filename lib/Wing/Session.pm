@@ -96,7 +96,7 @@ sub check_permissions {
     my ($self, $permissions) = @_;
     return 1 unless $self->sso; # always has permissions if this isn't a single-sign-on session
     return 1 if (!defined $permissions || ref $permissions ne 'ARRAY' || !scalar(@{$permissions})); # has permissions if they aren't asking for any
-    ouch(451, 'You must log in to access that.',$permissions) unless $self->has_user_id; # can't have permissions if they haven't logged in
+    ouch(401, 'You must log in to access that.',$permissions) unless $self->has_user_id; # can't have permissions if they haven't logged in
     return 1 if $self->user->is_admin; # always has permissions if they're an admin
     ouch(450, 'Insufficient permissions.',$permissions) unless $self->has_api_key_id; # can't have permissions if they didn't assign an API key
     my $existing = $self->get_permissions;
