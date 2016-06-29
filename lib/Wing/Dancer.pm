@@ -299,9 +299,6 @@ register describe => sub {
         if (ref $include_related_objects ne 'ARRAY' && $include_related_objects !~ m/^\d$/) {
             $include_related_objects = [$include_related_objects];
         }
-        if (ref $include_related_objects eq 'ARRAY') {
-            $result_set = $result_set->search(undef, {prefetch => $include_related_objects });
-        }
     }
     return $object->describe(
         %{ (exists $options{object_options} ? $options{object_options} : {}) },
