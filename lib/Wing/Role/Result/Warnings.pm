@@ -114,5 +114,19 @@ around describe => sub {
     }
     return $out;
 };
+
+around describe_delete => sub {
+    my ($orig, $self, %options) = @_;
+    my $out = $orig->($self, %options);
+    if ($self->has_warnings) {
+        if (exists $out->{_warnings}) {
+            push @{$out->{_warnings}}, @{$self->warnings};
+        }
+        else {
+            $out->{_warnings} = $self->warnings;
+        }
+    }
+    return $out;
+};
  
 1;

@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-06-29
+ * Added a describe_delete method.
+
 2016-06-24
  * Replaced 451 error codes with the HTTP standard 401.
 

@@ -225,6 +225,20 @@ sub describe {
     return $out;
 }
 
+=head2 describe_delete ()
+
+Returns:
+
+ { success => 1 }
+
+But sometimes you may want to add other info to the response after the delete. Wrapping this method will allow you to do so.
+
+=cut
+
+sub describe_delete {
+    return { success => 1 };
+}
+
 =head2 field_options( options )
 
 Returns options for each field. Is wrapped by roles like L<Wing::Role::Result::Field> to expose enumerated options that some fields require.

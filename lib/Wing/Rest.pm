@@ -57,7 +57,7 @@ register generate_delete => sub {
             $options{extra_processing}->($object, $current_user);
         }
         $object->delete;
-        return { success => 1 };
+        return $object->delete_describe;
     };
 };
 
