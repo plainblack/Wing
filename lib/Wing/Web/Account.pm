@@ -328,8 +328,14 @@ get '/account/facebook/postback' => sub {
         ouch 401, 'Could not authenticate your Facebook account.';
     }
     
+    my $user = eval { get_user_by_session_id() };
+    if (defined $user) {
+        $user->facebook_uid($fbuser->{id}); 
+        $user->update;
+    }
+
     my $users = site_db()->resultset('User');
-    my $user = $users->search({facebook_uid => $fbuser->{id} }, { rows => 1 })->single;
+    $user = $users->search({facebook_uid => $fbuser->{id} }, { rows => 1 })->single;
     if (exists $fbuser->{email}) {
         if (defined $user) {
             $user->email($fbuser->{email}); # update their email in case it's changed

@@ -76,6 +76,8 @@
 
     </div><!-- row -->
     
+    <hr>
+    <p><a href="/account/facebook" class="btn btn-default">Connect This Account To Your Facebook Account</a></p>
 </div>
 [% foot_tags = BLOCK %]
 
