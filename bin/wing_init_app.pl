@@ -111,6 +111,8 @@ template($t_alt,'views/account/footer_include.tt', $vars);
 template($t_alt,'views/account/header_include.tt', $vars);
 template($t_alt,'views/account/index.tt', $vars);
 template($t_alt,'views/account/login_include.tt', $vars);
+template($t_alt,'views/account/create_account_include.tt', $vars);
+template($t_alt,'views/account/finish_facebook.tt', $vars);
 template($t_alt,'views/account/login.tt', $vars);
 template($t_alt,'views/account/profile.tt', $vars);
 template($t_alt,'views/account/reset-password-code.tt', $vars);

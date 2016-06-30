@@ -330,24 +330,29 @@ get '/account/facebook/postback' => sub {
     
     my $users = site_db()->resultset('User');
     my $user = $users->search({facebook_uid => $fbuser->{id} }, { rows => 1 })->single;
-    if (defined $user) {
-        $user->email($fbuser->{email}); # update their email in case it's changed
-        $user->update;
-    }
-    else {
-        $user = $users->search({email => $fbuser->{email} }, { rows => 1 })->single;
-        if (defined $user) { # an account with that email already exists, let's link it to facebook
-            $user->facebook_uid($fbuser->{id});
+    if (exists $fbuser->{email}) {
+        if (defined $user) {
+            $user->email($fbuser->{email}); # update their email in case it's changed
             $user->update;
         }
-        else { # create a new account
-            $user = $users->new({});
-            $user->facebook_uid($fbuser->{id});
-            $user->real_name($fbuser->{name});
-            $user->email($fbuser->{email});
-            $user->username($fbuser->{email});
-            $user->insert;
+        else {
+            $user = $users->search({email => $fbuser->{email} }, { rows => 1 })->single;
+            if (defined $user) { # an account with that email already exists, let's link it to facebook
+                $user->facebook_uid($fbuser->{id});
+                $user->update;
+            }
+            else { # create a new account
+                $user = $users->new({});
+                $user->facebook_uid($fbuser->{id});
+                $user->real_name($fbuser->{name});
+                $user->email($fbuser->{email});
+                $user->username($fbuser->{email});
+                $user->insert;
+            }
         }
+    }
+    elsif (! defined $user) {
+        return template 'account/finish_facebook', { facebook => $fbuser };
     }
     return login($user);
 };

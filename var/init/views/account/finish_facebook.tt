@@ -1,0 +1,13 @@
+[% page_title = "Finish Facebook Account Creation" %]
+[% INCLUDE header_include.tt %]
+
+<div class="container">
+
+<p>Facebook registration nearly complete. Just finish filling out the form.</p>
+
+[% INCLUDE account/create_account_include.tt %]
+
+<p><b>NOTE:</b> We ask you for a password so that in the event of a Facebook failure, you can still access your account directly.</b></p>
+</div>
+
+[% INCLUDE footer_include.tt %]

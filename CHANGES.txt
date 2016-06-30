@@ -4,6 +4,11 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-06-30
+ * Updated the Facebook SSO API to work with Facebook's nonsense.
+ * Exposed FacebookAuthUser role so you know what fields you have to add to auth with Facebook.
+ * NOTE: You need to copy var/init/views/account/create_account_include.tt finish_facebook.tt, and authenticate_include.tt into your views/account folder.
+
 2016-06-29
  * Added a describe_delete method.
 
