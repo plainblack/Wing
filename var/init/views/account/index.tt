@@ -75,9 +75,9 @@
         </div>
 
     </div><!-- row -->
-    
-    <hr>
-    <p><a href="/account/facebook" class="btn btn-default">Connect This Account To Your Facebook Account</a></p>
+    [% UNLESS current_user.facebook_uid %] 
+        <div class="well"><p><a href="/account/facebook" class="btn btn-default">Connect This Account To Your Facebook Account</a></p></div>
+    [% END %]
 </div>
 [% foot_tags = BLOCK %]
 
