@@ -49,6 +49,7 @@ before wing_finalize_class => sub {
         uri_part => {
             dbic        => { data_type => 'varchar', size => 60, is_nullable => 0 },
             view        => 'public',
+            edit        => 'postable',
             indexed     => 'unique',
         }
     );
