@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-07-06
+ * Allow qualifiers in Rest generate_relationship to be passed a comparison operator. 
+
 2016-06-30
  * Updated the Facebook SSO API to work with Facebook's nonsense.
  * Exposed FacebookAuthUser role so you know what fields you have to add to auth with Facebook.

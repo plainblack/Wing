@@ -149,10 +149,18 @@ register generate_relationship => sub {
         if (exists $options{qualifiers}) {
             my %where;
             foreach my $name (@{$options{qualifiers}}) {
-                my $value = param($name);
-                if (defined $value && $value ne '') {
+                my $param = param($name);
+                if (defined $param && $param ne '') {
+                    $param =~ m/([>=<]{0,2})(.*)/;
+                    my $compare = $1;
+                    my $value = $2;
                     my $key = $name =~ m/\./ ? $name : 'me.'.$name;
-                    $where{$key} = $value;
+                    if ($compare) {
+                        $where{$key} = { $compare => $value };
+                    }
+                    else {
+                        $where{$key} = $value;
+                    }
                 }
             }
             $data = $data->search(\%where);
@@ -338,6 +346,12 @@ An array reference of field names that be queried via wildcard search.
 =item qualifiers
 
 An array reference of field names that may be used as a hard limit on a query of this relationship. For example, if the array reference includes C<public>, then there must be a field on the class named C<public> and if the query comes through as C<public = 1> then only the related objects where that is true will be returned.
+
+You can also do other comparison types such as >, >=, <, <=, or <> by prepending the operator on the value like this:
+
+ ?start_date=>=2016-01-07 15:30:00
+
+The first equal sign is the assignment operator and will be processed out. The reminader reads where C<start_date> is greater than or equal to C<2016-01-07 15:30:00>. 
 
 =back
 
