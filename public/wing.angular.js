@@ -191,10 +191,10 @@ angular.module('wing',[])
                 for (var index = 0; index < data.result.items.length; index++) {
                     self.objects.push(self._create_object_manager(data.result.items[index]));
                     if (typeof options !== 'undefined' && typeof options.on_each !== 'undefined') {
-                        options.on_each(data.result.items[index]);
+                        options.on_each(data.result.items[index], self.objects[self.objects.length -1]);
                     }
                     if (typeof behavior.on_each !== 'undefined') {
-                        behavior.on_each(data.result.items[index]);
+                        behavior.on_each(data.result.items[index], self.objects[self.objects.length -1]);
                     }
                 }
                 self.paging = data.result.paging;
@@ -224,10 +224,10 @@ angular.module('wing',[])
                 for (var index in data.result.items) {
                     self.objects.push(self._create_object_manager(data.result.items[index]));
                     if (typeof options !== 'undefined' && typeof options.on_each !== 'undefined') {
-                        options.on_each(data.result.items[index]);
+                        options.on_each(data.result.items[index], self.objects[self.objects.length -1]);
                     }
                     if (typeof behavior.on_each !== 'undefined') {
-                        behavior.on_each(data.result.items[index]);
+                        behavior.on_each(data.result.items[index], self.objects[self.objects.length -1]);
                     }
                 }
                 if (data.result.paging.page_number < data.result.paging.total_pages) {

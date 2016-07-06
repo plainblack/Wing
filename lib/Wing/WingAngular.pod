@@ -442,7 +442,7 @@ A function to be executed when an object is deleted. It will be passed the prope
 
 =item on_each
 
-A function to be executed when an object is initially retrieved. It will be passed the C<objectManager> instance of the object.
+A function to be executed when an object is initially retrieved. It will be passed the properties of the object, and the C<objectManager> instance of the object.
 
 =item on_success
 
@@ -465,7 +465,7 @@ Similar to C<search()> except that it fetches the complete list of objects, not 
 
 =item on_each
 
-A function to be executed when an object is initially retrieved. It will be passed the C<objectManager> instance of the object.
+A function to be executed when an object is initially retrieved. It will be passed the properties of the object, and the C<objectManager> instance of the object.
 
 =item on_all_done
 
