@@ -16,7 +16,7 @@ sub format_html {
     ${$content} =~ s/\_{2}(.*?)\_{2}/<em>$1<\/em>/g;                    # italicize stuff marked with __
     ${$content} =~ s/\~{2}(.*?)\~{2}/<s>$1<\/s>/g;                      # strike through stuff makred with ~~
     ${$content} =~ s/^\s*(\-{3,})\s*$/<hr>/gm;                          # --- creates a horizontal rule
-    my @headings = (2);                                                 # each = at the start of a line creates H1 through H6 tags
+    my @headings = (6,5,4,3,2);                                                 # each = at the start of a line creates H1 through H6 tags
     if (exists $allowed->{headings}) {
         if (ref $allowed->{headings} eq 'ARRAY') {
             @headings = reverse sort @{$allowed->{headings}};

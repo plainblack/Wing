@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2016-07-11
  * Disambiguate a Rest _order_by clause.
+ * By default content filter allows for H2 through H6.
 
 2016-07-06
  * Allow qualifiers in Rest generate_relationship to be passed a comparison operator. 
