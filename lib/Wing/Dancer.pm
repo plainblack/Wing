@@ -193,8 +193,13 @@ If you need to pass additional object-specific options to the object, pass them 
 register format_list => sub {
     my ($result_set, %options) = @_;
     my $order_by = $options{order_by} || param('_order_by');
-    unless (defined $order_by && $order_by =~ m/^[a-z0-9\_]+$/i) {
-        $order_by = undef;
+    if (defined $order_by) {
+        unless ($order_by =~ m/\./) {
+            $order_by = 'me.'.$order_by;
+        }
+        unless ($order_by =~ m/^[a-z0-9\.\_]+$/i) {
+            $order_by = undef;
+        }
     }
     my $sort_order = $options{sort_order} || param('_sort_order');
     if (defined $order_by && $sort_order eq 'desc') {

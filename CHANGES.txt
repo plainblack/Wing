@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-07-11
+ * Disambiguate a Rest _order_by clause.
+
 2016-07-06
  * Allow qualifiers in Rest generate_relationship to be passed a comparison operator. 
  * wing.angular.js objectListManager on_each is now passed the objectManager instance of each object in addition to its properties.
