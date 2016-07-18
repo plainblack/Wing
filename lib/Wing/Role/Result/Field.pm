@@ -133,6 +133,21 @@ B<NOTE:> If you set this specifically to C<unique> then it will create a unique 
 
 Array reference of field names. If the field gets marked unique as an index or by making edit unique, by default it needs to be unique amongst all objects of this type. However, you can add extra fields to qualify the uniqueness against and then it will be unique within that set. For example, if you have a field called C<name> that you want to be unique, but you have a column called C<category> then you could specify unique_qualifiers as C<['category']> and then have a unique name per category.
 
+=item filter
+
+A subroutine reference that will test and fix the value supplied. For example, you might use L<URI::Heuristic> to do the following:
+
+ __PAKCAGE__->wing_field(
+     website_uri => {
+        dbic           => { data_type => 'varchar', size => 255, is_nullable => 0, default_value => 'http://' },
+        view           => 'public',
+        edit           => 'postable',
+        filter         => sub {
+            return URI::Heuristic::uf_uristr($_[0]);
+        },
+     }
+ );
+
 =item range
 
 An array reference where the first value is the minimum value in the range and the second is the max value.
@@ -302,6 +317,23 @@ sub wing_field {
             });
         }
 
+        # filter 
+        if (exists $options->{filter}) {
+            if (ref $options->{filter} ne 'CODE') {
+                ouch 500, 'Filter for "'.$field.'" must be specified with a code reference.';
+            }
+            $class->meta->add_around_method_modifier($field => sub {
+                my ($orig, $self, $value) = @_;
+                if (scalar(@_) > 2) {
+                    $orig->($self, $options->{filter}->($value));
+                }
+                else {
+                    $orig->($self);
+                }
+            });
+        }
+    
+        # enumerated validation
         # range validation
         if (exists $options->{range}) {
             if (ref $options->{range} ne 'ARRAY') {
