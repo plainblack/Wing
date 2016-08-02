@@ -96,6 +96,7 @@ sub format_link {
     my $uri = shift;
     my $ua = LWP::UserAgent->new;
     $ua->timeout(5);
+    $ua->ssl_opts( verify_hostname => 0 ,SSL_verify_mode => 0x00);
     # have to send a BS user agent so stupid web sites like gamesalute.com don't block us
     my $response = $ua->get($uri->as_string, Accept => 'text/html;q=0.9,*/*;q=0.8', 'Accept-Encoding' => 'gzip, deflate', 'Accept-Language' => 'en-us', 'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/536.28.10 (KHTML, like Gecko) Version/6.0.3 Safari/536.28.10', 'Cache-Control' => 'max-age=0');
     if ($response->is_success && $response->header('Content-Type') =~ m{^text/html}xms) {
