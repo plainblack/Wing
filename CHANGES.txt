@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-08-02
+ * Fixed a bug in Wing::ContentFilter where it couldn't get SSL sites.
+
 2016-07-18
  * Added filter to Wing::Role::Result::Field.
 
