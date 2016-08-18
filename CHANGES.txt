@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-08-18
+ * Add a login link to 401 ajax error messages.
+
 2016-08-08
  * Export "can_view" property via describe() method in Result.pm
 

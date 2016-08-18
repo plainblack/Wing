@@ -51,11 +51,16 @@ wing.angular_http_interceptor = function ($q) {
     	    wing.hide_throbber();
             if (response.headers()['content-type'] === "application/json; charset=utf-8" && "error" in response.data) {
                 var message = response.data.error.message;
-                var matches = message.split(/ /);
-                var field = matches[0].toLowerCase();
-                var label = $('label[for="'+field+'"]').text();
-                if (label) {
-                    message = message.replace(field,label);
+                if (response.data.error.code == 401) {
+                    var message = 'You must <a href="/account" class="btn btn-primary btn-sm">log in</a> to do that.';
+                }
+                else {
+                    var matches = message.split(/ /);
+                    var field = matches[0].toLowerCase();
+                    var label = $('label[for="'+field+'"]').text();
+                    if (label) {
+                        message = message.replace(field,label);
+                    }   
                 }
                 wing.error(message);
             }
