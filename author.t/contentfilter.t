@@ -11,7 +11,7 @@ is Wing::ContentFilter::format_image($image_uri), '<img src="https://cf.geekdo-s
 
 my $find_link_in_text = 'foo https://www.thegamecrafter.com/help bar';
 Wing::ContentFilter::find_and_format_uris(\$find_link_in_text, {links => 1});
-is $find_link_in_text, 'foo <a href="https://www.thegamecrafter.com/help">Help</a> [www.thegamecrafter.com] bar', 'can find links embedded in text';
+is $find_link_in_text, 'foo <a href="https://www.thegamecrafter.com/help" target="_new" title="Links to external site: www.thegamecrafter.com">The Game Crafter Knowledge Base <small><span class="glyphicon glyphicon-new-window"></span></a></small> bar', 'can find links embedded in text';
 
 my $just_a_url = 'https://www.youtube.com/watch?v=YKmj6LI5pfs';
 Wing::ContentFilter::find_and_format_uris(\$just_a_url, {youtube => 1});
@@ -63,7 +63,7 @@ my $heading2 = $heading;
 Wing::ContentFilter::format_html(\$heading, {headings => [1,2,3,4,5,6]});
 is $heading, 'foo<h1>heading 1</h1><h2>heading2</h2><h3>heading 3 is good</h3><h4>head 4</h4>foo = head none<br>too<h5>head5</h5><h6>head6</h6>bar', 'can format headings';
 Wing::ContentFilter::format_html(\$heading2);
-is $heading2, 'foo<br>= heading 1<h2>heading2</h2><h2>=heading 3 is good</h2><h2>== head 4</h2>foo = head none<br>too<h2>===head5</h2><h2>==== head6</h2>bar', 'by default only allow level 2 headings';
+is $heading2, 'foo<br>= heading 1<h2>heading2</h2><h3>heading 3 is good</h3><h4>head 4</h4>foo = head none<br>too<h5>head5</h5><h6>head6</h6>bar', 'by default only allow level 2 headings';
 
 my $list = 'foo
 bar
