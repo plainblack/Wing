@@ -80,6 +80,10 @@ is $list, 'foo<br>bar<ul><li>this is</li><li>a</li><li>list of epic proportions<
 Wing::ContentFilter::format_html(\$list2);
 is $list2, 'foo<br>bar<ul><li>this is</li><li>a</li><li>list of epic proportions</li><li>and more</li></ul>foo<br>barfoo<br>bar<ul><li>this is</li><li>a</li><li>list of epic proportions</li><li>and more</li></ul>foo<br>bar','can format multiple lists';
 
+my $markdown = 'foo [![Alt text](/path/to/img.jpg)](http://example.net/) bar';
+Wing::ContentFilter::format_markdown(\$markdown);
+is $markdown, '<p>foo <a href="http://example.net/"><img src="/path/to/img.jpg" alt="Alt text"></a> bar</p>'."\n",'can format markdown';
+
 
 
 done_testing();

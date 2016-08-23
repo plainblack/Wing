@@ -67,4 +67,7 @@ Image::ExifTool \
 Data::OpenGraph \
 File::Temp \
 Daemon::Control \
-Net::Amazon::S3
+Net::Amazon::S3 \
+Text::MultiMarkdown \
+URI::Find::Delimited
+

@@ -38,8 +38,11 @@ sub wing_webfiltered_field {
                     ouch 442, $sorted[-1].', in '.$field.' is too long. 200 characters max.', $field;
                 }
                 my $html = $value;
-                Wing::ContentFilter::format_html(\$html, { entities => 1 });
-                Wing::ContentFilter::find_and_format_uris(\$html, { youtube => 1, links => 1, images => 1, vimeo => 1});
+                Wing::ContentFilter::format_html(\$html, exists $options->{format_html} ? $options->{format_html} : { entities => 1, with_markdown => $options->{use_markdown} });
+                Wing::ContentFilter::find_and_format_uris(\$html, exists $options->{find_and_format_uris} ? $options->{find_and_format_uris} : { youtube => 1, links => 1, images => 1, vimeo => 1});
+                if ($options->{use_markdown}) {
+                    Wing::ContentFilter::format_markdown(\$html);
+                }
                 $self->$field_html($html);
             }
         });

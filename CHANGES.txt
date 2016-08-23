@@ -4,6 +4,14 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-08-22
+ * Requires Text::MultiMarkdown and URI::Find::Delimited.
+ * Allow for Markdown in Web Filtered Fields.
+ * ContentFilter now uses ## instead of == for headings. Use something like this to upgrade your database: 
+
+    update groups set description=replace(description, '==','##');
+
+
 2016-08-18
  * Add a login link to 401 ajax error messages.
 
