@@ -229,20 +229,7 @@ sub wing_field {
                         }
                     });
                     
-                    # make unique
-                    if ($options->{edit} eq 'unique') {
-                        $class->meta->add_before_method_modifier($field => sub {
-                            my ($self, $value) = @_;
-                            if (scalar(@_) > 1) {
-                                my $criteria = { $field => $value };
-                                if ($self->in_storage) {
-                                    $criteria->{id} = { '!=' => $self->id };
-                                }
-                                ouch(443, $field.' not available.', $field) if $self->result_source->schema->resultset($class)->search($criteria)->count;
-                            }
-                        });
-                    }
-                }
+               }
 
                 # add privilege check 
                 if (exists $options->{check_privilege}) {
@@ -306,6 +293,23 @@ sub wing_field {
                 my ($orig, $self, $sqlt_table) = @_;
                 $orig->($self, $sqlt_table);
                 $sqlt_table->add_index(name => 'idx_'.$field, fields => [$field]);
+            });
+        }
+
+        # add unique precheck
+        if ((exists $options->{indexed} && $options->{indexed} eq 'unique') || (exists $options->{edit} && $options->{edit} eq 'unique')) {
+            $class->meta->add_before_method_modifier('insert' => sub {
+                my $self = shift;
+                my $criteria = { $field => $self->$field() };
+                if ($self->in_storage) {
+                    $criteria->{id} = { '!=' => $self->id };
+                }
+                if ($options->{unique_qualifiers}) {
+                    foreach my $qualifier (@{$options->{unique_qualifiers}}) {
+                        $criteria->{$qualifier} = $self->$qualifier();
+                    }
+                }
+                ouch(443, $field.' must be unique.', $field) if $self->result_source->schema->resultset($class)->search($criteria)->count;
             });
         }
 
@@ -403,7 +407,7 @@ sub wing_field {
                 }
             });
         }
-    
+
         # add field to describe
         $class->meta->add_around_method_modifier(describe => sub {
             my ($orig, $self, %describe_options) = @_;

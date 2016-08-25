@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-08-25
+ * Added better precheck for unique fields to check for unique indexes as well as unique qualifiers. 
+ * Added in page targets to Web Filtered Fields.
+
 2016-08-22
  * Requires Text::MultiMarkdown and URI::Find::Delimited.
  * Allow for Markdown in Web Filtered Fields.
