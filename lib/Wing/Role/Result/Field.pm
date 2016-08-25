@@ -298,7 +298,7 @@ sub wing_field {
 
         # add unique precheck
         if ((exists $options->{indexed} && $options->{indexed} eq 'unique') || (exists $options->{edit} && $options->{edit} eq 'unique')) {
-            $class->meta->add_before_method_modifier('insert' => sub {
+            my $check = sub {
                 my $self = shift;
                 my $criteria = { $field => $self->$field() };
                 if ($self->in_storage) {
@@ -309,7 +309,23 @@ sub wing_field {
                         $criteria->{$qualifier} = $self->$qualifier();
                     }
                 }
-                ouch(443, $field.' must be unique.', $field) if $self->result_source->schema->resultset($class)->search($criteria)->count;
+                ouch(443, $field.' must be unique, and '.$self->$field().' has already been used.', $field) if $self->result_source->schema->resultset($class)->search($criteria)->count;
+            };
+            $class->meta->add_before_method_modifier('insert' => $check);
+            $class->meta->add_before_method_modifier('update' => sub {
+                my $self = shift;
+                my %cols = $self->get_dirty_columns;;
+                my $dirty = exists $cols{$field} ? 1 : 0;
+                if ($options->{unique_qualifiers}) {
+                    foreach my $qualifier (@{$options->{unique_qualifiers}}) {
+                        if (exists $cols{$qualifier}) {
+                            $dirty = 1;
+                        }
+                    }
+                }
+                if ($dirty) {
+                    $check->($self);
+                }
             });
         }
 
