@@ -37,7 +37,8 @@ sub format_html {
     }
     ${$content} =~ s/\_{2}(.*?)\_{2}/<em>$1<\/em>/g;                    # italicize stuff marked with __
     ${$content} =~ s/\~{2}(.*?)\~{2}/<s>$1<\/s>/g;                      # strike through stuff makred with ~~
-    ${$content} =~ s/^\s*\&gt;\s*(.*)$/<blockquote>$1<\/blockquote>/gm;
+    ${$content} =~ s/^\s*\&gt;\s*(.*)$/<blockquote>$1<\/blockquote>/gm; # block quote with >
+    ${$content} =~ s/\{(.*?)\}/<a name="$1"><\/a>/g;                      # in page target
     unless ($allowed->{with_markdown}) {
         ${$content} =~ s/^\s*(\-{3,})\s*$/<hr>/gm;                          # --- creates a horizontal rule
         my @headings = (6,5,4,3,2);                                                 # each = at the start of a line creates H1 through H6 tags
