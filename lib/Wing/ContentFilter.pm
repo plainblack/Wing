@@ -5,7 +5,7 @@ use Wing::Perl;
 use pQuery;
 use Data::OpenGraph;
 use LWP::UserAgent;
-use Text::MultiMarkdown;
+use Wing::Markdown;
 use URI::Find::Delimited;
 
 sub neutralize_html {
@@ -17,16 +17,10 @@ sub neutralize_html {
 
 sub format_markdown {
     my ($content) = @_;
-    my $m = Text::MultiMarkdown->new(
-        empty_element_suffix => '>',
+    my $m = Wing::Markdown->new(
         tab_width => 2,
-        disable_definition_lists => 1,
-        disable_bibliography => 1,
-        disable_footnotes => 1,
-        strip_metadata => 1,
     );
     ${$content} = $m->markdown(${$content});
-    ${$content} =~ s{<table>}{<table class="table table-striped">}xmsg;
 }
 
 sub format_html {
@@ -76,7 +70,7 @@ sub find_and_format_uris {
             my ($opening_delim, $closing_delim, $uri_string, $title, $whitespace) = @_;
 
             if ($opening_delim) { # we found a markdown url
-                return $opening_delim.$uri_string.$closing_delim;
+                return $opening_delim.$uri_string.$whitespace.$title.$closing_delim;
             }
 
             my $uri = URI->new($uri_string);

@@ -26,7 +26,7 @@ sub wing_webfiltered_field {
         dbic    => \%dbic,
         view    => 'public',
     });
-    
+
     $object_class->meta->add_after_method_modifier(wing_apply_fields => sub {
         my ($class) = @_;
         $class->meta->add_before_method_modifier($field => sub {
@@ -40,6 +40,7 @@ sub wing_webfiltered_field {
                 my $html = $value;
                 Wing::ContentFilter::format_html(\$html, exists $options->{format_html} ? $options->{format_html} : { entities => 1, with_markdown => $options->{use_markdown} });
                 Wing::ContentFilter::find_and_format_uris(\$html, exists $options->{find_and_format_uris} ? $options->{find_and_format_uris} : { youtube => 1, links => 1, images => 1, vimeo => 1});
+
                 if ($options->{use_markdown}) {
                     Wing::ContentFilter::format_markdown(\$html);
                 }
