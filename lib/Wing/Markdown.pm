@@ -1003,7 +1003,7 @@ sub _EncodeCode {
 
     # Encode all ampersands; HTML entities are not
     # entities within a Markdown code span.
-    s/&/&amp;/g;
+#    s/&/&amp;/g; # not needed because Wing::ContentFilter does it for us
 
     # Encode $'s, but only if we're running under Blosxom.
     # (Blosxom interpolates Perl variables in article bodies.)
@@ -1015,7 +1015,6 @@ sub _EncodeCode {
     }
 
 
-    # Do the angle bracket song and dance:
     s! <  !&lt;!gx;
     s! >  !&gt;!gx;
 
