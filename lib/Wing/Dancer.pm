@@ -292,6 +292,10 @@ If you need to pass additional object-specific options to the object, pass them 
 
 register describe => sub {
     my ($object, %options) = @_;
+    unless (defined $object) {
+        my ($package, $file, $line) = caller;
+        ouch 440, 'No object to describe in '.$package.' line '.$line.'.';
+    }
     my $current_user = $options{current_user} || eval { get_user_by_session_id() };
     my $include = param('_include');
     if (defined $include) {
