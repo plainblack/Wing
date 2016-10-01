@@ -4,9 +4,6 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
-2016-09-30
- * User REST should generate all relationships by default.
-
 2016-08-29
  * Switched to our own markdown parser for better security, speed, and formatting.
 
