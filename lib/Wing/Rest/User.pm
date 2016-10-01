@@ -27,4 +27,7 @@ generate_update('User', permissions => ['edit_my_account']);
 generate_delete('User', permissions => ['edit_my_account']);
 generate_create('User', extra_processing => $extra);
 
+generate_all_relationships('User');
+
+
 1;
