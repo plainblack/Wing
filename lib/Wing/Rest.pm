@@ -136,7 +136,19 @@ register generate_relationship => sub {
         my $data = $object->$relationship_name();
         if (exists $options{queryable}) {
             my %query;
+            my $prefetch = param('_include_related_objects');
+            if (defined $prefetch) {
+                if (ref $prefetch ne 'ARRAY' && $prefetch !~ m/^\d$/) {
+                    $prefetch = [$prefetch];
+                }
+            }
+            if (ref $prefetch ne 'ARRAY') {
+                $prefetch = [];
+            }
             foreach my $name (@{$options{queryable}}) {
+                if ($name =~ m/(\w+)\.\w+/) { # skip a joined query if there is no prefetch on that query
+                    next unless $1 ~~ $prefetch;
+                }
                 my $key = $name =~ m/\./ ? $name : 'me.'.$name;
                 $query{$key} = { like => '%'.param('query').'%' } if defined param('query');
             }
