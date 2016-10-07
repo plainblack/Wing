@@ -189,6 +189,10 @@ Boolean. When this is true then the C<duplicate> method will not copy this field
 
 If you set this, it will be prepended to the field when duplicated. This is useful for doing things like 'Copy of '. 
 
+=item skip_unique_if_null
+
+If you set this, the unique value checks done inside Wing will be skipped.
+
 =back
 
 =back
@@ -300,6 +304,7 @@ sub wing_field {
         if ((exists $options->{indexed} && $options->{indexed} eq 'unique') || (exists $options->{edit} && $options->{edit} eq 'unique')) {
             my $check = sub {
                 my $self = shift;
+                return if $options->{skip_unique_if_null} && ! defined $self->$field();
                 my $criteria = { $field => $self->$field() };
                 if ($self->in_storage) {
                     $criteria->{id} = { '!=' => $self->id };

@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-10-07
+ * Add option to skip Wing's field uniqueness check, if the field value is null.
+
 2016-10-04
  * Allow joined queries on Rest generate_relationship().
 
