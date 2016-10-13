@@ -197,7 +197,7 @@ sub fetch {
     my $self = shift;
     my $uri = $self->image_uri;
     my $filename = $self->filename;
-    my $path = $self->local_cache_path . '/' . $filename;
+    my $path = $self->local_cache_path . '/'.$self->id.'/' . $filename;
     unless (-f $path) {
         Wing->log->info('Fetching '.$filename.' from S3');
         my $command = '/usr/bin/curl -S -o '.$path.' --retry 3 --create-dirs --url http:'.$uri;
