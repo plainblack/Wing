@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-10-14
+ * lib/DB/Result.pm now has verify_creation_params setting the values of required params so that they can be used in a can_edit() check when creating an object.
+
 2016-10-13
  * S3Image now includes the object id in the local cache path.
 

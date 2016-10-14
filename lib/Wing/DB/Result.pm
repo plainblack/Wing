@@ -463,6 +463,7 @@ sub verify_creation_params {
     foreach my $param (@{$self->required_params}) {
         my $value = $params->{$param} || $self->$param;
         ouch(441, $param.' is required.', $param) unless defined $value && $value ne '';
+        $self->$param($params->{$param});
     }
 }
 
