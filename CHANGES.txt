@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-10-18
+ * Backed out change added on 2016-10-14, because the user decided not to use it, and it was causing other problems elsewhere in existing apps.
+
 2016-10-14
  * lib/DB/Result.pm now has verify_creation_params setting the values of required params so that they can be used in a can_edit() check when creating an object.
 
