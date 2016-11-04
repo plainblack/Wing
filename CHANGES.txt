@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-11-04
+ * _order_by can now be an array.
+
 2016-10-18
  * Backed out change added on 2016-10-14, because the user decided not to use it, and it was causing other problems elsewhere in existing apps.
 

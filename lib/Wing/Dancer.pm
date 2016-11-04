@@ -174,7 +174,7 @@ If you want to force the items in the formatted list to include field options.
 
 =item order_by
 
-The field to order by. Defaults to whatever order C<result_set> would normally have, and that default can be overridden by C<params> _order_by.
+The field to order by. Defaults to whatever order C<result_set> would normally have, and that default can be overridden by C<params> _order_by. This can also be an array reference if you want to order by multiple fields.
 
 =item sort_order
 
@@ -194,11 +194,17 @@ register format_list => sub {
     my ($result_set, %options) = @_;
     my $order_by = $options{order_by} || param('_order_by');
     if (defined $order_by) {
-        unless ($order_by =~ m/\./) {
-            $order_by = 'me.'.$order_by;
+        if (ref $order_by ne 'ARRAY') {
+            $order_by = [$order_by];
         }
-        unless ($order_by =~ m/^[a-z0-9\.\_]+$/i) {
-            $order_by = undef;
+        for (my $i = 0; $i < scalar(@{$order_by}); $i++) {
+
+            unless ($order_by->[$i] =~ m/\./) {
+                $order_by->[$i] = 'me.'.$order_by->[$i];
+            }
+            unless ($order_by->[$i] =~ m/^[a-z0-9\.\_]+$/i) {
+                delete $order_by->[$i];
+            }
         }
     }
     my $sort_order = $options{sort_order} || param('_sort_order');
