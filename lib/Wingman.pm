@@ -453,7 +453,7 @@ sub stats_job_as_hashref {
         return \%beanstalk;
     }
     else {
-        ouch 440, 'Job not found.', $id;
+        ouch 440, 'Job '.$id.' not found.', $id;
     }
 }
 
