@@ -47,9 +47,10 @@ before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_field(
         uri_part => {
-            dbic        => { data_type => 'varchar', size => 60, is_nullable => 0 },
-            view        => 'public',
-            indexed     => 'unique',
+            dbic            => { data_type => 'varchar', size => 60, is_nullable => 0 },
+            view            => 'public',
+            indexed         => 'unique',
+            skip_duplicate  => 1,
         }
     );
 };

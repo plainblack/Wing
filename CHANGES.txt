@@ -4,8 +4,11 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2016-12-30
+ * UriPart role should also have had skip_duplicate turned on by default.
+
 2016-12-28
- * UriPartOnInit role should have hadd skip_duplicate turned on by default.
+ * UriPartOnInit role should have had skip_duplicate turned on by default.
  * Show job id in Wingman error message when not found.
 
 2016-11-04
