@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-01-02
+ * Changed the output of Wing::Rest::Status over a potential security issue.
+
 2016-12-30
  * UriPart role should also have had skip_duplicate turned on by default.
 

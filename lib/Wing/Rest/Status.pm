@@ -26,10 +26,19 @@ any qr{/api/_test.*} => sub {
             http_only         => 0,
             path              => '/';
     }
+    my $dancer_env = request->env;
+    my %env = (
+        SERVER_NAME => $dancer_env->{SERVER_NAME},
+        HTTP_ACCEPT => $dancer_env->{HTTP_ACCEPT},
+        HTTP_USER_AGENT => $dancer_env->{HTTP_USER_AGENT},
+        QUERY_STRING => $dancer_env->{QUERY_STRING},
+        SERVER_PROTOCOL => $dancer_env->{SERVER_PROTOCOL},
+        REQUEST_URI => $dancer_env->{REQUEST_URI},
+    );
     my $out = { 
         method  => request->method,
         params  => {params},
-        env     => \%ENV,
+        env     => \%env,
         path    => request->path,
         tracer  => $tracer,
     };
