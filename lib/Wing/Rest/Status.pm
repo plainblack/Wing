@@ -14,6 +14,9 @@ get '/api/status' => sub {
 };
 
 any qr{/api/_test.*} => sub {
+    if (param('session_id')) {
+        get_user_by_session_id();
+    }
     my $cookie = cookies->{tracer};
     my $tracer;
     if (defined $cookie) {
