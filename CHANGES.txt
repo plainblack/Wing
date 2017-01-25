@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-01-25
+ * Don't prevent joined queries from performing a query on generated relationships.
+
 2017-01-11
  * Do session check if session_id is passed to /api/_test
 
