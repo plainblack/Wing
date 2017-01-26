@@ -74,10 +74,6 @@ A prerequisite of performing the requested action has not been met.
 
 The password you specified does not match our records.
 
-=head2 455 Must verify humanity.
-
-You need to answer a L<Captcha> to use the API you just tried to use.
-
 
 
 
