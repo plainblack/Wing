@@ -13,7 +13,7 @@ A suite of AngularJS Wing utilities.
   myApp = angular.module('MyApp',['wing']);
 
   myApp.controller('MyCtrl', function($scope, $http, objectListManager) {
-    $scope.users = new objectListManager(
+    $scope.users = new objectListManager({
         fetch_options : {
             _include_options: 1,
             _include_relationships: 1, // required
@@ -79,7 +79,7 @@ Sets confirmations equal to true if they are currently false and false if they a
 Manages an instance of a Wing object, aka a row in the database.
 
   myApp.controller('MyCtrl', function($scope, $http, objectManager) {
-    $scope.users = new objectManager(
+    $scope.users = new objectManager({
         fetch_options : {
             _include_options: 1,
             _include_relationships: 1, // required
@@ -316,7 +316,7 @@ A function to be called if the delete fails.
 Manages a list of Wing objects, aka a selection of rows in the database. This is a list of C<objectManager>s.
 
   myApp.controller('MyCtrl', function($scope, $http, objectListManager) {
-    $scope.users = new objectListManager(
+    $scope.users = new objectListManager({
         fetch_options : {
             _include_options: 1,
             _include_relationships: 1, // required
