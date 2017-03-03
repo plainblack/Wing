@@ -181,9 +181,6 @@ angular.module('wing',[])
                 _items_per_page : self.paging.items_per_page || 10,
             };
             var params = wing.merge(pagination, behavior.fetch_options);
-            if (typeof options !== 'undefined' && typeof options.query !== 'undefined') {
-                params = wing.merge(params, options.query);
-            }
             return $http.get(behavior.list_api, { params : params })
             .then(function (response) {
                 var data = response.data;
