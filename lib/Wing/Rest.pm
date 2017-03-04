@@ -146,6 +146,9 @@ register generate_relationship => sub {
                 $prefetch = [];
             }
             foreach my $name (@{$options{queryable}}) {
+                if ($name =~ m/(\w+)\.\w+/) { # skip a joined query if there is no prefetch on that query, needed when you have queriable params in a joined table like 'user.real_name'. 
+                    next unless $1 ~~ $prefetch;
+                }
                 my $key = $name =~ m/\./ ? $name : 'me.'.$name;
                 $query{$key} = { like => '%'.param('query').'%' } if defined param('query');
             }
