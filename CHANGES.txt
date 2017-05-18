@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-05-18
+ * Added max_items option to result sets so that you can artificially stop pagination after some arbitrary amount, rather than all the records in the database.
+
 2017-03-04
  * Readding the prevention of joined queries on generated relationships.
 

@@ -49,6 +49,10 @@ Defaults to 1 if not specified.
 
 A number between 1 and 100. Defaults to 25 if not specified.
 
+=item max_items
+
+Defaults to 100,000,000,000. May be used to artificially limit a multi-page result set to an arbitrary number rather than paginating through all records in the database that match the query. 
+
 =item include_admin
 
 If you want to force the items in the formatted list to include admin fields. Will be included automatically if the C<current_user> is an admin.
@@ -87,7 +91,22 @@ sub format_list {
     my ($self, %options) = @_;
     my $page_number = $options{page_number} || 1;
     my $items_per_page = $options{items_per_page} || 25;
+    my $max_items = $options{max_items} || 100_000_000_000;
     $items_per_page = ($items_per_page < 1 || $items_per_page > 100 ) ? 25 : $items_per_page;
+    my $max_items_this_page = $items_per_page;
+    my $items_up_to_this_page = $items_per_page * $page_number;
+    my $full_pages = int($max_items / $items_per_page);
+    my $skip_result_set = 0;
+    if ($items_up_to_this_page - $items_per_page >= $max_items) {
+        $skip_result_set = 1;
+    }
+    elsif ($page_number - $full_pages == 1) {
+        $max_items_this_page = $items_per_page - ($items_up_to_this_page - $max_items);
+    }
+    elsif ($page_number - $full_pages > 1) {
+        $skip_result_set = 1;
+        warn "got here";
+    }
     my @list;
     my $user = $options{current_user};
     my $is_admin = defined $user && $user->is_admin ? 1 : 0;
@@ -96,23 +115,31 @@ sub format_list {
         $extra->{order_by} = $options{order_by};
     }
     my $page = $self->search(undef, $extra);
-    while (my $item = $page->next) {
-        push @list, $item->describe(
-            %{ (exists $options{object_options} ? $options{object_options} : {}) },
-            include_admin           => $options{include_admin} || $is_admin ? 1 : 0, 
-            include_private         => $options{include_private} || (eval { $item->can_view($user) }) ? 1 : 0, 
-            include_relationships   => $options{include_relationships}, 
-            include_related_objects => $options{include_related_objects}, 
-            include                 => $options{include}, 
-            include_options         => $options{include_options}, 
-            tracer                  => $options{tracer},
-            current_user            => $user,
-        );
+    unless ($skip_result_set) {
+        while (my $item = $page->next) {
+            push @list, $item->describe(
+                %{ (exists $options{object_options} ? $options{object_options} : {}) },
+                include_admin           => $options{include_admin} || $is_admin ? 1 : 0, 
+                include_private         => $options{include_private} || (eval { $item->can_view($user) }) ? 1 : 0, 
+                include_relationships   => $options{include_relationships}, 
+                include_related_objects => $options{include_related_objects}, 
+                include                 => $options{include}, 
+                include_options         => $options{include_options}, 
+                tracer                  => $options{tracer},
+                current_user            => $user,
+            );
+            $max_items_this_page--;
+            last if ($max_items_this_page < 1);
+        }
+    }
+    my $total_items = $page->pager->total_entries;
+    if ($total_items > $max_items) {
+        $total_items = $max_items;
     }
     return {
         paging => {
-            total_items             => $page->pager->total_entries,
-            total_pages             => ceil($page->pager->total_entries / $items_per_page),
+            total_items             => $total_items,
+            total_pages             => ceil($total_items / $items_per_page),
             page_number             => $page_number,
             items_per_page          => $items_per_page,
             next_page_number        => $page_number + 1,

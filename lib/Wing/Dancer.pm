@@ -148,6 +148,10 @@ Defaults to C<params> _page_number, or 1 if not specified.
 
 A number between 1 and 100. Defaults to C<params> _items_per_page or 25 if not specified.
 
+=item max_items
+
+Arbitrarily limit the number of items in a result set. 
+
 =item include
 
 An array reference of arbitrary things to include in your class's describe method.
@@ -230,6 +234,7 @@ register format_list => sub {
         order_by                => $order_by,
         page_number             => $options{page_number} || param('_page_number'),
         items_per_page          => $options{items_per_page} || param('_items_per_page'),
+        max_items               => $options{max_items} || param('_max_items'),
         include_relationships   => $options{include_relationships} || param('_include_relationships'), 
         include_related_objects => $options{include_related_objects} || $include_related_objects, 
         include                 => $options{include} || $include,
