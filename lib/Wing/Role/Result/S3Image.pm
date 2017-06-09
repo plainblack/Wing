@@ -25,7 +25,7 @@ before wing_finalize_class => sub {
             view    => 'private',
         },
         filename => {
-            dbic 	=> { data_type => 'varchar', size => 60, is_nullable => 0 },
+            dbic 	=> { data_type => 'varchar', size => 255, is_nullable => 0 },
             view	=> 'public',
         },
     );
