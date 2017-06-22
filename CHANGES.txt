@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-06-22
+ * wing.angular.js now supports angular 1.6, by removing the use of .success and .error methods on $http in favor of .then
+
 2017-06-09
  * WebFilteredField no longer puts a restriction on the length of a string.
  * S3Image increased filename size from 60 to 255. 

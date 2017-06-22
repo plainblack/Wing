@@ -217,7 +217,8 @@ angular.module('wing',[])
                 _items_per_page: 10,
             }, behavior.fetch_options);
             $http.get(behavior.list_api, { params : params })
-            .success(function (data) {
+            .then(function (response) {
+                var data = response.data;
                 for (var index in data.result.items) {
                     self.objects.push(self._create_object_manager(data.result.items[index]));
                     if (typeof options !== 'undefined' && typeof options.on_each !== 'undefined') {
@@ -267,12 +268,14 @@ angular.module('wing',[])
             else if (method.toLowerCase() == 'put') {
                 q = $http.put(uri, params);
             }
-            q.success(function (data) {
+            q.then(function (response) {
+                var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                     options.on_success(data.result);
                 }
-            })
-            .error(function (data) {
+            },
+            function (response) {
+                var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
                 }
@@ -293,15 +296,17 @@ angular.module('wing',[])
         this.fetch_options = function(store_data_here, options) {
             var self = this;
             $http.get(self.options_api(), {})
-            .success(function (data) {
+            .then(function (response) {
+                var data = response.data;
 		        for(var key in data.result) {
     		        store_data_here[key] = data.result[key];
 		        }
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                     options.on_success(data.result);
                 }
-            })
-            .error(function (data) {
+            },
+            function (response) {
+                var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
                 }
@@ -376,7 +381,8 @@ angular.module('wing',[])
         this.fetch = function(options) {
             var self = this;
             $http.get((typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || behavior.fetch_api, { params : behavior.fetch_options })
-            .success(function (data) {
+            .then(function (response) {
+                var data = response.data;
                 self.properties = data.result;
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                     options.on_success(data.result);
@@ -384,8 +390,9 @@ angular.module('wing',[])
                 if (typeof behavior.on_fetch !== 'undefined') {
                     behavior.on_fetch(data.result);
                 }
-            })
-            .error(function (data) {
+            },
+            function (response) {
+                var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
                 }
@@ -400,7 +407,8 @@ angular.module('wing',[])
             var self = this;
             var params = wing.merge(behavior.fetch_options||{}, properties);
             $http.post(behavior.create_api, params)
-            .success(function (data) {
+            .then(function (response) {
+                var data = response.data;
                 self.properties = data.result;
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                     options.on_success(data.result);
@@ -408,8 +416,9 @@ angular.module('wing',[])
                 if (typeof behavior.on_create !== 'undefined') {
                     behavior.on_create(data.result);
                 }
-            })
-            .error(function (data) {
+            },
+            function (response) {
+                var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
                 }
@@ -450,13 +459,15 @@ angular.module('wing',[])
             else if (method.toLowerCase() == 'put') {
                 q = $http.put(uri, params);
             }
-            q.success(function (data) {
+            q.then(function (response) {
+                var data = response.data;
                 self.properties = data.result;
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                     options.on_success(data.result);
                 }
-            })
-            .error(function (data) {
+            },
+            function (response) {
+                var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
                 }
@@ -471,7 +482,8 @@ angular.module('wing',[])
             var self = this;
             var params = wing.merge(behavior.fetch_options||{}, properties);
             $http.put(self.properties._relationships.self, params)
-            .success(function (data) {
+            .then(function (response) {
+                var data = response.data;
                 self.properties = data.result;
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                     options.on_success(data.result);
@@ -479,8 +491,9 @@ angular.module('wing',[])
                 if (typeof behavior.on_update !== 'undefined') {
                     behavior.on_update(data.result);
                 }
-            })
-            .error(function (data) {
+            },
+            function (response) {
+                var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
                 }
@@ -500,7 +513,8 @@ angular.module('wing',[])
             }
             if (confirmations.disabled() || confirm(message)) {
                 $http.delete(object._relationships.self, { params : behavior.fetch_options||{} })
-                .success(function (data) {
+                .then(function (response) {
+                    var data = response.data;
                     if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                         options.on_success(object);
                     }
@@ -508,8 +522,9 @@ angular.module('wing',[])
                         behavior.on_delete(object);
                     }
                     self.properties = {};
-                })
-                .error(function (data) {
+                },
+                function (response) {
+                    var data = response.data;
                     if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                         options.on_error(data.result);
                     }
