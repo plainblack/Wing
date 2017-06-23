@@ -194,7 +194,7 @@ An optional object containing behavior changing options.
 
 =item on_success
 
-A function to be called if the creation is successful.
+A function to be called if the creation is successful. It is passed a list of properties, and then a reference to the newly created objectManager.
 
 =item on_error
 

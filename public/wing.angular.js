@@ -330,7 +330,7 @@ angular.module('wing',[])
                     var success = options.on_success;
                     options.on_success = function(properties) {
                         add_it();
-                        success(properties);
+                        success(properties, new_object);
                     };
                 }
                 else {
