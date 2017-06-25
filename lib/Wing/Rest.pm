@@ -163,15 +163,20 @@ register generate_relationship => sub {
             foreach my $name (@{$options{qualifiers}}) {
                 my $param = param($name);
                 if (defined $param && $param ne '') {
-                    $param =~ m/([>=<]{0,2})(.*)/;
-                    my $compare = $1;
-                    my $value = $2;
                     my $key = $name =~ m/\./ ? $name : 'me.'.$name;
-                    if ($compare) {
-                        $where{$key} = { $compare => $value };
+                    if ($param eq 'null') {
+                        $where{$key} = undef;
                     }
                     else {
-                        $where{$key} = $value;
+                        $param =~ m/([>=<]{0,2})(.*)/;
+                        my $compare = $1;
+                        my $value = $2;
+                        if ($compare) {
+                            $where{$key} = { $compare => $value };
+                        }
+                        else {
+                            $where{$key} = $value;
+                        }
                     }
                 }
             }

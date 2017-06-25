@@ -4,8 +4,11 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-06-25
+ * Allow null as a value on a Rest qualifier.
+
 2017-06-23
- create() in wing.angular.js objectListManager now provides a reference to the object during on_success
+ * create() in wing.angular.js objectListManager now provides a reference to the object during on_success
 
 2017-06-22
  * wing.angular.js now supports angular 1.6, by removing the use of .success and .error methods on $http in favor of .then
