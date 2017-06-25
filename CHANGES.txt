@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2017-06-25
  * Allow null as a value on a Rest qualifier.
+ * Fixed a bug in wing.merge()
 
 2017-06-23
  * create() in wing.angular.js objectListManager now provides a reference to the object during on_success

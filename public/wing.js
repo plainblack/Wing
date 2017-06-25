@@ -7,8 +7,8 @@ var wing = new Object();
 wing.merge = function (obj2,obj1) {  // reverse obj1 and 2 because people expect that last write wins
     var result = {}; // return result
     for (var i in obj1) {      // for every property in obj1 
-        if ((i in obj2) && (typeof obj1[i] === "object") && (i !== null)) {
-            result[i] = merge(obj1[i],obj2[i]); // if it's an object, merge   
+        if ((typeof obj2 !== 'object' && i in obj2) && (typeof obj1[i] === "object") && (i !== null)) {
+            result[i] = wing.merge(obj1[i],obj2[i]||{}); // if it's an object, merge   
         } else {
            result[i] = obj1[i]; // add it to result
         }
