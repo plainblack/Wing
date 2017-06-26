@@ -181,7 +181,7 @@ angular.module('wing',[])
                 _items_per_page : self.paging.items_per_page || 10,
             };
             var params = wing.merge(pagination, behavior.fetch_options);
-            return $http.get(behavior.list_api, { params : params })
+            return $http.get(behavior.list_api, { params : params, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true })
             .then(function (response) {
                 var data = response.data;
                 self.objects = [];
@@ -216,7 +216,7 @@ angular.module('wing',[])
                 _page_number: page_number || 1,
                 _items_per_page: 10,
             }, behavior.fetch_options);
-            $http.get(behavior.list_api, { params : params })
+            $http.get(behavior.list_api, { params : params, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true })
             .then(function (response) {
                 var data = response.data;
                 for (var index in data.result.items) {
@@ -257,16 +257,16 @@ angular.module('wing',[])
             var params = wing.merge(behavior.fetch_options||{}, properties);
             var q;
             if (method.toLowerCase() == 'get') {
-                q = $http.get(uri, { params : params });
+                q = $http.get(uri, { params : params, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true });
             }
             else if (method.toLowerCase() == 'delete') {
-                q = $http.delete(uri, { params : params });
+                q = $http.delete(uri, { params : params, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true });
             }
             else if (method.toLowerCase() == 'post') {
-                q = $http.post(uri, params);
+                q = $http.post(uri, params, {withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true});
             }
             else if (method.toLowerCase() == 'put') {
-                q = $http.put(uri, params);
+                q = $http.put(uri, params, {withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true});
             }
             q.then(function (response) {
                 var data = response.data;
@@ -295,7 +295,7 @@ angular.module('wing',[])
         
         this.fetch_options = function(store_data_here, options) {
             var self = this;
-            $http.get(self.options_api(), {})
+            $http.get(self.options_api(), {withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true})
             .then(function (response) {
                 var data = response.data;
 		        for(var key in data.result) {
@@ -380,7 +380,7 @@ angular.module('wing',[])
         
         this.fetch = function(options) {
             var self = this;
-            $http.get((typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || behavior.fetch_api, { params : behavior.fetch_options })
+            $http.get((typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || behavior.fetch_api, { params : behavior.fetch_options, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true })
             .then(function (response) {
                 var data = response.data;
                 self.properties = data.result;
@@ -406,7 +406,7 @@ angular.module('wing',[])
         this.create = function(properties, options) {
             var self = this;
             var params = wing.merge(behavior.fetch_options||{}, properties);
-            $http.post(behavior.create_api, params)
+            $http.post(behavior.create_api, params, {withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true})
             .then(function (response) {
                 var data = response.data;
                 self.properties = data.result;
@@ -448,16 +448,16 @@ angular.module('wing',[])
             var params = wing.merge(behavior.fetch_options||{}, properties);
             var q;
             if (method.toLowerCase() == 'get') {
-                q = $http.get(uri, { params : params });
+                q = $http.get(uri, { params : params, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true });
             }
             else if (method.toLowerCase() == 'delete') {
-                q = $http.delete(uri, { params : params });
+                q = $http.delete(uri, { params : params, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true });
             }
             else if (method.toLowerCase() == 'post') {
-                q = $http.post(uri, params);
+                q = $http.post(uri, params, { withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true});
             }
             else if (method.toLowerCase() == 'put') {
-                q = $http.put(uri, params);
+                q = $http.put(uri, params, { withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true });
             }
             q.then(function (response) {
                 var data = response.data;
@@ -481,7 +481,7 @@ angular.module('wing',[])
         this.partial_update =  function(properties, options) {
             var self = this;
             var params = wing.merge(behavior.fetch_options||{}, properties);
-            $http.put(self.properties._relationships.self, params)
+            $http.put(self.properties._relationships.self, params, { withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true })
             .then(function (response) {
                 var data = response.data;
                 self.properties = data.result;
@@ -512,7 +512,7 @@ angular.module('wing',[])
                 message = 'Are you sure you want to delete ' + object.name + '?';
             }
             if (confirmations.disabled() || confirm(message)) {
-                $http.delete(object._relationships.self, { params : behavior.fetch_options||{} })
+                $http.delete(object._relationships.self, { params : behavior.fetch_options||{}, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true })
                 .then(function (response) {
                     var data = response.data;
                     if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {

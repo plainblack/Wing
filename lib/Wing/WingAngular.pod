@@ -146,6 +146,10 @@ The URI used to create the object in Wing.
 
  /api/user
 
+=item with_credentials
+
+Defaults to C<true>. If you don't want to pass your credentials to the server, then set to C<false>.
+
 =back
 
 =back
@@ -381,6 +385,10 @@ A function to be executed when an object is deleted. It will be passed the prope
 =item on_each
 
 A function to be executed when an object is initially retrieved. It will be passed the C<objectManager> instance of the object.
+
+=item with_credentials
+
+Defaults to C<true>. If you don't want to pass your credentials to the server, then set to C<false>.
 
 =back
 
