@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-06-29
+ * Added get_object() in wing.angular.js to suppliment find_object().
+
 2017-06-25
  * Allow null as a value on a Rest qualifier.
  * Fixed a bug in wing.merge()

@@ -153,6 +153,15 @@ angular.module('wing',[])
             return -1;
         };
         
+        this.get_object = function(id) {
+            var self = this;
+            var index = self.find_object(id);
+            if (index == -1) {
+                return null;
+            }
+            return self.objects[index];
+        };
+        
         this._create_object_manager = function(properties) {
             var self = this;
             return new objectManager({

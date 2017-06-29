@@ -422,6 +422,18 @@ The unique id of the object in the database.
 
 =back
 
+=head3 get_object(id)
+
+Return an object in the list based upon C<id>. Returns C<null> if the object is not found.
+
+=over
+
+=item id
+
+The unique id of the object in the database.
+
+=back
+
 =head3 search(options)
 
 =over
