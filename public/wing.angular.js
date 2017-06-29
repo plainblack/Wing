@@ -189,6 +189,9 @@ angular.module('wing',[])
                 _page_number : self.paging.page_number || 1,
                 _items_per_page : self.paging.items_per_page || 10,
             };
+            if (typeof options !== 'undefined' && typeof options.params !== 'undefined') {
+                pagination = wing.merge(pagination, options.params);
+            }
             var params = wing.merge(pagination, behavior.fetch_options);
             return $http.get(behavior.list_api, { params : params, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true })
             .then(function (response) {
@@ -225,6 +228,9 @@ angular.module('wing',[])
                 _page_number: page_number || 1,
                 _items_per_page: 10,
             }, behavior.fetch_options);
+            if (typeof options !== 'undefined' && typeof options.params !== 'undefined') {
+                params = wing.merge(params, options.params);
+            }
             $http.get(behavior.list_api, { params : params, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true })
             .then(function (response) {
                 var data = response.data;

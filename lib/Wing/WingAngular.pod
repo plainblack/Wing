@@ -444,6 +444,10 @@ An object containing various search behavior modifications.
 
 =over
 
+=item params
+
+Put search params here that you don't want to be attached to all subsequent queries via the C<fetch_options>.
+
 =item on_create
 
 A function to be executed when a new object is created. It will be passed the properties of the object and an index number.
@@ -478,6 +482,10 @@ Similar to C<search()> except that it fetches the complete list of objects, not 
 =item options
 
 =over
+
+=item params
+
+Put search params here that you don't want to be attached to all subsequent queries via the C<fetch_options>.
 
 =item on_each
 
