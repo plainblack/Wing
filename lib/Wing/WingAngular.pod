@@ -310,6 +310,10 @@ A function to be called when this delete succeeds.
 
 A function to be called if the delete fails.
 
+=item skip_confirm 
+
+If this is C<true> then the user will not be asked to confirm the delete.
+
 =back
 
 =back

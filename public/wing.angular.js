@@ -526,7 +526,7 @@ angular.module('wing',[])
             if ('name' in object) {
                 message = 'Are you sure you want to delete ' + object.name + '?';
             }
-            if (confirmations.disabled() || confirm(message)) {
+            if ((typeof options !== 'undefined' && typeof options.skip_confirm !== 'undefined' && options.skip_confirm == true) ||  confirmations.disabled() || confirm(message)) {
                 $http.delete(object._relationships.self, { params : behavior.fetch_options||{}, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true })
                 .then(function (response) {
                     var data = response.data;

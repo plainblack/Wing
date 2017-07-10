@@ -5,6 +5,9 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2017-06-29
+ Added skip_confirm to wing.angular.js objectManager delete().
+
+2017-06-29
  * Added get_object() in wing.angular.js to suppliment find_object().
  * Added params option to search() and all() in objectListManager in wing.angular.js.
 
