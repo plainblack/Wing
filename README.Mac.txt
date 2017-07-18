@@ -37,3 +37,34 @@ Then make the environment import happen after each login:
 
 echo ". /data/Wing/bin/dataapps.sh" >> ~/.bash_profile
 
+
+Notes about SSL
+===============
+
+Apple has depricated the use of OpenSSL. However, the world of Perl still uses it
+extensively. Therefore if you're going to be using SSL from Perl to connect out to
+other services you'll likely need to install your own SSL. Here's how:
+
+Download OpenSSL from: https://www.openssl.org/source/
+
+Extract it, and enter the directory. Then configure and install it using these
+commands:
+
+ ./Configure --prefix=/data/apps --openssldir=/data/apps/openssl --shared  darwin64-x86_64-cc enable-ec_nistp_64_gcc_128
+ make depend
+ make
+ make install
+
+
+Then you'll also need to install Perl modules to use it.
+
+SSL Perl Modules
+----------------
+
+ cpanm Net::SSLeay --configure-args "INC=-I/data/apps/include LDDLFLAGS=\"-bundle -undefined dynamic_lookup -fstack-protector-strong -L/data/apps/lib\" LD=\"env MACOSX_DEPLOYMENT_TARGET=10.12 cc\" LDFLAGS=\"-fstack-protector-strong -L/data/apps/lib\"" --interactive --verbose
+
+ cpanm --reinstall --verbose IO::Socket::SSL
+
+ cpanm --reinstall --verbose LWP::Protocol::https
+
+

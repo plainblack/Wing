@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-07-18
+ * Added instructions for compiling OpenSSL and Perl modules on Mac OS, because Apple's outdated OpenSSL doesn't work anymore with sites like Stripe.
+
 2017-06-29
  Added skip_confirm to wing.angular.js objectManager delete().
 
