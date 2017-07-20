@@ -150,7 +150,7 @@ A number between 1 and 100. Defaults to C<params> _items_per_page or 25 if not s
 
 =item max_items
 
-Arbitrarily limit the number of items in a result set. 
+Arbitrarily limit the number of items in a result set.
 
 =item include
 
@@ -235,12 +235,12 @@ register format_list => sub {
         page_number             => $options{page_number} || param('_page_number'),
         items_per_page          => $options{items_per_page} || param('_items_per_page'),
         max_items               => $options{max_items} || param('_max_items'),
-        include_relationships   => $options{include_relationships} || param('_include_relationships'), 
-        include_related_objects => $options{include_related_objects} || $include_related_objects, 
+        include_relationships   => $options{include_relationships} || param('_include_relationships'),
+        include_related_objects => $options{include_related_objects} || $include_related_objects,
         include                 => $options{include} || $include,
-        include_options         => $options{include_options} || param('_include_options'), 
+        include_options         => $options{include_options} || param('_include_options'),
         include_admin           => $options{include_admin},
-        include_private         => $options{include_private}, 
+        include_private         => $options{include_private},
         object_options          => $options{object_options},
         tracer                  => get_tracer(),
         current_user            => $options{current_user} || eval{ get_user_by_session_id() } || undef,
@@ -326,7 +326,7 @@ register describe => sub {
         include_admin           => $options{include_admin} || (eval { defined $current_user && $current_user->is_admin }) ? 1 : 0,
         include_relationships   => $options{include_relationships} || param('_include_relationships'),
         include                 => $options{include} || $include,
-        include_options         => $options{include_options} || param('_include_options'), 
+        include_options         => $options{include_options} || param('_include_options'),
         include_related_objects => $options{include_related_objects} || $include_related_objects,
         current_user            => $current_user,
         tracer                  => $options{tracer} || get_tracer() || undef,  ##workaround for empty array
@@ -387,3 +387,29 @@ register track_user => sub {
     return ($tracer, eval{get_user_by_session_id()});
 };
 
+register login => sub {
+    my ($user) = @_;
+    my $session = $user->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => request->remote_address });
+    set_cookie session_id   => $session->id,
+                expires     => '+5y',
+                http_only   => 0,
+                path        => '/';
+    if (params->{sso_id}) {
+        my $cookie = cookies->{sso_id};
+        my $sso_id = $cookie->value if defined $cookie;
+        $sso_id ||= params->{sso_id};
+        my $sso = Wing::SSO->new(id => $sso_id, db => site_db());
+        $sso->user_id($user->id);
+        $sso->store;
+        if ($sso->has_requested_permissions) {
+            return redirect $sso->redirect;
+        }
+        else {
+            return redirect '/sso/authorize?sso_id='.$sso->id;
+        }
+    }
+    my $cookie = cookies->{redirect_after};
+    my $uri = $cookie->value if defined $cookie;
+    $uri ||= params->{redirect_after} || '/account';
+    return redirect $uri;
+};

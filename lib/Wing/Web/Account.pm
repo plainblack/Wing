@@ -10,6 +10,8 @@ use Wing::Client;
 use String::Random qw(random_string);
 use Facebook::Graph;
 
+require Wing::Dancer;
+
 get '/login' => sub {
     template 'account/login';
 };
@@ -306,7 +308,7 @@ get '/sso/success' => sub {
     my $user = get_user_by_session_id();
     template 'account/ssosuccess', {
         current_user            => $user,
-    };    
+    };
 };
 
 get '/account/facebook' => sub {
@@ -327,10 +329,10 @@ get '/account/facebook/postback' => sub {
     unless (exists $fbuser->{id}) {
         ouch 401, 'Could not authenticate your Facebook account.';
     }
-    
+
     my $user = eval { get_user_by_session_id() };
     if (defined $user) {
-        $user->facebook_uid($fbuser->{id}); 
+        $user->facebook_uid($fbuser->{id});
         $user->update;
     }
 
@@ -371,33 +373,6 @@ get '/account/profile/:id' => sub {
         profile_user    => describe($user, current_user => $current_user),
     };
 };
-
-sub login {
-    my ($user) = @_;
-    my $session = $user->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => request->remote_address });
-    set_cookie session_id   => $session->id,
-                expires     => '+5y',
-                http_only   => 0,
-                path        => '/';
-    if (params->{sso_id}) {
-        my $cookie = cookies->{sso_id};
-        my $sso_id = $cookie->value if defined $cookie;
-        $sso_id ||= params->{sso_id};
-        my $sso = Wing::SSO->new(id => $sso_id, db => site_db());
-        $sso->user_id($user->id);
-        $sso->store;
-        if ($sso->has_requested_permissions) {
-            return redirect $sso->redirect;
-        }
-        else {
-            return redirect '/sso/authorize?sso_id='.$sso->id;
-        }
-    }
-    my $cookie = cookies->{redirect_after};
-    my $uri = $cookie->value if defined $cookie;
-    $uri ||= params->{redirect_after} || '/account';
-    return redirect $uri;
-}
 
 sub facebook {
     return Facebook::Graph->new(Wing->config->get('facebook'));
