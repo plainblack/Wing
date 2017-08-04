@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-08-04
+ * Added role for attaching comments to an object.
+
 2017-07-20
  * Moved login() from Wing::Web::Account, to Wing::Dancer and made it a Dancer Plugin so it can be called from multiple modules.
 
