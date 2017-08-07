@@ -14,6 +14,7 @@ with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::DateTimeField';
 with 'Wing::Role::Result::PrivilegeField';
 with 'Wing::Role::Result::Child';
+use Wing::ContentFilter;
 
 
 =head1 NAME
@@ -90,6 +91,12 @@ A relationship to a L<Wing::Role::Result::APIKeyPermmission> enabled object.
 
 =cut
 
+sub fix_html {
+    my $text = shift;
+    Wing::ContentFilter::neutralize_html(\$text);
+    return $text;
+}
+
 before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_fields(
@@ -97,16 +104,19 @@ before wing_finalize_class => sub {
             dbic    => { data_type => 'varchar', size => 30, is_nullable => 0 },
             view    => 'private',
             edit    => 'unique',
+            filter  => sub { Wing::ContentFilter::neutralize_html(\$_[0], {entities=>1},); return $_[0]; },
         },
         real_name               => {
             dbic    => { data_type => 'varchar', size => 255, is_nullable => 1, default_value => '' },
             view    => 'private',
             edit    => 'postable',
+            filter  => sub { Wing::ContentFilter::neutralize_html(\$_[0], {entities=>1},); return $_[0]; },
         },
         email                   => {
             dbic    => { data_type => 'varchar', size => 255, is_nullable => 1 },
             view    => 'private',
             edit    => 'unique',
+            filter  => sub { Wing::ContentFilter::neutralize_html(\$_[0]); return $_[0]; },
         },
         use_as_display_name     => {
             dbic    => { data_type => 'varchar', size => 10, is_nullable => 1, default_value => 'username' },
