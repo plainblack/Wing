@@ -1,0 +1,3 @@
+There are stuck Wingman jobs in your Wing project.
+
+https://[% sitenmae %]/admin/wingman
