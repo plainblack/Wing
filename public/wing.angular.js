@@ -196,7 +196,7 @@ angular.module('wing',[])
             return $http.get(behavior.list_api, { params : params, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true })
             .then(function (response) {
                 var data = response.data;
-                if (typeof options !== 'undefined' && !options.accumulate) {
+                if (typeof options === 'undefined' || typeof options !== 'undefined' && options.accumulate != true) {
                     self.objects = [];  
                 }
                 for (var index = 0; index < data.result.items.length; index++) {
