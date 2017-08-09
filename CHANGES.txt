@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-08-09
+ * Added accumulate option to wing.angular.js objectListManager search().
+
 2017-08-04
  * Added role for attaching comments to an object.
 
