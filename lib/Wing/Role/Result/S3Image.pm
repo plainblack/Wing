@@ -21,7 +21,7 @@ before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_fields(
         metadata => {
-            dbic    => { data_type => 'mediumblob', is_nullable => 1, 'serializer_class' => 'JSON' },
+            dbic    => { data_type => 'mediumblob', is_nullable => 1, 'serializer_class' => 'JSON', 'serializer_options' => { utf8 => 1 }  },
             view    => 'private',
         },
         filename => {

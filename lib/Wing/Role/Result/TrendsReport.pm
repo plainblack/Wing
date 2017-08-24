@@ -14,7 +14,7 @@ before wing_finalize_class => sub {
             edit		=> 'required',
         },
         fields => {
-            dbic        => { data_type => 'mediumblob', is_nullable => 1, 'serializer_class' => 'JSON'},
+            dbic        => { data_type => 'mediumblob', is_nullable => 1, 'serializer_class' => 'JSON', 'serializer_options' => { utf8 => 1 } },
             view        => 'public',
             edit		=> 'postable',
         },

@@ -23,7 +23,7 @@ before wing_finalize_class => sub {
             view    => 'public',
         },
         likes => {
-            dbic    => { data_type => 'mediumblob', is_nullable => 1, 'serializer_class' => 'JSON' },
+            dbic    => { data_type => 'mediumblob', is_nullable => 1, 'serializer_class' => 'JSON', 'serializer_options' => { utf8 => 1 }  },
         },
     );
 };
