@@ -5,7 +5,17 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2017-08-24
- * Everyone should be using the latest version of DBIx::Class::InflateColumn::Serializer to avoid JSON encoding errors.
+ * Everyone should be using the latest version of DBIx::Class::InflateColumn::Serializer to avoid JSON encoding errors. You also need to add the following to any fields you serialize to JSON:
+
+  'serializer_options' => { utf8 => 1 }
+
+ Example:
+
+  fields => {
+        dbic            => { data_type => 'mediumblob', is_nullable => 1, 'serializer_class' => 'JSON', 'serializer_options' => { utf8 => 1 } },
+        view            => 'private',
+        edit            => 'postable',
+    },
 
 2017-08-09
  * Added accumulate option to wing.angular.js objectListManager search().
