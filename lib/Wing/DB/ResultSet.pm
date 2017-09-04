@@ -2,7 +2,7 @@ package Wing::DB::ResultSet;
 
 use Moose;
 extends 'DBIx::Class::ResultSet';
-use POSIX qw/ceil/; 
+use POSIX qw/ceil/;
 
 sub BUILDARGS { $_[2] }
 
@@ -51,7 +51,7 @@ A number between 1 and 100. Defaults to 25 if not specified.
 
 =item max_items
 
-Defaults to 100,000,000,000. May be used to artificially limit a multi-page result set to an arbitrary number rather than paginating through all records in the database that match the query. 
+Defaults to 100,000,000,000. May be used to artificially limit a multi-page result set to an arbitrary number rather than paginating through all records in the database that match the query.
 
 =item include_admin
 
@@ -63,7 +63,7 @@ If you want to force the items in the formatted list to include private fields. 
 
 =item include_related_objects
 
-If you want to force the items in the formatted list to include related objects.
+If you want to force the items in the formatted list to include related objects. If you want to include specific objects then pass an array reference of the relationship names of those objects.
 
 =item include_relationships
 
@@ -77,6 +77,14 @@ An array reference that will be passed to your object and you can use that to in
 
 If you want to force the items in the formatted list to include field options.
 
+=item order_by
+
+The field to order by. Defaults to whatever order C<result_set> would normally have. This can also be an array reference if you want to order by multiple fields. You can also use related objects to sort by specifying a related object name and a dot before the field name like C<related.field>.
+
+=item sort_order
+
+Must be C<asc> or C<desc>. Defaults to whatever sorder order C<result_set> would normally have. If C<order_by> isn't specified then this is ignored.
+
 =item object_options
 
 If you need to pass additional object-specific options to the object, pass them in here. Is a hash reference.
@@ -89,6 +97,8 @@ If you need to pass additional object-specific options to the object, pass them 
 
 sub format_list {
     my ($self, %options) = @_;
+
+    # set defaults
     my $page_number = $options{page_number} || 1;
     my $items_per_page = $options{items_per_page} || 25;
     my $max_items = $options{max_items} || 100_000_000_000;
@@ -105,26 +115,69 @@ sub format_list {
     }
     elsif ($page_number - $full_pages > 1) {
         $skip_result_set = 1;
-        warn "got here";
     }
     my @list;
     my $user = $options{current_user};
     my $is_admin = defined $user && $user->is_admin ? 1 : 0;
     my $extra = {rows => $items_per_page, page => $page_number };
+    my $prefetch = [];
+
+    # handle related objects
+    my $include_related_objects = $options{include_related_objects};
+    if (defined $include_related_objects) {
+        if (ref $include_related_objects ne 'ARRAY' && $include_related_objects !~ m/^\d$/) { # make related objects an array
+            $include_related_objects = [$include_related_objects];
+        }
+        if (ref $include_related_objects eq 'ARRAY') { # handle prefetch
+            $prefetch = $include_related_objects;
+        }
+    }
+
+    # ordering
     if (exists $options{order_by} && $options{order_by}) {
-        $extra->{order_by} = $options{order_by};
+        my $order_by = $options{order_by};
+        if (ref $order_by ne 'ARRAY') {
+            $order_by = [$order_by];
+        }
+        for (my $i = scalar(@{$order_by}) - 1; $i >= 0; $i--) {
+
+            unless ($order_by->[$i] =~ m/^[a-z0-9\.\_]+$/i) { # disregard poorly formatted requests
+                delete $order_by->[$i];
+                next;
+            }
+
+            if ($order_by->[$i] !~ m/\./) {
+                $order_by->[$i] = 'me.'.$order_by->[$i];
+            }
+            elsif ($order_by->[$i] =~ m/^(.*)\./) {
+                if ($1 ne 'me') {
+                    unless ($1 ~~ $prefetch) {
+                        push @{$prefetch}, $1;
+                    }
+                }
+            }
+        }
+        $extra->{order_by} = $order_by;
+    }
+    if (exists $extra->{order_by} && $extra->{order_by} && exists $options{sort_order} && defined $options{sort_order} && $options{sort_order} eq 'desc') {
+        $extra->{order_by} = { -desc => $extra->{order_by} };
+    }
+
+    # perform the search
+    if (scalar @{$prefetch}) {
+        $extra->{prefetch} = $prefetch;
     }
     my $page = $self->search(undef, $extra);
     unless ($skip_result_set) {
         while (my $item = $page->next) {
             push @list, $item->describe(
                 %{ (exists $options{object_options} ? $options{object_options} : {}) },
-                include_admin           => $options{include_admin} || $is_admin ? 1 : 0, 
-                include_private         => $options{include_private} || (eval { $item->can_view($user) }) ? 1 : 0, 
-                include_relationships   => $options{include_relationships}, 
-                include_related_objects => $options{include_related_objects}, 
-                include                 => $options{include}, 
-                include_options         => $options{include_options}, 
+                include_admin           => $options{include_admin} || $is_admin ? 1 : 0,
+                include_private         => $options{include_private} || (eval { $item->can_view($user) }) ? 1 : 0,
+                include_relationships   => $options{include_relationships},
+                include_related_objects => $include_related_objects,
+                include                 => $options{include},
+                include_options         => $options{include_options},
                 tracer                  => $options{tracer},
                 current_user            => $user,
             );
@@ -136,6 +189,8 @@ sub format_list {
     if ($total_items > $max_items) {
         $total_items = $max_items;
     }
+
+    # format output
     return {
         paging => {
             total_items             => $total_items,

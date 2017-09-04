@@ -178,7 +178,7 @@ If you want to force the items in the formatted list to include field options.
 
 =item order_by
 
-The field to order by. Defaults to whatever order C<result_set> would normally have, and that default can be overridden by C<params> _order_by. This can also be an array reference if you want to order by multiple fields.
+The field to order by. Defaults to whatever order C<result_set> would normally have, and that default can be overridden by C<params> _order_by. This can also be an array reference if you want to order by multiple fields. You can also use related objects to sort by specifying a related object name and a dot before the field name like C<related.field>.
 
 =item sort_order
 
@@ -197,24 +197,7 @@ If you need to pass additional object-specific options to the object, pass them 
 register format_list => sub {
     my ($result_set, %options) = @_;
     my $order_by = $options{order_by} || param('_order_by');
-    if (defined $order_by) {
-        if (ref $order_by ne 'ARRAY') {
-            $order_by = [$order_by];
-        }
-        for (my $i = 0; $i < scalar(@{$order_by}); $i++) {
-
-            unless ($order_by->[$i] =~ m/\./) {
-                $order_by->[$i] = 'me.'.$order_by->[$i];
-            }
-            unless ($order_by->[$i] =~ m/^[a-z0-9\.\_]+$/i) {
-                delete $order_by->[$i];
-            }
-        }
-    }
     my $sort_order = $options{sort_order} || param('_sort_order');
-    if (defined $order_by && $sort_order eq 'desc') {
-        $order_by = { -desc => $order_by };
-    }
     my $include = param('_include');
     if (defined $include) {
         if (ref $include ne 'ARRAY') {
@@ -222,16 +205,9 @@ register format_list => sub {
         }
     }
     my $include_related_objects = param('_include_related_objects');
-    if (defined $include_related_objects) {
-        if (ref $include_related_objects ne 'ARRAY' && $include_related_objects !~ m/^\d$/) {
-            $include_related_objects = [$include_related_objects];
-        }
-        if (ref $include_related_objects eq 'ARRAY') {
-            $result_set = $result_set->search(undef, {prefetch => $include_related_objects });
-        }
-    }
     return $result_set->format_list(
         order_by                => $order_by,
+        sort_order              => $sort_order,
         page_number             => $options{page_number} || param('_page_number'),
         items_per_page          => $options{items_per_page} || param('_items_per_page'),
         max_items               => $options{max_items} || param('_max_items'),

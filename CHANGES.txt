@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-09-04
+ * You can now specify a relationship name and value to sort on via Rest. 
+
 2017-08-24
  * Everyone should be using the latest version of DBIx::Class::InflateColumn::Serializer to avoid JSON encoding errors. You also need to add the following to any fields you serialize to JSON:
 
