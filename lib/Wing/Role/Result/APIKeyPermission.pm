@@ -63,7 +63,7 @@ before wing_finalize_class => sub {
     $namespace =~ s/^(\w+)\:.*$/$1/;
     $class->wing_parent(
         apikey   => {
-            view                => 'parent',
+            view                => 'public',
             edit                => 'required',
             related_class       => $namespace.'::DB::Result::APIKey',
             related_id          => 'api_key_id',
