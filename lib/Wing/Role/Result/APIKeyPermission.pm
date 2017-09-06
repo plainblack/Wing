@@ -66,6 +66,7 @@ before wing_finalize_class => sub {
             view                => 'public',
             edit                => 'required',
             related_class       => $namespace.'::DB::Result::APIKey',
+            related_id          => 'api_key_id',
         }
     );
 };

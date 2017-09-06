@@ -229,10 +229,10 @@ sub merge {
             opinion1.opinion as old_opinion,
             opinion2.id as new_opinion_id,
             opinion2.opinion as new_opinion
-        from opinions opinion1
+        from ideaopinions opinion1
         join ideas idea1 on opinion1.idea_id = idea1.id and idea1.id = ?
         join ideas idea2 on idea2.id = ?
-        left join opinions opinion2 on opinion1.user_id = opinion2.user_id and opinion2.idea_id = idea2.id
+        left join ideaopinions opinion2 on opinion1.user_id = opinion2.user_id and opinion2.idea_id = idea2.id
     });
 
     $sth->execute(
