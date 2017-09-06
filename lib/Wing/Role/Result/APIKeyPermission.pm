@@ -16,7 +16,7 @@ Wing::Role::Result::APIKeyPermission - The basis of Wing API service key permiss
 =head1 SYNOPSIS
 
  with 'Wing::Role::Result::APIKeyPermission';
- 
+
 =head1 DESCRIPTION
 
 This is a foundational role for the required APIKeyPermission class. API Key Permissions are used in Wing to grant privileges to third-party applications.
@@ -33,7 +33,7 @@ All Wing Apps need to have a class called AppName::DB::Result::APIKeyPermission 
 
 =item permission
 
-The name of a permission being granted to this API key. 
+The name of a permission being granted to this API key.
 
 =back
 
@@ -66,7 +66,6 @@ before wing_finalize_class => sub {
             view                => 'public',
             edit                => 'required',
             related_class       => $namespace.'::DB::Result::APIKey',
-            related_id          => 'api_key_id',
         }
     );
 };
