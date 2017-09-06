@@ -166,6 +166,7 @@ sub search_ideas {
     my %sorts = (
         'Score'         => {'-desc' => 'yes'},
         'Newest'        => {'-desc' => 'date_created'},
+        'Last Updated'  => {'-desc' => 'date_updated'},
         'Alphabetical'  => 'name',
     );
 
@@ -188,6 +189,9 @@ sub search_ideas {
     }
 
     if ($params->{_sort_status} eq 'Closed') {
+        $query->{locked} = 1;
+    }
+    elsif ($params->{_sort_status} eq 'Infeasible') {
         $query->{locked} = 1;
         $query->{locked_status} = 'Infeasible';
     }

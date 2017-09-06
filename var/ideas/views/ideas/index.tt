@@ -66,16 +66,18 @@
       </div>
             <div>
                 <div class="col-sm-3">
-                  <select class="form-control col-sm-1" name="sort_controls" ng-model="sortBy" ng-change="get_ideas()">
+                  <select class="form-control col-sm-1" name="sort_controls" ng-model="search.sort.by" ng-change="get_ideas()">
                     <option value="Score">Votes</option>
                     <option value="Newest">Newest</option>
+                    <option value="Last Updated">Last Updated</option>
                     <option value="Alphabetical">Alphabetical</option>
                   </select>
                 </div>
                 <div class="col-sm-3">
-                  <select class="form-control col-sm-1" name="sort_which" ng-model="sortStatus" ng-change="get_ideas()">
+                  <select class="form-control col-sm-1" name="sort_which" ng-model="search.sort.status" ng-change="get_ideas()">
                     <option value="Open">Open</option>
                     <option value="Closed">Closed</option>
+                    <option value="Infeasible">Infeasible</option>
                     <option value="Completed">Completed</option>
                     <option value="Merged">Merged</option>
                     <option value="All">All</option>
@@ -83,7 +85,7 @@
                 </div>
                 [% IF current_user %]
                 <div class="col-sm-3">
-                  <select class="form-control col-sm-1" name="sort_user" ng-model="sortWhose" ng-change="get_ideas()">
+                  <select class="form-control col-sm-1" name="sort_user" ng-model="search.sort.whose" ng-change="get_ideas()">
                     <option value="Mine">Mine</option>
                     <option value="All">All</option>
                   </select>
@@ -119,21 +121,29 @@
 
 angular.module('ideasApp', ['ui.bootstrap','wing'])
 .controller('ideasCtrl', function($scope, $http, objectListManager, objectManager) {
-    $scope.ideas  = [];    //List of ideas with stats
-    $scope.sortBy = "Score"; //Sorting/filtering for ideas
-    $scope.sortStatus = "Open"; //Sorting/filtering for ideas
-    $scope.sortWhose  = "All"; //Sorting/filtering for ideas
+
+    try {
+        $scope.search = angular.fromJson(window.localStorage.getItem('ideasearch'));
+    }
+    catch (e) {}
+    if ($scope.search == 'null' || $scope.search == null) {
+        $scope.search = { keywords : '', sort : { 'by' : 'Score', 'status' : 'Open', whose : 'All' }};
+    }
 
     //Get a list of ideas with sorting and paging
     $scope.get_ideas = function (page_no) {
+        try {
+            window.localStorage.setItem('ideasearch',angular.toJson($scope.search));
+        }
+        catch (e) {}
         var my_params = {
             _include_relationships : 1,
         };
-        my_params._sort_by     = $scope.sortBy;
-        my_params._sort_status = $scope.sortStatus;
-        my_params._sort_whose  = $scope.sortWhose;
+        my_params._sort_by     = $scope.search.sort.by;
+        my_params._sort_status = $scope.search.sort.status;
+        my_params._sort_whose  = $scope.search.sort.whose;
         if ($scope.keywords) {
-            my_params.keyword = $scope.keywords;
+            my_params.keyword = $scope.search.keywords;
         }
 
         $scope.ideas = new objectListManager({
