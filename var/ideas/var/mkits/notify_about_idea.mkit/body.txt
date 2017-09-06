@@ -1,0 +1,5 @@
+<p>The idea named "[% idea.name %]" has been updated.</a>
+
+[% message FILTER html %]
+
+http://[% sitename %][% idea.view_uri %]

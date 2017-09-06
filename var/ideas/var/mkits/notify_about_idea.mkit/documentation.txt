@@ -1,0 +1,10 @@
+Use this to to send a message to a user when something happens to their idea.
+
+
+PARAMS
+
+me = A describe of a user object this message will be sent to including private info.
+
+idea = The idea to which this message refers.
+
+message = What happened.

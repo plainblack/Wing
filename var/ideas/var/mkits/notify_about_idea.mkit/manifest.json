@@ -1,0 +1,18 @@
+{
+    "renderer" : ["TT", {"template_parameters" : {"INCLUDE_PATH" : "/data/ComponentStudio/views"}, "strict" : 0 }],
+    "header" : [
+        { "To" : "[% me.email %]" },
+        { "From" : "Component Studio <noreply@component.studio>" },
+        { "Subject" : "Idea Update: [% idea.name %]" }
+    ],
+    "alternatives" : [
+        {
+            "type" : "text/plain",
+            "path" : "body.txt"
+        },
+        {
+            "type" : "text/html",
+            "path" : "body.html"
+        }
+    ]
+}

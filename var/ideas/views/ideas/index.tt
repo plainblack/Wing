@@ -1,0 +1,200 @@
+[% page_title = "Site Ideas" %]
+[% head_tags = BLOCK %]
+<style type="text/css" rel="stylesheet">
+  .ideas {
+      margin-top: 10px;
+  }
+</style>
+[% END %]
+[% INCLUDE header_include.tt %]
+
+<div class="container-fluid" ng-app="ideasApp" ng-controller="ideasCtrl" ng-cloak>
+    [% IF current_user %]
+        <div class="voter">
+            <div class="well well-lg" ng-show="idea.properties.id">
+                <h2 style="margin-top: 0px;" class="name"><a href="{{ idea.properties.view_uri }}">{{ idea.properties.name }}</a></h2>
+                <div class="lead description">{{ idea.properties.description }}</div>
+                <div class="clearer"></div>
+                <div class="buttons">
+                    <div>
+                        <button class="btn btn-success" type="button" ng-click="vote('yes');"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i> Yes</button>
+                        <button class="btn btn-warning" type="button" ng-click="vote('skip');"><i class="fa fa-hand-o-right" aria-hidden="true"></i> Skip</button>
+                    </div>
+                </div>
+            </div>
+            <div class="well well-lg" ng-hide="idea.properties.id">
+            <h2 style="margin-top: 0px;">Please submit an idea</h2>
+             <p class="lead">There are no more ideas left for you to vote on.</p>
+            </div>
+        </div>
+    [% END %]
+    <div class="row">
+        [% IF current_user %]
+            <div class="col-sm-6 submitter">
+                <h3>Add your idea</h3>
+                <form name="add_ideas">
+                    <div class="form-group">
+                        <label for="name_field">Name your Idea</label>
+                        <input class="form-control" type="text" ng-model="concept.name" required maxlength="60">
+                        <span>Characters remaining: {{ 60 - concept.name.length }}</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="description_field">Describe your idea</label>
+                        <textarea rows="5" class="form-control" id="description_field" ng-model="concept.description" maxlength="250"></textarea>
+                        <span>Characters remaining: {{ 250 - concept.description.length }}</span>
+                    </div>
+                    <div class="form-group">
+                        <input class="btn btn-success" type="button" id="submit_button" ng-click="send_it()" value="Submit Your Idea">
+                    </div>
+                </form>
+    			<p><b>NOTE:</b> Only one idea at a time. Not "I want X and Y.". If you want X and Y then submit two ideas.</p>
+            </div>
+        [% END %]
+        <div class="col-sm-6 lister">
+	  <div class="row">
+            <div class="col-xs-6"><h3 class="pull-left">Existing ideas</h3></div>
+            <div class="col-xs-6">
+                <form ng-submit="get_ideas()" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <input class="form-control" type="text" ng-model="keywords" ng-maxlength="60" placeholder="Find Ideas">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+                        </span>
+                    </div>
+                </form>
+            </div>
+      </div>
+            <div>
+                <div class="col-sm-3">
+                  <select class="form-control col-sm-1" name="sort_controls" ng-model="sortBy" ng-change="get_ideas()">
+                    <option value="Score">Votes</option>
+                    <option value="Newest">Newest</option>
+                    <option value="Alphabetical">Alphabetical</option>
+                  </select>
+                </div>
+                <div class="col-sm-3">
+                  <select class="form-control col-sm-1" name="sort_which" ng-model="sortStatus" ng-change="get_ideas()">
+                    <option value="Open">Open</option>
+                    <option value="Closed">Closed</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Merged">Merged</option>
+                    <option value="All">All</option>
+                  </select>
+                </div>
+                [% IF current_user %]
+                <div class="col-sm-3">
+                  <select class="form-control col-sm-1" name="sort_user" ng-model="sortWhose" ng-change="get_ideas()">
+                    <option value="Mine">Mine</option>
+                    <option value="All">All</option>
+                  </select>
+                </div>
+                [% END %]
+            </div>
+            <table class="ideas table table-striped" id="ideas_list">
+                <tr>
+                    <th class="col-sm-1"><i class="fa fa-star-o" aria-hidden="true"></i></th>
+                    <th class="col-sm-1"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i></th>
+                    <th class="col-sm-1"><i class="fa fa-hand-o-right" aria-hidden="true"></i></th>
+                    <th class="">Name</th>
+                    <th class="col-sm-1"><i class="fa fa-commenting-o" aria-hidden="true"></i></th>
+                </tr>
+                <tr ng-repeat="idea in ideas.objects">
+                    <td>{{start_number() + $index}}.</td>
+                    <td><span class="label label-success">{{idea.properties.yes}}</span></td>
+                    <td><span class="label label-warning">{{idea.properties.skip}}</span></td>
+                    <td><a href="{{idea.properties.view_uri}}">{{idea.properties.name}}</a></td>
+                    <td>{{idea.properties.comment_count}}</td>
+                </tr>
+            </table>
+            <div uib-pagination ng-show="ideas.paging.total_pages > 1" max-size="5" rotate="false" ng-click="ideas.search()" items-per-page="ideas.paging.items_per_page" direction-links="false" boundary-links="true" total-items="ideas.paging.total_items" ng-model="ideas.paging.page_number"></div>
+
+
+        </div>
+    </div>
+
+</div>
+[% foot_tags = BLOCK %]
+<script>
+'use strict';
+
+angular.module('ideasApp', ['ui.bootstrap','wing'])
+.controller('ideasCtrl', function($scope, $http, objectListManager, objectManager) {
+    $scope.ideas  = [];    //List of ideas with stats
+    $scope.sortBy = "Score"; //Sorting/filtering for ideas
+    $scope.sortStatus = "Open"; //Sorting/filtering for ideas
+    $scope.sortWhose  = "All"; //Sorting/filtering for ideas
+
+    //Get a list of ideas with sorting and paging
+    $scope.get_ideas = function (page_no) {
+        var my_params = {
+            _include_relationships : 1,
+        };
+        my_params._sort_by     = $scope.sortBy;
+        my_params._sort_status = $scope.sortStatus;
+        my_params._sort_whose  = $scope.sortWhose;
+        if ($scope.keywords) {
+            my_params.keyword = $scope.keywords;
+        }
+
+        $scope.ideas = new objectListManager({
+            fetch_options : my_params,
+            list_api : '/api/idea',
+            create_api : '/api/idea',
+        });
+        $scope.ideas.search();
+    };
+
+    $scope.get_ideas();
+
+    //Submit a new idea
+    $scope.send_it = function () {
+        if (! $scope.concept.name) {
+            wing.error('Please give your idea a name!');
+            return;
+        }
+        if (! $scope.concept.description) {
+            wing.error('Please give your idea a description!');
+            return;
+        }
+        $scope.ideas.create({
+            name : $scope.concept.name,
+            description : $scope.concept.description
+        }, { on_success : function(properties) {
+            wing.success('Idea submitted');
+            $scope.idea.properties = properties;
+            $scope.concept = {};
+        }});
+    };
+
+    [% IF current_user %]
+
+        $scope.idea = new objectManager({
+            fetch_options : {
+                _include_relationships : 1,
+            },
+            fetch_api : '/api/idea/low-vote'
+        });
+        $scope.idea.fetch();
+
+        $scope.vote = function(opinion) {
+            $scope.idea.call('POST', $scope.idea.properties._relationships.opinions, {
+                _include_relationships : 1,
+                next : 1,
+                opinion : opinion,
+            }, {on_success : function(properties) {
+                $scope.idea.properties = properties;
+                $scope.get_ideas();
+                wing.success("You voted "+opinion);
+            }});
+        };
+
+    [% END %]
+
+    $scope.start_number = function() {
+        return ((parseInt($scope.ideas.paging.page_number) - 1) * parseInt($scope.ideas.paging.items_per_page)) + 1;
+    };
+
+});
+</script>
+[% END %]
+[% INCLUDE footer_include.tt %]
