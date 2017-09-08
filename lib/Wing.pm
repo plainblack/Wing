@@ -257,9 +257,11 @@ sub send_templated_email {
                 $send[1]->{to} = $_config->get('email_override');
             }
             $result = Email::Sender::Simple->send(@send);
-            if ($options->{bcc}) {
-                $send[1]->{to} = $options->{bcc};
-                Email::Sender::Simple->send(@send);
+            unless ($_config->get('email_override')) {
+                if ($options->{bcc}) {
+                    $send[1]->{to} = $options->{bcc};
+                    Email::Sender::Simple->send(@send);
+                }
             }
         };
         if (hug) {
