@@ -36,9 +36,7 @@ del '/api/ideacomment/:id/like' => sub {
 
 generate_create('IdeaComment',  extra_processing => sub {
     my ($comment, $user) = @_;
-    warn "a";
     if (param('subscribe')) {
-        warn "b";
         $comment->idea->add_subscription($user->id);
     }
 });
