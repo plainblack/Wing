@@ -226,6 +226,35 @@ sub describe {
     return $out;
 }
 
+=head2 describe_lite ()
+
+Works exactly the same as C<describe>, but only provides a very small subset of the object properties, and should not trigger any side-effects.
+
+=cut
+
+sub describe_lite {
+    my ($self, %options) = @_;
+    my $out = {
+        id          => $self->id,
+        object_type => $self->wing_object_type,
+        object_name => $self->wing_object_name,
+        date_updated=> Wing->to_mysql($self->date_updated),
+        date_created=> Wing->to_mysql($self->date_created),
+    };
+    if (defined $options{current_user} && $options{include_private}) {
+        $out->{can_view} = (eval { $self->can_view($options{current_user}) }) ? 1 : 0;
+        $out->{can_edit} = (eval { $self->can_edit($options{current_user}) }) ? 1 : 0;
+    }
+   if ($options{include_options}) {
+        $out->{_options} = $self->field_options(%options);
+    }
+    if ($options{include_relationships}) {
+        $out->{_relationships}{self} = $self->wing_object_api_uri;
+    }
+    return $out;
+}
+
+
 =head2 describe_delete ()
 
 Returns:

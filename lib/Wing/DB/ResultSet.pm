@@ -85,9 +85,15 @@ The field to order by. Defaults to whatever order C<result_set> would normally h
 
 Must be C<asc> or C<desc>. Defaults to whatever sorder order C<result_set> would normally have. If C<order_by> isn't specified then this is ignored.
 
+=item describe_lite
+
+Use a light-weight object describer, instead of C<describe> with all of its side-effects.
+
 =item object_options
 
 If you need to pass additional object-specific options to the object, pass them in here. Is a hash reference.
+
+=back
 
 =back
 
@@ -168,9 +174,10 @@ sub format_list {
         $extra->{prefetch} = $prefetch;
     }
     my $page = $self->search(undef, $extra);
+    my $describe_method = $options{describe_lite} ? 'describe_lite' : 'describe';
     unless ($skip_result_set) {
         while (my $item = $page->next) {
-            push @list, $item->describe(
+            push @list, $item->$describe_method(
                 %{ (exists $options{object_options} ? $options{object_options} : {}) },
                 include_admin           => $options{include_admin} || $is_admin ? 1 : 0,
                 include_private         => $options{include_private} || (eval { $item->can_view($user) }) ? 1 : 0,
