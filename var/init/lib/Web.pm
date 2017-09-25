@@ -7,6 +7,7 @@ use Wing::Web::Account;
 use Wing::Web::Admin::User;
 use Wing::Web::Admin::Wingman;
 use Wing::Web::Admin::Trends;
+use Wing::Web::ReportCollector;
 use Wing::Web::NotFound;
 
 1;
