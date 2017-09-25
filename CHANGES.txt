@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2017-09-25
  * No longer sending Dancer server tokens.
+ * Added a very basic security report collector web service.
 
 2017-09-12
  * Better insufficient privileges message.
