@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-09-25
+ * No longer sending Dancer server tokens.
+
 2017-09-12
  * Better insufficient privileges message.
 

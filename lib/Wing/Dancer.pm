@@ -13,6 +13,8 @@ These subroutines get included into L<Wing::Rest> and L<Wing::Web>. These subs a
 use Wing;
 use Data::GUID;
 
+set server_tokens   => 0;
+
 =head1 SUBROUTINES
 
 =head2 find_tenant_site()
