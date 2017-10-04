@@ -11,7 +11,7 @@ Wing master object, providing several utility functions.
 =head1 SYNOPSIS
 
  use Wing;
- 
+
  my $db = Wing->db;
  my $cache = Wing->cache;
 
@@ -179,7 +179,7 @@ light wrapper around L<Email::MIME::Kit>.  If an error
 occurs during the sending of any email it will throw an exception.
 
 If the environment variable C<WING_NO_EMAIL> is set to 1, then this method
-will return without doing anything. 
+will return without doing anything.
 
 If the config directive C<email_override> is set to an email address, that email
 address will receive all email rather than the original recipient. CC and BCC
@@ -211,16 +211,16 @@ Boolean. If this option is true the email will be sent in the background via L<W
 
 B<NOTE:> To use this feature you must have a C<wingman> section in your config file configured properly, and a live C<beanstalkd> server.
 
-=head4 wingman_job_options 
+=head4 wingman_job_options
 
-Hash reference. See L<Wingman/put> for details. 
+Hash reference. See L<Wingman/put> for details.
 
 B<NOTE:> C<ttr> defaults to 60. C<priority> defaults to 1500.
 
 =cut
 
 sub send_templated_email {
-    my ($class, $template, $params, $options) = @_; 
+    my ($class, $template, $params, $options) = @_;
     if ($ENV{WING_NO_EMAIL}) {
         Wing->log->info('Skipping sending email '.$template.' due to WING_NO_EMAIL environment variable.');
         return;
@@ -267,7 +267,9 @@ sub send_templated_email {
         if (hug) {
             __PACKAGE__->log->fatal('Email Problem: '.bleep);
             __PACKAGE__->log->debug('Defective Email: '.$email->as_string);
-            ouch 504, 'Could not send email. Mail service down.', bleep;
+            my $error = bleep;
+            $error =~ s/(.*?)\s+Trace begun.*/$1/gms;
+            ouch 504, 'Could not send email: '.$error;
         }
     }
     return $result;
