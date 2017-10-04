@@ -211,6 +211,17 @@ sub wing_field {
 
         # add field to postable params
         if (exists $options->{edit}) {
+            # add privilege check
+            if (exists $options->{check_privilege}) {
+                $class->meta->add_around_method_modifier(privileged_params => sub {
+                    my ($orig, $self) = @_;
+                    my $params = $orig->($self);
+                    $params->{$field} = $options->{check_privilege};
+                    return $params;
+                });
+
+            }
+
             if (any {$_ eq $options->{edit}} (qw(postable required unique))) {
                 $class->meta->add_around_method_modifier(postable_params => sub {
                     my ($orig, $self) = @_;
@@ -232,19 +243,8 @@ sub wing_field {
                             ouch 441, $field.' is required.', $field;
                         }
                     });
-
                }
 
-                # add privilege check
-                if (exists $options->{check_privilege}) {
-                    $class->meta->add_around_method_modifier(privileged_params => sub {
-                        my ($orig, $self) = @_;
-                        my $params = $orig->($self);
-                        $params->{$field} = $options->{check_privilege};
-                        return $params;
-                    });
-
-                }
             }
             elsif ($options->{edit} eq 'admin') {
                 $class->meta->add_around_method_modifier(admin_postable_params => sub {
