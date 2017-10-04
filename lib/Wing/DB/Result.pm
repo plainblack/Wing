@@ -502,21 +502,27 @@ sub verify_posted_params {
     my $cant_edit = $@;
     my $required_params = $self->required_params;
     my $privileged_params = $self->privileged_params;
-    my @privileged_keys = keys %{$privileged_params};
-    my @postable_params = @{$self->postable_params};
-    if (defined $current_user && $current_user->is_admin) {
-        push @postable_params, @{$self->admin_postable_params};
-    }
-    foreach my $param (@postable_params) {
+    my $admin_postable_params = $self->admin_postable_params;
+    my @postable_params = (@{$self->postable_params}, @{ $admin_postable_params }, );
+
+    PARAM: foreach my $param (@postable_params) {
         if (exists $params->{$param}) {
+            ##Make sure required params exist
             if (any {$_ eq $param} @$required_params && $params->{$param} eq '') {
                 ouch(441, $param.' is required.', $param) unless $params->{$param};
             }
-            if (any {$_ eq $param} @privileged_keys) {
-                my $method = $privileged_params->{$param};
-                $self->$method($current_user, $param, $params->{$param}) if $method;
+            if (!any {$_ eq $param} @{$admin_postable_params}) {
+                if ( defined $current_user && $current_user->is_admin ) {
+                    ##Grandfather in admin access to all params
+                    next PARAM unless exists $privileged_params->{$param};
+                }
+            }
+            if (exists $privileged_params->{$param}) {
+                ##Allow check_privilege overrides (TGC, Game->is_support; TTE, Convention->has_privilege)
+                next PARAM unless $self->check_privilege_method($privileged_params->{$param}, $current_user);
             }
             elsif (!$can_edit) {
+                ##Not a privileged param, fallback to regular can_edit check
                 die $cant_edit;
             }
             $self->$param($params->{$param});
