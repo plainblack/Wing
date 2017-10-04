@@ -7,14 +7,14 @@ Wing::Role::Result::Field - Some sugar to add fields to your wing classes.
 =head1 SYNOPSIS
 
  with 'Wing::Role::Result::Field';
- 
- __PACKAGE__->wing_field( 
+
+ __PACKAGE__->wing_field(
     'name' => {
         dbic    => { data_type => 'varchar', size => 30 },
         edit  => 'unique',
     }
  );
- 
+
 =head1 METHODS
 
 =cut
@@ -173,7 +173,7 @@ Including options will also generate a method in your class called C<field_name_
 
 =item _options
 
-A hash where the keys are the previously defined C<options> array, and the values are the human readable labels. 
+A hash where the keys are the previously defined C<options> array, and the values are the human readable labels.
 
 Including options will also generate a method in your class called C<_field_name_options>. So if your field name is C<color> then the method generated would be C<_color_options>. This method is then called by C<field_options> for generating the options on web services.
 
@@ -187,7 +187,7 @@ Boolean. When this is true then the C<duplicate> method will not copy this field
 
 =item duplicate_prefix
 
-If you set this, it will be prepended to the field when duplicated. This is useful for doing things like 'Copy of '. 
+If you set this, it will be prepended to the field when duplicated. This is useful for doing things like 'Copy of '.
 
 =item skip_unique_if_null
 
@@ -205,10 +205,10 @@ sub wing_field {
     $wing_object_class->meta->add_around_method_modifier(wing_apply_fields => sub {
         my ($orig, $class) = @_;
         $orig->($class);
-        
+
         # add dbic columns
         $class->add_columns($field => $options->{dbic});
-        
+
         # add field to postable params
         if (exists $options->{edit}) {
             if (any {$_ eq $options->{edit}} (qw(postable required unique))) {
@@ -218,7 +218,7 @@ sub wing_field {
                     push @$params, $field;
                     return $params;
                 });
-    
+
                 # make required
                 if (any {$_ eq $options->{edit}} (qw(required unique))) {
                     $class->meta->add_around_method_modifier(required_params => sub {
@@ -232,10 +232,10 @@ sub wing_field {
                             ouch 441, $field.' is required.', $field;
                         }
                     });
-                    
+
                }
 
-                # add privilege check 
+                # add privilege check
                 if (exists $options->{check_privilege}) {
                     $class->meta->add_around_method_modifier(privileged_params => sub {
                         my ($orig, $self) = @_;
@@ -255,7 +255,7 @@ sub wing_field {
                 });
             }
         }
-    
+
         # add field to viewable params
         if (exists $options->{view}) {
             if ($options->{view} eq 'public') {
@@ -283,7 +283,7 @@ sub wing_field {
                 });
             }
         }
-    
+
         # add index
         if ((exists $options->{indexed} && $options->{indexed} eq 'unique') || (exists $options->{edit} && $options->{edit} eq 'unique') || (exists $options->{dbic}{is_auto_increment} && $options->{dbic}{is_auto_increment})) {
             my @constraint = $field;
@@ -342,7 +342,7 @@ sub wing_field {
             });
         }
 
-        # filter 
+        # filter
         if (exists $options->{filter}) {
             if (ref $options->{filter} ne 'CODE') {
                 ouch 500, 'Filter for "'.$field.'" must be specified with a code reference.';
@@ -357,7 +357,7 @@ sub wing_field {
                 }
             });
         }
-    
+
         # enumerated validation
         # range validation
         if (exists $options->{range}) {
@@ -375,7 +375,7 @@ sub wing_field {
                 }
             });
         }
-    
+
         # enumerated validation
         if (exists $options->{options}) {
             if (ref $options->{options} ne 'ARRAY' && ref $options->{options} ne 'CODE') {
@@ -429,6 +429,8 @@ sub wing_field {
             });
         }
 
+
+
         # add field to describe
         $class->meta->add_around_method_modifier(describe => sub {
             my ($orig, $self, %describe_options) = @_;
@@ -442,18 +444,18 @@ sub wing_field {
             };
             if (exists $options->{view}) {
                 if ($options->{view} eq 'admin') {
-                    $describe->() if $describe_options{include_admin};
+                    $describe->() if $describe_options{include_admin} || $self->check_privilege_method($options->{check_privilege}, $describe_options{current_user});
                 }
                 elsif ($options->{view} eq 'private') {
-                    $describe->() if $describe_options{include_private};
+                    $describe->() if $describe_options{include_private} || $self->check_privilege_method($options->{check_privilege}, $describe_options{current_user});
                 }
                 elsif ($options->{view} eq 'public') {
-                    $describe->(); 
+                    $describe->();
                 }
             }
             return $out;
         });
-        
+
         # duplicate fields
         $class->meta->add_around_method_modifier(duplicate => sub {
             my ($orig, $self) = @_;

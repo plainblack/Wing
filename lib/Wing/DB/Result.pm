@@ -103,7 +103,7 @@ Returns the class name of the object, without the parent package path.
 
 sub wing_object_class {
     my $self = shift;
-    my $class = ref $self || $self;    
+    my $class = ref $self || $self;
     $class =~ s/^.*:(\w+)$/$1/;
     return $class;
 }
@@ -391,7 +391,7 @@ sub can_edit {
     ouch(450,$message);
 }
 
-=head2 can_link_to($user) 
+=head2 can_link_to($user)
 
 Can this user link to this object?  By default, if you C<can_edit> then you can link to it with the L<Wing::Role::Result::Parent> role.
 
@@ -412,7 +412,7 @@ sub can_link_to {
 
 =head2 can_view(user)
 
-Can this user view this object?  By default, if you C<can_edit> then you can view it. 
+Can this user view this object?  By default, if you C<can_edit> then you can view it.
 
 =over
 
@@ -450,7 +450,7 @@ sub can_delete {
 
 =head2 verify_creation_params(params, current_user)
 
-Used by web/rest interfaces to validate posted parameters for creation. Throws a 441 ouch if a required parameter is not present. 
+Used by web/rest interfaces to validate posted parameters for creation. Throws a 441 ouch if a required parameter is not present.
 
 =over
 
@@ -502,7 +502,7 @@ sub verify_posted_params {
     my $cant_edit = $@;
     my $required_params = $self->required_params;
     my $privileged_params = $self->privileged_params;
-    my @privileged_keys = keys %{$privileged_params}; 
+    my @privileged_keys = keys %{$privileged_params};
     my @postable_params = @{$self->postable_params};
     if (defined $current_user && $current_user->is_admin) {
         push @postable_params, @{$self->admin_postable_params};
@@ -533,6 +533,36 @@ Duplicates this object with a new id. Can be extended to duplicate auxillary dat
 sub duplicate {
     my ($self) = @_;
     return $self->result_source->schema->resultset(ref $self)->new({});
+}
+
+=head2 check_privilege_method( method, current_user )
+
+Executes a method while passing it the current user object to check for privileges on a field. This is used by the L<Wing::Role::Result::Field> role.
+
+=over
+
+=item method
+
+The name of the method on this object to execute.
+
+=item current_user
+
+A C<MyApp::DB::Result::User> object.
+
+=back
+
+=cut
+
+sub check_privilege_method {
+    my ($self, $method, $current_user) = @_;
+    return 0 unless defined $method;
+    return 0 unless defined $current_user;
+    my $result = eval { $self->$method($current_user) };
+    if ($@) {
+        Wing->log->warn($method.' on '.$self->wing_object_name.' failed with '.$@);
+        return 0;
+    }
+    return $result;
 }
 
 =head2 SEE ALSO
