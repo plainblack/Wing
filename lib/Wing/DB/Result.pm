@@ -498,34 +498,54 @@ See L<Wing::Rest> C<get_tracer()>
 
 sub verify_posted_params {
     my ($self, $params, $current_user, $tracer) = @_;
-    my $can_edit = eval { $self->can_edit($current_user, $tracer) };
+    my $is_admin = defined $current_user && $current_user->is_admin;
+    my $can_edit = eval { $is_admin || $self->can_edit($current_user, $tracer) };
     my $cant_edit = $@;
     my $required_params = $self->required_params;
     my $privileged_params = $self->privileged_params;
     my $admin_postable_params = $self->admin_postable_params;
     my @postable_params = (@{$self->postable_params}, @{ $admin_postable_params }, );
-
     PARAM: foreach my $param (@postable_params) {
         if (exists $params->{$param}) {
-            ##Make sure required params exist
+            my $saveit = sub {
+                $self->$param($params->{$param});
+            };
+
             if (any {$_ eq $param} @$required_params && $params->{$param} eq '') {
                 ouch(441, $param.' is required.', $param) unless $params->{$param};
             }
-            if (!any {$_ eq $param} @{$admin_postable_params}) {
-                if ( defined $current_user && $current_user->is_admin ) {
-                    ##Grandfather in admin access to all params
-                    next PARAM unless exists $privileged_params->{$param};
+
+            # admins can save whatever they want
+            if ($is_admin) {
+                $saveit->();
+                next PARAM;
+            }
+
+            # skip admin postable params unless they are a privileged param
+            my $is_admin_postable = any {$_ eq $param} @{$admin_postable_params};
+            if ($is_admin_postable) {
+                next PARAM unless exists $privileged_params->{$param};
+            }
+
+            # if it's a privileged param and it can pass the privilege check, save it
+            if (exists $privileged_params->{$param}) {
+                if ($self->check_privilege_method($privileged_params->{$param}, $current_user)) {
+                    $saveit->();
+                    next PARAM;
+                }
+                elsif ($is_admin_postable) { # if we weren't allowed to edit and it was admin postable we need to skip it
+                    next PARAM;
                 }
             }
-            if (exists $privileged_params->{$param}) {
-                ##Allow check_privilege overrides (TGC, Game->is_support; TTE, Convention->has_privilege)
-                next PARAM unless $self->check_privilege_method($privileged_params->{$param}, $current_user);
+
+            # if we are allowed to edit it then save it
+            if ($can_edit) {
+                $saveit->();
+                next PARAM;
             }
-            elsif (!$can_edit) {
-                ##Not a privileged param, fallback to regular can_edit check
-                die $cant_edit;
-            }
-            $self->$param($params->{$param});
+
+            # everything failed
+            ouch 450, $cant_edit, $param;
         }
     }
 }
