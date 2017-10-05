@@ -1,0 +1,976 @@
+---
+schema:
+  procedures: {}
+  tables:
+    api_key:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - name
+          match_type: ''
+          name: api_key_name
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: api_key_fk_user_id
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - id
+          reference_table: users
+          type: FOREIGN KEY
+      extra:
+        mysql_charset: utf8
+        mysql_collate: utf8_unicode_ci
+      fields:
+        date_created:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_created
+          order: 2
+          size:
+            - 0
+        date_updated:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_updated
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 36
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: name
+          order: 6
+          size:
+            - 30
+        private_key:
+          data_type: char
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: private_key
+          order: 4
+          size:
+            - 36
+        reason:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: reason
+          order: 5
+          size:
+            - 255
+        uri:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: uri
+          order: 7
+          size:
+            - 255
+        user_id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 8
+          size:
+            - 36
+      indices:
+        - fields:
+            - user_id
+          name: api_key_idx_user_id
+          options: []
+          type: NORMAL
+        - fields:
+            - date_created
+          name: idx_date_created
+          options: []
+          type: NORMAL
+        - fields:
+            - date_updated
+          name: idx_date_updated
+          options: []
+          type: NORMAL
+      name: api_key
+      options: []
+      order: 3
+    api_key_permissions:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - api_key_id
+          match_type: ''
+          name: api_key_permissions_fk_api_key_id
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - id
+          reference_table: api_key
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: api_key_permissions_fk_user_id
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - id
+          reference_table: users
+          type: FOREIGN KEY
+      extra:
+        mysql_charset: utf8
+        mysql_collate: utf8_unicode_ci
+      fields:
+        api_key_id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: api_key_id
+          order: 5
+          size:
+            - 36
+        date_created:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_created
+          order: 2
+          size:
+            - 0
+        date_updated:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_updated
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 36
+        permission:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: permission
+          order: 4
+          size:
+            - 30
+        user_id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 6
+          size:
+            - 36
+      indices:
+        - fields:
+            - api_key_id
+          name: api_key_permissions_idx_api_key_id
+          options: []
+          type: NORMAL
+        - fields:
+            - user_id
+          name: api_key_permissions_idx_user_id
+          options: []
+          type: NORMAL
+        - fields:
+            - date_created
+          name: idx_date_created
+          options: []
+          type: NORMAL
+        - fields:
+            - date_updated
+          name: idx_date_updated
+          options: []
+          type: NORMAL
+        - fields:
+            - api_key_id
+            - user_id
+          name: idx_apikey_user
+          options: []
+          type: NORMAL
+      name: api_key_permissions
+      options: []
+      order: 6
+    companies:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - name
+          match_type: ''
+          name: companies_name
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+      extra:
+        mysql_charset: utf8
+        mysql_collate: utf8_unicode_ci
+      fields:
+        date_created:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_created
+          order: 2
+          size:
+            - 0
+        date_updated:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_updated
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 36
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: name
+          order: 5
+          size:
+            - 60
+        web_url:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: web_url
+          order: 4
+          size:
+            - 255
+      indices:
+        - fields:
+            - date_created
+          name: idx_date_created
+          options: []
+          type: NORMAL
+        - fields:
+            - date_updated
+          name: idx_date_updated
+          options: []
+          type: NORMAL
+      name: companies
+      options: []
+      order: 1
+    employees:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - company_id
+          match_type: ''
+          name: employees_fk_company_id
+          on_delete: SET NULL
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - id
+          reference_table: companies
+          type: FOREIGN KEY
+      extra:
+        mysql_charset: utf8
+        mysql_collate: utf8_unicode_ci
+      fields:
+        company_id:
+          data_type: char
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: company_id
+          order: 7
+          size:
+            - 36
+        date_created:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_created
+          order: 2
+          size:
+            - 0
+        date_updated:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_updated
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 36
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 4
+          size:
+            - 60
+        salary:
+          data_type: int
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: salary
+          order: 6
+          size:
+            - 0
+        title:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: title
+          order: 5
+          size:
+            - 30
+      indices:
+        - fields:
+            - company_id
+          name: employees_idx_company_id
+          options: []
+          type: NORMAL
+        - fields:
+            - date_created
+          name: idx_date_created
+          options: []
+          type: NORMAL
+        - fields:
+            - date_updated
+          name: idx_date_updated
+          options: []
+          type: NORMAL
+      name: employees
+      options: []
+      order: 4
+    equipment:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - employee_id
+          match_type: ''
+          name: equipment_fk_employee_id
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - id
+          reference_table: employees
+          type: FOREIGN KEY
+      extra:
+        mysql_charset: utf8
+        mysql_collate: utf8_unicode_ci
+      fields:
+        date_created:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_created
+          order: 2
+          size:
+            - 0
+        date_updated:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_updated
+          order: 3
+          size:
+            - 0
+        employee_id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: employee_id
+          order: 5
+          size:
+            - 36
+        id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 36
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 4
+          size:
+            - 60
+      indices:
+        - fields:
+            - employee_id
+          name: equipment_idx_employee_id
+          options: []
+          type: NORMAL
+        - fields:
+            - date_created
+          name: idx_date_created
+          options: []
+          type: NORMAL
+        - fields:
+            - date_updated
+          name: idx_date_updated
+          options: []
+          type: NORMAL
+      name: equipment
+      options: []
+      order: 7
+    sites:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - database_name
+          match_type: ''
+          name: sites_database_name
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - shortname
+          match_type: ''
+          name: sites_shortname
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: sites_fk_user_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - id
+          reference_table: users
+          type: FOREIGN KEY
+      extra:
+        mysql_charset: utf8
+        mysql_collate: utf8_unicode_ci
+      fields:
+        database_name:
+          data_type: varchar
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: database_name
+          order: 4
+          size:
+            - 50
+        date_created:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_created
+          order: 2
+          size:
+            - 0
+        date_updated:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_updated
+          order: 3
+          size:
+            - 0
+        hostname:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: hostname
+          order: 8
+          size:
+            - 255
+        id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 36
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 6
+          size:
+            - 60
+        shortname:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: shortname
+          order: 9
+          size:
+            - 50
+        trashed:
+          data_type: tinyint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: trashed
+          order: 5
+          size:
+            - 0
+        user_id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 7
+          size:
+            - 36
+      indices:
+        - fields:
+            - user_id
+          name: sites_idx_user_id
+          options: []
+          type: NORMAL
+        - fields:
+            - date_created
+          name: idx_date_created
+          options: []
+          type: NORMAL
+        - fields:
+            - date_updated
+          name: idx_date_updated
+          options: []
+          type: NORMAL
+        - fields:
+            - shortname
+            - trashed
+          name: idx_find_by_shortname
+          options: []
+          type: NORMAL
+        - fields:
+            - hostname
+            - trashed
+          name: idx_find_by_hostname
+          options: []
+          type: NORMAL
+        - fields:
+            - hostname
+          name: idx_hostname
+          options: []
+          type: NORMAL
+      name: sites
+      options: []
+      order: 5
+    users:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - email
+          match_type: ''
+          name: users_email
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - username
+          match_type: ''
+          name: users_username
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+      fields:
+        admin:
+          data_type: tinyint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: admin
+          order: 4
+          size:
+            - 0
+        date_created:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_created
+          order: 2
+          size:
+            - 0
+        date_updated:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: date_updated
+          order: 3
+          size:
+            - 0
+        developer:
+          data_type: tinyint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: developer
+          order: 12
+          size:
+            - 0
+        email:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 1
+          name: email
+          order: 9
+          size:
+            - 255
+        id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 36
+        last_login:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: last_login
+          order: 13
+          size:
+            - 0
+        password:
+          data_type: char
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: password
+          order: 10
+          size:
+            - 50
+        password_salt:
+          data_type: char
+          default_value: abcdefghijklmnop
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: password_salt
+          order: 7
+          size:
+            - 16
+        password_type:
+          data_type: varchar
+          default_value: bcrypt
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: password_type
+          order: 6
+          size:
+            - 10
+        real_name:
+          data_type: varchar
+          default_value: ''
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: real_name
+          order: 5
+          size:
+            - 255
+        use_as_display_name:
+          data_type: varchar
+          default_value: username
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: use_as_display_name
+          order: 11
+          size:
+            - 10
+        username:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: username
+          order: 8
+          size:
+            - 30
+      indices:
+        - fields:
+            - real_name
+            - username
+            - email
+          name: idx_search
+          options: []
+          type: NORMAL
+      name: users
+      options: []
+      order: 2
+  triggers: {}
+  views: {}
+translator:
+  add_drop_table: 0
+  filename: ~
+  no_comments: 0
+  parser_args:
+    sources:
+      - APIKey
+      - APIKeyPermission
+      - Company
+      - Employee
+      - Equipment
+      - Site
+      - User
+  parser_type: SQL::Translator::Parser::DBIx::Class
+  producer_args: {}
+  producer_type: SQL::Translator::Producer::YAML
+  show_warnings: 0
+  trace: 0
+  version: 0.11021
