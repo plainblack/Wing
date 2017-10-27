@@ -23,7 +23,8 @@ sub validate_args {
 
 sub execute {
     my ($self, $opt, $args) = @_;
-    my @tubes = qw//; 
+    Wing->log->info('Kicking stuck wingman jobs.');
+    my @tubes = qw//;
     push @tubes, Wing->config->get('wingman/beanstalkd/default_tube');
 
     my $wingman = Wingman->new();
@@ -35,6 +36,7 @@ sub execute {
     my %seen_jobs = ();
 
     TUBE: foreach my $tube (@tubes) {
+        Wing->log->info('Looking for stuck wingman jobs in '.$tube);
         JOB: while (my $job = $wingman->peek_buried($tube)) {
             next TUBE unless $job;
             ##If there's only one job, this will loop forever, so keep track of what we've seen
@@ -42,22 +44,23 @@ sub execute {
             next TUBE if $seen_jobs{$job->id}++;
             if ($job->stats->kicks > 1) {
                 $has_stuck_jobs = 1;
-                say "Stuck job ".$job->id." in $tube";
+                Wing->log->info("Stuck job ".$job->id." in $tube");
                 next JOB;
             }
             elsif ($job->stats->age > 12*60*60) {
                 $has_stuck_jobs = 1;
-                say "Old job ".$job->id." in $tube";
+                Wing->log->info("Old job ".$job->id." in $tube");
                 next JOB;
             }
             else {
                 $wingman->kick_job($job->id);
-                say "Kicking job ".$job->id." in $tube";
+                Wing->log->info("Kicking job ".$job->id." in $tube");
             }
         }
     }
 
     if ($has_stuck_jobs) {
+        Wing->log->info('Emailing admin about stuck wingman jobs.');
         Wing->send_templated_email('stuck_wingman_job', { email => Wing->config->get('wing_admin'), subject => 'Stuck Wingman jobs', });
     }
 
