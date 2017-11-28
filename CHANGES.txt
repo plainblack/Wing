@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2017-11-28
+ * Added JSONField role so that I could add validation everywhere.
+
 2017-10-05
  * Should have written tests for the new check privilege stuff.
 
