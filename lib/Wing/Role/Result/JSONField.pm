@@ -43,16 +43,21 @@ sub wing_json_field {
         $class->meta->add_around_method_modifier($field => sub {
             if (scalar @_ == 3 && defined $_[2]) {
                 my ($orig, $self, $json) = @_;
-                my $perl = eval { from_json($json) };
-                if ($@) {
-                    my $error = $@;
-                    $error =~ m/^(.*)\sat\s.*/; 
-                    my $help = $1;
-                    Wing->log->warn($field.': '. $error);
-                    ouch 442, 'Invalid JSON for '.$field.': '.$help, $field;
+                if (ref $json eq 'ARRAY' || ref $json eq 'HASH') {
+                    return $orig->($self, $json);
                 }
                 else {
-                    return $self->$orig($perl);
+                    my $perl = eval { from_json($json) };
+                    if ($@) {
+                        my $error = $@;
+                        $error =~ m/^(.*)\sat\s.*/; 
+                        my $help = $1;
+                        Wing->log->warn($field.': '. $error);
+                        ouch 442, 'Invalid JSON for '.$field.': '.$help, $field;
+                    }
+                    else {
+                        return $orig->($self, $perl);
+                    }
                 }
             }
             return $_[0]->($_[1]);
