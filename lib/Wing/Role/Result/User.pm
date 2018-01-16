@@ -51,6 +51,10 @@ Their name in meatspace.
 
 Their contact email address.
 
+=item no_email
+
+Boolean. This person wants no email from us what-so-ever.
+
 =item use_as_display_name
 
 The field the user wishes to be used to display their name to other users. Must be one of C<username>, C<email>, or C<real_name>.
@@ -117,6 +121,20 @@ before wing_finalize_class => sub {
             view    => 'private',
             edit    => 'unique',
             filter  => sub { Wing::ContentFilter::neutralize_html(\$_[0]); return $_[0]; },
+        },
+        no_email     => {
+            dbic                => { data_type => 'tinyint', default_value => 0 },
+            options             => [0,1],
+            _options            => { 0 => 'Send Email', 1 => 'No Email Ever' },
+            view                => 'private',
+            edit                => 'postable',
+        },
+        permanently_deactivated  => {
+            dbic                => { data_type => 'tinyint', default_value => 0 },
+            options             => [0,1],
+            _options            => { 0 => 'Active', 1 => 'Permanently deactivate' },
+            view                => 'private',
+            edit                => 'postable',
         },
         use_as_display_name     => {
             dbic    => { data_type => 'varchar', size => 10, is_nullable => 1, default_value => 'username' },
@@ -230,6 +248,7 @@ Generates a password reset code that is valid for 24 hours and returns it.
 
 sub start_session {
     my ($self, $options) = @_;
+    ouch 442, 'User is permanently deactivated' if $self->permanently_deactivated;
     $self->last_login(DateTime->now);
     $self->update;
     return Wing::Session->new(db => $self->result_source->schema)->start($self, $options);
@@ -259,6 +278,7 @@ sub verify_is_admin {
 
 sub is_password_valid {
     my ($self, $password) = @_;
+    ouch 442, 'User is permanently deactivated' if $self->permanently_deactivated;
     my $encrypted_password;
     given ($self->password_type) {
         when ('md5') { $encrypted_password = Digest::MD5::md5_base64(Encode::encode_utf8($password)) }
@@ -336,6 +356,9 @@ sub send_templated_email {
     unless ($self->email =~ '\@') {
         ouch 442, "Illegal email address for this user.", 'email';
     }
+    if ($self->no_email or $self->permanently_deactivated) {
+        ouch 442, 'This user does not want any email.';
+    }
     $params->{me} = $self->describe(include_private => 1);
     Wing->send_templated_email($template, $params, $options);
     return $self;
@@ -343,6 +366,7 @@ sub send_templated_email {
 
 sub generate_password_reset_code {
     my $self = shift;
+    ouch 442, 'User is permanently deactivated' if $self->permanently_deactivated;
     my $code = random_string('ssssssssssssssssssssssssssssssssssss');
     Wing->cache->set('password_reset'.$code, $self->id, 60 * 60 * 24);
     return $code;
