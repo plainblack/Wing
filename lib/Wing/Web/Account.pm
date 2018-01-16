@@ -211,6 +211,9 @@ post '/account/reset-password' => sub {
         $user = site_db()->resultset('User')->search({email => params->{login}},{rows=>1})->single;
         return template 'account/reset-password', {error_message => 'User not found.'} unless defined $user;
     }
+    if ($user->permanently_disabled) {
+        return template 'account/reset-password', {error_message => 'Account permanently disabled.'};
+    }
 
     # validate password
     if ($user->email) {
@@ -245,6 +248,9 @@ post '/account/reset-password-code' => sub {
     unless (defined $user) {
         return template 'account/reset-password-code', {error_message => 'The user attached to that code no longer exists.'};
     }
+    if ($user->permanently_disabled) {
+        return template 'account/reset-password', {error_message => 'Account permanently disabled.'};
+    }
     $user->encrypt_and_set_password(params->{password1});
     return login($user);
 };
@@ -273,6 +279,9 @@ get '/sso' => sub {
         db                      => site_db(),
     )->store;
     if (defined $user) {
+        if ($user->permanently_disabled) {
+            ouch 442, 'Account permanently disabled';
+        }
         $sso->user_id($user->id);
         $sso->store;
         if ($sso->has_requested_permissions) {
@@ -287,6 +296,9 @@ get '/sso' => sub {
 
 get '/sso/authorize' => sub {
     my $user = get_user_by_session_id();
+    if ($user->permanently_disabled) {
+        ouch 442, 'Account permanently disabled';
+    }
     my $sso = Wing::SSO->new(id => params->{sso_id}, db => site_db());
     ouch(401, 'User does not match SSO token.') unless $user->id eq $sso->user_id;
     template 'account/authorize', {
@@ -299,6 +311,9 @@ get '/sso/authorize' => sub {
 
 post '/sso/authorize' => sub {
     my $user = get_user_by_session_id();
+    if ($user->permanently_disabled) {
+        ouch 442, 'Account permanently disabled';
+    }
     my $sso = Wing::SSO->new(id => params->{sso_id}, db => site_db());
     $sso->grant_requested_permissions;
     return redirect $sso->redirect;
@@ -332,6 +347,9 @@ get '/account/facebook/postback' => sub {
 
     my $user = eval { get_user_by_session_id() };
     if (defined $user) {
+        if ($user->permanently_disabled) {
+            ouch 442, 'Account permanently disabled';
+        }
         $user->facebook_uid($fbuser->{id});
         $user->update;
     }
