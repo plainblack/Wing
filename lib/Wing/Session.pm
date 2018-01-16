@@ -74,7 +74,7 @@ has user => (
         my $self = shift;
         return undef unless $self->has_user_id;
         my $user = $self->db->resultset('User')->find($self->user_id);
-        if (defined $user) {
+        if (defined $user && ! $user->permanently_deactivated) {
             $user->current_session($self);
         }
         return $user;
@@ -98,6 +98,7 @@ sub check_permissions {
     return 1 if (!defined $permissions || ref $permissions ne 'ARRAY' || !scalar(@{$permissions})); # has permissions if they aren't asking for any
     ouch(401, 'You must log in to access that.',$permissions) unless $self->has_user_id; # can't have permissions if they haven't logged in
     return 1 if $self->user->is_admin; # always has permissions if they're an admin
+    ouch(450, 'Account permanently deactivated') if $self->user->permanently_deactivated; # Active users only
     ouch(450, 'Insufficient permissions.',$permissions) unless $self->has_api_key_id; # can't have permissions if they didn't assign an API key
     my $existing = $self->get_permissions;
     foreach my $permission (@{$permissions}) {
