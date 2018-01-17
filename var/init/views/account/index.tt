@@ -75,9 +75,26 @@
         </div>
 
     </div><!-- row -->
+
     [% UNLESS current_user.facebook_uid %] 
         <div class="well"><p><a href="/account/facebook" class="btn btn-default">Connect This Account To Your Facebook Account</a></p></div>
     [% END %]
+
+    <div>
+        <h2>Permanently Deactivate Account</h2>
+        <p>Once you deactivate your account you will not be able to log in, recover your password, access your private content, and you will never receive any emails from us ever again. This change cannot be reversed.</p>
+        <p>If you wish to permanently deactivate your account, confirm your password:</p>
+        <form action="/account/deactivate" method="POST">
+        <div>
+            <label class="control-label" for="password">Confirm Your Password</label>
+            <div>
+                <input class="form-control" type="password" name="password" id="password">
+            </div>
+        </div>
+        <button class="btn btn-danger">Permanently Deactivate Your Account</button>
+        </form>
+    </div>
+
 </div>
 [% foot_tags = BLOCK %]
 

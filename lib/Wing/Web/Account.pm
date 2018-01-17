@@ -16,6 +16,18 @@ get '/login' => sub {
     template 'account/login';
 };
 
+post '/account/deactivate' => {
+    if ($user->is_password_valid($password)) {
+        my $session = get_session();
+        if (defined $session) {
+            $user->deactivate;
+            $session->end;
+        }
+        redirect '/';
+    }
+    ouch 441, 'Password invalid.';
+};
+
 post '/login' => sub {
     return template 'account/login', { error_message => 'You must specify a username or email address.'} unless params->{login};
     return template 'account/login', { error_message => 'You must specify a password.'} unless params->{password};

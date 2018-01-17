@@ -54,6 +54,13 @@
     <label class="radio-inline" for="developer_no"><input class="autosave" type="radio" name="developer" value="0" id="developer_no"[% UNLESS user.developer %] checked=1[% END %]>No</label>
     </div>
 </div>
+<div class="form-group">
+    <label class="col-sm-4 control-label">Permanently Deactivated</label>
+    <div class="col-sm-8">
+    <label class="radio-inline" for="permanently_deactivated_yes"><input class="autosave" type="radio" name="permanently_deactivated" value="1" id="permanently_deactivated_yes"[% IF user.permanently_deactivated %] checked=1[% END %]>Yes</label>
+    <label class="radio-inline" for="permanently_deactivated_no"><input class="autosave" type="radio" name="permanently_deactivated" value="0" id="permanently_deactivated_no"[% UNLESS user.permanently_deactivated %] checked=1[% END %]>No</label>
+    </div>
+</div>
 </fieldset>
 <fieldset>
 <legend>Special Privileges</legend>

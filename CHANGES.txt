@@ -5,7 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2018-1-16
- * User disable flag.
+ * User permanently deactivated flag.
 
 2017-11-28
  * Added JSONField role so that I could add validation everywhere.

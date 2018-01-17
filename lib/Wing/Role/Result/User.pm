@@ -132,7 +132,7 @@ before wing_finalize_class => sub {
         permanently_deactivated  => {
             dbic                => { data_type => 'tinyint', default_value => 0 },
             options             => [0,1],
-            _options            => { 0 => 'Active', 1 => 'Permanently deactivate' },
+            _options            => { 0 => 'Active', 1 => 'Permanently deactivated' },
             view                => 'private',
             edit                => 'postable',
         },
@@ -252,6 +252,13 @@ sub start_session {
     $self->last_login(DateTime->now);
     $self->update;
     return Wing::Session->new(db => $self->result_source->schema)->start($self, $options);
+}
+
+sub deactivate {
+    my $self = shift;
+    $self->permanently_deactivated(1);
+    $self->password('deactivated');
+    $self->update;
 }
 
 sub display_name {
