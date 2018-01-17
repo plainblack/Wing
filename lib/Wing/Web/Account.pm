@@ -16,14 +16,15 @@ get '/login' => sub {
     template 'account/login';
 };
 
-post '/account/deactivate' => {
-    if ($user->is_password_valid($password)) {
+post '/account/deactivate' => sub {
+    my $user = get_user_by_session_id();
+    if ($user->is_password_valid(param('password'))) {
         my $session = get_session();
         if (defined $session) {
             $user->deactivate;
             $session->end;
         }
-        redirect '/';
+        return redirect '/';
     }
     ouch 441, 'Password invalid.';
 };
