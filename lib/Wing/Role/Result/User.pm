@@ -134,7 +134,7 @@ before wing_finalize_class => sub {
             options             => [0,1],
             _options            => { 0 => 'Active', 1 => 'Permanently deactivated' },
             view                => 'private',
-            edit                => 'postable',
+            edit                => 'admin',
         },
         use_as_display_name     => {
             dbic    => { data_type => 'varchar', size => 10, is_nullable => 1, default_value => 'username' },
