@@ -24,10 +24,9 @@ sub validate_args {
 sub execute {
     my ($self, $opt, $args) = @_;
     Wing->log->info('Kicking stuck wingman jobs.');
-    my @tubes = qw//;
-    push @tubes, Wing->config->get('wingman/beanstalkd/default_tube');
 
     my $wingman = Wingman->new();
+    my @tubes = $wingman->list_tubes;
 
     ##Stuck jobs are jobs that have been buried two or more times
     ##and kicked at least once.  Let JT know so they can be fixed.
