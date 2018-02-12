@@ -11,7 +11,7 @@ is Wing::ContentFilter::format_image($image_uri), '<img src="https://cf.geekdo-s
 
 my $find_link_in_text = 'foo https://www.thegamecrafter.com/help bar';
 Wing::ContentFilter::find_and_format_uris(\$find_link_in_text, {links => 1});
-is $find_link_in_text, 'foo <a href="https://www.thegamecrafter.com/help" target="_new" title="Links to external site: www.thegamecrafter.com">The Game Crafter Knowledge Base <small><span class="glyphicon glyphicon-new-window"></span></a></small> bar', 'can find links embedded in text';
+is $find_link_in_text, 'foo <a href="https://www.thegamecrafter.com/help" target="_new" title="Links to external site: www.thegamecrafter.com">The Game Crafter <small><span class="glyphicon glyphicon-new-window"></span></a></small> bar', 'can find links embedded in text';
 
 my $just_a_url = 'https://www.youtube.com/watch?v=YKmj6LI5pfs';
 Wing::ContentFilter::find_and_format_uris(\$just_a_url, {youtube => 1});
@@ -82,8 +82,10 @@ is $list2, 'foo<br>bar<ul><li>this is</li><li>a</li><li>list of epic proportions
 
 my $markdown = 'foo [![Alt text](/path/to/img.jpg)](http://example.net/) bar';
 Wing::ContentFilter::format_markdown(\$markdown);
-is $markdown, '<p>foo <a href="http://example.net/"><img src="/path/to/img.jpg" alt="Alt text"></a> bar</p>'."\n",'can format markdown';
+is $markdown, '<p>foo <a href="http://example.net/"><img src="/path/to/img.jpg" alt="Alt text" class="img-responsive"></a> bar</p>','can format markdown';
 
-
+my $entities = 'This > that & those < these';
+Wing::ContentFilter::neutralize_html(\$entities);
+is $entities, 'This &gt; that &amp; those &lt; these', 'Easy encoding';
 
 done_testing();

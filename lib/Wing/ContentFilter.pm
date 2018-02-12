@@ -11,6 +11,10 @@ use URI::Find::Delimited;
 sub neutralize_html {
     my ($content, $allowed) = @_;
     $allowed //= {};
+    ##Decode any existing entities so they don't get double encoded.
+    ${$content} =~ s/&gt;/>/g;
+    ${$content} =~ s/&lt;/</g;
+    ${$content} =~ s/&amp;/&/g;
     ${$content} =~ s/\&/&amp;/g unless $allowed->{entities};            # replace & with &amp; unless we're ok with entities
     ${$content} =~ s/\</&lt;/g;                                         # disable HTML tags
     ${$content} =~ s/\>/&gt;/g;
