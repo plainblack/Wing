@@ -409,7 +409,7 @@ sub wing_field {
                     if (ref $options->{_options} ne 'HASH' && ref $options->{_options} ne 'CODE') {
                         ouch 500, 'Human readable options for "'.$field.'" in "'.$class.'" must be specified with a hash or code reference.';
                     }
-                    $existing->{'_'.$field} = $options->{_options};
+                    $existing->{'_'.$field} = $self->$_field_options_method;
                 }
                 else {
                     foreach my $option (@{$existing->{$field}}) {
