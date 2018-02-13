@@ -379,7 +379,7 @@ sub wing_field {
         # enumerated validation
         if (exists $options->{options}) {
             if (ref $options->{options} ne 'ARRAY' && ref $options->{options} ne 'CODE') {
-                ouch 500, 'Options for "'.$field.'" must be specified with an array reference or code reference.';
+                ouch 500, 'Options for "'.$field.'" in "'.$class.'" must be specified with an array reference or code reference.';
             }
             my $field_options_method = $field.'_options';
             $class->meta->add_method( $field_options_method => sub {
@@ -407,7 +407,7 @@ sub wing_field {
                 $existing->{$field} = $self->$field_options_method(%describe_options);
                 if (exists $options->{_options}) {
                     if (ref $options->{_options} ne 'HASH' || ref $options->{_options} ne 'CODE') {
-                        ouch 500, 'Human readable options for "'.$field.'" must be specified with a hash or code reference.';
+                        ouch 500, 'Human readable options for "'.$field.'" in "'.$class.'" must be specified with a hash or code reference.';
                     }
                     $existing->{'_'.$field} = $options->{_options};
                 }
