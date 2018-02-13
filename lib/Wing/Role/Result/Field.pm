@@ -406,8 +406,8 @@ sub wing_field {
                 my $existing = $orig->($self, %describe_options);
                 $existing->{$field} = $self->$field_options_method(%describe_options);
                 if (exists $options->{_options}) {
-                    if (ref $options->{_options} ne 'HASH') {
-                        ouch 500, 'Human readable options for "'.$field.'" must be specified with a hash reference.';
+                    if (ref $options->{_options} ne 'HASH' || ref $options->{_options} ne 'CODE') {
+                        ouch 500, 'Human readable options for "'.$field.'" must be specified with a hash or code reference.';
                     }
                     $existing->{'_'.$field} = $options->{_options};
                 }
