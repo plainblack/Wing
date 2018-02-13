@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-2-13
+ * If Role::Field options returns undef then don't validate it. 
+
 2018-2-12
  * Don't double encode HTML entities.
 

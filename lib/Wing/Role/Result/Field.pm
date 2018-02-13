@@ -420,8 +420,8 @@ sub wing_field {
             });
             $class->meta->add_before_method_modifier($field => sub {
                 my ($self, $value) = @_;
-                if (scalar(@_) > 1) {
-                    my $options = $self->$field_options_method;
+                my $options = $self->$field_options_method;
+                if (scalar(@_) > 1 && defined $options) {
                     unless (any {$_ eq $value} @$options) {
                         ouch 442, $field.' must be one of: '.join(', ', @{$options}). " and not ".$value, $field;
                     }
