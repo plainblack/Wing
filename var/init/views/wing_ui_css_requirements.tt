@@ -1,0 +1,5 @@
+<link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap@4.0.0/dist/css/bootstrap.min.css">
+<link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap-vue@2.0.0-rc.2/dist/bootstrap-vue.min.css">
+<link type="text/css" rel="stylesheet" href="//cdn.jsdelivr.net/npm/noty@3.2.0-beta/lib/noty.css">
+<link type="text/css" rel="stylesheet" href="//cdn.jsdelivr.net/npm/noty@3.2.0-beta/lib/themes/bootstrap-v4.css">
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js" integrity="sha384-SlE991lGASHoBfWbelyBPLsUlwY1GwNDJo3jSJO04KZ33K2bwfV9YBauFfnzvynJ"></script>
