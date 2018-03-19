@@ -4,8 +4,13 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-03-19
+ * Converted UI to use Vue 2 and Bootstrap 4.
+ * Read angular2vue.txt for migration details.
+ * Now requires: Template::Plugin::JSON::Escape
+
 2018-2-13
- * If Role::Field options returns undef then don't validate it. 
+ * If Role::Field options returns undef then don't validate it.
 
 2018-2-12
  * Don't double encode HTML entities.
@@ -40,7 +45,7 @@ with respect to new features and compatibility changes.
  * Added the ideas system so it can be shared across all our various platforms.
 
 2017-09-04
- * You can now specify a relationship name and value to sort on via Rest. 
+ * You can now specify a relationship name and value to sort on via Rest.
 
 2017-08-24
  * Everyone should be using the latest version of DBIx::Class::InflateColumn::Serializer to avoid JSON encoding errors. You also need to add the following to any fields you serialize to JSON:
@@ -87,7 +92,7 @@ with respect to new features and compatibility changes.
 
 2017-06-09
  * WebFilteredField no longer puts a restriction on the length of a string.
- * S3Image increased filename size from 60 to 255. 
+ * S3Image increased filename size from 60 to 255.
 
 2017-05-18
  * Added max_items option to result sets so that you can artificially stop pagination after some arbitrary amount, rather than all the records in the database.
@@ -136,13 +141,13 @@ with respect to new features and compatibility changes.
  * Switched to our own markdown parser for better security, speed, and formatting.
 
 2016-08-25
- * Added better precheck for unique fields to check for unique indexes as well as unique qualifiers. 
+ * Added better precheck for unique fields to check for unique indexes as well as unique qualifiers.
  * Added in page targets to Web Filtered Fields.
 
 2016-08-22
  * Requires Text::MultiMarkdown and URI::Find::Delimited.
  * Allow for Markdown in Web Filtered Fields.
- * ContentFilter now uses ## instead of == for headings. Use something like this to upgrade your database: 
+ * ContentFilter now uses ## instead of == for headings. Use something like this to upgrade your database:
 
     update groups set description=replace(description, '==','##');
 
@@ -164,7 +169,7 @@ with respect to new features and compatibility changes.
  * By default content filter allows for H2 through H6.
 
 2016-07-06
- * Allow qualifiers in Rest generate_relationship to be passed a comparison operator. 
+ * Allow qualifiers in Rest generate_relationship to be passed a comparison operator.
  * wing.angular.js objectListManager on_each is now passed the objectManager instance of each object in addition to its properties.
 
 2016-06-30
@@ -191,7 +196,7 @@ with respect to new features and compatibility changes.
 2016-06-16
  * Added privileged_params() to Wing::DB::Result.
  * Added check_privilege option to wing_field in Wing::Role::Result::Field.
- * The above two changes allow the creation of special privilege checks on a per-field basis. 
+ * The above two changes allow the creation of special privilege checks on a per-field basis.
 
 2016-06-11
  * Added Wing::Role::Result::Warnings to give a standardized way of creating warnings in classes.
@@ -202,7 +207,7 @@ with respect to new features and compatibility changes.
 
 2016-06-03
  * Added WING_NO_EMAIL environment variable to skip sending email all together.
- * Added wait_on_wingman() and cleanup_wait_on_wingman() to Wing::TestHelper. 
+ * Added wait_on_wingman() and cleanup_wait_on_wingman() to Wing::TestHelper.
  * Wing::TestHelper automatically recovers from a bad cleanup of the Andy test user.
 
 2016-05-30
@@ -263,7 +268,7 @@ with respect to new features and compatibility changes.
  * Added a message to wing class to let you know where you can access your newly created object.
  * Added Test::Trap and JSON::XS to bin/setup/03_install_perl_modules.sh to make installs flow easier.
  * Added a note as to where you can find the logs in README.txt.
- * Indicated what services need to be restarted after you add a class in README.txt. 
+ * Indicated what services need to be restarted after you add a class in README.txt.
 
 2016-01-12
  * Removed fetch_create_options from wing.angular.js because fetch_options is better.
@@ -273,7 +278,7 @@ with respect to new features and compatibility changes.
 2015-12-29
  * Updated the javascript libraries to the latest versions.
 
-2015-12-17 
+2015-12-17
  * Added support for is_auto_increment to Wing::Role::Result::Field dbic definitions.
  * Added unique qualifiers, so you could have uniqueness within an object type.
 
@@ -364,7 +369,7 @@ with respect to new features and compatibility changes.
  * Added directive for input[number] to force the model to always be a number.
  * Added autosave directive which works similar to wing.attach_autosave()
  * Added wing-select directive, which autogenerates <select> lists from _options data.
- * Added force-string directive, which forces numbers to be strings for display purposes on a model. This is needed because Perl hash keys aare always strings, but scalars can be strings or numbers, so when comparing them in js 1 != '1'. 
+ * Added force-string directive, which forces numbers to be strings for display purposes on a model. This is needed because Perl hash keys aare always strings, but scalars can be strings or numbers, so when comparing them in js 1 != '1'.
 
 2015-03-29
  * Added wing.merge() to wing.js, which is useful for merging parameter hashes to make a request back to the server.
@@ -454,11 +459,11 @@ with respect to new features and compatibility changes.
  * You can now make a class viewable using the PrivilegeControlled role.
 
 2013-10-30
- * Changed session to compare the password hash stored in the session with the one stored in the database. This way all existing sessions will get logged out if the user changes their password. 
+ * Changed session to compare the password hash stored in the session with the one stored in the database. This way all existing sessions will get logged out if the user changes their password.
 
 2013-09-25
- * Daemonized wingman.pl. You now need the Daemon::Control perl module. You can also add a "wingman/pid_file_path" directive to your config file if you want to control where the pid is stored. 
- * Added --watch-only as a command line flag to wingman.pl so that you can specify a tube to watch other than the default tube. This is useful when you have different servers that you wish to handle different tubes. 
+ * Daemonized wingman.pl. You now need the Daemon::Control perl module. You can also add a "wingman/pid_file_path" directive to your config file if you want to control where the pid is stored.
+ * Added --watch-only as a command line flag to wingman.pl so that you can specify a tube to watch other than the default tube. This is useful when you have different servers that you wish to handle different tubes.
 
 2013-09-21
  * Fixed a major security hole where it was possible to create new objects in some cases when you shouldn't be able to.
@@ -505,7 +510,7 @@ with respect to new features and compatibility changes.
 
 2013-05-19
  * Added EmailAllAdmins Wingman plugin.
- * WARNING: By this point all Wing apps should have a block similar 
+ * WARNING: By this point all Wing apps should have a block similar
 	to this added to their config files if they want to start
 	using Wingman services.
 
@@ -540,4 +545,3 @@ with respect to new features and compatibility changes.
 2013-05-12
  * Added the Wingman job server.
  * Now requires Parallel::ForkManager, Beanstalk::Client, and Plugin::Tiny.
-

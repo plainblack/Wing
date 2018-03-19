@@ -1,7 +1,7 @@
 [% page_title = "API Key: ${apikey.id}" %]
 [% INCLUDE account/header_include.tt %]
 
-<div class="row">
+<div class="row" id="app">
     <div class="col-sm-6">
         <h2>API Key</h2>
 
@@ -28,4 +28,18 @@
     </div>
 </div><!-- row -->
 
+[% foot_tags = BLOCK %]
+    [% USE JSON.Escape %]
+    <script>
+    new Vue({
+        el:     '#app',
+        data:   {
+            apikey: wing.new_object_manager({
+                properties : [% apikey.json %],
+                create_uri : '/api/apikey',
+            }),
+        },
+    })
+    </script>
+[% END %]
 [% INCLUDE account/footer_include.tt %]

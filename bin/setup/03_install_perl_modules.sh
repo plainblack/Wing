@@ -69,5 +69,5 @@ File::Temp \
 Daemon::Control \
 Net::Amazon::S3 \
 Text::MultiMarkdown \
-URI::Find::Delimited
-
+URI::Find::Delimited \
+Template::Plugin::JSON::Escape
