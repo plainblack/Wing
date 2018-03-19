@@ -62,7 +62,7 @@
     </form>
 
     <hr>
-    <a href="{{test.properties.view_uri}}" class="btn btn-default">View</a>
+    <a href="{{test.properties.view_uri}}" class="btn btn-secondary">View</a>
 
 </div>
 

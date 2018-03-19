@@ -1,40 +1,40 @@
 [% page_title = "API Keys" %]
 [% INCLUDE account/header_include.tt %]
 
+<p>Use your API keys with our <a href="/developer/">API documentation</a> to build your own applications.</p>
 
 <div class="row">
 
-<div class="col-sm-6">
-<form action="/account/apikey" method="POST" enctype="multipart/form-data" class="form-horizontal">
-<fieldset>
-<legend>Create An API Key</legend>
-[% button_label = "Create" %]
-[% INCLUDE account/apikey_form_include.tt %]
-</fieldset>
-</form>
-</div>
+    <div class="col-sm">
+        <form action="/account/apikey" method="POST" enctype="multipart/form-data">
 
-<div class="col-sm-6">
-<fieldset>
-<legend>Existing API Keys</legend>
-<table class="table table-striped">
-<tr>
-    <th>Application Name</th>
-    <th>Public Key</th>
-</tr>
-[% FOREACH item IN apikeys.items %]
-<tr>
-    <td><a href="/account/apikey/[% item.id %]">[% item.name %]</a></td>
-    <td>[% item.id %]</td>
-</tr>
-[% END %]
-</table>
-</fieldset>
-</div>
+            <h2>Create An API Key</h2>
+            [% button_label = "Create" %]
+            [% INCLUDE account/apikey_form_include.tt %]
+
+        </form>
+    </div>
+
+    <div class="col-sm">
+
+        <h2>Existing API Keys</h2>
+        <table class="table table-striped table-hover">
+            <tr>
+                <th>Application Name</th>
+                <th>Public Key</th>
+            </tr>
+            [% FOREACH item IN apikeys.items %]
+            <tr>
+                <td><a href="/account/apikey/[% item.id %]">[% item.name %]</a></td>
+                <td>[% item.id %]</td>
+            </tr>
+        [% END %]
+        </table>
+
+    </div>
 
 </div><!-- row -->
 
-<p>Use your API keys with our <a href="/developer/">API documentation</a> to build your own applications.</p>
 
 
 [% INCLUDE account/footer_include.tt %]

@@ -2,35 +2,30 @@
 [% INCLUDE account/header_include.tt %]
 
 <div class="row">
-<div class="col-sm-6">
-<fieldset>
-<legend>API Key</legend>
+    <div class="col-sm-6">
+        <h2>API Key</h2>
 
-<b>Public Key</b><br>
-[% apikey.id %]<br><br>
+        <b>Public Key</b><br>
+        [% apikey.id %]<br><br>
 
-<b>Private Key</b><br>
-<div>[% apikey.private_key %]</div><br><br>
+        <b>Private Key</b><br>
+        <div>[% apikey.private_key %]</div><br><br>
 
-<form action="/account/apikey/[% apikey.id %]?X-HTTP-Method=DELETE" method="POST" enctype="multipart/form-data" class="form-horizontal">
-<div class="form-group">
- <div class="col-sm-8">
-<input class="btn btn-danger" type="submit" value="Delete This Key" onclick="return confirm('Are you sure?');">
- </div>
-</div>
-</form>
+        <form action="/account/apikey/[% apikey.id %]?X-HTTP-Method=DELETE" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <input class="btn btn-danger" type="submit" value="Delete This Key" onclick="return confirm('Are you sure?');">
+        </div>
+        </form>
+    </div>
+    <div class="col-sm-6">
+        <form action="/account/apikey/[% apikey.id %]" method="POST" enctype="multipart/form-data"class=" form-horizontal">
 
-</fieldset>
-</div>
-<div class="col-sm-6">
-<form action="/account/apikey/[% apikey.id %]" method="POST" enctype="multipart/form-data"class=" form-horizontal">
-<fieldset>
-<legend>Update API Key Details</legend>
-[% button_label = "Update" %]
-[% INCLUDE account/apikey_form_include.tt %]
-</fieldset>
-</form>
-</div>
+        <h2>Update API Key Details</h2>
+        [% button_label = "Update" %]
+        [% INCLUDE account/apikey_form_include.tt %]
+
+        </form>
+    </div>
 </div><!-- row -->
 
 [% INCLUDE account/footer_include.tt %]

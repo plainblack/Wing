@@ -1,53 +1,39 @@
-<form action="/account/create" method="POST" enctype="multipart/form-data" class="form-horizontal">
-[% IF facebook.id %]
-    <input class="form-control" type="hidden" name="facebook_uid" value="[% facebook.id %]">
-[% END %]
-[% IF params.redirect_after %]
-<input class="form-control" type="hidden" name="redirect_after" value="[% params.redirect_after %]">
-[% END %]
-[% IF sso_id || params.sso_id %]
-<input class="form-control" type="hidden" name="sso_id" value="[% sso_id || params.sso_id %]">
-[% END %]
-<fieldset>
-<legend>Create An Account</legend>
- <div class="form-group">
-    <label class="col-sm-4 control-label" for="username">Username</label>
-    <div class="col-sm-8">
-      <input class="form-control" type="text" name="username" value="[% params.username FILTER html %]" id="username">
-      <span class="help-block">(Required)</span>
-    </div>
- </div>
- <div class="form-group">
-    <label class="col-sm-4 control-label" for="real_name">Real Name</label>
-    <div class="col-sm-8">
-      <input class="form-control" type="text" name="real_name" value="[% facebook.name || params.real_name FILTER html %]" id="real_name">
-    </div>
- </div>
- <div class="form-group">
-    <label class="col-sm-4 control-label" for="email">Email Address</label>
-    <div class="col-sm-8">
-      <input class="form-control" type="email" name="email" value="[% facebook.email || params.email FILTER html %]" id="email" placeholder="joe@gmail.com"> 
-      <span class="help-block">(Required)</span>
-    </div>
- </div>
- <div class="form-group">
-    <label class="col-sm-4 control-label" for="password1">Password</label>
-    <div class="col-sm-8">
-      <input class="form-control" type="password" name="password1" id="password1">
-      <span class="help-block">(Required)</span>
-    </div>
- </div>
- <div class="form-group">
-    <label class="col-sm-4 control-label" for="password2">Verify Password</label><br>
-    <div class="col-sm-8">
-      <input class="form-control" type="password" name="password2" id="password2">
-      <span class="help-block">(Required)</span>
-    </div>
- </div>
- <div class="form-group">
-    <div class="col-sm-offset-4 col-sm-8">
-      <input class="btn btn-primary" type="submit" value="Create Account">
-    </div>
- </div>
-</fieldset>
+<form action="/account/create" method="POST" enctype="multipart/form-data">
+    [% IF facebook.id %]
+        <input type="hidden" name="facebook_uid" value="[% facebook.id %]">
+    [% END %]
+    [% IF params.redirect_after %]
+        <input type="hidden" name="redirect_after" value="[% params.redirect_after %]">
+    [% END %]
+    [% IF sso_id || params.sso_id %]
+        <input type="hidden" name="sso_id" value="[% sso_id || params.sso_id %]">
+    [% END %]
+    <h2>Create An Account</h2>
+     <div class="form-group">
+        <label for="username">Username</label>
+          <input class="form-control" type="text" name="username" value="[% params.username FILTER html %]" id="username">
+          <span class="form-text text-muted">(Required)</span>
+     </div>
+     <div class="form-group">
+        <label for="real_name">Real Name</label>
+        <input class="form-control" type="text" name="real_name" value="[% facebook.name || params.real_name FILTER html %]" id="real_name">
+     </div>
+     <div class="form-group">
+        <label for="email">Email Address</label>
+          <input class="form-control" type="email" name="email" value="[% facebook.email || params.email FILTER html %]" id="email" placeholder="joe@gmail.com">
+          <span class="form-text text-muted">(Required)</span>
+     </div>
+     <div class="form-group">
+        <label for="password1">Password</label>
+          <input class="form-control" type="password" name="password1" id="password1">
+          <span class="form-text text-muted">(Required)</span>
+     </div>
+     <div class="form-group">
+        <label for="password2">Verify Password</label><br>
+          <input class="form-control" type="password" name="password2" id="password2">
+          <span class="form-text text-muted">(Required)</span>
+     </div>
+     <div class="form-group">
+          <input class="btn btn-primary" type="submit" value="Create Account">
+     </div>
 </form>

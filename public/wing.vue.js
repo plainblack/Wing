@@ -1,4 +1,26 @@
 /*
+ * A component to generate select lists from wing options.
+ */
+
+Vue.component('wing-select', {
+  template : `<select @change="object.save(property)" class="form-control" v-model="object.properties[property]">
+    <option v-for="option in options()" :value="option">{{_option(option)}}</option>
+  </select>`,
+  props: ['object','property'],
+  methods : {
+    options : function() {
+        if ('_options' in this.object.properties) {
+            return this.object.properties._options[this.property];
+        }
+        return [];
+    },
+    _option: function(option) {
+        return this.object.properties._options['_'+this.property][option];
+    },
+  },
+});
+
+/*
  * Throbber progress bar element
  */
 
@@ -605,7 +627,9 @@ const wing = {
 
     string_random : (length) => {
         var text = "";
-        length ||= 6;
+        if (!length) {
+            length = 6;
+        }
         var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         for ( var i=0; i < length; i++ )
             text += possible.charAt(Math.floor(Math.random() * possible.length));

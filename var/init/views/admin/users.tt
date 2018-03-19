@@ -32,7 +32,7 @@
                             <td>{{user.properties.email}}</td>
                             <td>{{user.properties.last_login|datetime:'medium'}}</td>
                             <td><span ng-if="user.properties.permanently_deactivated == 1">Deactivated</span></td>
-                            <td><form action="{{become_url()}}" method="POST"><input type="submit" value="Become" class="btn btn-default"></form></td>
+                            <td><form action="{{become_url()}}" method="POST"><input type="submit" value="Become" class="btn btn-secondary"></form></td>
                         </tr>
                 </tbody>
         </table>

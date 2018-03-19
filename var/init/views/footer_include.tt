@@ -1,6 +1,9 @@
 
 [% INCLUDE wing_ui_js_requirements.tt %]
 [% INCLUDE status_include.tt %]
+<script>
+new Vue({el:'#sitenav'});
+</script>
 [% section_foot_tags %]
 [% foot_tags %]
 

@@ -5,4 +5,4 @@
 <script src="//cdn.jsdelivr.net/npm/vue2-filters@0.3.0/dist/vue2-filters.min.js"></script>
 <script src="//unpkg.com/babel-polyfill@6.26.0/dist/polyfill.min.js"></script><!-- IE 11 -->
 <script src="//unpkg.com/bootstrap-vue@2.0.0-rc.2/dist/bootstrap-vue.min.js"></script>
-<script src="./wing.vue.js?v=1"></script>
+<script src="/wing.vue.js?v=eees"></script>

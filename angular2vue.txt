@@ -1,0 +1,57 @@
+Wing's front end has migrated from Angular 1 and Bootstrap 3 to Vue 2 and
+Bootstrap 4. Here's what you need to know to migrate your app.
+
+### NEW FRONTEND REQUIREMENTS ###
+
+We're using a whole new set of front-end libraries. Here's where you can find
+documentation.
+
+ * wing.vue.js - lib/Wing/WingVue.pod
+
+ * Vue - https://vuejs.org/v2/guide/
+
+ * Bootstrap - https://getbootstrap.com/docs/4.0/layout/overview/
+
+ * Bootstrap+Vue - https://bootstrap-vue.js.org/docs/components/alert
+
+ * Vue 2 Filters - https://github.com/freearhey/vue2-filters
+
+ * Axios - https://github.com/axios/axios
+
+ * Lodash - https://lodash.com/docs/
+
+ * Noty - https://ned.im/noty/#/
+
+ * Font Awesome - https://fontawesome.com/icons?d=gallery
+
+
+### UI REQUIREMENTS INCLUDES ###
+
+All of the new UI requirements have been loaded up into
+wing_ui_css_requirements.tt and wing_ui_js_requirements.tt. Put these in your
+headers and footers. You can find these in /data/Wing/var/init/views.
+
+
+### CONVERSION == REWRITE ###
+
+There's no quick convert of a front end from the old system to the new. You need
+to rewrite it. The good news is that Bootstrap 4 isn't ridiculously far away
+from Bootstrap 3, and wing.vue.js is pretty similar to wing.angular.js.
+Therefore, it's possible to do quite a bit of copy-paste migration, but first,
+we have a program you can run on a template to do some of the conversion work:
+
+ /data/Wing/bin/util/angular2vue.pl file.tt
+
+ Just replace file.tt with the name of your file, and a bunch of conversions
+ will be made automatically.
+
+
+ ### CAVEATS ###
+
+ The following things may not be obvious:
+
+  * All components are now Boostrap+Vue. That means you'll need to create a Vue
+    app for them. For example, things like navbars now need a vue app. It's
+    usually just going to be a one liner like this:
+
+    new Vue({el:'#accountnav'});

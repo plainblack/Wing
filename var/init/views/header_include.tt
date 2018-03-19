@@ -12,22 +12,26 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="/">Wing App</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#headerBarContent" aria-controls="headerBarContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+<div id="sitenav">
+    <b-navbar toggleable="sm" type="light" variant="light">
 
-      <div class="collapse navbar-collapse" id="headerBarContent">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="/">Home</a>
-          </li>
-          <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-          <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
-        </ul>
-        <ul class="nav navbar-nav navbar-right">
-         <li><a href="/account">[% IF current_user %][% current_user.display_name %][% ELSE %]Login[% END %]</a></li>
-        </ul>
-      </div>
-    </nav>
+      <b-navbar-toggle target="sitenavcollapse"></b-navbar-toggle>
+
+      <b-navbar-brand href="/">Wing App</b-navbar-brand>
+
+      <b-collapse is-nav id="sitenavcollapse">
+
+        <b-navbar-nav>
+            <b-nav-item href="/">Home</b-nav-item>
+            <b-nav-item href="#">About</b-nav-item>
+            <b-nav-item href="#">Contact</b-nav-item>
+        </b-navbar-nav>
+
+        <!-- Right aligned nav items -->
+        <b-navbar-nav class="ml-auto">
+            <b-nav-item href="/account">[% IF current_user %][% current_user.display_name %][% ELSE %]Login[% END %]</b-nav-item>
+        </b-navbar-nav>
+
+      </b-collapse>
+    </b-navbar>
+</div>
