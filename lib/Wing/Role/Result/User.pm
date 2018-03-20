@@ -195,7 +195,9 @@ around describe => sub {
     my ($orig, $self, %options) = @_;
     my $out = $orig->($self, %options);
     $out->{display_name} = $self->display_name;
+    $out->{view_uri} = $self->view_uri;
     if ($options{include_private}) {
+        $out->{edit_uri} = $self->edit_uri;
         $out->{is_admin} = $self->is_admin;
     }
     return $out;
@@ -385,5 +387,15 @@ before delete => sub {
     $self->apikeypermissions->delete_all;
     $self->apikeys->delete_all;
 };
+
+sub view_uri {
+    my $self = shift;
+    return '/account/profile/'.$self->id;
+}
+
+sub edit_uri {
+    my $self = shift;
+    return '/account';
+}
 
 1;

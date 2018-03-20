@@ -1,8 +1,19 @@
+<br>
+<div class="card" id="sitefooter">
+  <div class="card-header">
+    &copy; {{year}} Superior Widget Corp. All rights reserved.
+  </div>
+</div>
 
 [% INCLUDE wing_ui_js_requirements.tt %]
-[% INCLUDE status_include.tt %]
 <script>
 new Vue({el:'#sitenav'});
+new Vue({
+    el:'#sitefooter',
+    computed : {
+        year: () => { return (new Date()).getFullYear() }
+    }
+});
 </script>
 [% section_foot_tags %]
 [% foot_tags %]

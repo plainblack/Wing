@@ -65,11 +65,14 @@
         <p>Once you deactivate your account you will not be able to log in, recover your password, access your private content, and you will never receive any emails from us ever again. This change cannot be reversed.</p>
         <p>If you wish to permanently deactivate your account, confirm your password:</p>
         <form action="/account/deactivate" method="POST">
-            <div class="form-group">
-                <label for="password">Confirm Your Password</label>
-                <input class="form-control" type="password" name="password" id="password">
+            <div class="form-group row">
+                <div class="col">
+                    <input class="form-control" type="password" name="password" id="password" placeholder="Type your password here to permanently deactivate your account.">
+                </div>
+                <div class="col">
+                    <button class="btn btn-danger">Permanently Deactivate Your Account</button>
+                </div>
             </div>
-            <button class="btn btn-danger">Permanently Deactivate Your Account</button>
         </form>
     </div>
 

@@ -1,21 +1,28 @@
-[% page_title = "Profile for ${profile_user.display_name} %]
-[% INCLUDE account/header_include.tt %]
+[% page_title = "Profile for ${profile_user.display_name}" %]
+[% IF current_user.id == profile_user.id %]
+    [% INCLUDE account/header_include.tt %]
+[% ELSE %]
+    [% INCLUDE header_include.tt %]
+[% END %]
 
-
-
-<table class="table">
+[% USE date %]
+<table class="table table-striped table-hover">
     <tr>
         <th>Known As</th>
         <td>[% profile_user.display_name %]</td>
     </tr>
     <tr>
         <th>Member Since</th>
-        <td>[% date(profile_user.date_created,'%F') %]</td>
+        <td>[% date.format(profile_user.date_created,'%F') %]</td>
     </tr>
     <tr>
         <th>Last Login</th>
-        <td>[% date(profile_user.last_login,'%F') %]</td>
+        <td>[% date.format(profile_user.last_login,'%F') %]</td>
     </tr>
 </table>
 
-[% INCLUDE account/footer_include.tt %]
+[% IF current_user.id == profile_user.id %]
+    [% INCLUDE account/footer_include.tt %]
+[% ELSE %]
+    [% INCLUDE footer_include.tt %]
+[% END %]

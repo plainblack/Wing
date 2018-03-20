@@ -12,7 +12,10 @@
            <b-collapse is-nav id="accountnavcollapse">
             <ul class="navbar-nav mr-auto">
               <li class="nav-item">
-                <a class="nav-link" href="/account">Settings</a>
+                  <a class="nav-link" href="/account">Settings</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link" href="[% current_user.view_uri %]">Profile</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="/account/apikeys">API Keys</a>
