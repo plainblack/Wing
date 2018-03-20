@@ -118,6 +118,53 @@ get '/account/apikeys/:id' => sub {
     };
 };
 
+### Kept for Backward Compatibility
+post '/account/apikey' => sub {
+    my $current_user = get_user_by_session_id();
+    my $object = site_db()->resultset('APIKey')->new({});
+    $object->user($current_user);
+    my %params = params;
+    eval {
+        $object->verify_creation_params(\%params, $current_user);
+        $object->verify_posted_params(\%params, $current_user);
+    };
+    if (hug) {
+        return redirect '/account/apikeys?error_message='.bleep;
+    }
+    else {
+        $object->private_key(random_string('ssssssssssssssssssssssssssssssssssss'));
+        $object->insert;
+        return redirect '/account/apikeys?success_message=Created successfully.';
+    }
+};
+
+### Kept for Backward Compatibility
+del '/account/apikey/:id' => sub {
+    my $current_user = get_user_by_session_id();
+    my $api_key = fetch_object('APIKey');
+    $api_key->can_edit($current_user);
+    $api_key->delete;
+    redirect '/account/apikeys';
+};
+
+### Kept for Backward Compatibility
+post '/account/apikey/:id' => sub {
+    my $current_user = get_user_by_session_id();
+    my $object = fetch_object('APIKey');
+    $object->can_edit($current_user);
+    my %params = params;
+    eval {
+        $object->verify_posted_params(\%params, $current_user);
+    };
+    if (hug) {
+        return redirect '/account/apikey/'.$object->id.'?error_message='.bleep;
+    }
+    else {
+        $object->update;
+        return redirect '/account/apikeys?success_message=Updated successfully';
+    }
+};
+
 get '/account' => sub {
     my $user = get_user_by_session_id();
     template 'account/index', { current_user => $user, };
