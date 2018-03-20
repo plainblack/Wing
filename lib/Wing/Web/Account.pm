@@ -7,7 +7,6 @@ use Wing;
 use Wing::Web;
 use Wing::SSO;
 use Wing::Client;
-use String::Random qw(random_string);
 use Facebook::Graph;
 
 require Wing::Dancer;
@@ -105,63 +104,18 @@ any '/logout' => sub {
 
 get '/account/apikeys' => sub {
     my $user = get_user_by_session_id();
-    my $api_keys = $user->api_keys;
-    template 'account/apikeys', {current_user => $user, apikeys => format_list($api_keys, current_user => $user) };
+    my $api_keys = $user->apikeys;
+    template 'account/apikeys', {current_user => $user };
 };
 
-post '/account/apikey' => sub {
-    my $current_user = get_user_by_session_id();
-    my $object = site_db()->resultset('APIKey')->new({});
-    $object->user($current_user);
-    my %params = params;
-    eval {
-        $object->verify_creation_params(\%params, $current_user);
-        $object->verify_posted_params(\%params, $current_user);
-    };
-    if (hug) {
-        return redirect '/account/apikeys?error_message='.bleep;
-    }
-    else {
-        $object->private_key(random_string('ssssssssssssssssssssssssssssssssssss'));
-        $object->insert;
-        return redirect '/account/apikeys?success_message=Created successfully.';
-    }
-};
-
-get '/account/apikey/:id' => sub {
+get '/account/apikeys/:id' => sub {
     my $current_user = get_user_by_session_id();
     my $api_key = fetch_object('APIKey');
     $api_key->can_view($current_user);
     template 'account/apikey', {
         current_user => $current_user,
-        apikey => describe($api_key, current_user => $current_user),
+        apikey => describe($api_key, current_user => $current_user, include_relationships => 1),
     };
-};
-
-del '/account/apikey/:id' => sub {
-    my $current_user = get_user_by_session_id();
-    my $api_key = fetch_object('APIKey');
-    $api_key->can_edit($current_user);
-    $api_key->delete;
-    redirect '/account/apikeys';
-};
-
-
-post '/account/apikey/:id' => sub {
-    my $current_user = get_user_by_session_id();
-    my $object = fetch_object('APIKey');
-    $object->can_edit($current_user);
-    my %params = params;
-    eval {
-        $object->verify_posted_params(\%params, $current_user);
-    };
-    if (hug) {
-        return redirect '/account/apikey/'.$object->id.'?error_message='.bleep;
-    }
-    else {
-        $object->update;
-        return redirect '/account/apikeys?success_message=Updated successfully';
-    }
 };
 
 get '/account' => sub {

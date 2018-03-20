@@ -6,6 +6,7 @@ use Moose::Role;
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::UserControlled';
 with 'Wing::Role::Result::Child';
+use String::Random qw(random_string);
 
 =head1 NAME
 
@@ -14,7 +15,7 @@ Wing::Role::Result::APIKey - The basis of Wing API service keys.
 =head1 SYNOPSIS
 
  with 'Wing::Role::Result::APIKey';
- 
+
 =head1 DESCRIPTION
 
 This is a foundational role for the required APIKey class. API Keys are used in Wing to grant access to third-party applications.
@@ -94,5 +95,24 @@ before wing_finalize_class => sub {
     );
 
 };
+
+around describe => sub {
+    my ($orig, $self, %options) = @_;
+    my $out = $orig->($self, %options);
+    if ($options{include_private}) {
+        $out->{edit_uri} = $self->edit_uri;
+    }
+    return $out;
+};
+
+before insert => sub {
+    my $self = shift;
+    $self->private_key(random_string('ssssssssssssssssssssssssssssssssssss'));
+};
+
+sub edit_uri {
+    my $self = shift;
+    return '/account/apikeys/'.$self->id;
+}
 
 1;

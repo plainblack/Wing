@@ -21,6 +21,30 @@ Vue.component('wing-select', {
 });
 
 /*
+ * A component to generate select lists from wing options.
+ */
+
+Vue.component('characters-remaining', {
+    template : `<small v-bind:class="{'text-danger': toobig, 'text-warning': nearlyfull}" class="text-sm float-right form-text">Characters Remaining: {{remaining}} / {{max}}</small>`,
+    props: ['property','max'],
+    computed : {
+        remaining() {
+            if (_.isString(this.property)) {
+                return this.max - this.property.length;
+            }
+            return this.max;
+        },
+        toobig() {
+            return this.remaining <= 0;
+        },
+        nearlyfull() {
+            const fivepercent = this.max * 0.05;
+            return this.remaining < fivepercent && this.remaining > 0;
+        }
+    },
+});
+
+/*
  * Throbber progress bar element
  */
 
@@ -292,8 +316,8 @@ const wing = {
                         behavior.on_error(data.result);
                     }
                 });
+                return promise;
             }
-            return promise;
         },
 
     }),

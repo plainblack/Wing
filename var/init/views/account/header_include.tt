@@ -4,13 +4,14 @@
 
     <div id="accountnav">
         <b-navbar toggleable="md" type="dark" variant="secondary">
+            <b-navbar-brand href="/">[% current_user.display_name %]'s Account</b-navbar-brand>
 
           <b-navbar-toggle target="accountnavcollapse"></b-navbar-toggle>
 
           <b-collapse is-nav id="accountnavcollapse">
 
             <b-navbar-nav>
-                <b-nav-item href="/account">Account</b-nav-item>
+                <b-nav-item href="/account">Settings</b-nav-item>
                 [% IF current_user.developer %]
                     <b-nav-item href="/account/apikeys">API Keys</b-nav-item>
                 [% END %]

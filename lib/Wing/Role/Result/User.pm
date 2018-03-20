@@ -24,7 +24,7 @@ Wing::Role::Result::User - The basis of Wing users.
 =head1 SYNOPSIS
 
  with 'Wing::Role::Result::User';
- 
+
 =head1 DESCRIPTION
 
 This is a foundational role which is required to create user objects. Users allow access and permissions to be defined in your applications.
@@ -85,11 +85,11 @@ A datetime indicating the time last time this user authenticated to the system. 
 
 =over
 
-=item api_keys
+=item apikeys
 
 A relationship to a L<Wing::Role::Result::APIKeyPermmission> enabled object.
 
-=item api_key_permissions
+=item apikeypermissions
 
 =back
 
@@ -103,6 +103,7 @@ sub fix_html {
 
 before wing_finalize_class => sub {
     my ($class) = @_;
+
     $class->wing_fields(
         username                => {
             dbic    => { data_type => 'varchar', size => 30, is_nullable => 0 },
@@ -172,12 +173,12 @@ before wing_finalize_class => sub {
     my $namespace = $class;
     $namespace =~ s/^(\w+)\:.*$/$1/;
     $class->wing_children(
-        api_keys  => {
+        apikeys  => {
             view                => 'private',
             related_class       => $namespace.'::DB::Result::APIKey',
             related_id          => 'user_id',
         },
-        api_key_permissions  => {
+        apikeypermissions  => {
             view                => 'private',
             related_class       => $namespace.'::DB::Result::APIKeyPermission',
             related_id          => 'user_id',
@@ -210,7 +211,7 @@ Starts a new session for this user. See C<start> in L<Wing::Session> for details
 
 =item display_name
 
-Returns the user's preferred display name based upon the L<use_as_display_name> field. 
+Returns the user's preferred display name based upon the L<use_as_display_name> field.
 
 =item is_password_valid ( password )
 
@@ -379,5 +380,10 @@ sub generate_password_reset_code {
     return $code;
 }
 
+before delete => sub {
+    my $self = shift;
+    $self->apikeypermissions->delete_all;
+    $self->apikeys->delete_all;
+};
 
 1;

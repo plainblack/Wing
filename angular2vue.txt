@@ -55,3 +55,19 @@ we have a program you can run on a template to do some of the conversion work:
     usually just going to be a one liner like this:
 
     new Vue({el:'#accountnav'});
+
+
+### LODASH IS YOUR FRIEND
+
+Lodash has a crapload of programmer friendly functions that can help you. Wing
+needs it for debouncing ajax requests, and deep merging objects, but you get to
+take advantage of all that as you're writing your Vue components. For example,
+instead of writing something like this:
+
+    if ('reason' in this.apikey.properties && this.apikey.properties.reason != null) {
+
+You could write this:
+
+    if (_.isString(this.apikey.properties.reason)) {
+
+Thanks to Lodash!

@@ -1,30 +1,43 @@
-[% page_title = "API Key: ${apikey.id}" %]
+[% page_title = "${apikey.name}" %]
 [% INCLUDE account/header_include.tt %]
+
+<p>Use this API key with our <a href="/developer/">API documentation</a> to build your own application.</p>
+
 
 <div class="row" id="app">
     <div class="col-sm-6">
         <h2>API Key</h2>
 
-        <b>Public Key</b><br>
-        [% apikey.id %]<br><br>
+        <table class="table table-striped table-hover">
+            <tr>
+                <th>Public Key</th>
+                <td>[% apikey.id %]</td>
+            </tr>
+            <tr>
+                <th>Private Key</th>
+                <td>[% apikey.private_key %]</td>
+            </tr>
+        </table>
 
-        <b>Private Key</b><br>
-        <div>[% apikey.private_key %]</div><br><br>
-
-        <form action="/account/apikey/[% apikey.id %]?X-HTTP-Method=DELETE" method="POST" enctype="multipart/form-data">
-        <div class="form-group">
-            <input class="btn btn-danger" type="submit" value="Delete This Key" onclick="return confirm('Are you sure?');">
-        </div>
-        </form>
+        <button class="btn btn-danger" @click="apikey.delete()">Delete This Key</button>
     </div>
     <div class="col-sm-6">
-        <form action="/account/apikey/[% apikey.id %]" method="POST" enctype="multipart/form-data"class=" form-horizontal">
-
         <h2>Update API Key Details</h2>
-        [% button_label = "Update" %]
-        [% INCLUDE account/apikey_form_include.tt %]
-
-        </form>
+        <div class="form-group">
+            <label class="control-label" for="name">Application Name</label>
+            <input class="form-control" type="text" name="name" id="name" v-model="apikey.properties.name" @change="apikey.save('name')">
+            <small class="form-text text-muted">This must be unique among all applications in our system.</small>
+        </div>
+        <div class="form-group">
+            <label for="uri">Application URL</label>
+            <input class="form-control" type="text" name="uri" id="uri" v-model="apikey.properties.uri" @change="apikey.save('uri')">
+            <small class="form-text text-muted">Optional, but appreciated. The URL of your application if it is a web app.</small>
+        </div>
+        <b-form-group label="Reason" label-for="reason">
+            <textarea rows="5" maxlength="255" class="form-control" name="reason" id="reason" v-model="apikey.properties.reason" @change="apikey.save('reason')"></textarea>
+            <characters-remaining :max="255" :property="apikey.properties.reason"></characters-remaining>
+            <small class="form-text text-muted">Optional, but appreciated. The reason you are building your app. What does it do?</small>
+        </div>
     </div>
 </div><!-- row -->
 
@@ -36,7 +49,13 @@
         data:   {
             apikey: wing.new_object_manager({
                 properties : [% apikey.json %],
-                create_uri : '/api/apikey',
+                on_delete : (properties) => {
+                    wing.success('Deleted');
+                    window.location.href = '/account/apikeys';
+                },
+                on_update : (properties) => {
+                    wing.success('Saved');
+                },
             }),
         },
     })

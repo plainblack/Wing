@@ -8,6 +8,9 @@ with respect to new features and compatibility changes.
  * Converted UI to use Vue 2 and Bootstrap 4.
  * Read angular2vue.txt for migration details.
  * Now requires: Template::Plugin::JSON::Escape
+ * You'll need to update at least the templates in views/account for apikeys and
+    apikey as they will no longer function. But we recommend updating all the
+    account templates with the newest ones.
 
 2018-2-13
  * If Role::Field options returns undef then don't validate it.

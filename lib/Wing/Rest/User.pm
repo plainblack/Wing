@@ -9,11 +9,11 @@ use Wing::Rest;
 get '/api/user' => sub {
     my $user = get_user_by_session_id();
     my $users = site_db()->resultset('User')->search({ -or => {
-        username    => { like => '%'.(params->{query} || '').'%'}, 
+        username    => { like => '%'.(params->{query} || '').'%'},
         email       => { like => '%'.(params->{query} || '').'%'},
         real_name   => { like => '%'.(params->{query} || '').'%'},
     }}, {order_by => 'username'});
-    return format_list($users, current_user => $user); 
+    return format_list($users, current_user => $user);
 };
 
 my $extra = sub {
@@ -26,5 +26,6 @@ generate_read('User', permissions => ['view_my_account']);
 generate_update('User', permissions => ['edit_my_account']);
 generate_delete('User', permissions => ['edit_my_account']);
 generate_create('User', extra_processing => $extra);
+generate_all_relationships('User');
 
 1;

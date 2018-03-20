@@ -1,4 +1,4 @@
-[% page_title = "${current_user.display_name}'s Account" %]
+[% page_title = "Account Settings" %]
 [% INCLUDE account/header_include.tt %]
 <div id="app">
     <p>Welcome [% current_user.display_name FILTER html %]. Not [% current_user.display_name FILTER html %]? <a href="/logout">Click here</a>.</p>
@@ -9,15 +9,15 @@
 
             <div class="form-group">
                 <label for="username">Username</label>
-                  <input class="form-control" type="text" name="username" v-model="user.properties.username" @blur="user.save('username')" id="username">
+                  <input class="form-control" type="text" name="username" v-model="user.properties.username" @change="user.save('username')" id="username">
             </div>
             <div class="form-group">
                 <label for="real_name">Real Name</label>
-                <input class="form-control" type="text" name="real_name" v-model="user.properties.real_name" @blur="user.save('real_name')" id="real_name">
+                <input class="form-control" type="text" name="real_name" v-model="user.properties.real_name" @change="user.save('real_name')" id="real_name">
             </div>
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input class="form-control" type="text" name="email" v-model="user.properties.email" @blur="user.save('email')" id="email">
+                <input class="form-control" type="text" name="email" v-model="user.properties.email" @change="user.save('email')" id="email">
             </div>
 
             [% UNLESS current_user.facebook_uid %]

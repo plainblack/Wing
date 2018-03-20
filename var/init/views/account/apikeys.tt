@@ -3,19 +3,11 @@
 
 <p>Use your API keys with our <a href="/developer/">API documentation</a> to build your own applications.</p>
 
-<div class="row">
+<div class="row" id="app">
 
-    <div class="col-sm">
-        <form action="/account/apikey" method="POST" enctype="multipart/form-data">
 
-            <h2>Create An API Key</h2>
-            [% button_label = "Create" %]
-            [% INCLUDE account/apikey_form_include.tt %]
 
-        </form>
-    </div>
-
-    <div class="col-sm">
+    <div class="col-sm" v-if="apikeys.objects.length > 0">
 
         <h2>Existing API Keys</h2>
         <table class="table table-striped table-hover">
@@ -23,18 +15,68 @@
                 <th>Application Name</th>
                 <th>Public Key</th>
             </tr>
-            [% FOREACH item IN apikeys.items %]
-            <tr>
-                <td><a href="/account/apikey/[% item.id %]">[% item.name %]</a></td>
-                <td>[% item.id %]</td>
+            <tr v-for="apikey in apikeys.objects">
+                <td><a :href="apikey.properties.edit_uri">{{apikey.properties.name}}</a></td>
+                <td>{{apikey.properties.id}}</td>
             </tr>
-        [% END %]
         </table>
+
+    </div>
+
+    <div class="col-sm">
+
+        <h2>Create An API Key</h2>
+        <div class="form-group">
+            <label  for="name">Application Name</label>
+            <input class="form-control" type="text" name="name" id="name" v-model="new_apikey.name">
+            <small class="form-text text-muted">This must be unique among all applications in our system.</small>
+        </div>
+        <div class="form-group">
+            <label  for="uri">Application URL</label>
+            <input class="form-control" type="text" name="uri" id="uri" v-model="new_apikey.uri">
+            <small class="form-text text-muted">Optional, but appreciated. The URL of your application if it is a web app.</small>
+        </div>
+        <div class="form-group">
+            <label  for="reason">Reason</label>
+            <textarea rows="5"  maxlength="255" class="form-control" name="reason" id="reason" v-model="new_apikey.reason"></textarea>
+            <characters-remaining :max="255" :property="new_apikey.reason"></characters-remaining>
+            <small class="form-text text-muted">Optional, but appreciated. The reason you are building your app. What does it do?</small>
+        </div>
+        <div class="form-group">
+            <button class="btn btn-success" @click="create()">Create</button>
+        </div>
 
     </div>
 
 </div><!-- row -->
 
 
-
+[% foot_tags = BLOCK %]
+    <script>
+    new Vue({
+        el:     '#app',
+        data:   {
+            apikeys: wing.new_object_list_manager({
+                create_api : '/api/apikey',
+                params : {
+                    _items_per_page : 100,
+                },
+                list_api : '[% current_user._relationships.apikeys %]',
+                on_create (properties) {
+                    window.location.href = properties.edit_uri;
+                },
+            }),
+            new_apikey : {},
+        },
+        mounted() {
+            this.apikeys.all();
+        },
+        methods : {
+            create() {
+                this.apikeys.create(this.new_apikey);
+            },
+        },
+    })
+    </script>
+[% END %]
 [% INCLUDE account/footer_include.tt %]

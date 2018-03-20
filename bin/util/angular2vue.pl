@@ -1,19 +1,21 @@
 #!/data/apps/bin/perl -pi
 
 # migrate models and autosaves
-if (/^\s*<(input|textarea|select)/) {
+if (/^\s*<(input|textarea|select)/i) {
     my ($formname) = m/ng-model="\w+.properties.(\w+)"/;
-    s/autosave=.(\w+)./\@blur="$1\.save('$formname')"/;
+    s/autosave=.(\w+)./\@change="$1\.save('$formname')"/;
     s/ng-model/v-model/;
 }
 
 # migrate wing-select
-if (/^\s*<(wing-select)/) {
+if (/^\s*<(wing-select)/i) {
     s/\sobject=/ :object=/;
 }
 
 # migrate help-block
 s/help-block/form-text text-muted/g;
+s/<(div|p|span) class="form-text text-muted">(.*?)<\/(div|p|span)>/<small class="form-text text-muted">$2<\/small>/i;
+#s/<small class="form-text text-muted">(.*?)<\/small>/<b-form-text>$1<\/b-form-text>/i;
 
 # migrate default buttons to secondary buttons
 s/btn-default/btn-secondary/g;
