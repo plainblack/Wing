@@ -13,25 +13,29 @@
 <body>
 
 <div id="sitenav">
-    <b-navbar toggleable="sm" type="light" variant="light">
 
-      <b-navbar-toggle target="sitenavcollapse"></b-navbar-toggle>
+    <nav class="navbar navbar-expand-sm navbar-light bg-light">
 
-      <b-navbar-brand href="/">Wing App</b-navbar-brand>
-
-      <b-collapse is-nav id="sitenavcollapse">
-
-        <b-navbar-nav>
-            <b-nav-item href="/">Home</b-nav-item>
-            <b-nav-item href="#">About</b-nav-item>
-            <b-nav-item href="#">Contact</b-nav-item>
-        </b-navbar-nav>
-
-        <!-- Right aligned nav items -->
-        <b-navbar-nav class="ml-auto">
-            <b-nav-item href="/account">[% IF current_user %][% current_user.display_name %][% ELSE %]Login[% END %]</b-nav-item>
-        </b-navbar-nav>
-
+       <b-navbar-toggle target="sitenavcollapse"></b-navbar-toggle>
+       <a class="navbar-brand" href="/">Wing App</a>
+       <b-collapse is-nav id="sitenavcollapse">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Contact</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/account">[% IF current_user %][% current_user.display_name %][% ELSE %]Login[% END %]</a>
+            </li>
+        </ul>
       </b-collapse>
-    </b-navbar>
+    </nav>
+
 </div>

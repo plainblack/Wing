@@ -3,30 +3,32 @@
 
 
     <div id="accountnav">
-        <b-navbar toggleable="md" type="dark" variant="secondary">
-            <b-navbar-brand href="/">[% current_user.display_name %]'s Account</b-navbar-brand>
 
-          <b-navbar-toggle target="accountnavcollapse"></b-navbar-toggle>
 
-          <b-collapse is-nav id="accountnavcollapse">
+        <nav class="navbar navbar-expand-md navbar-dark bg-secondary">
 
-            <b-navbar-nav>
-                <b-nav-item href="/account">Settings</b-nav-item>
-                [% IF current_user.developer %]
-                    <b-nav-item href="/account/apikeys">API Keys</b-nav-item>
-                [% END %]
-                [% IF current_user.admin %]
-                    <b-nav-item href="/admin/users">Admin</b-nav-item>
-                [% END %]
-            </b-navbar-nav>
-
-            <!-- Right aligned nav items -->
-            <b-navbar-nav class="ml-auto">
-                <b-nav-item href="/logout">Log Out</b-nav-item>
-            </b-navbar-nav>
-
+           <b-navbar-toggle target="accountnavcollapse"></b-navbar-toggle>
+           <a class="navbar-brand" href="/account">[% current_user.display_name %]'s Account</a>
+           <b-collapse is-nav id="accountnavcollapse">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="/account">Settings</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/account/apikeys">API Keys</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/users">Admin</a>
+              </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                  <a class="nav-link" href="/logout">Log Out</a>
+                </li>
+            </ul>
           </b-collapse>
-        </b-navbar>
+        </nav>
+
     </div>
 
 <div class="container-fluid">
