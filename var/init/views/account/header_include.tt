@@ -1,10 +1,5 @@
 [% INCLUDE header_include.tt %]
-
-
-
     <div id="accountnav">
-
-
         <nav class="navbar navbar-expand-md navbar-dark bg-secondary">
 
            <b-navbar-toggle target="accountnavcollapse"></b-navbar-toggle>
@@ -20,9 +15,11 @@
               <li class="nav-item">
                 <a class="nav-link" href="/account/apikeys">API Keys</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/admin/users">Admin</a>
-              </li>
+              [% IF current_user.is_admin %]
+                  <li class="nav-item">
+                    <a class="nav-link" href="/admin/users">Admin</a>
+                  </li>
+              [% END %]
             </ul>
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
@@ -31,8 +28,6 @@
             </ul>
           </b-collapse>
         </nav>
-
     </div>
-
 <div class="container-fluid">
     <h1>[% page_title %]</h1>

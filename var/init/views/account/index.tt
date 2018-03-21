@@ -9,7 +9,7 @@
 
             <div class="form-group">
                 <label for="username">Username</label>
-                  <input class="form-control" type="text" name="username" v-model="user.properties.username" @change="user.save('username')" id="username">
+                <input class="form-control" type="text" name="username" v-model="user.properties.username" @change="user.save('username')" id="username">
             </div>
             <div class="form-group">
                 <label for="real_name">Real Name</label>
@@ -29,7 +29,12 @@
 
             <div class="form-group">
                 <label for="use_as_display_name">Which would you like to be displayed on the site?</label>
-                    <wing-select :object="user" property="use_as_display_name"></wing-select>
+                <wing-select :object="user" property="use_as_display_name"></wing-select>
+            </div>
+            <div class="form-group">
+                <label for="no_email">Can we send you email?</label>
+                <wing-select :object="user" property="no_email"></wing-select>
+                <small class="form-text text-muted">If you choose no email, then you will not get email receipts and cannot use email to recover your password.</small>
             </div>
             <div class="form-group">
                 <label for="developer">Are you a software developer?</label>
@@ -78,15 +83,14 @@
 
 </div>
 [% foot_tags = BLOCK %]
+[% USE JSON.Escape %]
+
 <script>
-
-
-
 new Vue({
     el:     '#app',
     data:   {
         user : wing.new_object_manager({
-            fetch_api : '[% current_user._relationships.self %]',
+            properties : [% current_user.json %],
             params : {
                 _include_options : 1,
             },
@@ -94,9 +98,6 @@ new Vue({
                 wing.success('User saved.');
             },
         }),
-    },
-    mounted() {
-        this.user.fetch();
     },
 });
 

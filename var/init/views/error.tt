@@ -7,9 +7,10 @@
 
     [% INCLUDE account/authenticate_include.tt redirect_after=params.redirect_after || request.path %]
 [% ELSE %]
+    <p class="display-1 float-right">[% code %]</p>
     <h1>[% title %]</h1>
     <p>You may <a href="javascript:history.go(-1);">go back from whence you came</a>.</p>
-    <p style="font-size: 1000%; color: #aaa; font-weight: bold; float: right;">[% code %]</p>
+    <div class="clearfix"></div>
 [% END %]
 </div>
 [% INCLUDE footer_include.tt %]

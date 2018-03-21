@@ -1,97 +1,80 @@
 [% INCLUDE admin/header_include.tt %]
 
-<div class="row">
-<div class="col-sm-6">
-<form class="form-horizontal">
-<fieldset>
-<legend>Account Information</legend>
-<div class="form-group">
-    <label class="col-sm-4 control-label" for="username">Username</label>
-    <div class="col-sm-8">
-    <input class="form-control autosave" type="text" name="username" value="[% params.username || user.username FILTER html %]" id="username">
-    </div>
-</div>
-<div class="form-group">
-    <label class="col-sm-4 control-label" for="real_name">Real Name</label>
-    <div class="col-sm-8">
-    <input class="form-control autosave" type="text" name="real_name" value="[% params.real_name || user.real_name FILTER html %]" id="real_name">
-    </div>
-</div>
-<div class="form-group">
-    <label class="col-sm-4 control-label" for="email">Email Address</label>
-    <div class="col-sm-8">
-    <input class="form-control autosave" type="email" name="email" value="[% params.email || user.email FILTER html %]" id="email">
-    </div>
-</div>
-<div class="form-group">
-    <label class="col-sm-4 control-label" for="password">New Password</label>
-    <div class="col-sm-8">
-    <input class="form-control autosave" type="text" name="password" id="password">
-    </div>
-</div>
-</fieldset>
-</form>
-</div>
+<div class="row" id="app">
+    <div class="col-sm">
 
-<div class="col-sm-6">
-<form class="form-horizontal">
-<fieldset>
-<legend>Preferences</legend>
-<div class="form-group">
-    <label class="col-sm-4 control-label" for="use_as_display_name">Use As Display Name</label>
-    <div class="col-sm-8">
-    <select class="form-control autosave" name="use_as_display_name" id="use_as_display_name">
-        <option value="username"[% IF user.use_as_display_name == 'username' %] selected="1"[% END %]>Username</option>
-        <option value="email"[% IF user.use_as_display_name == 'email' %] selected="1"[% END %]>Email Address</option>
-        <option value="real_name"[% IF user.use_as_display_name == 'real_name' %] selected="1"[% END %]>Real Name</option>
-    </select>
+        <h2>Account Information</h2>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input class="form-control" type="text" name="username" v-model="user.properties.username" @change="user.save('username')" id="username">
+        </div>
+        <div class="form-group">
+            <label for="real_name">Real Name</label>
+            <input class="form-control" type="text" name="real_name" v-model="user.properties.real_name" @change="user.save('real_name')" id="real_name">
+        </div>
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input class="form-control" type="email" name="email" v-model="user.properties.email" @change="user.save('email')" id="email">
+        </div>
+        <div class="form-group">
+            <label for="password">New Password</label>
+            <input class="form-control" type="password" v-model="user.properties.password" @change="user.save('password')" name="password" id="password">
+        </div>
+
+        <h2>Preferences</h2>
+        <div class="form-group">
+            <label for="use_as_display_name">Use As Display Name</label>
+            <wing-select :object="user" property="use_as_display_name"></wing-select>
+        </div>
+        <div class="form-group">
+            <label for="no_email">Can we send you email?</label>
+            <wing-select :object="user" property="no_email"></wing-select>
+        </div>
+        <div class="form-group">
+            <label for="developer">Developer</label>
+            <wing-select :object="user" property="developer"></wing-select>
+        </div>
+        <div class="form-group">
+            <label for="permanently_deactivated">Permanently Deactivated</label>
+            <wing-select :object="user" property="permanently_deactivated"></wing-select>
+        </div>
+
+        <h2>Special Privileges</h2>
+        <div class="form-group">
+            <label for="admin">Admin</label>
+            <wing-select :object="user" property="admin"></wing-select>
+        </div>
+
     </div>
-</div>
-<div class="form-group">
-    <label class="col-sm-4 control-label">Developer</label>
-    <div class="col-sm-8">
-    <label class="radio-inline" for="developer_yes"><input class="autosave" type="radio" name="developer" value="1" id="developer_yes"[% IF user.developer %] checked=1[% END %]>Yes</label>
-    <label class="radio-inline" for="developer_no"><input class="autosave" type="radio" name="developer" value="0" id="developer_no"[% UNLESS user.developer %] checked=1[% END %]>No</label>
+
+    <div class="col-sm">
+
+        <h2>Become This User</h2>
+        <p>You can become a user so you can easily test what they see.</p>
+        <form action="/admin/user/[% user.id %]/become" method="POST"><input type="submit" value="Become" class="btn btn-inverse"></form>
+
     </div>
-</div>
-<div class="form-group">
-    <label class="col-sm-4 control-label">Permanently Deactivated</label>
-    <div class="col-sm-8">
-    <label class="radio-inline" for="permanently_deactivated_yes"><input class="autosave" type="radio" name="permanently_deactivated" value="1" id="permanently_deactivated_yes"[% IF user.permanently_deactivated %] checked=1[% END %]>Yes</label>
-    <label class="radio-inline" for="permanently_deactivated_no"><input class="autosave" type="radio" name="permanently_deactivated" value="0" id="permanently_deactivated_no"[% UNLESS user.permanently_deactivated %] checked=1[% END %]>No</label>
-    </div>
-</div>
-</fieldset>
-<fieldset>
-<legend>Special Privileges</legend>
-<div class="form-group">
-    <label class="col-sm-4 control-label">Admin</label>
-    <div class="col-sm-8">
-    <label class="radio-inline" for="admin_yes"><input class="autosave" type="radio" name="admin" value="1" id="admin_yes"[% IF user.admin %] checked=1[% END %]>Yes</label>
-    <label class="radio-inline" for="admin_no"><input class="autosave" type="radio" name="admin" value="0" id="admin_no"[% UNLESS user.admin %] checked=1[% END %]>No</label>
-    </div>
-</div>
-</fieldset>
-</form>
 
 </div>
 
-</div><!-- row -->
-
-<div class="row">
-<div class="col-sm-6">
-<fieldset>
-<legend>Become This User</legend>
- <p>You can become a user so you can easily test what they see.</p>
-    <form action="/admin/user/[% user.id %]/become" method="POST"><input type="submit" value="Become" class="btn btn-inverse"></form>
-</fieldset>
-</div>
-
-</div><!-- row -->
 
 [% foot_tags = BLOCK %]
-<script type="text/javascript">
-wing.attach_autosave('user/[% user.id %]', '.autosave');
+[% USE JSON.Escape %]
+<script>
+new Vue({
+    el:     '#app',
+    data:   {
+        user : wing.new_object_manager({
+            properties : [% user.json %],
+            params : {
+                _include_options : 1,
+            },
+            on_update : function(object, index) {
+                wing.success('User saved.');
+            },
+        }),
+    },
+});
 </script>
 [% END %]
 [% INCLUDE admin/footer_include.tt %]

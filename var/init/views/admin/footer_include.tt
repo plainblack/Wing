@@ -1,4 +1,8 @@
 
 </div><!-- container -->
-
+[% section_foot_tags = BLOCK %]
+<script>
+new Vue({el:'#adminnav'});
+</script>
+[% END %]
 [% INCLUDE footer_include.tt %]
