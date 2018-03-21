@@ -37,22 +37,22 @@
         <div class="card-body">
             <div class="form-group">
                 <label for="username">Username</label>
-                    <input class="form-control" type="text" name="username" id="username">
+                <input class="form-control" type="text" name="username" id="username" v-model="new_user.username">
             </div>
             <div class="form-group">
                 <label for="real_name">Real Name</label>
-                    <input class="form-control" type="text" name="real_name" id="real_name">
+                <input class="form-control" type="text" name="real_name" id="real_name" v-model="new_user.real_name">
             </div>
             <div class="form-group">
                 <label for="email">Email</label>
-                    <input class="form-control" type="text" name="email" id="email">
+                <input class="form-control" type="text" name="email" id="email" v-model="new_user.email">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                    <input class="form-control" type="text" name="password" id="password">
+                <input class="form-control" type="text" name="password" id="password" v-model="new_user.password">
             </div>
             <div class="form-group">
-                    <input class="btn btn-primary" type="submit" value="Create">
+                <button class="btn btn-primary" @click="create_user()">Create User</button>
             </div>
         </div>
     </div>
@@ -68,6 +68,7 @@
 new Vue({
     el:     '#app',
     data:   {
+        new_user : {},
         fields: [
             {key : 'properties.username', label : 'Username'},
             {key : 'properties.real_name', label : 'Real Name'},
@@ -80,8 +81,9 @@ new Vue({
             create_api : '/api/user',
             list_api : '/api/user',
             on_create : function(properties) {
+            console.dir(properties);
                 wing.success(properties.name + ' created.');
-                window.location.href = properties.edit_uri;
+                window.location.href = '/admin/user/' + properties.id;
             },
         }),
     },
@@ -94,6 +96,9 @@ new Vue({
         },
         edit_url(user) {
             return '/admin/user/' + user.properties.id;
+        },
+        create_user() {
+            this.users.create(this.new_user);
         },
     },
 });
