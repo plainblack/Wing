@@ -181,7 +181,7 @@ const wing = {
             const promise = axios({
                 method:'post',
                 url: behavior.create_api,
-                params : params,
+                data : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
             promise.then(function (response) {
@@ -223,12 +223,19 @@ const wing = {
         call : function(method, uri, properties, options) {
             const self = this;
             const params = _.extend({}, self.params, properties);
-            const promise = axios({
+            const config = {
                 method: method.toLowerCase(),
                 url: uri,
                 params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
-            });
+            };
+            if (config.method == 'put' || config.method == 'post') {
+                config[data] = params;
+            }
+            else {
+                config[params] = params;
+            }
+            const promise = axios(config);
             promise.then(function (response) {
                 const data = response.data;
                 self.properties = data.result;
@@ -258,7 +265,7 @@ const wing = {
             const promise = axios({
                 method: 'put',
                 url: self.properties._relationships.self,
-                params : params,
+                data : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
             promise.then(function (response) {
@@ -428,7 +435,11 @@ const wing = {
             return promise;
         },
 
-        all : function(options, page_number) {
+        all : _.debounce(function(options, page_number) {
+            return this._all(options, page_number);
+        }, 200),
+
+        _all : function(options, page_number) {
             const self = this;
             let params = _.extend({}, {
                 _page_number: page_number || 1,
@@ -461,7 +472,7 @@ const wing = {
                     behavior.on_success();
                 }
                 if (data.result.paging.page_number < data.result.paging.total_pages) {
-                    return self.all(options, data.result.paging.next_page_number);
+                    return self._all(options, data.result.paging.next_page_number);
                 }
                 else {
                     if (typeof options !== 'undefined' && typeof options.on_all_done !== 'undefined') {

@@ -38,12 +38,12 @@ get '/api/trends/hourly/:id' => sub {
         push @trends, $trend->{name};
     }
     my $dtf = Wing->db->storage->datetime_parser;
-    my $now = parse_start_date(params->{start});
+    my $now = parse_start_date(param('start'));
     $now->set_minute(0);
     $now->set_second(0);
     my $then = $now->clone->subtract(hours => 24);
     my $sth = Wing->db->storage->dbh->prepare("select cast(substring(hour,12,2) as UNSIGNED),name,value from trends_logs_hourly where name in (".join(',',quote_array(@trends)).") and hour between ? and ? order by hour desc");
-    $sth->execute($dtf->format_datetime($then), $dtf->format_datetime($now));    
+    $sth->execute($dtf->format_datetime($then), $dtf->format_datetime($now));
     my %raw;
     while (my ($hour, $name, $value) = $sth->fetchrow_array) {
         $raw{$hour}{$name} = $value;
@@ -55,7 +55,7 @@ get '/api/trends/hourly/:id' => sub {
         my $total = 0;
         my $count = 0;
         while ($today > $then) {
-            my $value = $raw{$today->hour}{$name} + 0;
+            my $value = ($raw{$today->hour}{$name}||0) + 0;
             push @row, $value;
             $total += $value;
             $count++;
@@ -88,13 +88,13 @@ get '/api/trends/daily/:id' => sub {
         push @trends, $trend->{name};
     }
     my $dtf = Wing->db->storage->datetime_parser;
-    my $now = parse_start_date(params->{start});
+    my $now = parse_start_date(param('start'));
     $now->set_hour(0);
     $now->set_minute(0);
     $now->set_second(0);
-    my $then = $now->clone->subtract(days => params->{range});
+    my $then = $now->clone->subtract(days => param('range'));
     my $sth = Wing->db->storage->dbh->prepare("select substring(day,1,10),name,value from trends_logs_daily where name in (".join(',',quote_array(@trends)).") and day between ? and ? order by day desc");
-    $sth->execute($dtf->format_datetime($then), $dtf->format_datetime($now));    
+    $sth->execute($dtf->format_datetime($then), $dtf->format_datetime($now));
     my %raw;
     while (my ($day, $name, $value) = $sth->fetchrow_array) {
         $raw{$day}{$name} = $value;
@@ -106,7 +106,7 @@ get '/api/trends/daily/:id' => sub {
         my $total = 0;
         my $count = 0;
         while ($today > $then) {
-            my $value = $raw{$today->ymd}{$name} + 0;
+            my $value = ($raw{$today->ymd}{$name} || 0) + 0;
             push @row, $value;
             $total += $value;
             $count++;
@@ -139,14 +139,14 @@ get '/api/trends/monthly/:id' => sub {
         push @trends, $trend->{name};
     }
     my $dtf = Wing->db->storage->datetime_parser;
-    my $now = parse_start_date(params->{start});
+    my $now = parse_start_date(param('start'));
     $now->set_day(1);
     $now->set_hour(0);
     $now->set_minute(0);
     $now->set_second(0);
-    my $then = $now->clone->subtract(months => params->{range});
+    my $then = $now->clone->subtract(months => param('range'));
     my $sth = Wing->db->storage->dbh->prepare("select substring(month,1,10),name,value from trends_logs_monthly where name in (".join(',',quote_array(@trends)).") and month between ? and ? order by month desc");
-    $sth->execute($dtf->format_datetime($then), $dtf->format_datetime($now));    
+    $sth->execute($dtf->format_datetime($then), $dtf->format_datetime($now));
     my %raw;
     while (my ($day, $name, $value) = $sth->fetchrow_array) {
         $raw{$day}{$name} = $value;
@@ -158,7 +158,7 @@ get '/api/trends/monthly/:id' => sub {
         my $total = 0;
         my $count = 0;
         while ($today > $then) {
-            my $value = $raw{$today->ymd}{$name} ? $raw{$today->ymd}{$name} : 0;
+            my $value = ($raw{$today->ymd}{$name}||0) + 0;
             push @row, $value;
             $total += $value;
             $count++;
@@ -191,12 +191,12 @@ get '/api/trends/yearly/:id' => sub {
         push @trends, $trend->{name};
     }
     my $dtf = Wing->db->storage->datetime_parser;
-    my $now = parse_start_date(params->{start});
+    my $now = parse_start_date(param('start'));
     $now->set_day(1);
     $now->set_month(1);
-    my $then = $now->clone->subtract(years => params->{range});
+    my $then = $now->clone->subtract(years => param('range'));
     my $sth = Wing->db->storage->dbh->prepare("select substring(year,1,10),name,value from trends_logs_yearly where name in (".join(',',quote_array(@trends)).") and year between ? and ? order by year desc");
-    $sth->execute($dtf->format_datetime($then), $dtf->format_datetime($now));    
+    $sth->execute($dtf->format_datetime($then), $dtf->format_datetime($now));
     my %raw;
     while (my ($day, $name, $value) = $sth->fetchrow_array) {
         $raw{$day}{$name} = $value;
@@ -208,7 +208,7 @@ get '/api/trends/yearly/:id' => sub {
         my $total = 0;
         my $count = 0;
         while ($today > $then) {
-            my $value = $raw{$today->ymd}{$name} + 0;
+            my $value = ($raw{$today->ymd}{$name}||0) + 0;
             push @row, $value;
             $total += $value;
             $count++;
@@ -233,7 +233,7 @@ get '/api/trends/yearly/:id' => sub {
 get '/api/trendsreport' => sub {
     my $user = get_user_by_session_id()->verify_is_admin();
     my $data = site_db()->resultset('TrendsReport')->search(undef,{order_by => 'name'});
-    return format_list($data, current_user => $user); 
+    return format_list($data, current_user => $user);
 };
 
 get '/api/trendsnames' => sub {

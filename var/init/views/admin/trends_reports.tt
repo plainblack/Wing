@@ -1,117 +1,110 @@
 [% page_title = "Trends Reports" %]
 [% head_tags = BLOCK %]
-<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.0/themes/base/jquery.ui.all.css">
-<style type="text/css">
-.table {
-    margin-bottom: 50px;
-}
-table caption {
-  font-size: 150%;
-  text-align: left;
-}
-</style>
+<link href="//unpkg.com/flatpickr@4/dist/flatpickr.min.css" rel="stylesheet">
 [% END %]
 [% INCLUDE admin/header_include.tt %]
-<form>
-<div class="row">
-    <div class="col-xs-3">
-        <label for="report_chooser">Report</label> <select id="report_chooser" class="form-control"></select>
+
+
+
+<div id="app">
+
+    <div class="row">
+        <div class="col-md">
+            <select class="form-control" v-model="filters.report_id" @change="fetch_report_data()">
+              <option v-for="report in reports.objects" :value="report.properties.id">{{report.properties.name}}</option>
+            </select>
+        </div>
+        <div class="col-md">
+            <select class="form-control" v-model="filters.granularity" @change="update_granularity()">
+              <option v-for="granularity in granularity_options" :value="granularity.name">{{granularity.label}}</option>
+            </select>
+        </div>
+        <div class="col-md">
+            <input type="number" class="form-control" v-model="filters.range" @change="fetch_report_data()">
+        </div>
+        <div class="col-md">
+            <flat-pickr v-model="filters.start" class="form-control" @on-change="fetch_report_data()"></flat-pickr>
+        </div>
     </div>
-    <div class="col-xs-3">
-        <label for="report_type">Granularity</label>
-        <select id="report_type" class="form-control">
-            <option value="hourly">Hourly</option>
-            <option value="daily">Daily</option>
-            <option value="monthly" selected="1">Monthly</option>
-            <option value="yearly">Yearly</option>
-        </select>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <tr>
+                <th v-for="head in report.headings">{{head}}</th>
+            </tr>
+            <tr v-for="row in report.rows">
+                <template v-for="(col,index) in row">
+                    <th v-if="index == 0">{{col}}</th>
+                    <td v-else>{{col}}</td>
+                </template>
+            </tr>
+        </table>
     </div>
-    <div class="col-xs-3">
-        [% USE date %]
-         <label for="report_start">Start</label> <input type="date" id="report_start" value="[% date.format(date.now, '%Y-%m-%d') %]" class="form-control">
-    </div>
-    <div class="col-xs-3">
-        <label for="report_range">Range</label><input type="text" id="report_range" value="12" class="form-control">
-    </div>
+
+    <br>
+    <a href="/admin/trends/reports/manage" class="btn btn-primary">Manage Reports</a>
 </div>
-</form>
-
-
- 
- 
-
-<div id="report" style="overflow: scroll;"></div>
-
-[% IF current_user.admin %]
-<a href="/admin/trends/reports/manage" class="btn btn-primary">Manage Reports</a>
-[% END %]
 
 [% foot_tags = BLOCK %]
-<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.3.0/handlebars.min.js" type="text/javascript"></script>
-<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.0/jquery-ui.min.js" type="text/javascript"></script>
-<script id="report_chooser_template" type="text/x-handlebars-template">
-{{#each items}}
-<option value="{{id}}">{{name}}</option>
-{{/each}}
-</script>
-<script id="report_template" type="text/x-handlebars-template">
-<table class="table table-bordered table-striped">
-    <caption>{{name}}</caption>
-    <thead>
-        <tr>
-            {{#each headings}}
-                <th>{{this}}</th>
-            {{/each}}
-        </tr>
-    </thead>
-    <tbody>
-        {{#each rows}}
-        <tr>
-            {{#each this}}
-                <td>{{this}}</td>
-            {{/each}}
-        </tr>
-        {{/each}}
-    </tbody>
-</table>
-</script>
+<script src="//unpkg.com/flatpickr@4/dist/flatpickr.min.js"></script>
+<script src="//unpkg.com/vue-flatpickr-component@7.0.0/dist/vue-flatpickr.min.js"></script>
 <script type="text/javascript">
-$(function() {
-        $( "#report_start" ).datepicker({ dateFormat: 'yy-mm-dd' });
-        var report_template = Handlebars.compile($('#report_template').html());
-        function fetch_report(type,id, range,start) {
-            wing.ajax('GET','trends/'+type+'/'+id, {range: range, start: start}, function(data, text_status, jqxhr) {
-                $('#report').html(report_template(data.result));
-            });
-        }
-        
-        var range_defaults = {
-            "hourly" : 12,
-            "daily" : 15,
-            "monthly" : 12,
-            "yearly" : 3
-        };
+'use strict';
 
-        wing.ajax('GET','trendsreport', {}, function(data, text_status, jqxhr) {
-            var template = Handlebars.compile($('#report_chooser_template').html());
-            $('#report_chooser').html(template(data.result));
-            fetch_report($('#report_type').val(), $('#report_chooser').val(), $('#report_range').val(), $('#report_start').val());
-            $('#report_chooser').on('change', function(){
-                fetch_report($('#report_type').val(), $('#report_chooser').val(), $('#report_range').val(), $('#report_start').val());
+Vue.component('flat-pickr', VueFlatpickr);
+new Vue({
+    el:     '#app',
+    data:   {
+        range_defaults : {
+            hourly : 24,
+            daily : 15,
+            monthly : 12,
+            yearly : 5
+        },
+        granularity_options : [
+            {
+                name: "hourly", label : "Hourly",
+            },
+            {
+                name: "daily", label : "Daily",
+            },
+            {
+                name: "monthly", label : "Monthly",
+            },
+            {
+                name: "yearly", label : "Yearly",
+            },
+        ],
+        filters : { granularity: 'monthly', range : 12, start: (new Date()).toISOString().split('T')[0] },
+        reports : wing.new_object_list_manager({
+            list_api : '/api/trendsreport',
+            params : {_items_per_page : 100, _order_by : 'name'},
+        }),
+        report : [],
+    },
+    mounted() {
+        var self = this;
+        self.reports.all({on_all_done : function() {
+            if (self.reports.objects.length > 0) {
+                self.filters.report_id = self.reports.objects[0].properties.id;
+                self.fetch_report_data();
+            }
+        }});
+    },
+    methods : {
+        fetch_report_data : _.debounce(function() { // some browsers fire events before updating the model, this gets around that
+            const self = this;
+            axios.get('/api/trends/'+self.filters.granularity+'/'+self.filters.report_id, { params: { start : self.filters.start, range : self.filters.range }})
+            .then(function(response) {
+                self.report = response.data.result;
             });
-            $('#report_type').on('change', function(){
-                $('#report_range').val(range_defaults[$('#report_type').val()]);
-                fetch_report($('#report_type').val(), $('#report_chooser').val(), $('#report_range').val(), $('#report_start').val());
-            });
-            $('#report_range').on('change', function(){
-                fetch_report($('#report_type').val(), $('#report_chooser').val(), $('#report_range').val(), $('#report_start').val());
-            });
-            $('#report_start').on('change', function(){
-                fetch_report($('#report_type').val(), $('#report_chooser').val(), $('#report_range').val(), $('#report_start').val());
-            });
-        });
+        },200),
+        update_granularity() {
+            this.filters.range = this.range_defaults[this.filters.granularity];
+            this.fetch_report_data();
+        },
+    },
 });
 </script>
 [% END %]
-
 [% INCLUDE admin/footer_include.tt %]

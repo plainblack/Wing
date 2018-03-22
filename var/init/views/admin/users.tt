@@ -80,8 +80,8 @@ new Vue({
         users : wing.new_object_list_manager({
             create_api : '/api/user',
             list_api : '/api/user',
+            params : {_order_by : 'name'},
             on_create : function(properties) {
-            console.dir(properties);
                 wing.success(properties.name + ' created.');
                 window.location.href = '/admin/user/' + properties.id;
             },

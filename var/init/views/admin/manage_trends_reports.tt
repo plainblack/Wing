@@ -1,156 +1,132 @@
 [% page_title = "Manage Trends Reports" %]
-[% head_tags = BLOCK %]
-<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css">
-  <style>
-  ol { list-style-type: none; margin: 0; padding: 0; float: left; min-height: 600px; width: 250px; background-color: #555;}
-  ol li {  width: 240px; }
-  #allreports li { list-style-type: none; }
-  #report_root .glyphicon-arrow-left { display: none; }
-  </style>
-[% END %]
 [% INCLUDE admin/header_include.tt %]
 
-<div class="container">
-
-  
-            <input class="form-control" type="hidden" id="report_id">
-            <label for="report_name">Report Name</label> <input type="text" id="report_name" class="autosave form-control">
-    
+<div id="app">
     <div class="row">
-        <div class="col-sm-4">
-            <h3>Report Trends</h3>
-            <ol class="dd-list" id="report_root"></ol>
+        <div class="col" v-if="current_report != null">
+            <h2>Edit {{current_report.properties.name}}</h2>
+
+            <draggable v-model="current_report.properties.fields" @start="drag=true" @end="drag=false" @update="current_report.save('fields')">
+                <transition-group>
+                    <div v-for="(trend,index) in current_report.properties.fields" :key="trend.name" class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-arrows-alt-v"></i></span></div>
+                            <input type="text" class="form-control" v-model="trend.label" @change="current_report.save('fields')">
+                            <div class="input-group-append">
+                                <button class="btn btn-danger" @click="delete_trend(index)"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </transition-group>
+            </draggable>
+
         </div>
-        <div class="col-sm-4">
-            <h3><form class="form-inline form-search">Available Trends</h3> 
-            <div class="input-group">
-                <div class="input-group-addon">Filter</div>
-                <input type="text" class="input-sm form-control" id="trend_filter"></div></form>
-            <ol id="available_fields" class="droptrue"></ol>
+        <div class="col" v-if="current_report != null">
+            <h2>Add Trends</h2>
+            <input type="text" class="form-control" v-model="trend_filter" placeholder="Filter">
+            <p>Click on a trend name to add it to the report.</p>
+            <button class="btn btn-block btn-secondary" v-for="name in trends_names" v-if="visible_trend(name)" @click="add_trend(name)"><i class="fas fa-plus"></i> {{name}}</button>
         </div>
-        <div class="col-sm-4">
- 
-             <h3>Add A Report</h3>
-                <input id="new_report" type="text" class="form-control"><br>
-                <button class="btn btn-success" onclick="add_report()">Add Report</button>
-             
-             <h3>Existing Reports</h3>
-             <ul id="allreports"></ul>
+        <div class="col">
+            <div class="form-group" v-for="report in reports.objects">
+                <div class="input-group">
+                    <input type="text" class="form-control" v-model="report.properties.name" @change="report.save('name')" placeholder="Name">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" @click="edit_report(report)"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-danger" @click="report.delete()"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div class="card">
+                <h2 class="card-header">Create</h2>
+                <div class="card-body">
+                    <div class="input-group">
+                        <input type="text" class="form-control" v-model="new_report.name" placeholder="Name">
+                        <div class="input-group-append">
+                            <button class="btn btn-success" @click="create_report()"><i class="fas fa-plus"></i> Create</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-
-
 </div>
 
 [% foot_tags = BLOCK %]
-<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/jquery-ui.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.1.2/handlebars.min.js" type="text/javascript"></script>
-<script id="field-template" type="text/x-handlebars-template">
-    <li class="ui-state-default" name="{{name}}">
-        <a onclick="move_trend('{{name}}')"><span class="glyphicon glyphicon-arrow-left"></span></a> <span class="glyphicon glyphicon-move"></span> <input type="text" class="input-medium" value="{{label}}" name="{{name}}" onchange="save_report()" title="{{name}}"> <span class="glyphicon glyphicon-info-sign" title="{{name}}" data-toggle="tooltip"></span>
-    </li>
-</script>
-<script id="report-link-template" type="text/x-handlebars-template">
-    <li id="{{id}}"><a href="javascript:wing.delete_object('trendsreport','{{id}}');" class="btn btn-danger btn-xs">X</a> <a href="javascript:load_report('{{id}}')">{{name}}</a></li>
-</script>
+<script src="//cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.16.0/vuedraggable.min.js"></script>
 <script type="text/javascript">
-var all_fields = [];
-var field_template = Handlebars.compile($("#field-template").html());
-var report_link_template = Handlebars.compile($("#report-link-template").html());
-
-$(document).ready(function() {
-    wing.ajax('GET','trendsnames',{}, function(data){
-        all_fields = data.result.names;
-        wing.ajax('GET','trendsreport',{}, function(data) {
-            var first = 1;
-            for (var x in data.result.items) {
-                if (first) {
-                    first = 0;
-                    build_report(data.result.items[x]);
-                }
-                $('#allreports').append(report_link_template({id : data.result.items[x].id , name : data.result.items[x].name}));
+'use strict';
+const app = new Vue({
+    el:     '#app',
+    data:   {
+        trend_filter : '',
+        new_report : {},
+        current_report : null,
+        trends_names : [],
+        reports : wing.new_object_list_manager({
+            list_api : '/api/trendsreport',
+            params : {_items_per_page : 100, _order_by : 'name'},
+            create_api : '/api/trendsreport',
+            on_delete : function() {
+                app.$data.current_report = null;
+            },
+            on_update : function(properties) {
+                wing.success(properties.name + ' saved');
             }
+        }),
+    },
+    mounted() {
+        var self = this;
+        self.reports.all({on_all_done : function() {
+            if (self.reports.objects.length > 0) {
+                self.current_report = self.reports.objects[0];
+            }
+        }});
+        axios.get('/api/trendsnames')
+        .then(function(response) {
+            self.trends_names = response.data.result.names;
         });
-    });
-    
-    $('#report_name').on('change', function() { save_report(); });
-
-    $( "#report_root" ).sortable({
-      connectWith: "ol",
-      update : function() {
-        save_report();
-      }
-      ,
-    });
- 
-    $( "#available_fields" ).sortable({
-      connectWith: "ol"
-    });
-    
-    $('#trend_filter').on('keyup', function(){
-        var filter = $('#trend_filter').val();
-        $('#available_fields li').removeClass('hide');
-        if (filter != "") {
-            $('#available_fields li').addClass('hide');
-            $('#available_fields li[name*="'+filter+'"]').removeClass('hide');
+    },
+    methods : {
+        create_report() {
+            const self = this;
+            self.reports.create(self.new_report, { on_success : function(properties) {
+                edit_report(self.reports.find_object(properties.id));
+                self.new_report = {};
+            }});
+        },
+        visible_trend (name) {
+            const tf = this.trend_filter.toLowerCase();
+            const n = name.toLowerCase();
+            if (tf != '' && n.indexOf(tf) === -1 ) {
+                return false;
+            }
+            if (this.current_report != null) {
+                if (_.findIndex(this.current_report.properties.fields, {name : name}) != -1) {
+                    return false;
+                }
+            }
+            return true;
+        },
+        delete_trend (index) {
+            this.current_report.properties.fields.splice(index, 1);
+            this.current_report.save('fields');
+        },
+        add_trend (name) {
+            if (!_.isArray(this.current_report.properties.fields)) {
+                this.current_report.properties.fields = [];
+            }
+            this.current_report.properties.fields.push({name : name, label : name});
+            this.current_report.save('fields');
         }
-    })
-
+    },
 });
 
-function move_trend(name) {
-    wing.info(name);
-    $('#available_fields li[name="'+name+'"]').appendTo('#report_root');
-    save_report();
+function edit_report(report) {
+    app.$data.current_report = report;
 }
-
-function save_report() {
-    var formatted = [];
-    $.each($('#report_root li input'), function(index,input) {
-        formatted.push({name : input.name, label : input.value});
-    });
-    wing.ajax('PUT','trendsreport/'+$('#report_id').val(), {
-        fields : window.JSON.stringify(formatted),
-        name : $('#report_name').val()
-    }, function(data, text_status, jqxhr) {
-        wing.success('Saved report.')
-    });
-}
-
-function build_report(report) {
-    var available_fields = all_fields.slice(0); // clone array
-    $('#report_id').val(report.id);
-    $('#report_name').val(report.name);
-    $('#report_root').html('');
-    for (var x in report.fields) {
-        var field = report.fields[x];
-        $('#report_root').append(field_template(field));
-        available_fields.splice(available_fields.indexOf(field.name),1);
-    }
-    $('#available_fields').html('');
-    for (var x in available_fields.sort()) {
-        var name = available_fields[x];
-        $('#available_fields').append(field_template({name : name, label : name}));
-    }
-    $('i').tooltip();
-}
-
-function load_report(id) {
-    wing.ajax('GET', 'trendsreport/'+id, {}, function(data) {
-        build_report(data.result);
-    });
-}
-
-function add_report() {
-    var name = $('#new_report').val();
-    $('#new_report').val('');
-    wing.ajax('POST','trendsreport', { name : name }, function(data) {
-        $('#allreports').append(report_link_template({ id : data.result.id, name : data.result.name}));
-        build_report(data.result);
-    });
-}
-
 </script>
 [% END %]
 [% INCLUDE admin/footer_include.tt %]
