@@ -25,16 +25,16 @@
         <h2>Update API Key Details</h2>
         <div class="form-group">
             <label class="control-label" for="name">Application Name</label>
-            <input class="form-control" type="text" name="name" id="name" v-model="apikey.properties.name" @change="apikey.save('name')">
+            <input class="form-control" type="text" name="name" id="name" v-model="apikey.properties.name" v-autosave="apikey">
             <small class="form-text text-muted">This must be unique among all applications in our system.</small>
         </div>
         <div class="form-group">
             <label for="uri">Application URL</label>
-            <input class="form-control" type="text" name="uri" id="uri" v-model="apikey.properties.uri" @change="apikey.save('uri')">
+            <input class="form-control" type="text" name="uri" id="uri" v-model="apikey.properties.uri" v-autosave="apikey">
             <small class="form-text text-muted">Optional, but appreciated. The URL of your application if it is a web app.</small>
         </div>
         <b-form-group label="Reason" label-for="reason">
-            <textarea rows="5" maxlength="255" class="form-control" name="reason" id="reason" v-model="apikey.properties.reason" @change="apikey.save('reason')"></textarea>
+            <textarea rows="5" maxlength="255" class="form-control" name="reason" id="reason" v-model="apikey.properties.reason" v-autosave="apikey"></textarea>
             <characters-remaining :max="255" :property="apikey.properties.reason"></characters-remaining>
             <small class="form-text text-muted">Optional, but appreciated. The reason you are building your app. What does it do?</small>
         </div>

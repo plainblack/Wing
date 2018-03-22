@@ -1,167 +1,167 @@
 [% page_title = "Tube ${tube_name}" %]
 [% INCLUDE admin/header_include.tt %]
-<div ng-app="wingmanApp" ng-controller="wingmanCtrl" ng-cloak>
+<div id="app">
 
-<h3>Jobs</h3>
-<table class="table table-striped" id="jobs">
-	<tr>
-		<th>Id</th>
-		<th>State</th>
-		<th>Priority</th>
-		<th>Age</th>
-		<th>Time Left</th>
-		<th># Reserves</th>
-		<th># Timeouts</th>
-		<th># Releases</th>
-		<th># Buries</th>
-		<th># Kicks</th>
-	</tr>
-	<tr class="job" ng-repeat="job in jobs" id="job_{{job.id}}">
-		<td><a href="/admin/wingman/jobs/{{job.id}}">{{job.id}}</a></td>
-		<td>{{job.state}}</td>
-		<td>{{job.pri}}</td>
-		<td>{{job.age}}</td>
-		<td>{{job.time_left}}</td>
-		<td>{{job.reserves}}</td>
-		<td>{{job.timeouts}}</td>
-		<td>{{job.releases}}</td>
-		<td>{{job.buries}}</td>
-		<td>{{job.kicks}}</td>
-	</tr>
-</table>
-<button class="btn btn-primary" ng-click="peek('ready');">Peek Ready</button>
-<button class="btn btn-primary" ng-click="peek('delayed');">Peek Delayed</button>
-<button class="btn btn-primary" ng-click="peek('buried');">Peek Buried</button>
+    <h2>Jobs</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+        	<tr>
+        		<th>Id</th>
+        		<th>State</th>
+        		<th>Priority</th>
+        		<th>Age</th>
+        		<th>Time Left</th>
+        		<th># Reserves</th>
+        		<th># Timeouts</th>
+        		<th># Releases</th>
+        		<th># Buries</th>
+        		<th># Kicks</th>
+        	</tr>
+        	<tr v-for="job in jobs">
+        		<td><a :href="'/admin/wingman/jobs/'+job.id">{{job.id}}</a></td>
+        		<td>{{job.state}}</td>
+        		<td>{{job.pri}}</td>
+        		<td>{{job.age}}</td>
+        		<td>{{job.time_left}}</td>
+        		<td>{{job.reserves}}</td>
+        		<td>{{job.timeouts}}</td>
+        		<td>{{job.releases}}</td>
+        		<td>{{job.buries}}</td>
+        		<td>{{job.kicks}}</td>
+        	</tr>
+        </table>
+    </div>
+    <p>
+        <button class="btn btn-primary" @click="peek('ready');">Peek Ready</button>
+        <button class="btn btn-primary" @click="peek('delayed');">Peek Delayed</button>
+        <button class="btn btn-primary" @click="peek('buried');">Peek Buried</button>
+    </p>
 
-<h3>Actions</h3>
-<div class="row">
-	<div class="col-sm-4">
-		<fieldset>
-			<legend>Pause Tube</legend>
-			<form>
-				<div class="form-group">
-					<label class="col-sm-4 control-label" for="pause_seconds">Pause Time (seconds)</label>
-					<div class="col-sm-8">
-						<input class="form-control" type="number" pattern="\d+"  ng-model="pause_seconds" name="pause_seconds"> 
-					</div>
-				</div>
-				<div class="form-group">
-					<div class="col-sm-8">
-						<button class="btn btn-danger" ng-click="pause_tube();">Pause</button>
-					</div>
-				</div>				
-			</form>
-		</fieldset>
-	</div>
-	<div class="col-sm-4">
-		<fieldset>
-			<legend>Add Job</legend>
-			<form id="add_job_form">
-				<div class="form-group">
-					<label class="col-sm-4 control-label" for="phase">Phase</label>
-					<div class="col-sm-8">
-						<input class="form-control" type="text" pattern="\s+" ng-model="new_job.phase" name="phase">
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="col-sm-4 control-label" for="arguments">Arguments (JSON object)</label>
-					<div class="col-sm-8">
-						<textarea ng-model="new_job.arguments" name="arguments" rows="5" class="form-control"></textarea>
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="col-sm-4 control-label" for="priority">Priority</label>
-					<div class="col-sm-8">
-						<input class="form-control" type="number" pattern="\d+" ng-model="new_job.priority" name="priority"> 
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="col-sm-4 control-label" for="delay">Delay</label>
-					<div class="col-sm-8">
-						<input class="form-control" type="number" pattern="\d+" ng-model="new_job.delay" name="delay"> 
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="col-sm-4 control-label" for="ttr">Time To Run (seconds)</label>
-					<div class="col-sm-8">
-						<input class="form-control" type="number" pattern="\d+" ng-model="new_job.ttr" name="ttr"> 
-					</div>
-				</div>
-				<div class="form-group">
-					<div class="col-sm-offset-4 col-sm-8">
-						<button class="btn btn-primary" ng-click="add_job();">Add Job</button>
-					</div>
-				</div>				
-			</form>
-		</fieldset>
-	</div>
-</div>
+    <h2>Actions</h2>
+    <div class="row">
+    	<div class="col-sm">
 
-<h3>All Stats</h3>
+    			<h3>Pause Tube</h3>
+				<div class="form-group">
+					<label for="pause_seconds">Pause Time</label>
+                    <div class="input-group">
+		               <input class="form-control" type="number" pattern="\d+" v-model="pause_seconds" name="pause_seconds">
+                       <div class="input-group-append"><span class="input-group-text">seconds</span></div>
+                    </div>
+				</div>
+				<div class="form-group">
+					<button class="btn btn-danger" @click="pause_tube()">Pause</button>
+				</div>
 
-<table class="table table-striped">
-	[% FOREACH pair IN stats.pairs %]
-	<tr>
-		<th>[% pair.key %]</th>
-		<th>[% pair.value %]</th>
-	</tr>
-	[% END %]
-</table>
+    	</div>
+    	<div class="col-sm">
+
+    			<h3>Add Job</h3>
+				<div class="form-group">
+					<label for="phase">Phase</label>
+					<input class="form-control" type="text" pattern="\s+" v-model="new_job.phase" name="phase">
+				</div>
+				<div class="form-group">
+					<label for="arguments">Arguments</label>
+					<textarea v-model="new_job.arguments" name="arguments" rows="5" class="form-control"></textarea>
+                    <small class="text-muted form-text">Must be a JSON object.</small>
+				</div>
+				<div class="form-group">
+					<label for="priority">Priority</label>
+					<input class="form-control" type="number" pattern="\d+" v-model="new_job.priority" name="priority">
+                    <small class="text-muted form-text">Between 1 and 9999. Smaller is faster.</small>
+				</div>
+				<div class="form-group">
+					<label for="delay">Delay</label>
+                    <div class="input-group">
+    					<input class="form-control" type="number" pattern="\d+" v-model="new_job.delay" name="delay">
+                        <div class="input-group-append"><span class="input-group-text">seconds</span></div>
+                    </div>
+				</div>
+				<div class="form-group">
+					<label for="ttr">Time To Run</label>
+                    <div class="input-group">
+    					<input class="form-control" type="number" pattern="\d+" v-model="new_job.ttr" name="ttr">
+                        <div class="input-group-append"><span class="input-group-text">seconds</span></div>
+                    </div>
+				</div>
+				<div class="form-group">
+					<button class="btn btn-primary" @click="add_job()">Add Job</button>
+				</div>
+
+    	</div>
+    </div>
+
+    <h2>All Stats</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+        	[% FOREACH pair IN stats.pairs %]
+        	<tr>
+        		<th>[% pair.key %]</th>
+        		<th>[% pair.value %]</th>
+        	</tr>
+        	[% END %]
+        </table>
+    </div>
 </div>
 
 [% foot_tags = BLOCK %]
-[% INCLUDE angular_js_include.tt %]
 
 <script type="text/javascript">
 'use strict';
 
-var wingmanapp = angular.module('wingmanApp', []);
 
-wingmanapp.config( function($httpProvider) {
-    $httpProvider.defaults.withCredentials = true;
-    $httpProvider.interceptors.push(wing.angular_http_interceptor);
-});
-
-wingmanapp.controller('wingmanCtrl', function($scope, $http, $filter, $q) {
-
-    $scope.jobs    = [];
-	$scope.pause_seconds = 60;
-	$scope.new_job = {
-		ttr : [% config.ttr || 60 %],
-		delay : [% config.delay || 0 %],
-		priority : [% config.priority || 2000 %],
-		arguments : "{}",
-		phase : 'EmailAllAdmins',
-		tube : "[% tube_name %]",
-	};
-
-	$http.get('/api/wingman/tubes/[% tube_name %]/jobs', {})
-	.success(function (data) {
-		$scope.jobs = data.result.items;
-	});
-
-    $scope.peek = function (type) {
-        $http.get('/api/wingman/tubes/[% tube_name %]/jobs/' + type, { })
-        .success(function (data) {
-			window.location = '/admin/wingman/jobs/' + data.result.id;
+new Vue({
+    el:     '#app',
+    data:   {
+        jobs : [],
+        pause_seconds : 60,
+        new_job : {
+    		ttr : [% config.ttr || 60 %],
+    		delay : [% config.delay || 0 %],
+    		priority : [% config.priority || 2000 %],
+    		arguments : `{
+    "template" : "generic",
+    "params" : {
+        "subject" : "Howdy",
+        "message" : "This is a test."
+    }
+}`,
+    		phase : 'EmailAllAdmins',
+    		tube : "[% tube_name %]",
+    	},
+    },
+    mounted() {
+        var self = this;
+        axios.get('/api/wingman/tubes/[% tube_name %]/jobs')
+        .then(function(response) {
+            self.jobs = response.data.result.items;
         });
-    };
-
-    $scope.pause_tube = function () {
-        $http.post('/api/wingman/tubes/[% tube_name %]/pause', { seconds : $scope.pause_seconds })
-        .success(function (data) {
-			wing.success('Tube paused.');
-        });
-    };
-
-	$scope.add_job = function () {
-        $http.post('/api/wingman/jobs', $scope.new_job)
-        .success(function (data) {
-			$scope.jobs.push(data.result);
-			wing.success('Job added.');
-        });
-    };
-    
+    },
+    methods : {
+        peek : _.debounce(function(type) { // some browsers fire events before updating the model, this gets around that
+            const self = this;
+            axios.get('/api/wingman/jobs/' + type)
+            .then(function(response) {
+                window.location = '/admin/wingman/jobs/' + response.data.result.id;
+            });
+        },200),
+        pause_tube : function() {
+            const self = this;
+            axios.post('/api/wingman/tubes/[% tube_name %]/pause', { seconds : self.pause_seconds })
+            .then(function(response) {
+                wing.success('Tube paused.');
+            });
+        },
+        add_job : function() {
+            const self = this;
+            axios.post('/api/wingman/jobs', self.new_job)
+            .then(function(response) {
+                self.jobs.push(response.data.result);
+                wing.success('Job added.');
+            });
+        },
+    },
 });
 </script>
 [% END %]

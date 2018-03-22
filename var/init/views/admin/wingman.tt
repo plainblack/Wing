@@ -1,124 +1,124 @@
 [% page_title = "Wingman" %]
 [% INCLUDE admin/header_include.tt %]
 
-<div ng-app="wingmanApp" ng-controller="wingmanCtrl" ng-cloak>
+<div id="app">
+    <h2>Jobs</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+        	<thead>
+        	<tr>
+        		<th>Id</th>
+        		<th>Phase</th>
+        		<th>Tube</th>
+        		<th>State</th>
+        		<th>Priority</th>
+        		<th>Age</th>
+        		<th>Time Left</th>
+        		<th># Reserves</th>
+        		<th># Timeouts</th>
+        		<th># Releases</th>
+        		<th># Buries</th>
+        		<th># Kicks</th>
+        	</tr></thead>
+        	<tbody>
+        		<tr v-for="job in jobs">
+        			<td><a :href="'/admin/wingman/jobs/'+job.id">{{job.id}}</a></td>
+        			<td>{{job.phase}}</td>
+        			<td><a :href="'/admin/wingman/tubes/'+job.tube">{{job.tube}}</a></td>
+        			<td>{{job.state}}</td>
+        			<td>{{job.pri}}</td>
+        			<td>{{job.age}}</td>
+        			<td>{{job.time_left}}</td>
+        			<td>{{job.reserves}}</td>
+        			<td>{{job.timeouts}}</td>
+        			<td>{{job.releases}}</td>
+        			<td>{{job.buries}}</td>
+        			<td>{{job.kicks}}</td>
+        		</tr>
+        	</tbody>
+        </table>
+    </div>
+    <p>
+        <button class="btn btn-primary" @click="peek('ready');">Peek Ready</button>
+        <button class="btn btn-primary" @click="peek('delayed');">Peek Delayed</button>
+        <button class="btn btn-primary" @click="peek('buried');">Peek Buried</button>
+    </p>
 
-<h3>Jobs</h3>
-<table class="table table-striped">
-	<thead>
-	<tr>
-		<th>Id</th>
-		<th>Phase</th>
-		<th>Tube</th>
-		<th>State</th>
-		<th>Priority</th>
-		<th>Age</th>
-		<th>Time Left</th>
-		<th># Reserves</th>
-		<th># Timeouts</th>
-		<th># Releases</th>
-		<th># Buries</th>
-		<th># Kicks</th>
-	</tr></thead>
-	<tbody id="jobs">
-		<tr class="job" ng-repeat="job in jobs" id="job_{{job.id}}">
-			<td><a href="/admin/wingman/jobs/{{job.id}}">{{job.id}}</a></td>
-			<td>{{job.phase}}</td>
-			<td><a href="/admin/wingman/tubes/{{job.tube}}">{{job.tube}}</a></td>
-			<td>{{job.state}}</td>
-			<td>{{job.pri}}</td>
-			<td>{{job.age}}</td>
-			<td>{{job.time_left}}</td>
-			<td>{{job.reserves}}</td>
-			<td>{{job.timeouts}}</td>
-			<td>{{job.releases}}</td>
-			<td>{{job.buries}}</td>
-			<td>{{job.kicks}}</td>
-		</tr>
-	</tbody>
-</table>
-<button class="btn btn-primary" ng-click="peek('ready');">Peek Ready</button>
-<button class="btn btn-primary" ng-click="peek('delayed');">Peek Delayed</button>
-<button class="btn btn-primary" ng-click="peek('buried');">Peek Buried</button>
+    <h2>Tubes</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+        	<thead><tr>
+        		<th>Name</th>
+        		<th># Current Jobs Urgent</th>
+        		<th># Current Jobs Ready</th>
+        		<th># Current Jobs Reserved</th>
+        		<th># Current Jobs Buried</th>
+        		<th># Total Jobs</th>
+        		<th># Workers Waiting</th>
+        		<th>Seconds Paused</th>
+        		<th># Times Paused</th>
+        		<th>Pause Seconds Remaining</th>
+        	</tr></thead>
+        	<tbody id="tubes">
+        		<tr v-for="tube in tubes">
+        			<td><a :href="'/admin/wingman/tubes/'+tube.name">{{tube.name}}</a></td>
+        			<td>{{tube.current_jobs_urgent}}</td>
+        			<td>{{tube.current_jobs_ready}}</td>
+        			<td>{{tube.current_jobs_reserved}}</td>
+        			<td>{{tube.current_jobs_buried}}</td>
+        			<td>{{tube.total_jobs}}</td>
+        			<td>{{tube.current_waiting}}</td>
+        			<td>{{tube.pause}}</td>
+        			<td>{{tube.cmd_pause_tube}}</td>
+        			<td>{{tube.pause_time_left}}</td>
+        		</tr>
+        	</tbody>
+        </table>
+    </div>
 
-<h3>Tubes</h3>
-<table class="table table-striped">
-	<thead><tr>
-		<th>Name</th>
-		<th># Current Jobs Urgent</th>
-		<th># Current Jobs Ready</th>
-		<th># Current Jobs Reserved</th>
-		<th># Current Jobs Buried</th>
-		<th># Total Jobs</th>
-		<th># Workers Waiting</th>
-		<th>Seconds Paused</th>
-		<th># Times Paused</th>
-		<th>Pause Seconds Remaining</th>
-	</tr></thead>
-	<tbody id="tubes">
-		<tr class="tube" ng-repeat="tube in tubes" id="tube_{{tube.name}}">
-			<td><a href="/admin/wingman/tubes/{{tube.name}}">{{tube.name}}</a></td>
-			<td>{{tube.current_jobs_urgent}}</td>
-			<td>{{tube.current_jobs_ready}}</td>
-			<td>{{tube.current_jobs_reserved}}</td>
-			<td>{{tube.current_jobs_buried}}</td>
-			<td>{{tube.total_jobs}}</td>
-			<td>{{tube.current_waiting}}</td>
-			<td>{{tube.pause}}</td>
-			<td>{{tube.cmd_pause_tube}}</td>
-			<td>{{tube.pause_time_left}}</td>
-		</tr>	
-	</tbody>
-</table>
-
-<h3>All Stats</h3>
-
-<table class="table table-striped">
-	[% FOREACH pair IN stats.pairs %]
-	<tr>
-		<th>[% pair.key %]</th>
-		<th>[% pair.value %]</th>
-	</tr>
-	[% END %]
-</table>
-
+    <h2>All Stats</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+        	[% FOREACH pair IN stats.pairs %]
+        	<tr>
+        		<th>[% pair.key %]</th>
+        		<th>[% pair.value %]</th>
+        	</tr>
+        	[% END %]
+        </table>
+    </div>
 </div>
 
 [% foot_tags = BLOCK %]
-[% INCLUDE angular_js_include.tt %]
-
 <script type="text/javascript">
 'use strict';
 
-var wingmanapp = angular.module('wingmanApp', []);
-
-wingmanapp.config( function($httpProvider) {
-    $httpProvider.defaults.withCredentials = true;
-    $httpProvider.interceptors.push(wing.angular_http_interceptor);
-});
-
-wingmanapp.controller('wingmanCtrl', function($scope, $http, $filter, $q) {
-
-    $scope.jobs    = []; 
-    $scope.tubes    = []; 
-
-	$http.get('/api/wingman/jobs', {})
-	.success(function (data) {
-		$scope.jobs = data.result.items;
-	});
-
-	$http.get('/api/wingman/tubes', {})
-	.success(function (data) {
-		$scope.tubes = data.result.items;
-	});
-
-    $scope.peek = function (type) {
-        $http.get('/api/wingman/jobs/' + type, { })
-        .success(function (data) {
-			window.location = '/admin/wingman/jobs/' + data.result.id;
+new Vue({
+    el:     '#app',
+    data:   {
+        tubes : [],
+        jobs : [],
+    },
+    mounted() {
+        var self = this;
+        axios.get('/api/wingman/tubes')
+        .then(function(response) {
+            self.tubes = response.data.result.items;
         });
-    };
-    
+        axios.get('/api/wingman/jobs')
+        .then(function(response) {
+            self.jobs = response.data.result.items;
+        });
+    },
+    methods : {
+        peek : _.debounce(function(type) { // some browsers fire events before updating the model, this gets around that
+            const self = this;
+            axios.get('/api/wingman/jobs/' + type)
+            .then(function(response) {
+                window.location = '/admin/wingman/jobs/' + response.data.result.id;
+            });
+        },200),
+    },
 });
 </script>
 [% END %]

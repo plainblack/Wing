@@ -20,20 +20,20 @@ get '/api/wingman/tubes' => sub {
     my @tubes = ();
     foreach my $tube ($wingman->list_tubes) {
         push @tubes, $wingman->stats_tube_as_hashref($tube);
-    }    
+    }
     return {
         items => \@tubes,
-        paging => { # simulating paging 
+        paging => { # simulating paging
             total_items             => scalar @tubes,
             total_pages             => 1,
             page_number             => 1,
             items_per_page          => 1,
             next_page_number        => 1,
             previous_page_number    => 1,
-        },  
+        },
     };
 };
- 
+
 get '/api/wingman/tubes/:tube/stats' => sub {
     my $user = get_user_by_session_id()->verify_is_admin();
     return Wingman->new->stats_tube_as_hashref(params->{tube});
@@ -55,14 +55,14 @@ get '/api/wingman/tubes/:tube/jobs' => sub {
     }
     return {
         items => \@jobs,
-        paging => { # simulating paging 
+        paging => { # simulating paging
             total_items             => scalar @jobs,
             total_pages             => 1,
             page_number             => 1,
             items_per_page          => 1,
             next_page_number        => 1,
             previous_page_number    => 1,
-        },  
+        },
     };
 };
 
@@ -121,14 +121,14 @@ get '/api/wingman/jobs' => sub {
     }
     return {
         items => \@jobs,
-        paging => { # simulating paging 
+        paging => { # simulating paging
             total_items             => scalar @jobs,
             total_pages             => 1,
             page_number             => 1,
             items_per_page          => 1,
             next_page_number        => 1,
             previous_page_number    => 1,
-        },  
+        },
     };
 };
 

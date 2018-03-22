@@ -30,7 +30,7 @@
         <div class="col">
             <div class="form-group" v-for="report in reports.objects">
                 <div class="input-group">
-                    <input type="text" class="form-control" v-model="report.properties.name" @change="report.save('name')" placeholder="Name">
+                    <input type="text" class="form-control" v-model="report.properties.name" v-autosave="report" placeholder="Name">
                     <div class="input-group-append">
                         <button class="btn btn-primary" @click="edit_report(report)"><i class="fas fa-edit"></i></button>
                         <button class="btn btn-danger" @click="report.delete()"><i class="fas fa-trash-alt"></i></button>

@@ -1,128 +1,100 @@
 [% page_title = "Job ${job_id}" %]
 [% INCLUDE admin/header_include.tt %]
 
-<div ng-app="wingmanApp" ng-controller="wingmanCtrl" ng-cloak>
+<div id="app">
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+        	<tr>
+        		<th>Phase</th>
+        		<th>Arguments</th>
+        		<th>Tube</th>
+        		<th>State</th>
+        		<th>Priority</th>
+        		<th>Age</th>
+        		<th>Time Left</th>
+        		<th># Reserves</th>
+        		<th># Timeouts</th>
+        		<th># Releases</th>
+        		<th># Buries</th>
+        		<th># Kicks</th>
+        	</tr>
+        	<tbody id="jobs">
+        		<tr class="job" id="job_{{job.id}}">
+        			<td>{{job.phase}}</td>
+        			<td>{{job.arguments}}</td>
+        			<td><a :href="'/admin/wingman/tubes/'+job.tube">{{job.tube}}</a></td>
+        			<td>{{job.state}}</td>
+        			<td>{{job.pri}}</td>
+        			<td>{{job.age}}</td>
+        			<td>{{job.time_left}}</td>
+        			<td>{{job.reserves}}</td>
+        			<td>{{job.timeouts}}</td>
+        			<td>{{job.releases}}</td>
+        			<td>{{job.buries}}</td>
+        			<td>{{job.kicks}}</td>
+        		</tr>
+        	</tbody>
+        </table>
+    </div>
 
-<table class="table">
-	<tr>
-		<th>Phase</th>
-		<th>Arguments</th>
-		<th>Tube</th>
-		<th>State</th>
-		<th>Priority</th>
-		<th>Age</th>
-		<th>Time Left</th>
-		<th># Reserves</th>
-		<th># Timeouts</th>
-		<th># Releases</th>
-		<th># Buries</th>
-		<th># Kicks</th>
-	</tr>
-	<tbody id="jobs">
-		<tr class="job" id="job_{{job.id}}">
-			<td>{{job.phase}}</td>
-			<td>{{to_json(job.arguments)}}</td>
-			<td><a href="/admin/wingman/tubes/{job.{tube}}">{{job.tube}}</a></td>
-			<td>{{job.state}}</td>
-			<td>{{job.pri}}</td>
-			<td>{{job.age}}</td>
-			<td>{{job.time_left}}</td>
-			<td>{{job.reserves}}</td>
-			<td>{{job.timeouts}}</td>
-			<td>{{job.releases}}</td>
-			<td>{{job.buries}}</td>
-			<td>{{job.kicks}}</td>
-		</tr>		
-	</tbody>
-</table>
+    <h2>Actions</h2>
+    <p>
+		<button class="btn btn-danger" @click="delete_job()">Delete Job</button>
+    	<button v-if="job.state == 'buried'" class="btn btn-primary" @click="kick_job()">Kick Job</button>
+    </p>
 
-<h3>Actions</h3>
-<div class="row">
-	<div class="col-sm-2">
-		<fieldset>
-			<legend>Delete</legend>
-			<form>
-				<div class="form-group">
-					<div class="col-sm-8">
-						<button class="btn btn-danger" ng-click="delete_job();">Delete Job</button>
-					</div>
-				</div>				
-			</form>
-		</fieldset>
-	</div>
-	<div class="col-sm-2" id="kick" ng-if="job.state == 'buried'">
-		<fieldset>
-			<legend>Kick</legend>
-			<form>
-				<div class="form-group">
-					<div class="col-sm-offset-4 col-sm-8">
-						<button class="btn btn-primary" ng-click="kick_job();">Kick Job</button>
-					</div>
-				</div>				
-			</form>
-		</fieldset>
-	</div>
-</div>
-
-<h3>All Stats</h3>
-
-<table class="table table-striped">
-	[% FOREACH pair IN stats.pairs %]
-	<tr>
-		<th>[% pair.key %]</th>
-		<th>[% pair.value %]</th>
-	</tr>
-	[% END %]
-</table>
-
+    <h2>All Stats</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+        	[% FOREACH pair IN stats.pairs %]
+        	<tr>
+        		<th>[% pair.key %]</th>
+        		<th>[% pair.value %]</th>
+        	</tr>
+        	[% END %]
+        </table>
+    </div>
 </div>
 
 [% foot_tags = BLOCK %]
-[% INCLUDE angular_js_include.tt %]
 
 <script type="text/javascript">
 'use strict';
 
-function to_json(object) {
-    return window.JSON.stringify(object);
-}
-
-
-var wingmanapp = angular.module('wingmanApp', []);
-
-wingmanapp.config( function($httpProvider) {
-    $httpProvider.defaults.withCredentials = true;
-    $httpProvider.interceptors.push(wing.angular_http_interceptor);
-});
-
-wingmanapp.controller('wingmanCtrl', function($scope, $http, $filter, $q) {
-
-    $scope.job_id = '[% job_id %]';
-
-	$http.get('/api/wingman/jobs/'+$scope.job_id, {})
-	.success(function (data) {
-		$scope.job = data.result;
-	});
-	
-    $scope.kick_job = function (type) {
-        $http.post('/api/wingman/jobs/'+$scope.job_id+'/kick', { })
-        .success(function (data) {
-			$scope.job = data.result;
-			wing.success('Job kicked.');
+new Vue({
+    el:     '#app',
+    data:   {
+        job_id : '[% job_id %]',
+        job : {},
+    },
+    mounted() {
+        var self = this;
+        axios.get('/api/wingman/jobs/'+self.job_id)
+        .then(function(response) {
+            self.job = response.data.result;
         });
-    };
-    
-    $scope.delete_job = function (type) {
-		if (confirm('Are you sure you want to delete this job?')) {
-			$http.delete('/api/wingman/jobs/'+$scope.job_id, { })
-			.success(function (data) {
-				wing.success('Job deleted.');
-				window.location = '/admin/wingman';
-			});
-		}
-    };
-
+    },
+    methods : {
+        delete_job : function() {
+            const self = this;
+            if (confirm('Are you sure you want to delete this job?')) {
+                axios.delete('/api/wingman/jobs/'+self.job_id)
+                .then(function(response) {
+                    window.location = '/admin/wingman';
+                });
+            }
+        },
+        kick_job : function() {
+            const self = this;
+            axios.post('/api/wingman/jobs/'+self.job_id+'/kick')
+            .then(function(response) {
+                self.job = response.data.result;
+                wing.success('Job kicked.');
+            });
+        },
+    },
 });
+
 </script>
 [% END %]
 [% INCLUDE admin/footer_include.tt %]

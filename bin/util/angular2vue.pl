@@ -1,11 +1,27 @@
 #!/data/apps/bin/perl -pi
 
 # migrate models and autosaves
-if (/^\s*<(input|textarea|select)/i) {
+if (/^\s*<(select)/i) {
     my ($formname) = m/ng-model="\w+.properties.(\w+)"/;
     s/autosave=.(\w+)./\@change="$1\.save('$formname')"/;
-    s/ng-model/v-model/;
+    s/\sng-model=/ v-model=/;
 }
+if (/^\s*<(input|textarea)/i) {
+    s/\sautosave=/ v-autosave=/;
+    s/\sng-model=/ v-model=/;
+}
+
+# migrate buttons
+s/\sng-click=/ \@click=/;
+
+# migrate loops
+s/\sng-repeat=/ v-for=/;
+
+# migrate conditions
+s/\sng-if=/ v-if=/;
+s/\sng-show=/ v-show=/;
+s/\sng-hide="/ v-show="!/;
+s/\sng-hide='/ v-show='!/;
 
 # migrate wing-select
 if (/^\s*<(wing-select)/i) {
