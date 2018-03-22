@@ -1,4 +1,48 @@
 /*
+ * Automatically save an input field.
+ */
+
+Vue.directive('autosave', {
+    inserted: function (el, binding, vnode) {
+        const index = _.findIndex(vnode.data.directives, {rawName : 'v-model'});
+        if (index == -1) {
+            console.log('Cannot use v-autosave unless on an element with a v-model.');
+        }
+        else {
+            const field = vnode.data.directives[index].expression.split(/\./)[2];
+            var timer;
+            var original_value = binding.value.properties[field];
+            const debounce = function(e) {
+                if (timer) {
+                    clearTimeout(timer);
+                }
+                if (e.keyCode == 13 && el.tagName != 'TEXTAREA') {
+                    binding.value.save(field);
+                }
+                else {
+                    timer = setTimeout(function() {
+                        if (original_value != binding.value.properties[field]) {
+                            original_value = binding.value.properties[field];
+                            binding.value.save(field);
+                        }
+                    }, 2000);
+                }
+            }
+            el.addEventListener('keyup', debounce, false);
+            el.addEventListener('change', debounce, false);
+            el.addEventListener('focus', debounce, false);
+            el.addEventListener('blur', function(){
+                if (original_value != binding.value.properties[field]) {
+                    clearTimeout(timer);
+                    original_value = binding.value.properties[field];
+                    binding.value.save(field);
+                }
+            }, false);
+        }
+    },
+});
+
+/*
  * A component to generate select lists from wing options.
  */
 
