@@ -1,27 +1,61 @@
 [% page_title = [%[ lower_class ]%].name %]
 [% INCLUDE header_include.tt %]
-<div class="container">
-    <h1><a href="/[%[ lower_class ]%]s">[%[ class_name ]%]s</a> &gt; [% page_title %]</h1>
+<div class="container-fluid" id="app">
+    <br>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/[%[ lower_class ]%]s">[%[ class_name ]%]s</a></li>
+        <li class="breadcrumb-item active" aria-current="page">[% page_title %]</li>
+      </ol>
+    </nav>
+    <h1>[% page_title %]</h1>
     <div>
-    [%[ IF public_params.size ]%][%[ FOREACH field IN postable_params ]%]
+    [%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%]
         <div>
-            <b>[%[ field.ucfirst ]%]:</b> [%[ IF field == 'user_id' ]%][% [%[ lower_class ]%].user.display_name %] ([% [%[ lower_class ]%].user_id %])[%[ ELSIF field_options.exists(field) ]%][% [%[ lower_class ]%]._options._[%[ field ]%].${[%[ lower_class ]%].[%[ field ]%]} %][%[ ELSE ]%][% [%[ lower_class ]%].[%[ field ]%] %][%[ END ]%]
+            <b>[%[ field.ucfirst ]%]:</b> [%[ IF field == 'user_id' ]%]<a href="[%[ lower_class ]%].user.view_uri">[% [%[ lower_class ]%].user.display_name %]</a> ([% [%[ lower_class ]%].user_id %])[%[ ELSIF field_options.exists(field) ]%][% [%[ lower_class ]%]._options._[%[ field ]%].${[%[ lower_class ]%].[%[ field ]%]} %][%[ ELSE ]%][% [%[ lower_class ]%].[%[ field ]%] %][%[ END ]%]
         </div>
     [%[ END ]%][%[ END ]%]
     [%[ IF admin_viewable_params.size ]%][%[ FOREACH field IN admin_viewable_params ]%]
         [% IF current_user.is_admin %]
             <div>
-                <b>[%[ field.ucfirst ]%]:</b> [%[ IF field == 'user_id' ]%][% [%[ lower_class ]%].user.display_name %] ([% [%[ lower_class ]%].user_id %])[%[ ELSIF field_options.exists(field) ]%][% [%[ lower_class ]%]._options._[%[ field ]%].${[%[ lower_class ]%].[%[ field ]%]} %][%[ ELSE ]%][% [%[ lower_class ]%].[%[ field ]%] %][%[ END ]%]
+                <b>[%[ field.ucfirst ]%]:</b> [%[ IF field == 'user_id' ]%]<a href="[%[ lower_class ]%].user.view_uri">[% [%[ lower_class ]%].user.display_name %]</a> ([% [%[ lower_class ]%].user_id %])[%[ ELSIF field_options.exists(field) ]%][% [%[ lower_class ]%]._options._[%[ field ]%].${[%[ lower_class ]%].[%[ field ]%]} %][%[ ELSE ]%][% [%[ lower_class ]%].[%[ field ]%] %][%[ END ]%]
             </div>
         [% END %]
     [%[ END ]%][%[ END ]%]
     </div>
 
     [% IF [%[ lower_class ]%].can_edit %]
-        <hr>
-        <a href="[% [%[ lower_class ]%].edit_uri %]" class="btn btn-success">Edit</a>
-        <button class="btn btn-danger" onclick="wing.delete_object('[%[ lower_class ]%]','');">Delete</button>
+        <br>
+        <div class="card">
+            <h2 class="card-header">Manage</h2>
+            <div class="card-body">
+                <a href="[% [%[ lower_class ]%].edit_uri %]" class="btn btn-success"><i class="fas fa-edit"></i> Edit</a>
+                <button class="btn btn-danger" @click="[%[ lower_class ]%].delete()"><i class="fas fa-trash-alt"></i> Delete</button>
+            </div>
+        </div>
     [% END %]
 </div>
-   
+
+[% foot_tags = BLOCK %]
+[% USE JSON.Escape %]
+<script>
+
+new Vue({
+    el:     '#app',
+    data:   {
+        [%[ lower_class ]%] : wing.object({
+            properties : [% [%[ lower_class ]%].json %],
+            params : {
+                _include_options : 1,
+                _include_related_objects : ['user'],
+            },
+            on_delete : function(properties) {
+                window.location.href = '/[%[ lower_class ]%]s'
+            },
+        }),
+    },
+});
+</script>
+[% END %]
 [% INCLUDE footer_include.tt %]

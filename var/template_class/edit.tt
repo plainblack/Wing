@@ -1,71 +1,62 @@
-[% page_title = "Edit [%[ class_name ]%]" %]
+[% page_title = "Edit ${[%[ lower_class ]%].name}" %]
 [% INCLUDE header_include.tt %]
-<div class="container" ng-app="[%[ lower_class ]%]App" ng-controller="[%[ lower_class ]%]Ctrl" ng-cloak>
-    <h1><a href="/[%[ lower_class ]%]s">[%[ class_name ]%]s</a> &gt; <a href="{{[%[ lower_class ]%].properties.view_uri}}">{{[%[ lower_class ]%].properties.name}}</a> &gt; Edit</h1>
+<div class="container-fluid" id="app">
+    <br>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/[%[ lower_class ]%]s">[%[ class_name ]%]s</a></li>
+        <li class="breadcrumb-item"><a :href="[%[ lower_class ]%].properties.view_uri">{{[%[ lower_class ]%].properties.name}}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+      </ol>
+    </nav>
+    <h1>Edit {{[%[ lower_class ]%].properties.name}}</h1>
 
-    <form>
-		<fieldset>
-			<legend>[%[ class_name ]%]</legend>
-			[%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%]
-			<div class="form-group">
-				<label class="control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-				<div>
-					[%[ IF field_options.exists(field) ]%]<wing-select object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select>[%[ ELSE ]%]<input class="form-control" type="text" id="[%[ field ]%]" autosave="[%[ lower_class ]%]" ng-model="[%[ lower_class ]%].properties.[%[ field ]%]">[%[ END ]%]
-				</div>
-			</div>
-			[%[ END ]%][%[ END ]%]
-		</fieldset>
+		[%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%]
+		<div class="form-group">
+			<label for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+			[%[ IF field_options.exists(field) ]%]<wing-select :object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select>[%[ ELSE ]%]<input class="form-control" type="text" id="[%[ field ]%]" v-autosave="[%[ lower_class ]%]" v-model="[%[ lower_class ]%].properties.[%[ field ]%]">[%[ END ]%]
+		</div>
+		[%[ END ]%][%[ END ]%]
+
         [%[ IF admin_postable_params.size ]%]
         [% IF current_user.is_admin %]
-			<fieldset>
-				<legend>Admin Only</legend>
+
+        <div class="card">
+            <h2 class="card-header">Admin Only</h2>
+            <div class="card-body">
 				[%[ FOREACH field IN admin_postable_params ]%]
 				[% field %]
 				<div class="form-group">
-					<label class="control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-					<div>
-						[%[ IF field_options.exists(field) ]%]<wing-select object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select>[%[ ELSE ]%]<input class="form-control" type="text" id="[%[ field ]%]" autosave="[%[ lower_class ]%]" ng-model="[%[ lower_class ]%].properties.[%[ field ]%]">[%[ END ]%]
-					</div>
+					<label for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+					[%[ IF field_options.exists(field) ]%]<wing-select :object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select>[%[ ELSE ]%]<input class="form-control" type="text" id="[%[ field ]%]" v-autosave="[%[ lower_class ]%]" v-model="[%[ lower_class ]%].properties.[%[ field ]%]">[%[ END ]%]
 				</div>
 				[%[ END ]%]
-			</fieldset>
+            </div>
+        </div>
         [% END %]
         [%[ END ]%]
-    </form>
-
-    <hr>
-    <a href="{{[%[ lower_class ]%].properties.view_uri}}" class="btn btn-default">View</a>
 
 </div>
 
 [% foot_tags = BLOCK %]
-[% INCLUDE angular_js_include.tt %]
-[% INCLUDE bootstrapui_js_include.tt %]
+[% USE JSON.Escape %]
+<script>
 
-<script type="text/javascript">
-'use strict';
-
-var [%[ lower_class ]%]app = angular.module('[%[ lower_class ]%]App', ['ui.bootstrap','wing']);
-
-[%[ lower_class ]%]app.controller('[%[ lower_class ]%]Ctrl', function($scope, $http, objectManager) {
-
-    $scope.[%[ lower_class ]%] = new objectManager({
-		fetch_options : {
-			_include_relationships: 1,
-			_include_related_objects: 1,
-			_include_options: 1,
-		},
-		fetch_api : '[% [%[ lower_class ]%]._relationships.self %]',
-		on_update : function(properties, index) {
-			wing.success(properties.name + ' saved.');
-		},
-		on_delete : function(properties) {
-			wing.success(properties.name + ' deleted.');
-		},
-	});
-	$scope.[%[ lower_class ]%].fetch();    
+new Vue({
+    el:     '#app',
+    data:   {
+        [%[ lower_class ]%] : wing.object({
+            properties : [% [%[ lower_class ]%].json %],
+            params : {
+                _include_options : 1,
+            },
+            on_update : function(properties) {
+                wing.success(properties.name + ' saved.');
+            },
+        }),
+    },
 });
 </script>
 [% END %]
-
 [% INCLUDE footer_include.tt %]

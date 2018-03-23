@@ -47,6 +47,18 @@ axios.interceptors.response.use(function (response) {
 });
 
 /*
+ * Throbber progress bar element
+ */
+
+var throbber = document.createElement('div');
+throbber.innerHTML = `<div id="wingajaxprogress" style="z-index: 10000; position: fixed; top: 0px; width: 100%;">
+    <template v-if="counter > 0"><b-progress :value="counter" :max="max" height="5px" animated></b-progress></template>
+</div>`;
+document.body.appendChild(throbber);
+
+
+
+/*
  * Format a date
  */
 
@@ -125,14 +137,33 @@ Vue.component('wing-select', {
   </select>`,
   props: ['object','property'],
   methods : {
-    options : function() {
+    options() {
         if ('_options' in this.object.properties) {
             return this.object.properties._options[this.property];
         }
         return [];
     },
-    _option: function(option) {
+    _option(option) {
         return this.object.properties._options['_'+this.property][option];
+    },
+  },
+});
+
+/*
+ * A component to generate select lists from wing options.
+ */
+
+Vue.component('wing-select-new', {
+  template : `<select class="form-control" v-model="object[property]">
+    <option v-for="option in field_options()" :value="option">{{_field_option(option)}}</option>
+  </select>`,
+  props: ['options','object','property'],
+  methods : {
+    field_options () {
+        return this.options[this.property];
+    },
+    _field_option(option) {
+        return this.options['_'+this.property][option];
     },
   },
 });
@@ -166,19 +197,9 @@ Vue.component('characters-remaining', {
  */
 
 Vue.component('confirmation-toggle', {
-    template : `<button class="btn btn-danger" @click="wing.confirmations.toggle()" v-if="wing.confirmations.enabled()">Disable Confirmations</button>
-                <button class="btn btn-secondary" @click="wing.confirmations.toggle()" v-else>Enable Confirmations</button>`,
+    template : `<button v-if="wing.confirmations.enabled()" class="btn btn-danger" @click="wing.confirmations.toggle()"><i class="fas fa-minus-circle"></i> Disable Confirmations</button>
+                <button v-else class="btn btn-secondary" @click="wing.confirmations.toggle()"><i class="fas fa-check-circle"></i> Enable Confirmations</button>`,
 });
-
-/*
- * Throbber progress bar element
- */
-
-var throbber = document.createElement('div');
-throbber.innerHTML = `<div id="wingajaxprogress" style="z-index: 10000; position: fixed; top: 0px; width: 100%;">
-    <template v-if="counter > 0"><b-progress :value="counter" :max="max" height="5px" animated></b-progress></template>
-</div>`;
-document.body.appendChild(throbber);
 
 
 /*
@@ -437,6 +458,7 @@ const wing = {
         params : _.defaultsDeep({}, behavior.params, { _include_relationships : 1}),
         objects : [],
         paging : {},
+        field_options : {},
         items_per_page_options : [
             { value : 5, text : "5 per page" },
             { value : 10, text : "10 per page" },
@@ -623,19 +645,16 @@ const wing = {
             return behavior.create_api + '/_options';
         },
 
-        fetch_options : function(store_data_here, options) {
+        fetch_options : function(options) {
             const self = this;
             const promise = axios({
                 method: 'get',
                 url: self.options_api(),
-                params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
             promise.then(function (response) {
                 const data = response.data;
-                for(var key in data.result) {
-                    store_data_here[key] = data.result[key];
-                }
+                self.field_options = data.result;
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                     options.on_success(data.result);
                 }

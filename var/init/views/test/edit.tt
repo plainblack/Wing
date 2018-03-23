@@ -1,99 +1,82 @@
-[% page_title = "Edit Test" %]
+[% page_title = "Edit ${test.name}" %]
 [% INCLUDE header_include.tt %]
-<div class="container" ng-app="testApp" ng-controller="testCtrl" ng-cloak>
-    <h1><a href="/tests">Tests</a> &gt; <a href="{{test.properties.view_uri}}">{{test.properties.name}}</a> &gt; Edit</h1>
+<div class="container-fluid" id="app">
+    <br>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/tests">Tests</a></li>
+        <li class="breadcrumb-item"><a :href="test.properties.view_uri">{{test.properties.name}}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+      </ol>
+    </nav>
+    <h1>Edit {{test.properties.name}}</h1>
 
-    <form class="form-horizontal">
-		<fieldset>
-			<legend>Test</legend>
-			
-			<div class="form-group">
-				<label class="col-sm-4 control-label" for="is_cool">Is_cool</label>
-				<div class="col-sm-8">
-					<wing-select object="test" property="is_cool"></wing-select>
-				</div>
-			</div>
-			
-			<div class="form-group">
-				<label class="col-sm-4 control-label" for="name">Name</label>
-				<div class="col-sm-8">
-					<input class="form-control" type="text" id="name" autosave="test" ng-model="test.properties.name">
-				</div>
-			</div>
-			
-			<div class="form-group">
-				<label class="col-sm-4 control-label" for="description">Description</label>
-				<div class="col-sm-8">
-					<input class="form-control" type="text" id="description" autosave="test" ng-model="test.properties.description">
-				</div>
-			</div>
-			
-			<div class="form-group">
-				<label class="col-sm-4 control-label" for="end_date">End_date</label>
-				<div class="col-sm-8">
-					<input class="form-control" type="text" id="end_date" autosave="test" ng-model="test.properties.end_date">
-				</div>
-			</div>
-			
-			<div class="form-group">
-				<label class="col-sm-4 control-label" for="start_date">Start_date</label>
-				<div class="col-sm-8">
-					<input class="form-control" type="text" id="start_date" autosave="test" ng-model="test.properties.start_date">
-				</div>
-			</div>
-			
-		</fieldset>
+		
+		<div class="form-group">
+			<label for="is_cool">Is_cool</label>
+			<wing-select :object="test" property="is_cool"></wing-select>
+		</div>
+		
+		<div class="form-group">
+			<label for="name">Name</label>
+			<input class="form-control" type="text" id="name" v-autosave="test" v-model="test.properties.name">
+		</div>
+		
+		<div class="form-group">
+			<label for="description">Description</label>
+			<input class="form-control" type="text" id="description" v-autosave="test" v-model="test.properties.description">
+		</div>
+		
+		<div class="form-group">
+			<label for="end_date">End_date</label>
+			<input class="form-control" type="text" id="end_date" v-autosave="test" v-model="test.properties.end_date">
+		</div>
+		
+		<div class="form-group">
+			<label for="start_date">Start_date</label>
+			<input class="form-control" type="text" id="start_date" v-autosave="test" v-model="test.properties.start_date">
+		</div>
+		
+
         
         [% IF current_user.is_admin %]
-			<fieldset>
-				<legend>Admin Only</legend>
+
+        <div class="card">
+            <h2 class="card-header">Admin Only</h2>
+            <div class="card-body">
 				
 				[% field %]
 				<div class="form-group">
-					<label class="col-sm-4 control-label" for="status">Status</label>
-					<div class="col-sm-8">
-						<wing-select object="test" property="status"></wing-select>
-					</div>
+					<label for="status">Status</label>
+					<wing-select :object="test" property="status"></wing-select>
 				</div>
 				
-			</fieldset>
+            </div>
+        </div>
         [% END %]
         
-    </form>
-
-    <hr>
-    <a href="{{test.properties.view_uri}}" class="btn btn-secondary">View</a>
 
 </div>
 
 [% foot_tags = BLOCK %]
-[% INCLUDE angular_js_include.tt %]
-[% INCLUDE bootstrapui_js_include.tt %]
+[% USE JSON.Escape %]
+<script>
 
-<script type="text/javascript">
-'use strict';
-
-var testapp = angular.module('testApp', ['ui.bootstrap','wing']);
-
-testapp.controller('testCtrl', function($scope, $http, objectManager) {
-
-    $scope.test = new objectManager({
-		fetch_options : {
-			_include_relationships: 1,
-			_include_related_objects: 1,
-			_include_options: 1,
-		},
-		fetch_api : '[% test._relationships.self %]',
-		on_update : function(properties, index) {
-			wing.success(properties.name + ' saved.');
-		},
-		on_delete : function(properties) {
-			wing.success(properties.name + ' deleted.');
-		},
-	});
-	$scope.test.fetch();    
+new Vue({
+    el:     '#app',
+    data:   {
+        test : wing.object({
+            properties : [% test.json %],
+            params : {
+                _include_options : 1,
+            },
+            on_update : function(properties) {
+                wing.success(properties.name + ' saved.');
+            },
+        }),
+    },
 });
 </script>
 [% END %]
-
 [% INCLUDE footer_include.tt %]

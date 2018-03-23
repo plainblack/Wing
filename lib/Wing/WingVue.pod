@@ -70,8 +70,14 @@ NOTE: You need to include C<wing.confirmations> in the data section of your app 
 
 Generates a select list from from a C<wing.object> field that has enumerated options.
 
-  <wing-select object="user" property="user.properties.name"></wing-select>
+  <wing-select :object="user" property="username"></wing-select>
 
+
+=head2 wing-select-new
+
+Generates a select list from from a C<wing.object_list>'s C<fetch_options> method.
+
+ <wing-select-new :options="users.field_options" :object="new_user" property="admin"></wing-select>
 
 
 
@@ -647,9 +653,9 @@ The exact same method as C<all()> but without a debounce of 200 ms.
 Sets the object list to empty and then returns a reference to the objectListManager.
 
 
-=head3 fetch_options(store_data_here, options)
+=head3 fetch_options(options)
 
-Fetches object creation options. The URI it fetches them from is based upon the C<create_uri> passed into the constructor, unless you specified C<options_api> in the constructor. Stores an object containing information retrieved by C<fetch_creation_options>. This data provides enumerated lists of data that can be used to create or update an object.
+Fetches object creation options. The URI it fetches them from is based upon the C<create_uri> passed into the constructor, unless you specified C<options_api> in the constructor. Stores an object containing information retrieved by C<fetch_options>. The data is placed into the C<object_list>s C<field_options> property. This data provides enumerated lists of data that can be used to create or update an object.
 
  {
       "registration" : [
@@ -673,10 +679,6 @@ Fetches object creation options. The URI it fetches them from is based upon the 
  }
 
 =over
-
-=item store_data_here
-
-Pass in an existing object and the options retrieved will be stored in this location.
 
 =item options
 

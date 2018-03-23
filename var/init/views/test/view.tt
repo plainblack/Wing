@@ -1,7 +1,15 @@
 [% page_title = test.name %]
 [% INCLUDE header_include.tt %]
-<div class="container">
-    <h1><a href="/tests">Tests</a> &gt; [% page_title %]</h1>
+<div class="container-fluid" id="app">
+    <br>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/tests">Tests</a></li>
+        <li class="breadcrumb-item active" aria-current="page">[% page_title %]</li>
+      </ol>
+    </nav>
+    <h1>[% page_title %]</h1>
     <div>
     
         <div>
@@ -25,7 +33,7 @@
         </div>
     
         <div>
-            <b>User_id:</b> [% test.user.display_name %] ([% test.user_id %])
+            <b>User_id:</b> <a href="test.user.view_uri">[% test.user.display_name %]</a> ([% test.user_id %])
         </div>
     
     
@@ -38,10 +46,36 @@
     </div>
 
     [% IF test.can_edit %]
-        <hr>
-        <a href="[% test.edit_uri %]" class="btn btn-success">Edit</a>
-        <button class="btn btn-danger" onclick="wing.delete_object('test','');">Delete</button>
+        <br>
+        <div class="card">
+            <h2 class="card-header">Manage</h2>
+            <div class="card-body">
+                <a href="[% test.edit_uri %]" class="btn btn-success"><i class="fas fa-edit"></i> Edit</a>
+                <button class="btn btn-danger" @click="test.delete()"><i class="fas fa-trash-alt"></i> Delete</button>
+            </div>
+        </div>
     [% END %]
 </div>
-   
+
+[% foot_tags = BLOCK %]
+[% USE JSON.Escape %]
+<script>
+
+new Vue({
+    el:     '#app',
+    data:   {
+        test : wing.object({
+            properties : [% test.json %],
+            params : {
+                _include_options : 1,
+                _include_related_objects : ['user'],
+            },
+            on_delete : function(properties) {
+                window.location.href = '/tests'
+            },
+        }),
+    },
+});
+</script>
+[% END %]
 [% INCLUDE footer_include.tt %]

@@ -1,124 +1,118 @@
 [% page_title = "[%[ class_name ]%]s" %]
 [% INCLUDE header_include.tt %]
 
-<div class="container" ng-app="[%[ lower_class ]%]App" ng-controller="[%[ lower_class ]%]Ctrl" ng-cloak>
-    <div class="row">
-    
-        <div class="col-sm-8">
-            <h1>[% page_title %]</h1>
-            
-            <p>
-                <button class="btn btn-danger" ng-click="confirmations.toggle()"><span class="glyphicon glyphicon-question-sign"></span> <span ng-if="confirmations.disabled()">Enable</span> <span ng-if="confirmations.enabled()">Disable</span> Confirmations</button>
-            </p>
-    
-            <form class="form-search" ng-submit="search()">
-                <div class="input-group">
-                    <input class="form-control" type="text" ng-model="query" class="search-query">
-                    <span class="input-group-btn">
-                        <button ng-click="search();" type="button" class="btn btn-primary">Search</button>
-                    </span>
+<div class="container-fluid" id="app">
+    <br>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">[%[ class_name ]%]s</li>
+      </ol>
+    </nav>
+    [% IF current_user %]<div class="float-right"><confirmation-toggle></confirmation-toggle></div>[% END %]
+    <h1>[% page_title %]</h1>
+
+    <b-input-group>
+        <b-input-group-text slot="prepend">
+            <i class="fas fa-search"></i>
+        </b-input-group-text>
+        <b-form-input type="text" @keyup.native="[%[ lower_class ]%]s.search({ params : {_page_number : 1}})" placeholder="name" v-model="[%[ lower_class ]%]s.params.query"></b-form-input>
+    </b-input-group>
+
+    <b-table hover striped stacked="md" :items="[%[ lower_class ]%]s.objects" :fields="fields">
+        <template slot="properties.name" slot-scope="data"><a :href="data.item.properties.view_uri">{{data.item.properties.name}}</a></template>
+        [%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%][%[ IF field_options.exists(field) ]%]<template slot="properties.[%[ field ]%]" slot-scope="data">{{[%[ lower_class ]%]s.field_options._[%[ field ]%][data.item.properties.[%[ field ]%]]}}</a></template>
+        [%[ ELSIF field.match('date') ]%]<template slot="properties.[%[ field ]%]" slot-scope="data">{{data.item.properties.[%[ field ]%]|moment}}</a></template>
+        [%[ END ]%][%[ END ]%][%[ END ]%]
+        [% IF current_user %]
+            <template slot="manage" slot-scope="data">
+                <b-dropdown variant="success" right split @click="window.location.href=data.item.properties.edit_uri" v-if="data.item.properties.can_edit">
+                 <template slot="button-content"><i class="fas fa-edit"></i> Edit</template>
+                  <b-dropdown-item :href="data.item.properties.view_uri"><i class="fas fa-eye"></i> View</b-dropdown-item>
+                  <b-dropdown-divider></b-dropdown-divider>
+                  <b-dropdown-item-button @click="data.item.delete()" class="text-danger"><i class="fas fa-trash-alt"></i> Delete</b-dropdown-item-button>
+                </b-dropdown>
+            </template>
+        [% END %]
+    </b-table>
+
+    <b-row v-if="[%[ lower_class ]%]s.paging.total_pages > 1">
+        <b-col>
+            <b-pagination size="md" @change="[%[ lower_class ]%]s.search()" :total-rows="[%[ lower_class ]%]s.paging.total_items" v-model="[%[ lower_class ]%]s.paging.page_number" :per-page="[%[ lower_class ]%]s.paging.items_per_page"></b-pagination>
+        </b-col>
+        <b-col lg="2" md="3" sm="4">
+            <b-form-select id="items_per_page" @change="[%[ lower_class ]%]s.search()" v-model="[%[ lower_class ]%]s.paging.items_per_page" :options="[%[ lower_class ]%]s.items_per_page_options" class="mb-3" />
+        </b-col>
+    </b-row>
+
+    <div class="card">
+        <h2 class="card-header">Add A [%[ class_name ]%]</h2>
+        <div class="card-body">
+            [% IF current_user %]
+                [%[ IF required_params.size ]%][%[ FOREACH field IN required_params ]%][%[ NEXT IF field == 'user_id' ]%]
+                <div class="form-group">
+                    <label for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+                    [%[ IF field_options.exists(field) ]%]<wing-select-new :options="[%[ lower_class ]%]s.field_options" :object="new_[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select-new>[%[ ELSE ]%]<input class="form-control" type="text" name="[%[ field ]%]" id="[%[ field ]%]" v-model="new_[%[ lower_class ]%].[%[ field ]%]">[%[ END ]%]
                 </div>
-            </form>
-            
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Last Updated</th>
-                        [% IF current_user.is_admin %]<th>Manage</th>[% END %]
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="[%[ lower_class ]%] in [%[ lower_class ]%]s.objects" id="{{[%[ lower_class ]%].properties.id}}">
-                        <td><a href="{{[%[ lower_class ]%].properties.view_uri}}">{{[%[ lower_class ]%].properties.name}}</a></td>
-                        <td>{{[%[ lower_class ]%].properties.date_updated|datetime:'longDate'}}</td>
-                        <td ng-if="[%[ lower_class ]%].properties.can_edit == 1">
-                            <a href="{{[%[ lower_class ]%].properties.edit_uri}}" class="btn btn-primary">Edit</a>
-                            <button class="btn btn-danger" ng-click="[%[ lower_class ]%].delete()">Delete</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <uib-pagination ng-show="[%[ lower_class ]%]s.paging.total_pages > 1" max-size="5" rotate="false" ng-click="[%[ lower_class ]%]s.search()" items-per-page="[%[ lower_class ]%]s.paging.items_per_page" direction-links="false" boundary-links="true" total-items="[%[ lower_class ]%]s.paging.total_items" ng-model="[%[ lower_class ]%]s.paging.page_number"></uib-pagination>
-    
-        </div><!-- col-sm-8 -->
-        
-        <div class="col-sm-4">
-            <form>
-                <fieldset>
-                    <legend>Create A [%[ class_name ]%]</legend>
-                    [% IF current_user %]
-                        [%[ IF required_params.size ]%][%[ FOREACH field IN required_params ]%][%[ NEXT IF field == 'user_id' ]%]
-                        <div class="form-group">
-                            <label class="control-label" for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-                            <div>
-                                [%[ IF field_options.exists(field) ]%][% INCLUDE select_list_include.tt options=options field="[%[ field ]%]" ng="ng-model=\"new_[%[ lower_class ]%].[%[ field ]%]\"" %][%[ ELSE ]%]<input class="form-control" type="text" name="[%[ field ]%]" id="[%[ field ]%]" value="[% [%[ lower_class ]%].[%[ field ]%] FILTER html %]" ng-model="new_[%[ lower_class ]%].[%[ field ]%]">[%[ END ]%]
-                            </div>
-                        </div>
-                        [%[ END ]%][%[ END ]%]
-                        <div class="form-group">
-                            <div>
-                                <button class="btn btn-primary" ng-click="create()">Create</button>
-                            </div>
-                        </div>
-                    [% ELSE %]
-                        You must <a href="/account?redirect_after=/[%[ lower_class ]%]s">login or create an account</a> to create a new [%[ lower_class ]%].
-                    [% END %]
-                </fieldset>
-            </form>
-        </div><!-- col-sm-4 -->
-        
-    </div><!-- row -->
+                [%[ END ]%][%[ END ]%]
+                <div class="form-group">
+                    <button class="btn btn-success" @click="create()"><i class="fas fa-plus"></i> Create [%[ class_name ]%]</button>
+                </div>
+            [% ELSE %]
+                You must <a href="/account?redirect_after=/[%[ lower_class ]%]s">login or create an account</a> to create a new [%[ lower_class ]%].
+            [% END %]
+        </div>
+    </div>
+
 </div><!-- container -->
 
 [% foot_tags = BLOCK %]
-[% INCLUDE angular_js_include.tt %]
-[% INCLUDE bootstrapui_js_include.tt %]
+
 
 <script type="text/javascript">
 'use strict';
 
-var [%[ lower_class ]%]app = angular.module('[%[ lower_class ]%]App', ['ui.bootstrap','wing']);
 
-[%[ lower_class ]%]app.controller('[%[ lower_class ]%]Ctrl', function($scope, $http, objectListManager, confirmations) {
 
-    $scope.query = ''; // what to search on
-    $scope.new_[%[ lower_class ]%] = {}; // [%[ class_name ]%] to create
-
-    $scope.confirmations = confirmations;
-    
-    $scope.search = function () {
-        // get a list of objects with paging
-        $scope.[%[ lower_class ]%]s = new objectListManager({
-            fetch_options : {
-                query: $scope.query,
-                _include_relationships: 1,
-                _include_related_objects: 1,
-            },
-            list_api : '/api/[%[ lower_class ]%]',
+new Vue({
+    el:     '#app',
+    data:   {
+        confirmations: wing.confirmations,
+        new_[%[ lower_class ]%] : {},
+        fields: [
+            [%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%]{key : 'properties.[%[ field ]%]', label : '[%[ field.ucfirst ]%]'},
+            [%[ END ]%][%[ END ]%]
+            [% IF current_user %]{key : 'manage', label : 'Manage'},[% END %]
+        ],
+        [%[ lower_class ]%]s : wing.object_list({
             create_api : '/api/[%[ lower_class ]%]',
+            list_api : '/api/[%[ lower_class ]%]',
+            params : {
+                _order_by : 'name',
+            },
             on_update : function(properties, index) {
                 wing.success(properties.name + ' saved.');
             },
             on_delete : function(properties) {
                 wing.success(properties.name + ' deleted.');
             },
-        });
-        $scope.[%[ lower_class ]%]s.search(); // calling .all() instead of .search() would return all objects, instead of paging
-    };
-    $scope.search();
-
-    $scope.create = function() {
-        $scope.[%[ lower_class ]%]s.create($scope.new_[%[ lower_class ]%], {
-            on_success : function(properties) {
-                wing.success('[%[ class_name ]%] added.');
+            on_create : function(properties) {
                 window.location.href = properties.edit_uri;
             },
-        })
-    };
-
+        }),
+    },
+    mounted() {
+        const self = this;
+        self.[%[ lower_class ]%]s._search();
+        self.[%[ lower_class ]%]s.fetch_options();
+    },
+    methods : {
+        create() {
+            this.[%[ lower_class ]%]s.create(this.new_[%[ lower_class ]%]);
+        },
+    },
 });
+
 </script>
 [% END %]
 [% INCLUDE footer_include.tt %]
