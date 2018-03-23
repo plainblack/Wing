@@ -1,3 +1,51 @@
+
+/*
+ * Axios global settings
+ */
+
+// send session cookie
+axios.defaults.withCredentials = true;
+//disable IE ajax request caching
+axios.defaults.headers.get['If-Modified-Since'] = 'Mon, 26 Jul 1997 05:00:00 GMT';
+//more cache control
+axios.defaults.headers.get['Cache-Control'] = 'no-cache';
+axios.defaults.headers.get['Pragma'] = 'no-cache';
+axios.interceptors.request.use(function (config) {
+    wing.throbber.working();
+    return config;
+}, function (error) {
+    wing.throbber.done();
+    return Promise.reject(error);
+});
+axios.interceptors.response.use(function (response) {
+    wing.throbber.done();
+    if (response.headers['content-type'] === "application/json; charset=utf-8" && "_warnings" in response.data.result) {
+        for (var warning in response.data.result._warnings) {
+            document.dispatchEvent(new CustomEvent('wing_warn', { message : response.data.result._warnings[warning].message }));
+        }
+    }
+    return response;
+}, function (error) {
+    wing.throbber.done();
+    var message = 'Error communicating with server.';
+    if (error.response.headers['content-type'] === "application/json; charset=utf-8" && "error" in error.response.data) {
+        if (error.response.data.error.code == 401) {
+            message = 'You must <a href="/account" class="btn btn-primary btn-sm">log in</a> to do that.';
+        }
+        else {
+            message = error.response.data.error.message;
+            var matches = message.split(/ /);
+            var field = matches[0].toLowerCase();
+            var label = document.querySelectorAll('label[for="'+field+'"]').innerHtml;
+            if (label) {
+                message = message.replace(field,label);
+            }
+        }
+    }
+    wing.error(message);
+    return Promise.reject(error);
+});
+
 /*
  * Format a date
  */
@@ -114,6 +162,15 @@ Vue.component('characters-remaining', {
 });
 
 /*
+ * A button to toggle confirmations.
+ */
+
+Vue.component('confirmation-toggle', {
+    template : `<button class="btn btn-danger" @click="wing.confirmations.toggle()" v-if="wing.confirmations.enabled()">Disable Confirmations</button>
+                <button class="btn btn-secondary" @click="wing.confirmations.toggle()" v-else>Enable Confirmations</button>`,
+});
+
+/*
  * Throbber progress bar element
  */
 
@@ -125,54 +182,7 @@ document.body.appendChild(throbber);
 
 
 /*
- * Axios global settings
- */
-
-// send session cookie
-axios.defaults.withCredentials = true;
-//disable IE ajax request caching
-axios.defaults.headers.get['If-Modified-Since'] = 'Mon, 26 Jul 1997 05:00:00 GMT';
-//more cache control
-axios.defaults.headers.get['Cache-Control'] = 'no-cache';
-axios.defaults.headers.get['Pragma'] = 'no-cache';
-axios.interceptors.request.use(function (config) {
-    wing.throbber.working();
-    return config;
-}, function (error) {
-    wing.throbber.done();
-    return Promise.reject(error);
-});
-axios.interceptors.response.use(function (response) {
-    wing.throbber.done();
-    if (response.headers['content-type'] === "application/json; charset=utf-8" && "_warnings" in response.data.result) {
-        for (var warning in response.data.result._warnings) {
-            document.dispatchEvent(new CustomEvent('wing_warn', { message : response.data.result._warnings[warning].message }));
-        }
-    }
-    return response;
-}, function (error) {
-    wing.throbber.done();
-    var message = 'Error communicating with server.';
-    if (error.response.headers['content-type'] === "application/json; charset=utf-8" && "error" in error.response.data) {
-        if (error.response.data.error.code == 401) {
-            message = 'You must <a href="/account" class="btn btn-primary btn-sm">log in</a> to do that.';
-        }
-        else {
-            message = error.response.data.error.message;
-            var matches = message.split(/ /);
-            var field = matches[0].toLowerCase();
-            var label = document.querySelectorAll('label[for="'+field+'"]').innerHtml;
-            if (label) {
-                message = message.replace(field,label);
-            }
-        }
-    }
-    wing.error(message);
-    return Promise.reject(error);
-});
-
-/*
- * Wing Factories and Utilities
+ * Wing Factories, Services, and Utilities
  */
 
 const wing = {
@@ -203,35 +213,30 @@ const wing = {
     }),
 
     confirmations : {
-        _enabled : true;
-        return {
-            enabled : function() {
-                return wing.confirmations._enabled;
-            },
-
-            disabled : function() {
-                return !wing.confirmations._enabled;
-            },
-
-            toggle : function() {
-                if (wing.confirmations._enabled == true) {
-                    if (confirm('Are you sure you want to disable confirmations on deletes?')) {
-                        wing.confirmations._enabled = false;
-                    }
+        _enabled : true,
+        enabled () {
+            return wing.confirmations._enabled;
+        },
+        disabled () {
+            return !wing.confirmations._enabled;
+        },
+        toggle () {
+            if (wing.confirmations._enabled == true) {
+                if (confirm('Are you sure you want to disable confirmations on deletes?')) {
+                    wing.confirmations._enabled = false;
                 }
-                else {
-                    wing.confirmations._enabled = true;
-                }
-            },
-
-        };
-    }
+            }
+            else {
+                wing.confirmations._enabled = true;
+            }
+        },
+    },
 
     /*
     * Manages a single wing database record via Ajax.
     */
 
-    object_manager : (behavior) => ({
+    object : (behavior) => ({
 
         id : typeof behavior.properties !== 'undefined' ? behavior.properties.id : null,
         properties : behavior.properties || {},
@@ -427,7 +432,7 @@ const wing = {
     /*
     *   Manages wing lists of objects, like "users" rather than "user"
     */
-    object_list_manager : (behavior) => ({
+    object_list : (behavior) => ({
 
         params : _.defaultsDeep({}, behavior.params, { _include_relationships : 1}),
         objects : [],
@@ -457,9 +462,9 @@ const wing = {
             return self.objects[index];
         },
 
-        _create_object_manager : function(properties) {
+        _create_object : function(properties) {
             const self = this;
-            return wing.object_manager({
+            return wing.object({
                 properties : properties,
                 params : self.params,
                 create_api : behavior.create_api,
@@ -504,7 +509,7 @@ const wing = {
                     self.objects = [];
                 }
                 for (var index = 0; index < data.result.items.length; index++) {
-                    self.objects.push(self._create_object_manager(data.result.items[index]));
+                    self.objects.push(self._create_object(data.result.items[index]));
                     if (typeof options !== 'undefined' && typeof options.on_each !== 'undefined') {
                         options.on_each(data.result.items[index], self.objects[self.objects.length -1]);
                     }
@@ -551,7 +556,7 @@ const wing = {
             promise.then(function (response) {
                 const data = response.data;
                 for (var index in data.result.items) {
-                    self.objects.push(self._create_object_manager(data.result.items[index]));
+                    self.objects.push(self._create_object(data.result.items[index]));
                     if (typeof options !== 'undefined' && typeof options.on_each !== 'undefined') {
                         options.on_each(data.result.items[index], self.objects[self.objects.length -1]);
                     }
@@ -646,7 +651,7 @@ const wing = {
 
         create : function(properties, options) {
             const self = this;
-            const new_object = self._create_object_manager(properties);
+            const new_object = self._create_object(properties);
             const add_it = function() {
                 if (typeof options !== 'undefined' && typeof options.unshift !== 'undefined' && options.unshift == true) {
                     self.objects.unshift(new_object);

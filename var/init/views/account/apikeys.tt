@@ -56,7 +56,7 @@
     new Vue({
         el:     '#app',
         data:   {
-            apikeys: wing.object_list_manager({
+            apikeys: wing.object_list({
                 create_api : '/api/apikey',
                 params : {
                     _items_per_page : 100,

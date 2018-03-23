@@ -28,6 +28,7 @@
             <button class="btn btn-block btn-secondary" v-for="name in trends_names" v-if="visible_trend(name)" @click="add_trend(name)"><i class="fas fa-plus"></i> {{name}}</button>
         </div>
         <div class="col">
+            <p><confirmation-toggle></confirmation-toggle></p>
             <div class="form-group" v-for="report in reports.objects">
                 <div class="input-group">
                     <input type="text" class="form-control" v-model="report.properties.name" v-autosave="report" placeholder="Name">
@@ -61,11 +62,12 @@
 const app = new Vue({
     el:     '#app',
     data:   {
+        confirmations: wing.confirmations,
         trend_filter : '',
         new_report : {},
         current_report : null,
         trends_names : [],
-        reports : wing.object_list_manager({
+        reports : wing.object_list({
             list_api : '/api/trendsreport',
             params : {_items_per_page : 100, _order_by : 'name'},
             create_api : '/api/trendsreport',

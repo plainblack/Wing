@@ -47,7 +47,7 @@
     new Vue({
         el:     '#app',
         data:   {
-            apikey: wing.object_manager({
+            apikey: wing.object({
                 properties : [% apikey.json %],
                 on_delete : (properties) => {
                     wing.success('Deleted');

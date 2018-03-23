@@ -12,7 +12,7 @@ L<https://vuejs.org>
   new Vue({
     el : '#app',
     data: {
-        users : wing.object_list_manager({
+        users : wing.object_list({
             params : {
                 _include_options : 1,
                 _include_related_objects : ['photo'], // assumes you have a related object called photo
@@ -39,6 +39,52 @@ L<https://vuejs.org>
   <div id="app">
     <div v-for="user in users.objects">{{user.properties.username}} <button @click="user.delete()">Delete</button></div>
   </div>
+
+
+=head1 Components
+
+=head2 characters-remaining
+
+Generates a float-right div that shows how many characters a field has left.
+
+ <characters-remaining max="100" property="user.properties.bio"></characters-remaining>
+
+=head2 confirmation-toggle
+
+Generates a button that toggles C<wing.confirmations> on/off.
+
+ <confirmation-toggle></confirmation-toggle>
+
+NOTE: You need to include C<wing.confirmations> in the data section of your app for this to work.
+
+    new Vue({
+      el : '#app',
+      data: {
+          confirmations: wing.confirmations,
+          ...
+      },
+      ...
+    });
+
+=head2 wing-select
+
+Generates a select list from from a C<wing.object> field that has enumerated options.
+
+  <wing-select object="user" property="user.properties.name"></wing-select>
+
+
+
+
+=head1 Directives
+
+=head2 v-autosave
+
+Automatically save the value of a form element anytime the model is updated for a C<wing.object>. Saves after 2 seconds, or if the user hits "enter", or if they leave the field.
+
+<input v-model="object.properties.property_name" v-autosave="object">
+
+
+
 
 =head1 Filters
 
@@ -110,21 +156,12 @@ L<https://github.com/freearhey/vue2-filters>
 
 
 
-=head1 Directives
 
-=head2 v-autosave
-
-Automatically save the value of a form element anytime the model is updated for a C<object_manager>. Saves after 2 seconds, or if the user hits "enter", or if they leave the field.
-
- <input v-model="object.properties.property_name" v-autosave="object">
-
-
-
-=head1 Services
+=head1 Factories
 
 =head2 wing.confirmations
 
-Enables and disables delete confirmations in the  C<object_manager> factory and C<object_list_manager> factory.
+Enables and disables delete confirmations in the  C<wing.object> factory and C<wing.object_list> factory.
 
  const c = wing.confirmations;
 
@@ -140,14 +177,14 @@ Returns true if confirmations are disabled.
 
 Sets confirmations equal to true if they are currently false and false if they are currently true. If they are currently true then the user will be asked to confirm whether they want to disable confirmations.
 
-=head2 wing.object_manager()
+=head2 wing.object()
 
 Creates an instance of a Wing object, aka a row in the database.
 
     new Vue({
       el : '#app',
       data: {
-          user : wing.object_manager({
+          user : wing.object({
               params : {
                   _include_options : 1,
                   _include_related_objects : ['photo'], // assumes you have a related object called photo
@@ -397,14 +434,14 @@ If this is C<true> then the user will not be asked to confirm the delete.
 =back
 
 
-=head2 wing.object_list_manager()
+=head2 wing.object_list()
 
-A factory that generates and manages a list of Wing objects, aka a selection of rows in the database. This is a list of C<wing.object_manager>s.
+A factory that generates and manages a list of Wing objects, aka a selection of rows in the database. This is a list of C<wing.object>s.
 
     new Vue({
       el : '#app',
       data: {
-          users : wing.object_list_manager({
+          users : wing.object_list({
               params : {
                   _include_options : 1,
                   _include_related_objects : ['photo'], // assumes you have a related object called photo
@@ -483,7 +520,7 @@ Defaults to C<true>. If you don't want to pass your credentials to the server, t
 
 =head3 objects
 
-A list of C<object_manager> objects currently managed by the list manager.
+A list of C<wing.object> objects currently managed by the list manager.
 
 =head3 paging
 
@@ -677,7 +714,7 @@ A function to be executed if the object is sucessfully created. It is passed a l
 
 =head3 update(index, options)
 
-Updates the object's properties in the database with the object's properties in C<object_manager>, and then returns a promise from the HTTP request. See C<update()> in C<objectManager> for details.
+Updates the object's properties in the database with the object's properties in C<wing.object>, and then returns a promise from the HTTP request. See C<update()> in C<objectManager> for details.
 
 =over
 
@@ -741,5 +778,129 @@ See C<delete_update()> in C<objectManager> for details.
 
 
 
+=head1 Notifications
+
+Wing gives you an easy way to notify users.
+
+=head2 wing.error(message)
+
+A red box in the center of the screen to let the user know something bad has happened.
+
+=over
+
+=item message
+
+The message you want to be diplayed.
+
+=back
+
+=head2 wing.info(message)
+
+A blue box in the lower left corner of the screen to let the user know something they should be aware of, like an ongoing process.
+
+=over
+
+=item message
+
+The message you want to be diplayed.
+
+=back
+
+=head2 wing.success(message)
+
+A green box in the lower left corner of the screen to let the user know something they did worked.
+
+=over
+
+=item message
+
+The message you want to be diplayed.
+
+=back
+
+=head2 wing.warn(message)
+
+A blue box in the lower left corner of the screen to let the user know something that may be of concern, but isn't an error.
+
+=over
+
+=item message
+
+The message you want to be diplayed.
+
+=back
+
+=head1 Utilities
+
+=head2 wing.parse_date(input, timezone)
+
+Takes any number of date-looking inputs, and converts them into a Moment.js object.
+
+Requires L<https://momentjs.com/> to work.
+
+
+=over
+
+=item input
+
+Something that looks like a date. It can take many different forms:
+
+=over
+
+=item parsable array
+
+The first element of the array is string representing a date, and the second element is a pattern for parsing that string.
+
+ ['2001/15/05','YYYY/DD/MM']
+
+=item epoch
+
+A number of seconds since the January 1, 1970. Aka the unix epoch.
+
+=item wing datetime string
+
+The natural output of a datetime field from Wing's Rest API.
+
+ 2017-01-03 13:03:17
+
+=item wing date string
+
+The natural output of a date field from Wing's Rest API. Rarely used.
+
+ 2017-01-03
+
+=item Moment.js Object
+
+A Momemnt.js object.
+
+ moment()
+
+=item Javascript Date Object
+
+A javascript Date object.
+
+ new Date()
+
+=back
+
+=item timezone
+
+A timezone string like C<America/Chicago> to convert the date to. Wing datetime fields are stored in C<UTC>. Dates will by default be rendered in browser localtime.
+
+To use the timezome field you must also load L<https://momentjs.com/timezone/>.
+
+=back
+
+=head2 wing.string_random(length)
+
+Generates and returns a random string of characters.
+
+=over
+
+=item length
+
+An integer representing how many characters should be included. Defaults to 6.
+
+=back
 
 =cut
