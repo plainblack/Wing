@@ -114,7 +114,7 @@ L<https://github.com/freearhey/vue2-filters>
 
 =head2 moment
 
-Converts a wing datetime field into a human readable string that you can format.
+Converts a date into a human readable string that you can format.
 
 You need to load L<https://momentjs.com> to use this filter.
 
@@ -140,7 +140,7 @@ L<https://github.com/freearhey/vue2-filters>
 
 =head2 timeago
 
-Converts a wing datetime field into a human readable string like C<3 minutes ago>.
+Converts a date into a human readable string like C<3 minutes ago>.
 
 You need to load L<https://momentjs.com> to use this filter.
 
