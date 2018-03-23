@@ -1,4 +1,29 @@
 /*
+ * Format a date
+ */
+
+Vue.filter('moment', function(input, format, timezone){
+    if (typeof moment !== 'undefined') {
+        if (!_.isString(format)) {
+            format = 'MMMM d, YYYY';
+        }
+        return wing.parse_date(input, timezone).format(format);
+    }
+    return input;
+});
+
+/*
+ * Format a date into a relative time
+ */
+
+Vue.filter('timeago', function(input){
+    if (typeof moment !== 'undefined') {
+        return wing.parse_date(input).fromNow();
+    }
+    return input;
+});
+
+/*
  * Automatically save an input field.
  */
 
@@ -177,6 +202,31 @@ const wing = {
         }
     }),
 
+    confirmations : {
+        _enabled : true;
+        return {
+            enabled : function() {
+                return wing.confirmations._enabled;
+            },
+
+            disabled : function() {
+                return !wing.confirmations._enabled;
+            },
+
+            toggle : function() {
+                if (wing.confirmations._enabled == true) {
+                    if (confirm('Are you sure you want to disable confirmations on deletes?')) {
+                        wing.confirmations._enabled = false;
+                    }
+                }
+                else {
+                    wing.confirmations._enabled = true;
+                }
+            },
+
+        };
+    }
+
     /*
     * Manages a single wing database record via Ajax.
     */
@@ -341,7 +391,7 @@ const wing = {
             if ('name' in object) {
                 message = 'Are you sure you want to delete ' + object.name + '?';
             }
-            if ((typeof options !== 'undefined' && typeof options.skip_confirm !== 'undefined' && options.skip_confirm == true) || confirm(message)) {
+            if ((typeof options !== 'undefined' && typeof options.skip_confirm !== 'undefined' && options.skip_confirm == true) ||  wing.confirmations.disabled() || confirm(message)) {
                 const promise = axios({
                     method: 'delete',
                     url: object._relationships.self,
@@ -715,5 +765,41 @@ const wing = {
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         return text;
     },
+
+    /*
+     * parses a date into a momemnt object
+     */
+
+     parse_date : (input, timezone) => {
+         if (typeof moment === 'undefined') {
+             wing.error('moment.js not installed');
+             return input;
+         }
+         else {
+             if (Array.isArray(input) && typeof input[0] === 'string') {  // date + input pattern
+                 date = moment(input[0], input[1], true);
+             }
+             else if (typeof input === 'string' && input.length == 19) { // mysql datetime
+                 var parts = input.split(/\s/);
+                 var string = parts[0]+'T'+parts[1]+'+00:00'; // wing dates are UTC
+                 date = moment(string);
+             }
+             else if (typeof input === 'string' && input.length == 10) { // mysql date
+                 date = moment(input, 'YYYY-MM-DD', true);
+             }
+             else if (input instanceof moment) {
+                 date = input;
+             }
+             else if (typeof input === 'number') { // seconds since epoch
+                 date = moment.unix(input);
+             } else { // must be a normal date
+                 date = moment(input);
+             }
+             if (typeof moment.tz === 'function' && _.isString(timezone)) {
+                date = date.tz(timezone);
+             }
+             return date;
+         }
+     },
 
 };

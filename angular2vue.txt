@@ -31,6 +31,28 @@ All of the new UI requirements have been loaded up into
 wing_ui_css_requirements.tt and wing_ui_js_requirements.tt. Put these in your
 headers and footers. You can find these in /data/Wing/var/init/views.
 
+To use wing.vue.js you'll need to add a section to your nginx.conf that looks
+like this:
+
+    location ~ /wing.vue.js {
+        root /data/Wing/public;
+        index wing.vue.js;
+    }
+
+
+### DATE FILTERS ###
+
+Vue doesn't have any built-in datetime filters. wing.vue.js has 2 new filters
+that replace the old angular datetime filters from wing.angular.js. However,
+you need to this library to use them:
+
+ * Moment - https://momentjs.com
+ * Add imezone support to Moment - https://momentjs.com/timezone/
+
+The 'timeago' filter from wing.angular.js is now in wing.vue.js. The 'date'
+filter from Angular, and the 'datetime' filter from wing.angular.js have been
+replaced by the 'moment' filter in wing.vue.js.
+
 
 ### CONVERSION == REWRITE ###
 

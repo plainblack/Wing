@@ -14,8 +14,8 @@ angular.module('wing',[])
 
     //initialize get if not there
     if (!$httpProvider.defaults.headers.get) {
-        $httpProvider.defaults.headers.get = {};    
-    }    
+        $httpProvider.defaults.headers.get = {};
+    }
 
     // Answer edited to include suggestions from comments
     // because previous version of code introduced browser-related errors
@@ -40,7 +40,7 @@ angular.module('wing',[])
  */
 .filter('timeago', function() {
     return function(input, p_allowFuture) {
-    
+
         var substitute = function (stringOrFunction, number, strings) {
                 var string = angular.isFunction(stringOrFunction) ? stringOrFunction(number, dateDifference) : stringOrFunction;
                 var value = (strings.numbers && strings.numbers[number]) || number;
@@ -76,11 +76,11 @@ angular.module('wing',[])
             days = hours / 24,
             years = days / 365,
             separator = strings.wordSeparator === undefined ?  " " : strings.wordSeparator,
-        
-           
+
+
             prefix = strings.prefixAgo,
             suffix = strings.suffixAgo;
-            
+
         if (allowFuture) {
             if (dateDifference < 0) {
                 prefix = strings.prefixFromNow;
@@ -103,7 +103,7 @@ angular.module('wing',[])
         words.replace(/ /g, '')
         suffix.replace(/ /g, '')
         return (prefix+' '+words+' '+suffix+' '+separator);
-        
+
     };
 })
 
@@ -117,11 +117,11 @@ angular.module('wing',[])
         enabled : function() {
             return enabled;
         },
-        
+
         disabled : function() {
             return !enabled;
         },
-        
+
         toggle : function() {
             if (enabled == true) {
                 if (confirm('Are you sure you want to disable confirmations on things like deleting files?')) {
@@ -132,7 +132,7 @@ angular.module('wing',[])
                 enabled = true;
             }
         },
-        
+
     };
 }])
 
@@ -144,7 +144,7 @@ angular.module('wing',[])
     return function(behavior) {
         this.objects = [];
         this.paging = [];
-        
+
         this.find_object = function(id) {
             var self = this;
             for (var i = 0, len = self.objects.length; i < len; i++) {
@@ -152,7 +152,7 @@ angular.module('wing',[])
             }
             return -1;
         };
-        
+
         this.get_object = function(id) {
             var self = this;
             var index = self.find_object(id);
@@ -161,7 +161,7 @@ angular.module('wing',[])
             }
             return self.objects[index];
         };
-        
+
         this._create_object_manager = function(properties) {
             var self = this;
             return new objectManager({
@@ -182,7 +182,7 @@ angular.module('wing',[])
                 },
             });
         };
-        
+
         this.search = function(options) {
             var self = this;
             pagination = {
@@ -197,7 +197,7 @@ angular.module('wing',[])
             .then(function (response) {
                 var data = response.data;
                 if (typeof options === 'undefined' || typeof options !== 'undefined' && options.accumulate != true) {
-                    self.objects = [];  
+                    self.objects = [];
                 }
                 for (var index = 0; index < data.result.items.length; index++) {
                     self.objects.push(self._create_object_manager(data.result.items[index]));
@@ -223,7 +223,7 @@ angular.module('wing',[])
             });
             return self;
         };
-        
+
         this.all = function(options, page_number) {
             var self = this;
             var params = wing.merge({
@@ -302,14 +302,14 @@ angular.module('wing',[])
             });
             return self;
         };
-        
+
 	    this.options_api = function() {
 	        if (behavior.options_api != null) {
                 return behavior.options_api;
             }
             return behavior.create_api + '/_options';
         };
-        
+
         this.fetch_options = function(store_data_here, options) {
             var self = this;
             $http.get(self.options_api(), {withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true})
@@ -360,7 +360,7 @@ angular.module('wing',[])
             new_object.create(properties, options);
             return self;
         };
-        
+
         this.update =  function(index, options) {
             var self = this;
             self.objects[index].update(options);
@@ -394,7 +394,7 @@ angular.module('wing',[])
 .factory('objectManager', ['$http','confirmations',function ($http, confirmations) {
     return function(behavior) {
         this.properties = behavior.properties || {};
-        
+
         this.fetch = function(options) {
             var self = this;
             $http.get((typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || behavior.fetch_api, { params : behavior.fetch_options, withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true })
@@ -419,7 +419,7 @@ angular.module('wing',[])
             });
             return self;
         };
-        
+
         this.create = function(properties, options) {
             var self = this;
             var params = wing.merge(behavior.fetch_options||{}, properties);
@@ -445,13 +445,13 @@ angular.module('wing',[])
             });
             return self;
         };
-        
+
         this.update =  function(options) {
             var self = this;
             self.partial_update(self.properties, options);
             return self;
         };
-        
+
         this.save = function(property) {
             var self = this;
             var update = {};
@@ -494,7 +494,7 @@ angular.module('wing',[])
             });
             return self;
         };
-        
+
         this.partial_update =  function(properties, options) {
             var self = this;
             var params = wing.merge(behavior.fetch_options||{}, properties);
@@ -520,7 +520,7 @@ angular.module('wing',[])
             });
             return self;
         };
-        
+
         this.delete = function(options) {
             var self = this;
             var object = self.properties;
@@ -582,7 +582,7 @@ angular.module('wing',[])
 }])
 
 /*
- * Force value to be a number. 
+ * Force value to be a number.
  */
 
 .directive('forceNumber', [function() {
@@ -613,7 +613,7 @@ angular.module('wing',[])
  * which is the equivalent of
  *
  * <input ng-model="object.properties.property_name" ng-model-options="{ updateOn: 'blur' }" ng-change="object.save('property_name')">
- * 
+ *
  */
 
 .directive('autosave', [function() {
@@ -639,7 +639,7 @@ angular.module('wing',[])
  * which is the equivalent of
  *
  * <select ng-options="option.toString() as object.properties._options._property_name[option] for option in object.properties._options.property_name" autosave="object" class="form-control" ng-model="object.properties.property_name"></select>
- * 
+ *
  */
 
 .directive('wingSelect', ['$compile', function($compile) {
@@ -678,7 +678,7 @@ angular.module('wing',[])
 }])
 
 /* Gives you a nice way to handle a checkbox list
- * 
+ *
  * See documentation at https://github.com/vitalets/checklist-model
  *
  */

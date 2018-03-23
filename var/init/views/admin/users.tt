@@ -2,7 +2,6 @@
 [% INCLUDE admin/header_include.tt %]
 
 <div id="app">
-
     <b-input-group>
         <b-input-group-text slot="prepend">
             <i class="fas fa-search"></i>
@@ -60,10 +59,8 @@
 </div>
 
 [% foot_tags = BLOCK %]
-
 <script type="text/javascript">
 'use strict';
-
 
 new Vue({
     el:     '#app',

@@ -1,67 +1,132 @@
-=head1 wing.angular.js
+=head1 wing.vue.js
 
-A suite of AngularJS Wing utilities.
+A suite of Vue Wing utilities.
 
-NOTE: This is deprecated. Use wing.vue.js instead. Documentation in L<WingVue>.
+L<https://vuejs.org>
 
 =head1 SYNOPSIS
 
+  [% INCLUDE wing_ui_css_requirements.tt %]
+  [% INCLUDE wing_ui_js_requirements.tt %]
 
-  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular.min.js"></script>
-  <script src="/wing.js"></script>
-  <script src="/wing.angular.js"></script>
-
-  myApp = angular.module('MyApp',['wing']);
-
-  myApp.controller('MyCtrl', function($scope, $http, objectListManager) {
-    $scope.users = new objectListManager({
-        fetch_options : {
-            _include_options: 1,
-            _include_relationships: 1, // required
-        },
-        list_api : '/api/user',
-        create_api : '/api/user',
-        on_create : function(properties, index) {
-            wing.success(properties.username + ' created.');
-        },
-        on_update : function(properties, index) {
-            wing.success(properties.username + ' saved.');
-        },
-        on_delete : function(properties, index) {
-            wing.success('Deleted' + object.name +'.');
-        },
-    });
+  new Vue({
+    el : '#app',
+    data: {
+        users : new_object_list_manager({
+            params : {
+                _include_options : 1,
+                _include_related_objects : ['photo'], // assumes you have a related object called photo
+            },
+            list_api : '/api/user',
+            create_api : '/api/user',
+            on_create : function(properties, index) {
+                wing.success(properties.username + ' created.');
+            },
+            on_update : function(properties, index) {
+                wing.success(properties.username + ' saved.');
+            },
+            on_delete : function(properties, index) {
+                window.location.href = '/';
+            },
+        }),
+    },
+    mounted() {
+        this.users.search();
+    },
   });
 
   <!-- in html -->
-  <div ng-controller="MyCtrl">
-    <div ng-repeat="user in users.objects">{{user.properties.username}} <button ng-click="user.delete()">Delete</button></div>
+  <div id="app">
+    <div v-for="user in users.objects">{{user.properties.username}} <button @click="user.delete()">Delete</button></div>
   </div>
 
 =head1 Filters
 
-=head2 datetime
+=head2 capitalize
 
-Converts a wing datetime field into a human readable string that is parsable by AngularJS.
+L<https://github.com/freearhey/vue2-filters>
 
- {{some_object.some_date | datetime:'mediumDate'}}
+=head2 currency
+
+L<https://github.com/freearhey/vue2-filters>
+
+=head2 filterBy
+
+L<https://github.com/freearhey/vue2-filters>
+
+=head2 find
+
+L<https://github.com/freearhey/vue2-filters>
+
+=head2 limitBy
+
+L<https://github.com/freearhey/vue2-filters>
+
+=head2 lowercase
+
+L<https://github.com/freearhey/vue2-filters>
+
+=head2 moment
+
+Converts a wing datetime field into a human readable string that you can format.
+
+You need to load L<https://momentjs.com> to use this filter.
+
+ {{some_object.some_date | moment}} // March 22, 2018
+ {{some_object.some_date | moment('YYYY-MM-DD HH:mm:ss')}} // 2018-03-22 12:23:02
+ {{some_object.some_date | moment('YYYY-MM-DD','America/Vancouver')}} // 2018-03-22 10:23:02 - formatted to a specific time zone
+
+See more formatting options here: L<https://momentjs.com/docs/#/displaying/format/>
+
+To use the timezome field you must also load L<https://momentjs.com/timezone/>.
+
+=head2 orderBy
+
+L<https://github.com/freearhey/vue2-filters>
+
+=head2 placeholder
+
+L<https://github.com/freearhey/vue2-filters>
+
+=head2 pluralize
+
+L<https://github.com/freearhey/vue2-filters>
 
 =head2 timeago
 
 Converts a wing datetime field into a human readable string like C<3 minutes ago>.
 
- {{some_object.some_date | timeago}}
+You need to load L<https://momentjs.com> to use this filter.
+
+ {{some_object.some_date | timeago}} // 45 minutes ago
+
+=head2 truncate
+
+L<https://github.com/freearhey/vue2-filters>
+
+=head2 uppercase
+
+L<https://github.com/freearhey/vue2-filters>
 
 
-=head1 Factories
 
-=head2 confirmations
+=head1 Directives
 
-Enables and disables confirmations in C<objectManager> and C<objectListManager>.
+=head2 v-autosave
 
- myApp.controller('MyCtrl', function($scope, $http, confirmations) {
-  $scope.confirmations = confirmations;
- });
+Automatically save the value of a form element anytime the model is updated for a C<new_object_manager>. Saves after 2 seconds, or if the user hits "enter", or if they leave the field.
+
+ <input v-model="object.properties.property_name" v-autosave="object">
+
+
+
+=head1 Services
+
+=head2 wing.confirmations
+
+Enables and disables delete confirmations in the  C<new_object_manager> factory and C<new_object_list_manager> factory.
+
+ const c = wing.confirmations;
 
 =head3 enabled()
 
@@ -75,25 +140,31 @@ Returns true if confirmations are disabled.
 
 Sets confirmations equal to true if they are currently false and false if they are currently true. If they are currently true then the user will be asked to confirm whether they want to disable confirmations.
 
-=head2 objectManager
+=head2 wing.new_object_manager()
 
-Manages an instance of a Wing object, aka a row in the database.
+Creates an instance of a Wing object, aka a row in the database.
 
-  myApp.controller('MyCtrl', function($scope, $http, objectManager) {
-    $scope.users = new objectManager({
-        fetch_options : {
-            _include_options: 1,
-            _include_relationships: 1, // required
-        },
-        fetch_api : '/api/user/XXX',
-        on_update : function(properties) {
-            wing.success(properties.username + ' saved.');
-        },
-        on_delete : function(properties) {
-            wing.success('Deleted' + object.name +'.');
-        },
+    new Vue({
+      el : '#app',
+      data: {
+          user : new_object_manager({
+              params : {
+                  _include_options : 1,
+                  _include_related_objects : ['photo'], // assumes you have a related object called photo
+              },
+              fetch_api : '/api/user',
+              on_update : function(properties) {
+                  wing.success(properties.username + ' saved.');
+              },
+              on_delete : function(properties) {
+                  wing.success('Deleted' + object.name +'.');
+              },
+          }),
+      },
+      mounted() {
+          this.user.fetch();
+      },
     });
-  });
 
 =over
 
@@ -107,18 +178,22 @@ An object of behavior changing options.
 
 Set the object's properties before it is fetched or created.
 
+ {
+  "real_name" : "Fred Johnson"
+ }
+
 =item fetch_api
 
 The URI used to fetch an object from Wing.
 
  /api/user/XXX
 
-=item fetch_options
+=item params
 
-A list of behavior changing options.
+A list of behavior changing options for the Wing Rest API.
 
  {
-   "_include_relationships" : 1
+   "_include_related_objects" : ['photo']
  }
 
 =item on_fetch
@@ -149,7 +224,7 @@ The URI used to create the object in Wing.
 
 =item with_credentials
 
-Defaults to C<true>. If you don't want to pass your credentials to the server, then set to C<false>.
+Defaults to C<true>. If you don't want to pass your session_id to the server, then set to C<false>.
 
 =back
 
@@ -160,6 +235,8 @@ Defaults to C<true>. If you don't want to pass your credentials to the server, t
 An object containing the list of properties retrieved from Wing.
 
 =head3 fetch(options)
+
+Retrieves the data from the Wing Rest API, places it into C<properties> and then returns a promise from the HTTP request.
 
 =over
 
@@ -183,7 +260,7 @@ A function to call if the fetch fails.
 
 =head3 create(properties, options)
 
-Create this object in Wing.
+Create this object in Wing, inserts the properties into C<properties>, and then returns a promise from the HTTP request.
 
 =over
 
@@ -211,7 +288,7 @@ A function to be called if the creation fails.
 
 =head3 update(options)
 
-Updates the database with the properties in this object.
+Updates the database with the properties in this object, refreshes C<properties>, and then returns a promise from the HTTP request.
 
 =over
 
@@ -223,11 +300,11 @@ See C<partial_update()> for details.
 
 =head3 save(property)
 
-Updates the value of C<property> in the database with the value of C<property> in this object.
+Updates the value of C<property> in the database with the value of C<property> in this object, and then returns a promise from the HTTP request.
 
 =head3 partial_update(properties, options)
 
-Updates this object and the database with C<properties>.
+Updates this object and the database with C<properties>, and then returns a promise from the HTTP request.
 
 =over
 
@@ -255,7 +332,7 @@ A function to be called if the update fails.
 
 =head3 call(method, uri, properties, options)
 
-Make a call to an arbitrary web service, the result of which is expected to be a property list for this object. This object is then updated with that property list.
+Make a call to an arbitrary web service, the result of which is expected to be a property list for this object. This object is then updated with that property list. Returns a promise from the HTTP request.
 
 =over
 
@@ -293,7 +370,7 @@ A function to be called if this call errors.
 
 =head3 delete(options)
 
-Deletes this object from Wing. Will ask for confirmation before delete. Confirmations can be managed by the confirmations factory.
+Deletes this object from Wing, and then returns a promise from the HTTP request. Will ask for confirmation before delete. Confirmations can be managed by the confirmations factory.
 
 =over
 
@@ -320,29 +397,35 @@ If this is C<true> then the user will not be asked to confirm the delete.
 =back
 
 
-=head2 objectListManager
+=head2 wing.new_object_list_manager()
 
-Manages a list of Wing objects, aka a selection of rows in the database. This is a list of C<objectManager>s.
+A factory that generates and manages a list of Wing objects, aka a selection of rows in the database. This is a list of C<wing.new_object_manager>s.
 
-  myApp.controller('MyCtrl', function($scope, $http, objectListManager) {
-    $scope.users = new objectListManager({
-        fetch_options : {
-            _include_options: 1,
-            _include_relationships: 1, // required
-        },
-        list_api : '/api/user',
-        create_api : '/api/user',
-        on_create : function(properties, index) {
-            wing.success(properties.username + ' created.');
-        },
-        on_update : function(properties, index) {
-            wing.success(properties.username + ' saved.');
-        },
-        on_delete : function(properties, index) {
-            wing.success('Deleted' + object.name +'.');
-        },
+    new Vue({
+      el : '#app',
+      data: {
+          users : new_object_list_manager({
+              params : {
+                  _include_options : 1,
+                  _include_related_objects : ['photo'], // assumes you have a related object called photo
+              },
+              list_api : '/api/user',
+              create_api : '/api/user',
+              on_create : function(properties, index) {
+                  wing.success(properties.username + ' created.');
+              },
+              on_update : function(properties, index) {
+                  wing.success(properties.username + ' saved.');
+              },
+              on_delete : function(properties, index) {
+                  window.location.href = '/';
+              },
+          }),
+      },
+      mounted() {
+          this.users.search();
+      },
     });
-  });
 
 =over
 
@@ -400,7 +483,7 @@ Defaults to C<true>. If you don't want to pass your credentials to the server, t
 
 =head3 objects
 
-A list of C<objectManager> objects currently managed by the list manager.
+A list of C<new_object_manager> objects currently managed by the list manager.
 
 =head3 paging
 
@@ -415,7 +498,7 @@ An object containing pagination information about the current list.
   "page_number" : "1"
  }
 
-=head3 find_object(id)
+=head3 find_object_id(id)
 
 Return the index number of a specific object in the list based upon C<id>. Returns C<-1> if the object is not found.
 
@@ -427,7 +510,7 @@ The unique id of the object in the database.
 
 =back
 
-=head3 get_object(id)
+=head3 find_object(id)
 
 Return an object in the list based upon C<id>. Returns C<null> if the object is not found.
 
@@ -440,6 +523,8 @@ The unique id of the object in the database.
 =back
 
 =head3 search(options)
+
+Retrieves a page of data from the Wing Rest API then populates the C<objects> list, and then returns a promise from the HTTP request.
 
 =over
 
@@ -482,9 +567,13 @@ A function to be executed when an a result set comes back on successful search. 
 
 =back
 
+=head3 _search(options)
+
+The exact same C<search> method, but without a debounce of 200ms.
+
 =head3 all(options)
 
-Similar to C<search()> except that it fetches the complete list of objects, not just one page of them.
+Similar to C<search()> except that it fetches the complete list of objects, not just one page of them, and then returns a promise from the HTTP request.
 
 =over
 
@@ -512,7 +601,9 @@ A function to be executed after each page of objects has been retrieved.
 
 =back
 
+=head3 _all(options)
 
+The exact same method as C<all()> but without a debounce of 200 ms.
 
 =head3 reset()
 
@@ -570,7 +661,7 @@ This method will be executed if the options fetch is an error. Gets passed the r
 
 =head3 create(properties, options)
 
-Create a new object in the database and insert it into this list.
+Create a new object in the database and insert it into this list, and then returns a promise from the HTTP request.
 
 =over
 
@@ -586,7 +677,7 @@ A function to be executed if the object is sucessfully created. It is passed a l
 
 =head3 update(index, options)
 
-Updates the object's properties in the database with the object's properties in objectManager. See C<update()> in C<objectManager> for details.
+Updates the object's properties in the database with the object's properties in C<new_object_manager>, and then returns a promise from the HTTP request. See C<update()> in C<objectManager> for details.
 
 =over
 
@@ -648,75 +739,7 @@ See C<delete_update()> in C<objectManager> for details.
 
 =back
 
-=head1 Directives
 
-=head2 input[number]
-
-If an C<input> tag is of type C<number> then it will force the value to be a number even if it is cast as a string.
-
- <input type="number" model="user.age">
-
-=head2 forceNumber
-
-Forces a model value to be a number.
-
- <input type="text" model="user.employee_number" force-number>
-
-=head2 autosave
-
-Automatically save the value of a form element anytime the model is updated.
-
- <input ng-model="object.properties.property_name" autosave="object">
-
-=head2 forceString
-
-Forces a model value to be a string.
-
- <input type="text" model="user.employee_number" force-string>
-
-=head2 wingSelect
-
-If an object included C<_include_options> in its C<fetch_properties> then you can display those options easily as a list using this directive.
-
- <wing-select object="object_name" property="property_name"></wing-select>
-
-
-=head2 checklist
-
-In Angular one checkbox C<input type="checkbox" ng-model="..."> is linked with one model.  But in practice we usually want one model to store array of checked values from several checkboxes.  Checklist solves that task without additional code in controller.
-
-=over
-
-=item checklist-model
-
-Required. Use instead of C<ng-model>.
-
-=item checklist-value
-
-What should be picked as array item.
-
-=item value
-
-What should be picked as item, but unlike C<checklist-value>, this does not evaluate as an angular expression, but rather a static value.
-
-=item ng-model
-
-Every checkbok will span a new scope and define a variable named C<checked> to hold its state. You can modify this name by using this attribute.
-
-=item checklist-comparator
-
-A custom comparator. If it starts with dot(C<.>) then it will be an expression applied to the array item. Otherwise it should evaluate to a function as an angular expression. The function return true if the first two arguments are equal and false otherwise.
-
-=item checklist-before-change
-
-An angular expression evaluated each time before the C<checklist-model> has changed. If it evaluates to 'false' then the model will not change anymore.
-
-=item checklist-change
-
-An angular expression evaluated each time the C<checklist-model> has changed.
-
-
-=back
 
 
 =cut
