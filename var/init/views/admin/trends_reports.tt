@@ -76,7 +76,7 @@ new Vue({
             },
         ],
         filters : { granularity: 'monthly', range : 12, start: (new Date()).toISOString().split('T')[0] },
-        reports : wing.new_object_list_manager({
+        reports : wing.object_list_manager({
             list_api : '/api/trendsreport',
             params : {_items_per_page : 100, _order_by : 'name'},
         }),

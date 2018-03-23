@@ -231,7 +231,7 @@ const wing = {
     * Manages a single wing database record via Ajax.
     */
 
-    new_object_manager : (behavior) => ({
+    object_manager : (behavior) => ({
 
         id : typeof behavior.properties !== 'undefined' ? behavior.properties.id : null,
         properties : behavior.properties || {},
@@ -427,7 +427,7 @@ const wing = {
     /*
     *   Manages wing lists of objects, like "users" rather than "user"
     */
-    new_object_list_manager : (behavior) => ({
+    object_list_manager : (behavior) => ({
 
         params : _.defaultsDeep({}, behavior.params, { _include_relationships : 1}),
         objects : [],
@@ -459,7 +459,7 @@ const wing = {
 
         _create_object_manager : function(properties) {
             const self = this;
-            return wing.new_object_manager({
+            return wing.object_manager({
                 properties : properties,
                 params : self.params,
                 create_api : behavior.create_api,

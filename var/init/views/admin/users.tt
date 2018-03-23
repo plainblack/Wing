@@ -74,7 +74,7 @@ new Vue({
             {key : 'properties.deactivated', label : 'Deactivated'},
             {key : 'manage', label : 'Manage'},
         ],
-        users : wing.new_object_list_manager({
+        users : wing.object_list_manager({
             create_api : '/api/user',
             list_api : '/api/user',
             params : {_order_by : 'username'},

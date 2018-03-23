@@ -12,7 +12,7 @@ L<https://vuejs.org>
   new Vue({
     el : '#app',
     data: {
-        users : new_object_list_manager({
+        users : wing.object_list_manager({
             params : {
                 _include_options : 1,
                 _include_related_objects : ['photo'], // assumes you have a related object called photo
@@ -114,7 +114,7 @@ L<https://github.com/freearhey/vue2-filters>
 
 =head2 v-autosave
 
-Automatically save the value of a form element anytime the model is updated for a C<new_object_manager>. Saves after 2 seconds, or if the user hits "enter", or if they leave the field.
+Automatically save the value of a form element anytime the model is updated for a C<object_manager>. Saves after 2 seconds, or if the user hits "enter", or if they leave the field.
 
  <input v-model="object.properties.property_name" v-autosave="object">
 
@@ -124,7 +124,7 @@ Automatically save the value of a form element anytime the model is updated for 
 
 =head2 wing.confirmations
 
-Enables and disables delete confirmations in the  C<new_object_manager> factory and C<new_object_list_manager> factory.
+Enables and disables delete confirmations in the  C<object_manager> factory and C<object_list_manager> factory.
 
  const c = wing.confirmations;
 
@@ -140,14 +140,14 @@ Returns true if confirmations are disabled.
 
 Sets confirmations equal to true if they are currently false and false if they are currently true. If they are currently true then the user will be asked to confirm whether they want to disable confirmations.
 
-=head2 wing.new_object_manager()
+=head2 wing.object_manager()
 
 Creates an instance of a Wing object, aka a row in the database.
 
     new Vue({
       el : '#app',
       data: {
-          user : new_object_manager({
+          user : wing.object_manager({
               params : {
                   _include_options : 1,
                   _include_related_objects : ['photo'], // assumes you have a related object called photo
@@ -397,14 +397,14 @@ If this is C<true> then the user will not be asked to confirm the delete.
 =back
 
 
-=head2 wing.new_object_list_manager()
+=head2 wing.object_list_manager()
 
-A factory that generates and manages a list of Wing objects, aka a selection of rows in the database. This is a list of C<wing.new_object_manager>s.
+A factory that generates and manages a list of Wing objects, aka a selection of rows in the database. This is a list of C<wing.object_manager>s.
 
     new Vue({
       el : '#app',
       data: {
-          users : new_object_list_manager({
+          users : wing.object_list_manager({
               params : {
                   _include_options : 1,
                   _include_related_objects : ['photo'], // assumes you have a related object called photo
@@ -483,7 +483,7 @@ Defaults to C<true>. If you don't want to pass your credentials to the server, t
 
 =head3 objects
 
-A list of C<new_object_manager> objects currently managed by the list manager.
+A list of C<object_manager> objects currently managed by the list manager.
 
 =head3 paging
 
@@ -677,7 +677,7 @@ A function to be executed if the object is sucessfully created. It is passed a l
 
 =head3 update(index, options)
 
-Updates the object's properties in the database with the object's properties in C<new_object_manager>, and then returns a promise from the HTTP request. See C<update()> in C<objectManager> for details.
+Updates the object's properties in the database with the object's properties in C<object_manager>, and then returns a promise from the HTTP request. See C<update()> in C<objectManager> for details.
 
 =over
 
