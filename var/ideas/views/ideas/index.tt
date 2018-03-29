@@ -56,7 +56,7 @@
             <div class="col-xs-6">
                 <form ng-submit="get_ideas()" style="margin-top: 15px;">
                     <div class="input-group">
-                        <input class="form-control" type="text" ng-model="keywords" ng-maxlength="60" placeholder="Find Ideas">
+                        <input class="form-control" type="text" ng-model="search.keywords" ng-maxlength="60" placeholder="Find Ideas">
                         <span class="input-group-btn">
                             <button class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
                         </span>
@@ -142,7 +142,7 @@ angular.module('ideasApp', ['ui.bootstrap','wing'])
         my_params._sort_by     = $scope.search.sort.by;
         my_params._sort_status = $scope.search.sort.status;
         my_params._sort_whose  = $scope.search.sort.whose;
-        if ($scope.keywords) {
+        if ($scope.search.keywords) {
             my_params.keyword = $scope.search.keywords;
         }
 

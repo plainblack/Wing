@@ -32,7 +32,7 @@
         </ul>
         <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <a class="nav-link" href="/account">[% IF current_user %][% current_user.display_name %][% ELSE %]Login[% END %]</a>
+              <a class="nav-link" href="/account"><i class="fas fa-user-circle"></i> [% IF current_user %][% current_user.display_name %][% ELSE %]Login[% END %]</a>
             </li>
         </ul>
       </b-collapse>

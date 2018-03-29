@@ -4,7 +4,7 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
-2018-03-20
+2018-03-23
  * Converted UI to use Vue 2 and Bootstrap 4.
  * Read angular2vue.txt for migration details.
  * Now requires: Template::Plugin::JSON::Escape
