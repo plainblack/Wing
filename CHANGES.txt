@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-03-30
+ * Added wing.vue.js get_query_param().
+ * Fixed a search bug in var/ideas/index.tt.
+
 2018-03-23
  * Converted UI to use Vue 2 and Bootstrap 4.
  * Read angular2vue.txt for migration details.
