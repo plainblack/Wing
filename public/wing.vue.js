@@ -283,13 +283,14 @@ const wing = {
                 }
             })
             .catch( function (error) {
-                    const data = error.response.data;
-                    if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
-                        options.on_error(data.result);
-                    }
-                    if (typeof behavior.on_error !== 'undefined') {
-                        behavior.on_error(data.result);
-                    }
+                console.error(error);
+                const data = error.response.data;
+                if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
+                    options.on_error(data.result);
+                }
+                if (typeof behavior.on_error !== 'undefined') {
+                    behavior.on_error(data.result);
+                }
                 return self;
             });
             return promise;
@@ -350,10 +351,10 @@ const wing = {
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             };
             if (config.method == 'put' || config.method == 'post') {
-                config[data] = params;
+                config['data'] = params;
             }
             else {
-                config[params] = params;
+                config['params'] = params;
             }
             const promise = axios(config);
             promise.then(function (response) {
@@ -364,6 +365,7 @@ const wing = {
                 }
             })
             .catch( function (error) {
+                console.error(error);
                 const data = error.response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
@@ -399,6 +401,7 @@ const wing = {
                 }
             })
             .catch( function (error) {
+                console.error(error);
                 const data = error.response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
@@ -552,7 +555,7 @@ const wing = {
                 }
                 return items;
             })
-            .catch(function (error) {});
+            .catch(function (error) {console.error(error)});
             return promise;
         },
 
@@ -601,7 +604,7 @@ const wing = {
                     }
                 }
             })
-            .catch(function (error) {});
+            .catch(function (error) {console.error(error)});
             return promise;
         },
 
@@ -627,6 +630,7 @@ const wing = {
                 }
             })
             .catch(function (error) {
+                console.error(error);
                 const data = error.response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
@@ -660,6 +664,7 @@ const wing = {
                 }
             })
             .catch(function (error) {
+                console.error(error);
                 const data = error.response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
