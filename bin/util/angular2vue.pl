@@ -11,6 +11,15 @@ if (/^\s*<(input|textarea)/i) {
     s/\sng-model=/ v-model=/;
 }
 
+# migrate responsive images
+s/img-responsive/img-fluid/;
+
+# migrate columns
+s/col-xs-/col-/;
+
+# migrate floats
+s/pull-right/float-right/;
+
 # migrate buttons
 s/\sng-click=/ \@click=/;
 
