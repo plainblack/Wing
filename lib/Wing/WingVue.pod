@@ -144,6 +144,12 @@ L<https://github.com/freearhey/vue2-filters>
 
 L<https://github.com/freearhey/vue2-filters>
 
+=head2 round
+
+Does preceision rounding on a number.
+
+ {{some_number | round(2) }} // 3.14
+
 =head2 timeago
 
 Converts a date into a human readable string like C<3 minutes ago>.

@@ -28,7 +28,7 @@ axios.interceptors.response.use(function (response) {
 }, function (error) {
     wing.throbber.done();
     var message = 'Error communicating with server.';
-    if (error.response.headers['content-type'] === "application/json; charset=utf-8" && "error" in error.response.data) {
+    if (_.isObject(error.response) && _.isObject(error.response.headers) && error.response.headers['content-type'] === "application/json; charset=utf-8" && "error" in error.response.data) {
         if (error.response.data.error.code == 401) {
             message = 'You must <a href="/account" class="btn btn-primary btn-sm">log in</a> to do that.';
         }
@@ -81,6 +81,24 @@ Vue.filter('timeago', function(input){
         return wing.parse_date(input).fromNow();
     }
     return input;
+});
+
+
+/*
+ * Format a date into a relative time
+ */
+
+Vue.filter('round', function(number, precision){
+    number = parseFloat(number);
+    precision |= 0;
+    var shift = function (number, precision, reverseShift) {
+    if (reverseShift) {
+      precision = -precision;
+    }
+    numArray = ("" + number).split("e");
+    return +(numArray[0] + "e" + (numArray[1] ? (+numArray[1] + precision) : precision));
+  };
+  return shift(Math.round(shift(number, precision, false)), precision, true);
 });
 
 /*
@@ -262,12 +280,14 @@ const wing = {
         id : typeof behavior.properties !== 'undefined' ? behavior.properties.id : null,
         properties : behavior.properties || {},
         params : _.defaultsDeep({}, behavior.params, { _include_relationships : 1}),
+        create_api : behavior.create_api,
+        fetch_api : behavior.fetch_api,
 
         fetch : function(options) {
             const self = this;
             const promise = axios({
                 method:'get',
-                url: (typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || behavior.fetch_api,
+                url: (typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || self.fetch_api,
                 params : self.params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -301,7 +321,7 @@ const wing = {
             const params = _.extend({}, self.params, properties);
             const promise = axios({
                 method:'post',
-                url: behavior.create_api,
+                url: self.create_api,
                 data : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -461,6 +481,8 @@ const wing = {
         params : _.defaultsDeep({}, behavior.params, { _include_relationships : 1}),
         objects : [],
         paging : {},
+        list_api : behavior.list_api,
+        create_api : behavior.create_api,
         field_options : {},
         items_per_page_options : [
             { value : 5, text : "5 per page" },
@@ -492,7 +514,7 @@ const wing = {
             return wing.object({
                 properties : properties,
                 params : self.params,
-                create_api : behavior.create_api,
+                create_api : self.create_api,
                 on_create : behavior.on_create,
                 on_update : behavior.on_update,
                 on_delete : function(properties) {
@@ -524,7 +546,7 @@ const wing = {
             const params = _.extend({}, pagination, self.params);
             const promise = axios({
                 method: 'get',
-                url: behavior.list_api,
+                url: self.list_api,
                 params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -574,7 +596,7 @@ const wing = {
             }
             const promise = axios({
                 method: 'get',
-                url: behavior.list_api,
+                url: self.list_api,
                 params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -646,7 +668,7 @@ const wing = {
             if (behavior.options_api != null) {
                 return behavior.options_api;
             }
-            return behavior.create_api + '/_options';
+            return self.create_api + '/_options';
         },
 
         fetch_options : function(options) {
