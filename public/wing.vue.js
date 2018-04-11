@@ -863,4 +863,35 @@ const wing = {
          return decodeURIComponent(results[2].replace(/\+/g, " "));
      },
 
+     firebase(user_id) {
+         if (typeof firebase === 'undefined') {
+             wing.error('Firebase client not installed');
+             return null;
+         }
+         else {
+             const promise = axios.get('/api/user/'+user_id+'/firebase-jwt').
+             then(function(response) {
+                 const config = response.data.result;
+                 firebase.initializeApp({
+                     databaseURL : 'https://'+config.database+'.firebaseio.com',
+                     apiKey : config.api_key,
+                     authDomain : config.id+'.firebaseapp.com',
+                 });
+                 firebase.auth().signInWithCustomToken(config.jwt).catch(function(error) {
+                     console.log("Firebase login failed!", error);
+                 });
+                 firebase.database().ref('/status/'+user_id).on('child_added', function(snapshot) {
+                     const message = snapshot.val();
+                     if (_.includes(['warn','info','error','success'], message.type)) {
+                         wing[message.type](message.message);
+                         setTimeout(function(){ snapshot.ref.remove(); }, 1000);
+                     }
+                     else {
+                         console.dir(message);
+                     }
+                 });
+             });
+         }
+     },
+
 };

@@ -9,13 +9,15 @@ use DateTime;
 use Data::GUID;
 use Ouch;
 use Moose::Role;
+use HTTP::Tiny;
+use JSON;
 use String::Random qw(random_string);
+use Crypt::JWT qw(encode_jwt);
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::DateTimeField';
 with 'Wing::Role::Result::PrivilegeField';
 with 'Wing::Role::Result::Child';
 use Wing::ContentFilter;
-
 
 =head1 NAME
 
@@ -243,11 +245,74 @@ Sends a templated email to this user. See C<send_templated_email> in L<Wing> for
 
 Generates a password reset code that is valid for 24 hours and returns it.
 
+=item firebase_jwt ()
+
+Returns a Firebase JWT auth token according to the Firebase Client 4.x specification.
+
+=item  firebase_status ( payload )
+
+Displays a status message in the user's browser.
+
+=over
+
+=item payload
+
+Can be either a scalar or a hash reference. If it's a scalar, then the scalar will be displayed as an info message to the user (the most common case). If it's a hash reference, then it should take the form of:
+
+ {
+    message => 'some message',
+    type    => 'info'
+ }
+
+Where C<type> can be one of C<info>, C<error>, C<warn> C<success>.
+
+=item type
+
+If not specified in a hash reference payload, you can set the type as an optional second parameter. Defaults to C<info>. Must be one of C<info>, C<error>, C<warn> C<success>.
+
+=back
+
 =back
 
 =cut
 
+sub firebase_jwt {
+    my $self = shift;
+    my $firebase_config = Wing->config->get('firebase');
+    my $now = time();
+    return encode_jwt(
+        payload     => {
+            iss     => $firebase_config->{service_email},
+            sub     => $firebase_config->{service_email},
+            aud     => "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
+            iat     => $now,
+            exp     => $now+(60*60),  # Maximum expiration time is one hour
+            uid     => $self->id,
+        },
+        alg         => 'RS256',
+        key         => \$firebase_config->{admin_key},
+    );
+}
 
+sub firebase_status {
+    my ($self, $payload, $type) = @_;
+    unless (ref $payload eq 'HASH') {
+        $payload = {
+            message => $payload,
+            type    => $type || 'info'
+        };
+    }
+    my $uri = 'https://'.Wing->config->get('firebase/database').'.firebaseio.com/status/'.$self->id.'/'.int(Time::HiRes::time()*1000).'?auth='.$self->firebase_jwt;
+    my $response = HTTP::Tiny->new->request('PUT', $uri, {content => to_json($payload)});
+    if ($response->{success}) {
+        my $log_type = $payload->{type};
+        $log_type = 'info' if ($log_type eq 'success');
+        Wing->log->$log_type('Firebase status to '.$self->username.': '.$payload->{message});
+    }
+    else {
+        ouch $response->{status}, $response->{reason};
+    }
+}
 
 sub start_session {
     my ($self, $options) = @_;
