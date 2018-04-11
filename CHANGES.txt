@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-04-10
+ * Added 2-factor authentication for GDPR compliance.
+
 2018-04-04
  * Better error handling in wing.object and wing.object_list in wing.vue.js.
  * Added new round() filter to wing.vue.js.

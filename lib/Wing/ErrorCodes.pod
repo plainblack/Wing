@@ -18,7 +18,9 @@ These are errors caused by the client providing invalid or outdated information.
 
 The URI path you tried to call does not exist. See also C<440>.
 
+=head3 428 Requires Secondary authentication
 
+Requires 2-factor authentication.
 
 =head2 Parameter Errors
 
@@ -30,11 +32,11 @@ The object you requested doesn't exist. This refers to an object specified in th
 
 =head3 441 Missing Required Parameter
 
-You're missing a required parameter. 
+You're missing a required parameter.
 
 =head3 442 Out Of Range
 
-The value specified for a field was out of range. If it's a numeric field make sure you're above the minumum and below the maximum. If it's an enumerated field make sure you've specfified an valid option. 
+The value specified for a field was out of range. If it's a numeric field make sure you're above the minumum and below the maximum. If it's an enumerated field make sure you've specfified an valid option.
 
 =head3 443 Not Available
 
@@ -93,4 +95,3 @@ Could not connect to an external resource, such as a database or web service.
 
 
 =cut
-

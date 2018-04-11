@@ -1,0 +1,10 @@
+This mkit is used by the account management system when the user tries to access something secure.
+
+PARAMS
+
+me = A describe of a user object this message will be sent to including private info.
+
+token = The reset string.
+
+redirect = The URL the user should be redirected to after verification.
+
