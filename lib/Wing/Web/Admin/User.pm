@@ -56,9 +56,9 @@ post '/admin/user/:id' => sub {
         }
     };
     if ($@) {
-        template 'admin/user', { 
+        template 'admin/user', {
             error_message   => bleep,
-            current_user    => $current_user, 
+            current_user    => $current_user,
             user            => describe(fetch_object('User'), current_user => $current_user),
         };
     }
@@ -78,7 +78,7 @@ post '/admin/user/:id/become' => sub {
                 expires     => '+5y',
                 http_only   => 0,
                 path        => '/';
-    return redirect '/account';
+    return redirect '/';
 };
 
 true;
