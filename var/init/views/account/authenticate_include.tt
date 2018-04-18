@@ -1,3 +1,5 @@
+<p class="alert alert-info">Please note that we use cookies to maintain your login. You cannot log in to the site without cookies.</p>
+
 <div class="row">
     <div class="col-md">
         [% INCLUDE account/login_include.tt %]
