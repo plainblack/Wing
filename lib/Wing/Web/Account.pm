@@ -8,6 +8,7 @@ use Wing::Web;
 use Wing::SSO;
 use Wing::Client;
 use Facebook::Graph;
+use String::Random qw(random_string);
 
 require Wing::Dancer;
 

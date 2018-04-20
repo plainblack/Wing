@@ -18,6 +18,7 @@
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input class="form-control" type="text" name="email" v-model="user.properties.email" v-autosave="user" id="email">
+                <small class="form-text text-muted">We will use this to contact you with receipts, password recovery, multi-factor authentication, and other non-marketing messaging. You may also use the settings below to further modify your preferences about how your email address is used.</small>
             </div>
 
             [% UNLESS current_user.facebook_uid %]
@@ -30,11 +31,6 @@
             <div class="form-group">
                 <label for="use_as_display_name">Which would you like to be displayed on the site?</label>
                 <wing-select :object="user" property="use_as_display_name"></wing-select>
-            </div>
-            <div class="form-group">
-                <label for="no_email">Can we send you email?</label>
-                <wing-select :object="user" property="no_email"></wing-select>
-                <small class="form-text text-muted">If you choose no email, then you will not get email receipts and cannot use email to recover your password.</small>
             </div>
             <div class="form-group">
                 <label for="developer">Are you a software developer?</label>
