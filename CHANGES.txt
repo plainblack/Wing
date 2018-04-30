@@ -4,6 +4,11 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-04-30
+ * Change X-HTTP-Real-IP in nginx.conf to use $http_x_forwarded_for instead of $remote_addr to be compatible with Amazon load balancer.
+ * Added last_op to lib/Wing/Role/User.pm
+ * Will need to do a DB upgrade on app.
+
 2018-04-18
  * Notify about cookies.
 

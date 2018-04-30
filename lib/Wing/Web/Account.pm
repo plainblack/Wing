@@ -328,7 +328,7 @@ get '/sso' => sub {
     }
     my $sso = Wing::SSO->new(
         api_key_id              => $api_key->id,
-        ip_address              => request->remote_address,
+        ip_address              => request->env->{HTTP_X_REAL_IP} || request->remote_address,
         postback_uri            => params->{postback_uri},
         requested_permissions   => $permissions,
         db                      => site_db(),

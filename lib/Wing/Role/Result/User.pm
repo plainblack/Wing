@@ -79,6 +79,10 @@ A boolean indicating whether or not the user should be treated as a software dev
 
 A datetime indicating the time last time this user authenticated to the system. See also L<Wing::Role::Result::DateTimeField>.
 
+=item last_ip
+
+The IP address when the user last logged in or created their account.
+
 =back
 
 =head2 Children
@@ -122,6 +126,10 @@ before wing_finalize_class => sub {
             view    => 'private',
             edit    => 'unique',
             filter  => sub { Wing::ContentFilter::neutralize_html(\$_[0]); return $_[0]; },
+        },
+        last_ip                   => {
+            dbic    => { data_type => 'varchar', size => 20, is_nullable => 1 },
+            view    => 'private',
         },
         no_email     => {
             dbic                => { data_type => 'tinyint', default_value => 0 },
@@ -300,6 +308,7 @@ sub start_session {
     my ($self, $options) = @_;
     ouch 442, 'User is permanently deactivated' if $self->permanently_deactivated;
     $self->last_login(DateTime->now);
+    $self->last_ip($options->{ip_address});
     $self->update;
     return Wing::Session->new(db => $self->result_source->schema)->start($self, $options);
 }
