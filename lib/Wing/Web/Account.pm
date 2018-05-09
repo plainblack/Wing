@@ -122,7 +122,7 @@ get '/account/apikeys' => sub {
         return redirect '/account/verify/secondary/auth';
     }
     my $api_keys = $user->apikeys;
-    template 'account/apikeys', {current_user => $user };
+    template 'account/apikeys', {current_user => $user, apikeys => format_list($api_keys, current_user => $user) };
 };
 
 get '/account/apikeys/:id' => sub {
