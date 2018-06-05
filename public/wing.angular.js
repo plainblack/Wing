@@ -294,10 +294,10 @@ angular.module('wing',[])
             function (response) {
                 var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
-                    options.on_error(data.result);
+                    options.on_error(data.error);
                 }
                 if (typeof behavior.on_error !== 'undefined') {
-                    behavior.on_error(data.result);
+                    behavior.on_error(data.error);
                 }
             });
             return self;
@@ -325,7 +325,7 @@ angular.module('wing',[])
             function (response) {
                 var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
-                    options.on_error(data.result);
+                    options.on_error(data.error);
                 }
             });
             return self;
@@ -411,10 +411,10 @@ angular.module('wing',[])
             function (response) {
                 var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
-                    options.on_error(data.result);
+                    options.on_error(data.error);
                 }
                 if (typeof behavior.on_error !== 'undefined') {
-                    behavior.on_error(data.result);
+                    behavior.on_error(data.error);
                 }
             });
             return self;
@@ -437,10 +437,10 @@ angular.module('wing',[])
             function (response) {
                 var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
-                    options.on_error(data.result);
+                    options.on_error(data.error);
                 }
                 if (typeof behavior.on_error !== 'undefined') {
-                    behavior.on_error(data.result);
+                    behavior.on_error(data.error);
                 }
             });
             return self;
@@ -486,10 +486,10 @@ angular.module('wing',[])
             function (response) {
                 var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
-                    options.on_error(data.result);
+                    options.on_error(data.error);
                 }
                 if (typeof behavior.on_error !== 'undefined') {
-                    behavior.on_error(data.result);
+                    behavior.on_error(data.error);
                 }
             });
             return self;
@@ -512,10 +512,10 @@ angular.module('wing',[])
             function (response) {
                 var data = response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
-                    options.on_error(data.result);
+                    options.on_error(data.error);
                 }
                 if (typeof behavior.on_error !== 'undefined') {
-                    behavior.on_error(data.result);
+                    behavior.on_error(data.error);
                 }
             });
             return self;
@@ -543,10 +543,10 @@ angular.module('wing',[])
                 function (response) {
                     var data = response.data;
                     if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
-                        options.on_error(data.result);
+                        options.on_error(data.error);
                     }
                     if (typeof behavior.on_error !== 'undefined') {
-                        behavior.on_error(data.result);
+                        behavior.on_error(data.error);
                     }
                 });
             }
