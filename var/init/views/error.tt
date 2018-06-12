@@ -6,6 +6,10 @@
     <p>This page requires an account, please log in or create an account.</p>
 
     [% INCLUDE account/authenticate_include.tt redirect_after=params.redirect_after || request.path %]
+[% ELSIF code == 428 %]
+    <h1>Additional Authentication Required</h1>
+    <p>[% title %]</p>
+
 [% ELSE %]
     <p class="display-1 float-right">[% code %]</p>
     <h1>[% title %]</h1>

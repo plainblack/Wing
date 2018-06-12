@@ -26,7 +26,7 @@ post '/api/session/sso/:id' => sub {
     }
     $sso->delete;
     ouch(440, 'No user associated with SSO token.') unless $sso->user_id;
-    return describe($sso->user->start_session({ip_address => request->remote_address, api_key_id => $sso->api_key_id, sso => 1}));
+    return describe($sso->user->start_session({ip_address => request->env->{HTTP_X_REAL_IP} || request->remote_address, api_key_id => $sso->api_key_id, sso => 1}));
 };
 
 get '/api/session/:id' => sub {
@@ -48,15 +48,15 @@ post '/api/session' => sub {
     if ($user->rpc_count > $max) {
         ouch 452, 'Slow down! You are only allowed to make ('.$max.') requests per minute to the server.';
     }
-    
+
     # is developer
-    unless ($user->is_developer) { 
+    unless ($user->is_developer) {
         ouch 453, 'This user is not a developer.';
     }
 
     # validate password
     if ($user->is_password_valid(params->{password})) {
-        my $session = $user->start_session({ api_key_id => params->{api_key_id}, ip_address => request->remote_address });
+        my $session = $user->start_session({ api_key_id => params->{api_key_id}, ip_address => request->env->{HTTP_X_REAL_IP} || request->remote_address });
         return describe($session, current_user => $user);
     }
     else {

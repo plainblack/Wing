@@ -8,6 +8,7 @@ use Wing::Web;
 use Wing::SSO;
 use Wing::Client;
 use Facebook::Graph;
+use String::Random qw(random_string);
 
 require Wing::Dancer;
 
@@ -15,8 +16,20 @@ get '/login' => sub {
     template 'account/login';
 };
 
+get '/account/verify/secondary/auth' => sub {
+    my $user = get_user_by_session_id();
+    if ($user->verify_secondary_auth(param('token'))) {
+        return redirect param('redirect') || '/';
+    }
+    ouch(428, 'Check your email! Please click on the link we emailed you to access the page you requested.');
+};
+
 post '/account/deactivate' => sub {
     my $user = get_user_by_session_id();
+    unless ($user->has_secondary_auth_token) {
+        $user->email_secondary_auth_verification(request->path);
+        return redirect '/account/verify/secondary/auth';
+    }
     if ($user->is_password_valid(param('password'))) {
         my $session = get_session();
         if (defined $session) {
@@ -104,29 +117,41 @@ any '/logout' => sub {
 
 get '/account/apikeys' => sub {
     my $user = get_user_by_session_id();
+    unless ($user->has_secondary_auth_token) {
+        $user->email_secondary_auth_verification(request->path);
+        return redirect '/account/verify/secondary/auth';
+    }
     my $api_keys = $user->apikeys;
-    template 'account/apikeys', {current_user => $user };
+    template 'account/apikeys', {current_user => $user, apikeys => format_list($api_keys, current_user => $user) };
 };
 
 get '/account/apikeys/:id' => sub {
-    my $current_user = get_user_by_session_id();
+    my $user = get_user_by_session_id();
+    unless ($user->has_secondary_auth_token) {
+        $user->email_secondary_auth_verification(request->path);
+        return redirect '/account/verify/secondary/auth';
+    }
     my $api_key = fetch_object('APIKey');
-    $api_key->can_view($current_user);
+    $api_key->can_view($user);
     template 'account/apikey', {
-        current_user => $current_user,
-        apikey => describe($api_key, current_user => $current_user, include_relationships => 1),
+        current_user => $user,
+        apikey => describe($api_key, current_user => $user, include_relationships => 1),
     };
 };
 
 ### Kept for Backward Compatibility
 post '/account/apikey' => sub {
-    my $current_user = get_user_by_session_id();
+    my $user = get_user_by_session_id();
+    unless ($user->has_secondary_auth_token) {
+        $user->email_secondary_auth_verification(request->path);
+        return redirect '/account/verify/secondary/auth';
+    }
     my $object = site_db()->resultset('APIKey')->new({});
-    $object->user($current_user);
+    $object->user($user);
     my %params = params;
     eval {
-        $object->verify_creation_params(\%params, $current_user);
-        $object->verify_posted_params(\%params, $current_user);
+        $object->verify_creation_params(\%params, $user);
+        $object->verify_posted_params(\%params, $user);
     };
     if (hug) {
         return redirect '/account/apikeys?error_message='.bleep;
@@ -140,21 +165,29 @@ post '/account/apikey' => sub {
 
 ### Kept for Backward Compatibility
 del '/account/apikey/:id' => sub {
-    my $current_user = get_user_by_session_id();
+    my $user = get_user_by_session_id();
+    unless ($user->has_secondary_auth_token) {
+        $user->email_secondary_auth_verification(request->path);
+        return redirect '/account/verify/secondary/auth';
+    }
     my $api_key = fetch_object('APIKey');
-    $api_key->can_edit($current_user);
+    $api_key->can_edit($user);
     $api_key->delete;
     redirect '/account/apikeys';
 };
 
 ### Kept for Backward Compatibility
 post '/account/apikey/:id' => sub {
-    my $current_user = get_user_by_session_id();
+    my $user = get_user_by_session_id();
+    unless ($user->has_secondary_auth_token) {
+        $user->email_secondary_auth_verification(request->path);
+        return redirect '/account/verify/secondary/auth';
+    }
     my $object = fetch_object('APIKey');
-    $object->can_edit($current_user);
+    $object->can_edit($user);
     my %params = params;
     eval {
-        $object->verify_posted_params(\%params, $current_user);
+        $object->verify_posted_params(\%params, $user);
     };
     if (hug) {
         return redirect '/account/apikey/'.$object->id.'?error_message='.bleep;
@@ -167,11 +200,19 @@ post '/account/apikey/:id' => sub {
 
 get '/account' => sub {
     my $user = get_user_by_session_id();
+    unless ($user->has_secondary_auth_token) {
+        $user->email_secondary_auth_verification(request->path);
+        return redirect '/account/verify/secondary/auth';
+    }
     template 'account/index', { current_user => $user, };
 };
 
 post '/account' => sub {
     my $user = get_user_by_session_id();
+    unless ($user->has_secondary_auth_token) {
+        $user->email_secondary_auth_verification(request->path);
+        return redirect '/account/verify/secondary/auth';
+    }
     my %params = params;
     eval {
         $user->verify_posted_params(\%params, $user);
@@ -287,7 +328,7 @@ get '/sso' => sub {
     }
     my $sso = Wing::SSO->new(
         api_key_id              => $api_key->id,
-        ip_address              => request->remote_address,
+        ip_address              => request->env->{HTTP_X_REAL_IP} || request->remote_address,
         postback_uri            => params->{postback_uri},
         requested_permissions   => $permissions,
         db                      => site_db(),

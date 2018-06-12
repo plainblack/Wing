@@ -367,7 +367,7 @@ register track_user => sub {
 
 register login => sub {
     my ($user) = @_;
-    my $session = $user->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => request->remote_address });
+    my $session = $user->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => request->env->{HTTP_X_REAL_IP} || request->remote_address });
     set_cookie session_id   => $session->id,
                 expires     => '+5y',
                 http_only   => 0,

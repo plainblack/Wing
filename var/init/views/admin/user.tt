@@ -1,5 +1,25 @@
 [% INCLUDE admin/header_include.tt %]
 
+    <h2>Account Stats</h2>
+    <table class="table table-striped">
+        <tr>
+            <th>Date Created</th>
+            <td>[% user.date_created %]</td>
+        </tr>
+        <tr>
+            <th>Last Updated</th>
+            <td>[% user.date_updated %]</td>
+        </tr>
+        <tr>
+            <th>Last Login</th>
+            <td>[% user.last_login %]</td>
+        </tr>
+        <tr>
+            <th>Last IP</th>
+            <td>[% user.last_ip %]</td>
+        </tr>
+    </table>
+
 <div class="row" id="app">
     <div class="col-sm">
 
