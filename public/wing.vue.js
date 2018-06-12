@@ -171,25 +171,6 @@ Vue.component('wing-select', {
  * A component to generate select lists from wing options.
  */
 
-Vue.component('wing-select-new', {
-  template : `<select class="form-control" v-model="object[property]">
-    <option v-for="option in field_options()" :value="option">{{_field_option(option)}}</option>
-  </select>`,
-  props: ['options','object','property'],
-  methods : {
-    field_options () {
-        return this.options[this.property];
-    },
-    _field_option(option) {
-        return this.options['_'+this.property][option];
-    },
-  },
-});
-
-/*
- * A component to generate select lists from wing options.
- */
-
 Vue.component('characters-remaining', {
     template : `<small v-bind:class="{'text-danger': toobig, 'text-warning': nearlyfull}" class="text-sm float-right form-text">Characters Remaining: {{remaining}} / {{max}}</small>`,
     props: ['property','max'],
