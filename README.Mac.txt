@@ -17,12 +17,39 @@ Then perform steps 1 and 2 from README.txt.
 Next compile nginx:
 ===================
 
- wget http://superb-dca2.dl.sourceforge.net/project/pcre/pcre/8.32/pcre-8.32.tar.gz
- tar xfz pcre-8.32.tar.gz
- wget http://nginx.org/download/nginx-1.2.6.tar.gz
- tar xfz nginx-1.2.6.tar.gz
- cd nginx-1.2.6
- ./configure --prefix=/data/apps --with-pcre=../pcre-8.32
+ curl -O https://ftp.pcre.org/pub/pcre/pcre-8.42.tar.gz
+ tar xfz pcre-8.42.tar.gz
+ curl -O http://nginx.org/download/nginx-1.15.0.tar.gz
+ tar xfz nginx-1.15.0.tar.gz
+ cd nginx-1.15.0
+ ./configure --prefix=/data/apps --with-pcre=../pcre-8.42
+ make
+ make install
+ cd ..
+
+
+Next compile needed libraries:
+==============================
+
+ curl -O -L http://prdownloads.sourceforge.net/libpng/libpng-1.6.34.tar.gz?download
+ tar xfz libpng-1.6.34.tar.gz?download
+ cd libpng-1.6.34
+ ./configure --prefix=/data/apps
+ make
+ make install
+ cd ..
+ curl -O https://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.xz
+ tar xfz libtool-2.4.6.tar.xz
+ cd libtool-2.4.6
+ ./configure --prefix=/data/apps
+ make
+ make install
+ cd..
+ curl -O -L https://iweb.dl.sourceforge.net/project/libjpeg/libjpeg/6b/jpegsrc.v6b.tar.gz
+ tar xfz jpegsrc.v6b.tar.gz
+ cd jpeg-6b
+ ln -s /data/apps/bin/libtool
+ ./configure --prefix=/data/apps --enable-shared
  make
  make install
  cd ..
