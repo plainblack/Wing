@@ -93,6 +93,7 @@ use Ouch;
 use List::Util qw(min max);
 use POSIX qw(ceil);
 with 'Wingman::Role::Logger';
+no warnings 'experimental::smartmatch';
 
 
 has plugins => (

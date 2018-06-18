@@ -322,10 +322,14 @@ sub deactivate {
 
 sub display_name {
     my $self = shift;
-    given ($self->use_as_display_name) {
-        when ('username') { return $self->username }
-        when ('email') { return $self->email }
-        when ('real_name') { return $self->real_name }
+    if ($self->use_as_display_name eq 'username') {
+        return $self->username;
+    }
+    elsif ($self->use_as_display_name eq 'email') {
+        return $self->email;
+    }
+    elsif ($self->use_as_display_name eq 'real_name') {
+        return $self->real_name;
     }
 }
 
@@ -346,9 +350,11 @@ sub is_password_valid {
     my ($self, $password) = @_;
     ouch 442, 'User is permanently deactivated' if $self->permanently_deactivated;
     my $encrypted_password;
-    given ($self->password_type) {
-        when ('md5') { $encrypted_password = Digest::MD5::md5_base64(Encode::encode_utf8($password)) }
-        default { $encrypted_password = $self->encrypt($password, $self->password_salt) }
+    if ($self->password_type eq 'md5') { 
+        $encrypted_password = Digest::MD5::md5_base64(Encode::encode_utf8($password));
+    }
+    else {
+        $encrypted_password = $self->encrypt($password, $self->password_salt);
     }
     if (defined $password && $password ne '' && $self->password eq $encrypted_password) {
         if (defined $self->password_type && $self->password_type eq 'md5') { # while we have the password in the clear, let's upgrade the encryption

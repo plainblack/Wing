@@ -3,6 +3,7 @@ package Wing::DB::ResultSet;
 use Moose;
 extends 'DBIx::Class::ResultSet';
 use POSIX qw/ceil/;
+no warnings 'experimental::smartmatch';
 
 sub BUILDARGS { $_[2] }
 
