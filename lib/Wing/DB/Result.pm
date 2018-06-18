@@ -266,7 +266,9 @@ Updates the C<date_updated> field in the object to the current date.
 
 sub touch {
     my $self = shift;
-    $self->update({date_updated => DateTime->now});
+    if ($self->in_storage) {
+        $self->update({date_updated => DateTime->now});
+    }
 }
 
 =head2 sql_deploy_hook(sqlt_table)
