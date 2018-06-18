@@ -17,9 +17,9 @@ INSTALLATION
 
 3. Verify/set apps paths.
 
-  perl -v  # should return 5.16.2, the version required by Wing.  If not:
+  perl -v  # should return 5.26.2, the version required by Wing.  If not:
   source /data/Wing/bin/dataapps.sh
-  perl -v  # should return 5.16.2
+  perl -v  # should return 5.26.2
 
 4. Create a project in /data/MyApp:
 
