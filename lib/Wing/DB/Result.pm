@@ -4,7 +4,8 @@ use Wing::Perl;
 use DateTime;
 use Ouch;
 use List::MoreUtils qw(any);
-use base 'DBIx::Class::Core';
+use Moose;
+extends 'DBIx::Class::Core';
 
 =head1 NAME
 
@@ -75,16 +76,14 @@ sub wing_finalize_class {
     $class->wing_apply_relationships;
 }
 
-=head2 new()
+=head2 BUILD()
 
 Constructor. No parameters.
 
 =cut
 
-# override default DBIx::Class constructor to set defaults from schema
-sub new {
-    my $class = shift;
-    my $self = $class->SUPER::new(@_);
+sub BUILD {
+    my $self = shift;
     unless (defined $self->id) {
         $self->id(Data::GUID->new->as_string);
     }
