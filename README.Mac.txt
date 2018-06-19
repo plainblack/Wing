@@ -95,3 +95,13 @@ SSL Perl Modules
  cpanm --reinstall --verbose LWP::Protocol::https
 
 
+Notes about DBD::mysql
+======================
+
+Sometimes you won't be able to compile DBD::mysql and it will complain about a missing package. In that case, make sure you have the environment variable set that is described at the top of this document. However, sometimes even that doesn't seem to be enough, and you have to link some libraries for some reason. Here's what to do:
+
+ sudo ln -s /usr/local/mysql/lib/libmysqlclient.21.dylib /usr/local/lib/libmysqlclient.21.dylib
+ sudo ln -s /usr/local/mysql/lib/libssl.1.0.0.dylib /usr/local/lib/libssl.1.0.0.dylib
+ sudo ln -s /usr/local/mysql/lib/libcrypto.1.0.0.dylib /usr/local/lib/libcrypto.1.0.0.dylib
+
+
