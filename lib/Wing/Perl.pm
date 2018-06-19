@@ -29,4 +29,6 @@ sub import {
     utf8->import();
 }
 
+$SIG{__WARN__} = sub { warn $_[0] if $_[0] !~ /^Any::Moose is deprecated/ };
+
 1;
