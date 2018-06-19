@@ -14,6 +14,8 @@ with 'Wing::Role::Result::UserControlled';
 with 'Wing::Role::Result::UriPart';
 with 'Wing::Role::Result::Trendy';
 
+no warnings 'experimental::smartmatch';
+
 before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_fields(
