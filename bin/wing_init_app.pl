@@ -61,10 +61,6 @@ template($tt,'lib/DB/Result/TrendsLogYearly.pm', $vars, 'lib/'.$project.'/DB/Res
 template($tt,'etc/log4perl.conf', $vars);
 template($tt,'etc/mime.types', $vars);
 template($tt,'etc/nginx.conf', $vars);
-template($tt,'bin/start_web.sh', $vars);
-template($tt,'bin/start_rest.sh', $vars);
-template($tt,'bin/restart_starman.sh', $vars);
-template($tt,'bin/stop_starman.sh', $vars);
 template($tt,'bin/web.psgi', $vars);
 template($tt,'bin/rest.psgi', $vars);
 template($tt,'bin/setup/install_perl_modules.sh', $vars);
