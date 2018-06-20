@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-06-20
+ * Use MooseX::NonMoose to convert Wing::DB::Result and set defaults.
+
 2018-06-19
  * Migrate Wing to use the latest Perl (5.26.2) and modules.
  * Removed start_web.sh (and related scripts) in favor of wing commands.

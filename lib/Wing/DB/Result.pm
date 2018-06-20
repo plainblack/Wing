@@ -5,6 +5,7 @@ use DateTime;
 use Ouch;
 use List::MoreUtils qw(any);
 use Moose;
+use MooseX::NonMoose;
 extends 'DBIx::Class::Core';
 
 =head1 NAME

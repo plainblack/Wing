@@ -3,6 +3,7 @@ cpanm List::MoreUtils \
 Test::Trap \
 DBIx::Class \
 Moose \
+MooseX::NonMoose \
 DBIx::Class::InflateColumn::DateTime \
 DBIx::Class::InflateColumn::Serializer \
 SQL::Translator \
