@@ -14,5 +14,11 @@ make
 make install PREFIX=/data/apps
 cd ..
 
+cd libpng-1.6.34
+./configure --prefix=/data/apps
+make
+make install
+cd ..
+
 cpan App::cpanminus
 

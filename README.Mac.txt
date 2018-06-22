@@ -31,13 +31,6 @@ Next compile nginx:
 Next compile needed libraries:
 ==============================
 
- curl -O -L http://prdownloads.sourceforge.net/libpng/libpng-1.6.34.tar.gz?download
- tar xfz libpng-1.6.34.tar.gz?download
- cd libpng-1.6.34
- ./configure --prefix=/data/apps
- make
- make install
- cd ..
  curl -O https://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.xz
  tar xfz libtool-2.4.6.tar.xz
  cd libtool-2.4.6

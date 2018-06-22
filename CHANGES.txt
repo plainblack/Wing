@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-06-22
+ * libpng should be compiled with Wing because the RPMs found in many places don't contain pngfix.
+
 2018-06-20
  * Use MooseX::NonMoose to convert Wing::DB::Result and set defaults.
 
@@ -14,7 +17,6 @@ with respect to new features and compatibility changes.
     wing web --stop
     wing rest --start
     wing rest --stop
- * Moose "around" wrappers on DBIx::Class methods are no longer executed at instanciation time. But they are executed at every other time.
  * Added wing command to start and stop wingman.
     wing wingman --start
     wing wingman --restart
