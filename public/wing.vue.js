@@ -209,6 +209,12 @@ Vue.component('confirmation-toggle', {
 const wing = {
 
     /*
+     * base URI when you're working against a server that is not on your domain
+     */
+
+     base_uri : null,
+
+    /*
     * Manages the ajax progress bar
     */
 
@@ -269,7 +275,7 @@ const wing = {
             const self = this;
             const promise = axios({
                 method:'get',
-                url: (typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || self.fetch_api,
+                url: wing.base_uri + (typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || self.fetch_api,
                 params : self.params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -303,7 +309,7 @@ const wing = {
             const params = _.extend({}, self.params, properties);
             const promise = axios({
                 method:'post',
-                url: self.create_api,
+                url: wing.base_uri + self.create_api,
                 data : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -348,7 +354,7 @@ const wing = {
             const params = _.extend({}, self.params, properties);
             const config = {
                 method: method.toLowerCase(),
-                url: uri,
+                url: wing.base_uri + uri,
                 params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             };
@@ -388,7 +394,7 @@ const wing = {
             const params = _.extend({}, self.params, properties);
             const promise = axios({
                 method: 'put',
-                url: self.properties._relationships.self,
+                url: wing.base_uri + self.properties._relationships.self,
                 data : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -428,7 +434,7 @@ const wing = {
             if ((typeof options !== 'undefined' && typeof options.skip_confirm !== 'undefined' && options.skip_confirm == true) ||  wing.confirmations.disabled() || confirm(message)) {
                 const promise = axios({
                     method: 'delete',
-                    url: object._relationships.self,
+                    url: wing.base_uri + object._relationships.self,
                     params : self.params,
                     withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
                 });
@@ -531,7 +537,7 @@ const wing = {
             const params = _.extend({}, pagination, self.params);
             const promise = axios({
                 method: 'get',
-                url: self.list_api,
+                url: wing.base_uri + self.list_api,
                 params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -581,7 +587,7 @@ const wing = {
             }
             const promise = axios({
                 method: 'get',
-                url: self.list_api,
+                url: wing.base_uri + self.list_api,
                 params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -626,7 +632,7 @@ const wing = {
             const params = _.extend({}, params, self.params, properties);
             const promise = axios({
                 method: method.toLowerCase(),
-                url: uri,
+                url: wing.base_uri + uri,
                 params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -660,7 +666,7 @@ const wing = {
             const self = this;
             const promise = axios({
                 method: 'get',
-                url: self.options_api(),
+                url: wing.base_uri + self.options_api(),
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
             promise.then(function (response) {
