@@ -418,6 +418,9 @@ const wing = {
         delete : function(options) {
             const self = this;
             const object = self.properties;
+            if (_.isEmpty(object._relationships.self)) {
+                console.error('You need to specify an API URL to use the wing.delete method.');
+            }
             let message = 'Are you sure?';
             if ('name' in object) {
                 message = 'Are you sure you want to delete ' + object.name + '?';
@@ -443,10 +446,10 @@ const wing = {
                     console.dir(error);
                     const data = error.response.data;
                     if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
-                        options.on_error(data.result);
+                        options.on_error(data.error);
                     }
                     if (typeof behavior.on_error !== 'undefined') {
-                        behavior.on_error(data.result);
+                        behavior.on_error(data.error);
                     }
                 });
                 return promise;
