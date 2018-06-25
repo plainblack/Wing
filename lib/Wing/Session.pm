@@ -172,6 +172,7 @@ sub describe {
     }
     if ($options{include_relationships}) {
         $out->{_relationships}{user} = '/api/user/'.$self->user_id;
+        $out->{_relationships}{self} = '/api/session/'.$self->id;
     }
     if ($options{include_related_objects}) {
         $out->{user} = $self->user->describe;

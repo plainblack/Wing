@@ -4,6 +4,30 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-06-25
+ * Gave Session a self relationship.
+ * Added an error message if you don't pass in a api url for wing.vue.js delete().
+ * Fixed a bug in error handling in wing.vue.js delete.
+
+2018-06-22
+ * libpng should be compiled with Wing because the RPMs found in many places don't contain pngfix.
+
+2018-06-20
+ * Use MooseX::NonMoose to convert Wing::DB::Result and set defaults.
+
+2018-06-19
+ * Migrate Wing to use the latest Perl (5.26.2) and modules.
+ * Removed start_web.sh (and related scripts) in favor of wing commands.
+    wing web --start
+    wing web --stop
+    wing rest --start
+    wing rest --stop
+ * Added wing command to start and stop wingman.
+    wing wingman --start
+    wing wingman --restart
+    wing wingman --stop
+    wing wwingman --start --watchself
+
 2018-04-30
  * Change X-HTTP-Real-IP in nginx.conf to use $http_x_forwarded_for instead of $remote_addr to be compatible with Amazon load balancer.
  * Added last_op to lib/Wing/Role/User.pm

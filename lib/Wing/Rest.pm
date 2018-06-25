@@ -5,6 +5,7 @@ use warnings;
 use Ouch;
 use Dancer ':syntax';
 use Dancer::Plugin;
+no warnings 'experimental::smartmatch';
 
 set serializer => 'JSON';
 

@@ -17,9 +17,9 @@ INSTALLATION
 
 3. Verify/set apps paths.
 
-  perl -v  # should return 5.16.2, the version required by Wing.  If not:
+  perl -v  # should return 5.26.2, the version required by Wing.  If not:
   source /data/Wing/bin/dataapps.sh
-  perl -v  # should return 5.16.2
+  perl -v  # should return 5.26.2
 
 4. Create a project in /data/MyApp:
 
@@ -46,7 +46,7 @@ INSTALLATION
   mkdir /data/apps/logs
   chown nobody /data/apps/logs
 
-  NOTE: You can also edit the location of the logs in /data/MyApp/etc/log4perl.conf. It is defaultly set to /data/apps/logs/MyApp.log
+  NOTE: You can also edit the location of the logs in /data/MyApp/etc/log4perl.conf. It is defaultly set to /data/apps/logs/wing.log
 
 7. Initialize the database:
 
@@ -60,9 +60,8 @@ INSTALLATION
 
 8. Start up the rest server and/or web server:
 
-  cd /data/MyApp/bin
-  ./start_rest.sh
-  ./start_web.sh
+  wing rest --start
+  wing web --start
 
 9. Now you can connect to the rest server and see if it's alive:
 
@@ -91,8 +90,7 @@ beanstalkd &
 
 And finally you run Wing's job server by typing:
 
-wingman.pl start
-
+  wing wingman --start
 
 
 

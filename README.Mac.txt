@@ -17,12 +17,32 @@ Then perform steps 1 and 2 from README.txt.
 Next compile nginx:
 ===================
 
- wget http://superb-dca2.dl.sourceforge.net/project/pcre/pcre/8.32/pcre-8.32.tar.gz
- tar xfz pcre-8.32.tar.gz
- wget http://nginx.org/download/nginx-1.2.6.tar.gz
- tar xfz nginx-1.2.6.tar.gz
- cd nginx-1.2.6
- ./configure --prefix=/data/apps --with-pcre=../pcre-8.32
+ curl -O https://ftp.pcre.org/pub/pcre/pcre-8.42.tar.gz
+ tar xfz pcre-8.42.tar.gz
+ curl -O http://nginx.org/download/nginx-1.15.0.tar.gz
+ tar xfz nginx-1.15.0.tar.gz
+ cd nginx-1.15.0
+ ./configure --prefix=/data/apps --with-pcre=../pcre-8.42
+ make
+ make install
+ cd ..
+
+
+Next compile needed libraries:
+==============================
+
+ curl -O https://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.xz
+ tar xfz libtool-2.4.6.tar.xz
+ cd libtool-2.4.6
+ ./configure --prefix=/data/apps
+ make
+ make install
+ cd..
+ curl -O -L https://iweb.dl.sourceforge.net/project/libjpeg/libjpeg/6b/jpegsrc.v6b.tar.gz
+ tar xfz jpegsrc.v6b.tar.gz
+ cd jpeg-6b
+ ln -s /data/apps/bin/libtool
+ ./configure --prefix=/data/apps --enable-shared
  make
  make install
  cd ..
@@ -66,5 +86,15 @@ SSL Perl Modules
  cpanm --reinstall --verbose IO::Socket::SSL
 
  cpanm --reinstall --verbose LWP::Protocol::https
+
+
+Notes about DBD::mysql
+======================
+
+Sometimes you won't be able to compile DBD::mysql and it will complain about a missing package. In that case, make sure you have the environment variable set that is described at the top of this document. However, sometimes even that doesn't seem to be enough, and you have to link some libraries for some reason. Here's what to do:
+
+ sudo ln -s /usr/local/mysql/lib/libmysqlclient.21.dylib /usr/local/lib/libmysqlclient.21.dylib
+ sudo ln -s /usr/local/mysql/lib/libssl.1.0.0.dylib /usr/local/lib/libssl.1.0.0.dylib
+ sudo ln -s /usr/local/mysql/lib/libcrypto.1.0.0.dylib /usr/local/lib/libcrypto.1.0.0.dylib
 
 

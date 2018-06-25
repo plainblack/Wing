@@ -1,0 +1,12 @@
+[Unit]
+Description=Beanstalk Daemon
+After=syslog.target network.target
+
+[Service]
+Type=simple
+ExecStart=/data/apps/bin/beanstalkd -b /data/beanstalkd -u nobody -z 10485760 -s 1048576000
+User=root
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -4,6 +4,7 @@ use Wing::Perl;
 use Ouch;
 use Moose::Role;
 with 'Wing::Role::Result::Field';
+no warnings 'experimental::smartmatch';
 
 sub wing_parent_field {
     my ($wing_object_class, $field, $options) = @_;

@@ -4,7 +4,9 @@ use Wing::Perl;
 use DateTime;
 use Ouch;
 use List::MoreUtils qw(any);
-use base 'DBIx::Class::Core';
+use Moose;
+use MooseX::NonMoose;
+extends 'DBIx::Class::Core';
 
 =head1 NAME
 
@@ -75,16 +77,14 @@ sub wing_finalize_class {
     $class->wing_apply_relationships;
 }
 
-=head2 new()
+=head2 BUILD()
 
 Constructor. No parameters.
 
 =cut
 
-# override default DBIx::Class constructor to set defaults from schema
-sub new {
-    my $class = shift;
-    my $self = $class->SUPER::new(@_);
+sub BUILD {
+    my $self = shift;
     unless (defined $self->id) {
         $self->id(Data::GUID->new->as_string);
     }
@@ -266,7 +266,9 @@ Updates the C<date_updated> field in the object to the current date.
 
 sub touch {
     my $self = shift;
-    $self->update({date_updated => DateTime->now});
+    if ($self->in_storage) {
+        $self->update({date_updated => DateTime->now});
+    }
 }
 
 =head2 sql_deploy_hook(sqlt_table)
