@@ -10,6 +10,9 @@ axios.defaults.headers.get['If-Modified-Since'] = 'Mon, 26 Jul 1997 05:00:00 GMT
 //more cache control
 axios.defaults.headers.get['Cache-Control'] = 'no-cache';
 axios.defaults.headers.get['Pragma'] = 'no-cache';
+axios.defaults.paramsSerializer = function(params) {
+    return Qs.stringify(params, {arrayFormat: 'repeat'});
+};
 axios.interceptors.request.use(function (config) {
     wing.throbber.working();
     return config;
