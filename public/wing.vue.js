@@ -167,7 +167,6 @@ Vue.component('wing-select', {
   },
 });
 
-
 /*
  * A component to generate select lists from wing options.
  */
@@ -213,6 +212,15 @@ const wing = {
      */
 
      base_uri : null,
+
+     format_base_uri : function(uri_suffix) {
+         if (wing.base_uri == null) {
+             return uri_suffix;
+         }
+         else {
+             return wing.base_uri + uri_suffix;
+         }
+     },
 
     /*
     * Manages the ajax progress bar
@@ -275,7 +283,7 @@ const wing = {
             const self = this;
             const promise = axios({
                 method:'get',
-                url: wing.base_uri + (typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || self.fetch_api,
+                url: wing.format_base_uri((typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || self.fetch_api),
                 params : self.params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -309,7 +317,7 @@ const wing = {
             const params = _.extend({}, self.params, properties);
             const promise = axios({
                 method:'post',
-                url: wing.base_uri + self.create_api,
+                url: wing.format_base_uri(self.create_api),
                 data : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -354,7 +362,7 @@ const wing = {
             const params = _.extend({}, self.params, properties);
             const config = {
                 method: method.toLowerCase(),
-                url: wing.base_uri + uri,
+                url: wing.format_base_uri(uri),
                 params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             };
@@ -394,7 +402,7 @@ const wing = {
             const params = _.extend({}, self.params, properties);
             const promise = axios({
                 method: 'put',
-                url: wing.base_uri + self.properties._relationships.self,
+                url: wing.format_base_uri(self.properties._relationships.self),
                 data : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -434,7 +442,7 @@ const wing = {
             if ((typeof options !== 'undefined' && typeof options.skip_confirm !== 'undefined' && options.skip_confirm == true) ||  wing.confirmations.disabled() || confirm(message)) {
                 const promise = axios({
                     method: 'delete',
-                    url: wing.base_uri + object._relationships.self,
+                    url: wing.format_base_uri(object._relationships.self),
                     params : self.params,
                     withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
                 });
@@ -537,7 +545,7 @@ const wing = {
             const params = _.extend({}, pagination, self.params);
             const promise = axios({
                 method: 'get',
-                url: wing.base_uri + self.list_api,
+                url: wing.format_base_uri(self.list_api),
                 params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -587,7 +595,7 @@ const wing = {
             }
             const promise = axios({
                 method: 'get',
-                url: wing.base_uri + self.list_api,
+                url: wing.format_base_uri(self.list_api),
                 params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -632,7 +640,7 @@ const wing = {
             const params = _.extend({}, params, self.params, properties);
             const promise = axios({
                 method: method.toLowerCase(),
-                url: wing.base_uri + uri,
+                url: wing.format_base_uri(uri),
                 params : params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -666,7 +674,7 @@ const wing = {
             const self = this;
             const promise = axios({
                 method: 'get',
-                url: wing.base_uri + self.options_api(),
+                url: wing.format_base_uri(self.options_api()),
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
             promise.then(function (response) {
@@ -852,6 +860,37 @@ const wing = {
          if (!results) return null;
          if (!results[2]) return '';
          return decodeURIComponent(results[2].replace(/\+/g, " "));
+     },
+
+     firebase(user_id) {
+         if (typeof firebase === 'undefined') {
+             wing.error('Firebase client not installed');
+             return null;
+         }
+         else {
+             const promise = axios.get('/api/user/'+user_id+'/firebase-jwt').
+             then(function(response) {
+                 const config = response.data.result;
+                 firebase.initializeApp({
+                     databaseURL : 'https://'+config.database+'.firebaseio.com',
+                     apiKey : config.api_key,
+                     authDomain : config.id+'.firebaseapp.com',
+                 });
+                 firebase.auth().signInWithCustomToken(config.jwt).catch(function(error) {
+                     console.log("Firebase login failed!", error);
+                 });
+                 firebase.database().ref('/status/'+user_id).on('child_added', function(snapshot) {
+                     const message = snapshot.val();
+                     if (_.includes(['warn','info','error','success'], message.type)) {
+                         wing[message.type](message.message);
+                         setTimeout(function(){ snapshot.ref.remove(); }, 1000);
+                     }
+                     else {
+                         console.dir(message);
+                     }
+                 });
+             });
+         }
      },
 
 };

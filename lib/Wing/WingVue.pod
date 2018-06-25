@@ -171,6 +171,10 @@ L<https://github.com/freearhey/vue2-filters>
 
 =head1 Factories
 
+=head2 wing.base_uri
+
+If set to a domain like C<https://www.thegamecrafter.com> then it will prepend that domain to every request. Do not add a trailing slash. Also, unless the server is configured to handle CORS requests, you will need to set the C<with_credentials> flag on your requests to false.
+
 =head2 wing.confirmations
 
 Enables and disables delete confirmations in the  C<wing.object> factory and C<wing.object_list> factory.
