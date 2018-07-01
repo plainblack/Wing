@@ -161,20 +161,28 @@ sub rank {
     return $rank->count+1;
 }
 
-sub search_ideas {
-    my ($class, $params, $user) = @_;
-
-    # decide sort
-    my %sorts = (
+sub sorts {
+    my $self = shift;
+    return (
         'Score'         => {'-desc' => 'yes'},
         'Newest'        => {'-desc' => 'date_created'},
         'Last Updated'  => {'-desc' => 'date_updated'},
         'Alphabetical'  => 'name',
     );
+}
 
+sub default_sort {
+    return 'Score';
+}
+
+sub search_ideas {
+    my ($class, $params, $user) = @_;
+
+    # decide sort
+    my %sorts = $class->sorts;
     my $query = {};
     my $options = {
-        order_by => $sorts{$params->{_sort_by}} || $sorts{'Score'},
+        order_by => $sorts{$params->{_sort_by}} || $sorts{$class->default_sort},
     };
 
     my ($keyword_clause, $filter_clause, $owner_clause, $locked_clause);

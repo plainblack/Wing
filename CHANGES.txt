@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-07-01
+ * Made idea sorting pluggable.
+
 2018-06-25
  * Gave Session a self relationship.
  * Added an error message if you don't pass in a api url for wing.vue.js delete().
