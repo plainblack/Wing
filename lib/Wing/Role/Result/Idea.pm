@@ -56,7 +56,7 @@ before wing_finalize_class => sub {
             dbic        => { data_type => 'varchar', size => 20, is_nullable => 0, default_value => 'Unlocked', },
             view        => 'public',
             edit        => 'postable',
-            options     => [qw/Infeasible Completed Merged Unlocked/],
+            options     => [qw/Incomprehensible Infeasible Completed Merged Unlocked/],
         },
     );
     my $namespace = $class;
@@ -204,6 +204,10 @@ sub search_ideas {
     elsif ($params->{_sort_status} eq 'Infeasible') {
         $query->{locked} = 1;
         $query->{locked_status} = 'Infeasible';
+    }
+    elsif ($params->{_sort_status} eq 'Incomprehensible') {
+        $query->{locked} = 1;
+        $query->{locked_status} = 'Incomprehensible';
     }
     elsif ($params->{_sort_status} eq 'Completed') {
         $query->{locked} = 1;
