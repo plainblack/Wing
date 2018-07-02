@@ -33,7 +33,7 @@ after delete => sub {
 
 sub notify {
     my ($self, $message, $user_id) = @_;
-    return if $user_id eq $self->user_id;
+    return if defined $user_id && $user_id eq $self->user_id;
     eval {
         $self->user->send_templated_email('notify_about_idea', {
             idea               => $self->idea->describe(include_private => 1),
