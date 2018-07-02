@@ -71,4 +71,6 @@ Daemon::Control \
 Net::Amazon::S3 \
 Text::MultiMarkdown \
 URI::Find::Delimited \
+Crypt::JWT \
+Firebase \
 Template::Plugin::JSON::Escape

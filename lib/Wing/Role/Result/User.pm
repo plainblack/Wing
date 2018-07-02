@@ -9,8 +9,6 @@ use DateTime;
 use Data::GUID;
 use Ouch;
 use Moose::Role;
-use HTTP::Tiny;
-use JSON;
 use String::Random qw(random_string);
 use Crypt::JWT qw(encode_jwt);
 with 'Wing::Role::Result::Field';
@@ -18,6 +16,7 @@ with 'Wing::Role::Result::DateTimeField';
 with 'Wing::Role::Result::PrivilegeField';
 with 'Wing::Role::Result::Child';
 use Wing::ContentFilter;
+use Wing::Firebase;
 
 =head1 NAME
 
@@ -332,16 +331,10 @@ sub firebase_status {
             type    => $type || 'info'
         };
     }
-    my $uri = 'https://'.Wing->config->get('firebase/database').'.firebaseio.com/status/'.$self->id.'/'.int(Time::HiRes::time()*1000).'?auth='.$self->firebase_jwt;
-    my $response = HTTP::Tiny->new->request('PUT', $uri, {content => to_json($payload)});
-    if ($response->{success}) {
-        my $log_type = $payload->{type};
-        $log_type = 'info' if ($log_type eq 'success');
-        Wing->log->$log_type('Firebase status to '.$self->username.': '.$payload->{message});
-    }
-    else {
-        ouch $response->{status}, $response->{reason};
-    }
+    Wing::Firebase->new->object_status($self,  $payload);
+    my $log_type = $payload->{type};
+    $log_type = 'info' if ($log_type eq 'success');
+    Wing->log->$log_type('Firebase status to '.$self->username.': '.$payload->{message});
 }
 
 sub has_secondary_auth_token {
@@ -415,7 +408,7 @@ sub is_password_valid {
     my ($self, $password) = @_;
     ouch 442, 'User is permanently deactivated' if $self->permanently_deactivated;
     my $encrypted_password;
-    if ($self->password_type eq 'md5') { 
+    if ($self->password_type eq 'md5') {
         $encrypted_password = Digest::MD5::md5_base64(Encode::encode_utf8($password));
     }
     else {
