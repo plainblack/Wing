@@ -4,5 +4,6 @@
 <script src="https://cdn.jsdelivr.net/npm/vue2-filters@0.3.0/dist/vue2-filters.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/noty@3.2.0-beta/lib/noty.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qs@6.5.2/dist/qs.js"></script>
 <script src="https://unpkg.com/axios@0.18.0/dist/axios.min.js"></script>
 <script src="/wing.vue.js?v=gjhih"></script>

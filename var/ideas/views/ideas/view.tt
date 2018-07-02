@@ -97,6 +97,7 @@
                     <label class="sr-only" for="lock_status">Reason</label>
                     <select class="form-control" ng-model="lock_status">
                         <option selected="selected">Infeasible</option>
+                        <option>Incomprehensible</option>
                         <option>Completed</option>
                     </select>
                 </div>

@@ -4,10 +4,16 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-07-01
+ * Made idea sorting pluggable.
+ * Added incomprehensible option to ideas.
+
 2018-06-25
  * Gave Session a self relationship.
  * Added an error message if you don't pass in a api url for wing.vue.js delete().
  * Fixed a bug in error handling in wing.vue.js delete.
+ * Added wing.base_uri property to wing.vue.js.
+ * wing.vue.js now requires <script src="https://cdn.jsdelivr.net/npm/qs@6.5.2/dist/qs.js"></script>.
 
 2018-06-22
  * libpng should be compiled with Wing because the RPMs found in many places don't contain pngfix.

@@ -78,6 +78,7 @@
                     <option value="Open">Open</option>
                     <option value="Closed">Closed</option>
                     <option value="Infeasible">Infeasible</option>
+                    <option value="Incomprehensible">Incomprehensible</option>
                     <option value="Completed">Completed</option>
                     <option value="Merged">Merged</option>
                     <option value="All">All</option>
