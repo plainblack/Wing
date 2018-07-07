@@ -88,20 +88,20 @@ Vue.filter('timeago', function(input){
 
 
 /*
- * Format a date into a relative time
+ * Round a decimal to some level of precision
  */
 
 Vue.filter('round', function(number, precision){
     number = parseFloat(number);
     precision |= 0;
     var shift = function (number, precision, reverseShift) {
-    if (reverseShift) {
-      precision = -precision;
-    }
-    numArray = ("" + number).split("e");
-    return +(numArray[0] + "e" + (numArray[1] ? (+numArray[1] + precision) : precision));
-  };
-  return shift(Math.round(shift(number, precision, false)), precision, true);
+        if (reverseShift) {
+          precision = -precision;
+        }
+        numArray = ("" + number).split("e");
+        return +(numArray[0] + "e" + (numArray[1] ? (+numArray[1] + precision) : precision));
+    };
+    return shift(Math.round(shift(number, precision, false)), precision, true);
 });
 
 /*
@@ -244,7 +244,7 @@ const wing = {
                     self.counter = 1;
                     setTimeout(function() {
                         self.counter = 0;
-                    }, 500)
+                    }, 200)
                 }
             },
         }
@@ -281,6 +281,20 @@ const wing = {
         params : _.defaultsDeep({}, behavior.params, { _include_relationships : 1}),
         create_api : behavior.create_api,
         fetch_api : behavior.fetch_api,
+        _stash : {},
+
+        stash(name,value) {
+            const self = this;
+            if (typeof(value) !== 'undefined') {
+                Vue.set(self._stash, name, value);
+            }
+            if (name in self._stash) {
+                return self._stash[name];
+            }
+            else {
+                return null;
+            }
+        },
 
         fetch : function(options) {
             const self = this;
@@ -353,11 +367,15 @@ const wing = {
             return self.partial_update(self.properties, options);
         },
 
-        save : function(property) {
+        save : _.debounce(function(property) {
+            return this._save(property);
+        }, 200),
+
+        _save : function(property) {
             const self = this;
             const update = {};
             update[property] = self.properties[property];
-            return self.partial_update(update);
+            return self._partial_update(update);
         },
 
         call : function(method, uri, properties, options) {
