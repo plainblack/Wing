@@ -274,6 +274,14 @@ const wing = {
     * Manages a single wing database record via Ajax.
     */
 
+    format_post_data(params) {
+        var form = new FormData();
+        _.forEach(params, function(value, key) {
+            form.append(key, value);
+        });
+        return form;
+    },
+
     object : (behavior) => ({
 
         id : typeof behavior.properties !== 'undefined' ? behavior.properties.id : null,
@@ -331,7 +339,8 @@ const wing = {
 
         create : function(properties, options) {
             const self = this;
-            const params = _.extend({}, self.params, properties);
+            const params = wing.format_post_data(_.extend({}, self.params, properties));
+            console.dir(params);
             const promise = axios({
                 method:'post',
                 url: wing.format_base_uri(self.create_api),
@@ -388,7 +397,7 @@ const wing = {
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             };
             if (config.method == 'put' || config.method == 'post') {
-                config['data'] = params;
+                config['data'] = wing.format_post_data(params);
             }
             else {
                 config['params'] = params;
@@ -420,7 +429,7 @@ const wing = {
 
         _partial_update : function(properties, options) {
             const self = this;
-            const params = _.extend({}, self.params, properties);
+            const params = wing.format_post_data(_.extend({}, self.params, properties));
             const promise = axios({
                 method: 'put',
                 url: wing.format_base_uri(self.properties._relationships.self),
