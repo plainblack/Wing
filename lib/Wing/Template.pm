@@ -29,7 +29,7 @@ hook 'before_template_render' => sub {
     $tokens->{system_alert_message} = Wing->cache->get('system_alert_message');
     if (exists $tokens->{current_user} && $tokens->{current_user}) {
         my $current_user = delete $tokens->{current_user};
-        $tokens->{current_user} = describe($current_user, current_user => $current_user, include_relationships => 1, include_options => 1);
+        $tokens->{current_user} = describe($current_user, current_user => $current_user, include_relationships => 1, include_options => 1, include_private => 1, );
     }
 };
 
