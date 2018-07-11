@@ -306,6 +306,9 @@ const wing = {
 
         fetch : function(options) {
             const self = this;
+            if (!self.fetch_api) {
+                console.error('wing.object fetch_api is empty');
+            }
             const promise = axios({
                 method:'get',
                 url: wing.format_base_uri((typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || self.fetch_api),
@@ -339,8 +342,10 @@ const wing = {
 
         create : function(properties, options) {
             const self = this;
+            if (!self.create_api) {
+                console.error('wing.object create_api is empty');
+            }
             const params = wing.format_post_data(_.extend({}, self.params, properties));
-            console.dir(params);
             const promise = axios({
                 method:'post',
                 url: wing.format_base_uri(self.create_api),
@@ -565,6 +570,9 @@ const wing = {
 
         _search : function(options) {
             const self = this;
+            if (!self.list_api) {
+                console.error('wing.object_list list_api is empty');
+            }
             let pagination = {
                 _page_number : self.paging.page_number || 1,
                 _items_per_page : self.paging.items_per_page || 10,
@@ -616,6 +624,9 @@ const wing = {
 
         _all : function(options, page_number) {
             const self = this;
+            if (!self.list_api) {
+                console.error('wing.object_list list_api is empty');
+            }
             let params = _.extend({}, {
                 _page_number: page_number || 1,
                 _items_per_page: 10,
@@ -726,6 +737,9 @@ const wing = {
 
         create : function(properties, options) {
             const self = this;
+            if (!self.create_api) {
+                console.error('wing.object_list create_api is empty');
+            }
             const new_object = self._create_object(properties);
             const add_it = function() {
                 if (typeof options !== 'undefined' && typeof options.unshift !== 'undefined' && options.unshift == true) {
