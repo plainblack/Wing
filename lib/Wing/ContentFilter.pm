@@ -22,7 +22,7 @@ sub neutralize_html {
 
 sub neutralize_javascript {
     my ($content) = @_;
-    ${$content} =~ s{<\s*/?\s*script}{}g;
+    ${$content} =~ s{<\s*/?\s*script.+>}{}sg;
 }
 
 sub format_markdown {
