@@ -20,6 +20,11 @@ sub neutralize_html {
     ${$content} =~ s/\>/&gt;/g;
 }
 
+sub neutralize_javascript {
+    my ($content) = @_;
+    ${$content} =~ s{<\s*/?\s*script}{}g;
+}
+
 sub format_markdown {
     my ($content) = @_;
     my $m = Wing::Markdown->new(
