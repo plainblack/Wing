@@ -211,6 +211,16 @@ Vue.component('confirmation-toggle', {
 const wing = {
 
     /*
+    * scroll the window to an element
+    */
+
+    scroll_to (el) {
+        var elbox = el.getBoundingClientRect();
+        var bodybox = document.body.getBoundingClientRect();
+        window.scroll(elbox.left - bodybox.left, elbox.top - bodybox.top);
+    },
+
+    /*
      * base URI when you're working against a server that is not on your domain
      */
 

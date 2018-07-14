@@ -860,18 +860,33 @@ The message you want to be diplayed.
 
 =head1 Utilities
 
+=head2 wing.scroll_to(element)
+
+Scroll the window to a particular element.
+
+=over
+
+=item element
+
+The DOM element to scroll to. Use C<document.getElementById()> or some such.
+
+=back
 
 =head2 wing.get_query_param(name, [url])
 
 Returns the value of a query param.
 
-=head3 name
+=over
+
+=item name
 
 The name of the parameter you wish to fetch.
 
-=head3 url
+=item url
 
 Optional. Defaults to C<window.location.href>.
+
+=back
 
 =head2 wing.parse_date(input, timezone)
 
