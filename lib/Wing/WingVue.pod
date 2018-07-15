@@ -860,6 +860,18 @@ The message you want to be diplayed.
 
 =head1 Utilities
 
+=head2 wing.get_cookie(name)
+
+Fetches the value of a cookie.
+
+=over
+
+=item name
+
+The name of the cookie to retrieve.
+
+=back
+
 =head2 wing.scroll_to(element)
 
 Scroll the window to a particular element.

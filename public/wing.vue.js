@@ -210,6 +210,15 @@ Vue.component('confirmation-toggle', {
 
 const wing = {
 
+   /*
+    * get a cookie by name
+    */
+
+    get_cookie(a) {
+         let b = document.cookie.match('(^|;)\\s*' + a + '\\s*=\\s*([^;]+)');
+         return b ? b.pop() : '';
+    },
+
     /*
     * scroll the window to an element
     */
