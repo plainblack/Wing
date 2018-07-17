@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-07-16
+ * Added bytes filter to wing.vue.js.
+
 2018-07-14
  * Added wing.scroll_to() in wing.vue.js.
  * Added wing.get_cookie() in wing.vue.js.

@@ -94,6 +94,12 @@ Automatically save the value of a form element anytime the model is updated for 
 
 =head1 Filters
 
+=head2 bytes
+
+Converts a number into a formatted bytes string.
+
+ {{some_object.file_size | bytes}} // 11.3 MB
+
 =head2 capitalize
 
 L<https://github.com/freearhey/vue2-filters>
