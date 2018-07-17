@@ -13,6 +13,7 @@ with respect to new features and compatibility changes.
 
 2018-07-11
  * wing.vue.js throws errors when apis are empty.
+ * Add a very basic Javascript neutralizer to Wing::ContentFilter.
 
 2018-07-06
  * wing.object.save() in wing.vue.js now has a 200ms delay to give vue a chance to update the property.
