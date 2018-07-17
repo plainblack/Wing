@@ -585,6 +585,7 @@ const wing = {
                 on_update : behavior.on_update,
                 on_delete : function(properties) {
                     const myself = this;
+                    self.paging.total_items--;
                     if ('on_delete' in behavior) {
                         behavior.on_delete(properties);
                     }
