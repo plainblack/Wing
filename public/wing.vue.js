@@ -780,6 +780,7 @@ const wing = {
                 else {
                     self.objects.push(new_object);
                 }
+                self.paging.total_items++;
             };
             if (typeof options !== 'undefined') {
                 if (typeof options.on_success !== 'undefined') {
