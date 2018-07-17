@@ -25,6 +25,7 @@ axios.interceptors.response.use(function (response) {
     if (response.headers['content-type'] === "application/json; charset=utf-8" && "_warnings" in response.data.result) {
         for (var warning in response.data.result._warnings) {
             document.dispatchEvent(new CustomEvent('wing_warn', { message : response.data.result._warnings[warning].message }));
+            wing.warn(response.data.result._warnings[warning].message);
         }
     }
     return response;
@@ -45,6 +46,7 @@ axios.interceptors.response.use(function (response) {
             }
         }
     }
+    document.dispatchEvent(new CustomEvent('wing_error', { message : message }));
     wing.error(message);
     return Promise.reject(error);
 });
