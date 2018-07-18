@@ -248,15 +248,10 @@ const wing = {
      * base URI when you're working against a server that is not on your domain
      */
 
-     base_uri : null,
+     base_uri : '',
 
      format_base_uri : function(uri_suffix) {
-         if (wing.base_uri == null) {
-             return uri_suffix;
-         }
-         else {
-             return wing.base_uri + uri_suffix;
-         }
+         return wing.base_uri + uri_suffix;
      },
 
     /*
