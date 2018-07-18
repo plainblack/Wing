@@ -10,13 +10,13 @@
     </b-input-group>
 
     <b-table hover striped stacked="md" :items="users.objects" :fields="fields">
-        <template slot="properties.username" slot-scope="data"><a :href="edit_url(data.item)">{{data.item.properties.username}}</a></template>
+        <template slot="properties.username" slot-scope="data"><a :href="'/admin/user/'+data.item">{{data.item.properties.username}}</a></template>
         <template slot="properties.deactivated" slot-scope="data">
             <template v-if="data.item.properties.deactivated == 1">Yes</template>
             <template v-else>No</template>
         </template>
         <template slot="manage" slot-scope="data">
-            <form action="{{become_url(data.item)}}" method="POST">
+            <form :action="'/admin/user/'+data.item+'/become'" method="POST">
                 <button class="btn btn-secondary">Become</button>
             </form>
         </template>
@@ -36,22 +36,22 @@
         <div class="card-body">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input class="form-control" type="text" name="username" id="username" v-model="new_user.username">
+                <input class="form-control" type="text" name="username" id="username" v-model="users.new.username">
             </div>
             <div class="form-group">
                 <label for="real_name">Real Name</label>
-                <input class="form-control" type="text" name="real_name" id="real_name" v-model="new_user.real_name">
+                <input class="form-control" type="text" name="real_name" id="real_name" v-model="users.new.real_name">
             </div>
             <div class="form-group">
                 <label for="email">Email</label>
-                <input class="form-control" type="text" name="email" id="email" v-model="new_user.email">
+                <input class="form-control" type="text" name="email" id="email" v-model="users.new.email">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input class="form-control" type="text" name="password" id="password" v-model="new_user.password">
+                <input class="form-control" type="text" name="password" id="password" v-model="users.new.password">
             </div>
             <div class="form-group">
-                <button class="btn btn-success" @click="create_user()"><i class="fas fa-plus"></i> Create User</button>
+                <button class="btn btn-success" @click="users.create()"><i class="fas fa-plus"></i> Create User</button>
             </div>
         </div>
     </div>
@@ -65,7 +65,6 @@
 new Vue({
     el:     '#app',
     data:   {
-        new_user : {},
         fields: [
             {key : 'properties.username', label : 'Username'},
             {key : 'properties.real_name', label : 'Real Name'},
@@ -86,17 +85,6 @@ new Vue({
     },
     mounted() {
         this.users._search();
-    },
-    methods : {
-        become_url(user) {
-            return '/admin/user/' + user.properties.id  + '/become';
-        },
-        edit_url(user) {
-            return '/admin/user/' + user.properties.id;
-        },
-        create_user() {
-            this.users.create(this.new_user);
-        },
     },
 });
 </script>

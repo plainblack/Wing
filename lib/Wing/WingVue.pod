@@ -19,6 +19,7 @@ L<https://vuejs.org>
             },
             list_api : '/api/user',
             create_api : '/api/user',
+            new_defaults : { some_id : 'xxx' },
             on_create : function(properties, index) {
                 wing.success(properties.username + ' created.');
             },
@@ -485,6 +486,7 @@ A factory that generates and manages a list of Wing objects, aka a selection of 
                   _include_related_objects : ['photo'], // assumes you have a related object called photo
               },
               list_api : '/api/user',
+              new_defaults : { some_id : 'xxx' },
               create_api : '/api/user',
               on_create : function(properties, index) {
                   wing.success(properties.username + ' created.');
@@ -526,6 +528,10 @@ An object containing the parameters used to filter the list of objects retrieved
 Required if you want to create objects. The URI to post to to create an object of this type.
 
  /api/user
+
+=item new_defaults
+
+There is an object called C<new> who's entire purpose is to be filled by form element's v-models when you add a new object to this list. This property allows you to set the defaults for that C<new> object.
 
 =item options_api
 
@@ -572,6 +578,18 @@ An object containing pagination information about the current list.
   "items_per_page" : "10",
   "page_number" : "1"
  }
+
+=head3 new
+
+A javascript object that holds parameters waiting to be used in a new object that will be added to this list. By default it is empty:
+
+ { }
+
+However, you can set default values in this object by setting C<new_defaults> when you create the list. C<new> will also be reset to C<new_defaults> whenever C<reset_new()> is called.
+
+=head3 reset_new()
+
+Resets the C<new> to object to C<new_defaults>. This is automatically called when you call C<create()> on the list to reset C<new> after the object has been created and added to the list.
 
 =head3 find_object_id(id)
 
@@ -736,6 +754,16 @@ Create a new object in the database and insert it into this list, and then retur
 
 =over
 
+=item properties
+
+Optionally set the properties of the new object when you call create(). Normally though, you would be setting the properties directly on the list's C<new> object, or by using C<new_defaults>.
+
+=item options
+
+Optional configurable parameters when create executes.
+
+=over
+
 =item unshift
 
 By default new objects are pushed on to the end of the list. If this property is set to true then the new object will be prepended to the list.
@@ -743,6 +771,8 @@ By default new objects are pushed on to the end of the list. If this property is
 =item on_success
 
 A function to be executed if the object is sucessfully created. It is passed a list of properties.
+
+=back
 
 =back
 

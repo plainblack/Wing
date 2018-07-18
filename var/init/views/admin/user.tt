@@ -1,27 +1,8 @@
 [% INCLUDE admin/header_include.tt %]
 
-    <h2>Account Stats</h2>
-    <table class="table table-striped">
-        <tr>
-            <th>Date Created</th>
-            <td>[% user.date_created %]</td>
-        </tr>
-        <tr>
-            <th>Last Updated</th>
-            <td>[% user.date_updated %]</td>
-        </tr>
-        <tr>
-            <th>Last Login</th>
-            <td>[% user.last_login %]</td>
-        </tr>
-        <tr>
-            <th>Last IP</th>
-            <td>[% user.last_ip %]</td>
-        </tr>
-    </table>
 
 <div class="row" id="app">
-    <div class="col-sm">
+    <div class="col-md">
 
         <h2>Account Information</h2>
 
@@ -68,7 +49,29 @@
 
     </div>
 
-    <div class="col-sm">
+    <div class="col-md">
+
+        <h2>Account Stats</h2>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <tr>
+                    <th>Date Created</th>
+                    <td>[% user.date_created %]</td>
+                </tr>
+                <tr>
+                    <th>Last Updated</th>
+                    <td>[% user.date_updated %]</td>
+                </tr>
+                <tr>
+                    <th>Last Login</th>
+                    <td>[% user.last_login %]</td>
+                </tr>
+                <tr>
+                    <th>Last IP</th>
+                    <td>[% user.last_ip %]</td>
+                </tr>
+            </table>
+        </div>
 
         <h2>Become This User</h2>
         <p>You can become a user so you can easily test what they see.</p>

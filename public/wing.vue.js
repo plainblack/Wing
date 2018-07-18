@@ -549,6 +549,8 @@ const wing = {
         params : _.defaultsDeep({}, behavior.params, { _include_relationships : 1}),
         objects : [],
         paging : {},
+        new : _.defaultsDeep({}, behavior.new_defaults),
+        reset_new() { this.new = _.defaultsDeep({}, behavior.new_defaults) },
         list_api : behavior.list_api,
         create_api : behavior.create_api,
         field_options : {},
@@ -770,10 +772,14 @@ const wing = {
             return promise;
         },
 
-        create : function(properties, options) {
+        create : function(new_properties, options) {
             const self = this;
             if (!self.create_api) {
                 console.error('wing.object_list create_api is empty');
+            }
+            let properties = new_properties;
+            if (typeof properties === 'undefined') {
+                properties = self.new;
             }
             const new_object = self._create_object(properties);
             const add_it = function() {
@@ -784,6 +790,7 @@ const wing = {
                     self.objects.push(new_object);
                 }
                 self.paging.total_items++;
+                self.reset_new();
             };
             if (typeof options !== 'undefined') {
                 if (typeof options.on_success !== 'undefined') {
