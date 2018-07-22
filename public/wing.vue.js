@@ -313,7 +313,6 @@ const wing = {
 
     object : (behavior) => ({
 
-        id : typeof behavior.properties !== 'undefined' ? behavior.properties.id : null,
         properties : behavior.properties || {},
         params : _.defaultsDeep({}, behavior.params, { _include_relationships : 1}),
         create_api : behavior.create_api,
@@ -588,10 +587,7 @@ const wing = {
                     if ('on_delete' in behavior) {
                         behavior.on_delete(properties);
                     }
-                    const index = self.find_object_index(properties.id);
-                    if (index >= 0) {
-                        self.objects.splice(index, 1);
-                    }
+                    self.remove(properties.id);
                 },
             });
         },
@@ -824,6 +820,14 @@ const wing = {
             const self = this;
             return self.objects[index].delete(options);
         },
+
+        remove : function(id) {
+            const self = this;
+            const index = self.find_object_index(id);
+            if (index >= 0) {
+                self.objects.splice(index, 1);
+            }
+        }
 
     }),
 

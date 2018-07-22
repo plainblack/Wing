@@ -840,7 +840,17 @@ See C<delete_update()> in C<objectManager> for details.
 
 =back
 
+=head3 remove(id)
 
+Removes an object from this list without making a call to the server. See C<delete()> if you wish to remove it from the server too.
+
+=over
+
+=item id
+
+The unique id of the object you wish to delete.
+
+=back
 
 =head1 Notifications
 
