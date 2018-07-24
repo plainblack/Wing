@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-07-24
+ * Added "unshift_on_create" for wing.object_list in wing.vue.js.
+
 2018-07-22
  * Added a remove() method to wing.object_list in wing.vue.js.
 

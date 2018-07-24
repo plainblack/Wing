@@ -631,6 +631,10 @@ An object containing various search behavior modifications.
 
 Put search params here that you don't want to be attached to all subsequent queries via the C<fetch_options>.
 
+=item prepend_item
+
+An object representing an item that you'd like prepended to the search results. This is useful for things like typeahead where you might want to add a "Create New Item" button or something.
+
 =item accumulate
 
 If set to true, the object list will not be reset before adding the newly fetched data.

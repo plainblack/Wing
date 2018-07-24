@@ -774,7 +774,7 @@ const wing = {
             }
             const new_object = self._create_object(properties);
             const add_it = function() {
-                if (typeof options !== 'undefined' && typeof options.unshift !== 'undefined' && options.unshift == true) {
+                if ((typeof options !== 'undefined' && typeof options.unshift !== 'undefined' && options.unshift == true) || (typeof behavior.unshift_on_create !== 'undefined' && behavior.unshift_on_create)) {
                     self.objects.unshift(new_object);
                 }
                 else {
@@ -903,7 +903,7 @@ const wing = {
     },
 
     /*
-     * parses a date into a momemnt object
+     * parses a date into a moment object
      */
 
      parse_date : (input, timezone) => {
