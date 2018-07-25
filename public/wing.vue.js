@@ -306,7 +306,14 @@ const wing = {
     format_post_data(params) {
         var form = new FormData();
         _.forEach(params, function(value, key) {
-            form.append(key, value);
+            if (typeof(value) == 'object') {
+                _.forEach(value, function(element) {
+                    form.append(key, element);
+                });
+            }
+            else {
+                form.append(key, value);
+            }
         });
         return form;
     },
