@@ -355,7 +355,7 @@ const wing = {
                 }
             })
             .catch( function (error) {
-                console.error(error);
+                console.dir(error);
                 const data = error.response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
@@ -444,7 +444,8 @@ const wing = {
                 }
             })
             .catch( function (error) {
-                console.error(error);
+                console.error('Problem with CALL: '+uri);
+                console.dir(error);
                 const data = error.response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
