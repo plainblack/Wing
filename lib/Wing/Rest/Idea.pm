@@ -68,11 +68,13 @@ any ['post','put'] => '/api/idea/:id/opinions' => sub {
 };
 
 post '/api/idea/:idea1_id/merge' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin;
+    my $user = get_user_by_session_id();
     my $idea1_id = param('idea1_id');
     my $idea2_id = param('idea2_id') or ouch 424, "No value passed for idea2_id";
     my $idea1 = Wing->db->resultset('Idea')->find($idea1_id) or ouch 424, "Couldn't find idea1 by ID";
     my $idea2 = Wing->db->resultset('Idea')->find($idea2_id) or ouch 424, "Couldn't find idea2 by ID";
+    $idea1->can_edit($user);
+    $idea2->can_edit($user);
     eval {
         $idea1->merge( $idea2 );
     };
