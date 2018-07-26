@@ -57,7 +57,7 @@ axios.interceptors.response.use(function (response) {
 
 var throbber = document.createElement('div');
 throbber.innerHTML = `<div id="wingajaxprogress" style="z-index: 10000; position: fixed; top: 0px; width: 100%;">
-    <template v-if="counter > 0"><b-progress :value="counter" :max="max" height="5px" animated></b-progress></template>
+    <template v-if="counter > 0"><b-progress :value="counter" :max="max" height="10px" animated></b-progress></template>
 </div>`;
 document.body.appendChild(throbber);
 
