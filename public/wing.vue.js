@@ -70,7 +70,7 @@ document.body.appendChild(throbber);
 Vue.filter('moment', function(input, format, timezone){
     if (typeof moment !== 'undefined') {
         if (!_.isString(format)) {
-            format = 'MMMM d, YYYY';
+            format = 'MMMM D, YYYY';
         }
         return wing.parse_date(input, timezone).format(format);
     }
