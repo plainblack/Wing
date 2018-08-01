@@ -252,9 +252,20 @@ Sends a templated email to this user. See C<send_templated_email> in L<Wing> for
 
 Generates a password reset code that is valid for 24 hours and returns it.
 
-=item firebase_jwt ()
+=item firebase_jwt ( [ claims ] )
 
 Returns a Firebase JWT auth token according to the Firebase Client 4.x specification.
+
+=over
+
+=item claims
+
+Optional. A hash reference of claims to add to the firebase auth token. Example:
+
+ { moderator : 1 }
+
+=back
+
 
 =item  firebase_status ( payload )
 
@@ -307,17 +318,22 @@ Check a secondary auth token to see if it is valid, and if it is, generate a sec
 
 sub firebase_jwt {
     my $self = shift;
+    my $claims = shift;
     my $firebase_config = Wing->config->get('firebase');
     my $now = time();
+    my $payload = {
+        iss     => $firebase_config->{service_email},
+        sub     => $firebase_config->{service_email},
+        aud     => "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
+        iat     => $now,
+        exp     => $now+(60*60),  # Maximum expiration time is one hour
+        uid     => $self->id,
+    };
+    if (defined $claims && ref $claims eq 'HASH') {
+        $payload->{claims} = $claims;
+    }
     return encode_jwt(
-        payload     => {
-            iss     => $firebase_config->{service_email},
-            sub     => $firebase_config->{service_email},
-            aud     => "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
-            iat     => $now,
-            exp     => $now+(60*60),  # Maximum expiration time is one hour
-            uid     => $self->id,
-        },
+        payload     => $payload,
         alg         => 'RS256',
         key         => \$firebase_config->{admin_key},
     );
