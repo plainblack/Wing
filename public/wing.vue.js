@@ -934,9 +934,13 @@ const wing = {
              else if (input instanceof moment) {
                  date = input;
              }
+             else if (typeof input === 'number' && input > 1000000000000) { // milliseconds since epoch
+                 date = moment(input);
+             }
              else if (typeof input === 'number') { // seconds since epoch
                  date = moment.unix(input);
-             } else { // must be a normal date
+             }
+             else { // must be a normal date
                  date = moment(input);
              }
              if (typeof moment.tz === 'function' && _.isString(timezone)) {
