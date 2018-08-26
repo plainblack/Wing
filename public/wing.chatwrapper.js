@@ -2,6 +2,11 @@ chatwrapper = {
 
     initialized : false,
     visible : false,
+    labels: {
+        icon : '<i class="fas fa-comments"></i>',
+        open : 'Open Chat',
+        close : 'Close Chat',
+    },
 
     create_button() {
         const b = document.createElement('button');
@@ -9,9 +14,10 @@ chatwrapper = {
         b.style.bottom = '0';
         b.id = 'chatwrapper_toggle';
         b.style.right = '10px';
-        b.innerHTML = '<i class="fas fa-comments"></i> Open Chat';
+        b.innerHTML = chatwrapper.labels.icon + ' ' + chatwrapper.labels.open;
         b.classList.add('btn');
-        b.classList.add('btn-dark');
+        b.classList.add('btn-success');
+        console.dir(b);
         document.body.appendChild(b);
         return b;
     },
@@ -53,13 +59,13 @@ chatwrapper = {
 
     show() {
         chatwrapper.visible = true;
-        chatwrapper.button.innerHTML = '<i class="fas fa-comments"></i> Close Chat';
+        chatwrapper.button.innerHTML = chatwrapper.labels.icon + ' ' + chatwrapper.labels.close;
         chatwrapper.iframe.style.visibility = "visible";
     },
 
     hide() {
         chatwrapper.visible = false;
-        chatwrapper.button.innerHTML = '<i class="fas fa-comments"></i> Open Chat';
+        chatwrapper.button.innerHTML = chatwrapper.labels.icon + ' ' + chatwrapper.labels.open;
         chatwrapper.iframe.style.visibility = "hidden";
     },
 
