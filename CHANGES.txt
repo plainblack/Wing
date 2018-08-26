@@ -26,6 +26,7 @@ with respect to new features and compatibility changes.
     },
 
  * facebook_uid and facebook_token are now part of Wing::Role::Result::User so remove them from your base classes.
+ * You'll need to add Wing::Web::Chat to the module list in MyApp::Web if you want to use chat.
 
 2018-07-24
  * Added "unshift_on_create" for wing.object_list in wing.vue.js.
