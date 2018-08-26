@@ -4,7 +4,7 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
-2018-09-23
+2018-09-25
  * If you wish to take advantage of the new Firebase features in the UI you'll need to load:
 
  <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-app.js"></script>
@@ -12,6 +12,7 @@ with respect to new features and compatibility changes.
  <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-database.js"></script>
 
  * Now requires Crypt::JWT and Firebase Perl modules.
+ * Added public/wing.chatwrapper.js. If you want to use it, you need to expose it in etc/nginx.conf.
 
 2018-07-24
  * Added "unshift_on_create" for wing.object_list in wing.vue.js.
