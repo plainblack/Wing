@@ -48,6 +48,14 @@ The name this user will type to authenticate themselves.
 
 Their name in meatspace.
 
+=item facebook_uid
+
+String. The unique id of a user's Facebook account.
+
+=item facebook_token
+
+String. The token Facebook gives us to allow us to take actions for a user on Facebook.
+
 =item email
 
 Their contact email address.
@@ -121,6 +129,16 @@ before wing_finalize_class => sub {
             view    => 'private',
             edit    => 'postable',
             filter  => sub { Wing::ContentFilter::neutralize_html(\$_[0], {entities=>1},); return $_[0]; },
+        },
+        facebook_uid            => {
+            dbic                => { data_type => 'bigint', is_nullable => 1 },
+            view                => 'private',
+            edit                => 'admin',
+        },
+        facebook_token          => {
+            dbic                => { data_type => 'varchar', size => 100, is_nullable => 1 },
+            view                => 'private',
+            edit                => 'admin',
         },
         email                   => {
             dbic    => { data_type => 'varchar', size => 255, is_nullable => 1 },
@@ -353,6 +371,62 @@ sub firebase_status {
     Wing->log->$log_type('Firebase status to '.$self->username.': '.$payload->{message});
 }
 
+
+
+=head2 post_message_to_chat ( message, [ options ] )
+
+Posts a message to the chat system.
+
+=over
+
+=item room_id
+
+The unique id of a room to post to. Defaults to the id of the general chat room.
+
+=item message_type
+
+Must be C<activity> or C<default>. Defaults to C<default>. Activity messages are the equivalent of typing C</me message> in the chat.
+
+=back
+
+=cut
+
+sub post_message_to_chat {
+    my ($self, $message, $options) = @_;
+    my $room_id = $options->{room_id} || 'general-chat'; # defaults to general chat
+    my $firebase_config = Wing->config->get('firebase');
+    return Wing::Firebase->new->post('chat/messages/'.$room_id, {
+        user_id     => $self->id,
+        name        => $self->display_name,
+        timestamp   => {".sv"   => "timestamp"},
+        text        => $message,
+        type        => $options->{message_type} || 'message',
+        '.priority' => {".sv"   => "timestamp"},
+    });
+}
+
+=head2 is_chat_moderator
+
+Returns a boolean if the user has chat moderator privileges.
+
+=cut
+
+sub is_chat_moderator {
+    my $self = shift;
+    return $self->is_chat_staff;
+}
+
+=head2 is_chat_staff
+
+Returns a boolean if the user has chat staff privileges.
+
+=cut
+
+sub is_chat_staff {
+    my $self = shift;
+    return $self->is_admin ? 1 : 0;
+}
+
 sub has_secondary_auth_token {
     my $self = shift;
     return Wing->cache->get('2factor-verified-'.$self->id);
@@ -532,6 +606,16 @@ sub view_uri {
 sub edit_uri {
     my $self = shift;
     return '/account';
+}
+
+sub determine_avatar_uri {
+    my $self = shift;
+    if ($self->facebook_uid) {
+        return '//graph.facebook.com/'.$self->facebook_uid.'/picture';
+    }
+    else {
+        return '//www.gravatar.com/avatar/'.md5_hex($self->email);
+    }
 }
 
 1;

@@ -1,0 +1,84 @@
+{
+  // Firechat sample security rules
+  "rules": {
+    // By default, make all data private unless specified otherwise.
+    ".read": false,
+    ".write": false,
+    "chat" : {
+      ".read": "(auth != null)",
+      "likes" : {
+        "$room_id" : {
+          ".write" : "root.child('chat').child('rooms').child($room_id).exists()",
+          "$user_id" : {
+             ".write" : "auth.uid === $user_id",
+             "$message_id" : {
+               ".write" : "root.child('chat').child('messages').child($message_id).exists()"
+             }
+          }
+        }
+      },
+      "rooms": {
+        ".read": "auth !== null",
+        "$room_id": {
+        		".write": "auth != null && (auth.token.moderator == 1 || (data.child('created_by').exists() && auth.uid == data.child('created_by').val()) || (!data.exists() && auth.uid == newData.child('created_by').val()) )",
+            "name" : {
+              ".validate": "newData.isString() && (!data.exists() || data.parent().child('type').val() != 'official')"
+            },
+            "id": {
+          		".validate": "(newData.val() === $room_id)"
+        		},
+            "type": {
+          		".validate": "('public' === newData.val()) || 'private' === newData.val() || ('official' === newData.val() && (root.child('chat').child('moderators').hasChild(auth.uid)))"
+        		},
+            "authorized": {
+          		".write": "(auth != null) && (!data.exists() || root.child('chat').child('moderators').hasChild(auth.uid) || data.hasChild(auth.uid))"
+        		},
+        }
+      },
+      "users" : {
+        "$uid" : {
+          	".write" : "auth.uid === $uid",
+          	"invites": {
+          		// A list of chat invitations from other users, append-only by anyone.
+          		"$room_id": {
+            		// Allow the user who created the invitation to read the status of the invitation.
+            		".read": "(auth != null) && (auth.uid === data.child('from_user_id').val())",
+            		".write": "(auth != null) && (!data.exists() || $uid === auth.uid || data.child('from_user_id').val() === auth.uid)",
+            		".validate": "newData.hasChildren(['from_user_id','from_user_name','room_id','room_name']) && (newData.child('room_id').val() === $room_id)"
+          		},
+        		},
+        },
+      },
+      "moderators" : {
+        "$uid" : {
+          	".write": "(auth != null) && (auth.uid === $uid) && (auth.token.moderator == 1)"
+        },
+      },
+      "messages" : {
+        "$room_id": {
+        	// A list of messages by room, viewable by anyone for public rooms, or authorized users for private rooms.
+        	".read": "(root.child('chat').child('rooms').child($room_id).child('type').val() != 'private' || root.child('chat').child('rooms').child($room_id).child('authorized').hasChild(auth.uid))",
+        	".write": "(auth != null) && (root.child('chat').child('moderators').hasChild(auth.uid) || root.child('chat').child('rooms').child($room_id).child('created_by').val() == auth.uid)",
+        	"$message_id": {
+         	 	// Allow anyone to append to this list and allow admins to edit or remove.
+          	".write": "(auth != null) && ((data.val() === null || root.child('chat').child('moderators').hasChild(auth.uid)) && (root.child('chat').child('rooms').child($room_id).child('type').val() != 'private' || root.child('chat').child('rooms').child($room_id).child('authorized').hasChild(auth.uid)) && (!root.child('chat').child('bans').hasChild(auth.uid) || root.child('chat').child('bans').child(auth.uid).val() < now) || (auth.uid == data.child('user_id').val()))",
+          	".validate": "(newData.hasChildren(['user_id','name','text','timestamp']))",
+        	},
+          "type" : {
+            	".validate": "newData.val() == 'message' || newData.val() == 'notice' || newData.val() == 'emote'"
+          }
+      	}
+      },
+      "bans": {
+      	".write": "(auth != null) && (root.child('chat').child('moderators').hasChild(auth.uid))",
+      	".read": "(auth != null) && (root.child('chat').child('moderators').hasChild(auth.uid))"
+    	}
+    },
+    "status" : {
+      ".read": true,
+      "$user_id" : { 
+        ".write" : "auth.uid == $user_id"
+      }
+    },
+  }
+}

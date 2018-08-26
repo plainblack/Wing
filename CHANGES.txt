@@ -13,6 +13,19 @@ with respect to new features and compatibility changes.
 
  * Now requires Crypt::JWT and Firebase Perl modules.
  * Added public/wing.chatwrapper.js. If you want to use it, you need to expose it in etc/nginx.conf.
+ * If you want to use Firebase, copy the rules from var/firebase_rules.json into your Firebase instance.
+ * If you want to use Firebase, you'll need to set up the Firebase section in your wing.conf file like this:
+
+  "firebase" : {
+        "id" : "firebase-idgoeshere",
+        "service_email" : "firebase-adminsdk-somecode@firebase-dbname.iam.gserviceaccount.com",
+        "api_key" : "api key goes here",
+        "database" : "dbname",
+        "admin_key" : "-----BEGIN PRIVATE KEY-----\nkey goes here\n-----END PRIVATE KEY-----\n",
+        "auth" : { "admin" : true, "secret" : "secret goes here", "data" : {"uid" : "wing"} }
+    },
+
+ * facebook_uid and facebook_token are now part of Wing::Role::Result::User so remove them from your base classes.
 
 2018-07-24
  * Added "unshift_on_create" for wing.object_list in wing.vue.js.

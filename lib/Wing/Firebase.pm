@@ -9,7 +9,8 @@ use Time::HiRes;
 around BUILDARGS => sub {
     my $orig = shift;
     my $class = shift;
-    my %args = (@_, %{Wing->config->get('firebase')});
+    my $config = Wing->config->get('firebase');
+    my %args = (@_, firebase => $config->{database}, auth => $config->{auth});
     return $class->$orig(%args);
 };
 
