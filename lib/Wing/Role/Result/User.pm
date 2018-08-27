@@ -17,6 +17,7 @@ with 'Wing::Role::Result::PrivilegeField';
 with 'Wing::Role::Result::Child';
 use Wing::ContentFilter;
 use Wing::Firebase;
+use Digest::MD5 qw(md5_hex);
 
 =head1 NAME
 
