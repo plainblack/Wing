@@ -6,6 +6,7 @@
 [% END %]
 
 [% USE date %]
+<img src="[% profile_user.avatar_uri %]" class="img-responsive">
 <div class="table-responsive">
     <table class="table table-striped">
         <tr>

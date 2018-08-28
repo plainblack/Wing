@@ -378,7 +378,7 @@ chat.init = function(config) {
                         <a class="nav-link" :class="{active : current_room == room.id}" v-for="room in orderBy(Object.values(rooms),'name')" :key="room.id" @click="focus_room(room.id)">
                             <div class="p-1 float-left"><i v-b-tooltip.hover.left :title="room.name" class="fas" :class="{'fa-comments' : room.type == 'official', 'fa-comment-lines' : room.type == 'public', 'fa-comment-smile' : room.type == 'private'}"></i></div>
                             <div class="p-1 d-none d-sm-inline-block roomname float-left">{{room.name}}</div>
-                            <div class="p-1 mt-1 badge badge-primary float-left" v-if="room.recent_message_count > 0">{{room.recent_message_count}}</div>
+                            <div class="p-1 mt-1 badge badge-secondary float-left" v-if="room.recent_message_count > 0">{{room.recent_message_count}}</div>
                             <div class="float-right ml-2" v-if="room.type != 'official'">
                                 <span title="Remove Room" @click="remove_room(room.id)" v-if="chat.current_user.id == room.created_by || chat.current_user.moderator"><i class="fas fa-trash-alt"></i></span>
                                 <span class="ml-1" title="Leave Room" @click="leave_room(room.id)"><i class="fas fa-sign-out-alt"></i></span>

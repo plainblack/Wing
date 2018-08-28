@@ -93,6 +93,12 @@ A datetime indicating the time last time this user authenticated to the system. 
 
 The IP address when the user last logged in or created their account.
 
+
+=item avatar_uri
+
+The URI to the C<avatar> image from facebook or gravatar.
+
+
 =back
 
 =head2 Children
@@ -223,6 +229,7 @@ around describe => sub {
     my ($orig, $self, %options) = @_;
     my $out = $orig->($self, %options);
     $out->{display_name} = $self->display_name;
+    $out->{avatar_uri} = $self->determine_avatar_uri;
     $out->{view_uri} = $self->view_uri;
     if ($options{include_private}) {
         $out->{edit_uri} = $self->edit_uri;
@@ -615,7 +622,7 @@ sub determine_avatar_uri {
         return '//graph.facebook.com/'.$self->facebook_uid.'/picture';
     }
     else {
-        return '//www.gravatar.com/avatar/'.md5_hex($self->email);
+        return '//www.gravatar.com/avatar/'.md5_hex($self->email).'?s=300';
     }
 }
 
