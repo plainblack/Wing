@@ -73,4 +73,5 @@ Text::MultiMarkdown \
 URI::Find::Delimited \
 Crypt::JWT \
 Firebase \
-Template::Plugin::JSON::Escape
+Template::Plugin::JSON::Escape \
+Data::Structure::Util 

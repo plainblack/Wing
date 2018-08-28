@@ -5,6 +5,9 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2018-09-25
+ * Converted UI to use Vue 2 and Bootstrap 4.
+ * Read angular2vue.txt for migration details.
+ * Now requires: Template::Plugin::JSON::Escape
  * If you wish to take advantage of the new Firebase features in the UI you'll need to load:
 
  <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-app.js"></script>
@@ -28,28 +31,8 @@ with respect to new features and compatibility changes.
  * facebook_uid and facebook_token are now part of Wing::Role::Result::User so remove them from your base classes.
  * You'll need to add Wing::Web::Chat to the module list in MyApp::Web if you want to use chat.
 
-2018-07-24
- * Added "unshift_on_create" for wing.object_list in wing.vue.js.
-
-2018-07-22
- * Added a remove() method to wing.object_list in wing.vue.js.
-
-2018-07-16
- * Added bytes filter to wing.vue.js.
- * Added new object handler to wing.object_list in wing.vue.js.
-
-2018-07-14
- * Added wing.scroll_to() in wing.vue.js.
- * Added wing.get_cookie() in wing.vue.js.
-
 2018-07-11
- * wing.vue.js throws errors when apis are empty.
  * Add a very basic Javascript neutralizer to Wing::ContentFilter.
-
-2018-07-06
- * wing.object.save() in wing.vue.js now has a 200ms delay to give vue a chance to update the property.
- * wing.throbber only animates for 200ms instead of 500ms.
- * Added the stash() method to wing.object in wing.vue.js.
 
 2018-07-01
  * Made idea sorting pluggable.
@@ -58,10 +41,6 @@ with respect to new features and compatibility changes.
 
 2018-06-25
  * Gave Session a self relationship.
- * Added an error message if you don't pass in a api url for wing.vue.js delete().
- * Fixed a bug in error handling in wing.vue.js delete.
- * Added wing.base_uri property to wing.vue.js.
- * wing.vue.js now requires <script src="https://cdn.jsdelivr.net/npm/qs@6.5.2/dist/qs.js"></script>.
 
 2018-06-22
  * libpng should be compiled with Wing because the RPMs found in many places don't contain pngfix.
@@ -94,19 +73,8 @@ with respect to new features and compatibility changes.
  * Added 2-factor authentication for GDPR compliance.
  * NOTE: You need to add var/init/var/mkits/secondary_auth.mkit to your mkits.
 
-2018-04-04
- * Better error handling in wing.object and wing.object_list in wing.vue.js.
- * Added new round() filter to wing.vue.js.
- * wing.object and wing.object_list now have fetch_api, list_api, and create_api exposed as properties.
-
 2018-03-30
- * Added wing.vue.js get_query_param().
  * Fixed a search bug in var/ideas/index.tt.
-
-2018-03-23
- * Converted UI to use Vue 2 and Bootstrap 4.
- * Read angular2vue.txt for migration details.
- * Now requires: Template::Plugin::JSON::Escape
 
 2018-2-13
  * If Role::Field options returns undef then don't validate it.
