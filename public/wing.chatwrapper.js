@@ -17,7 +17,6 @@ chatwrapper = {
         b.innerHTML = chatwrapper.labels.icon + ' ' + chatwrapper.labels.open;
         b.classList.add('btn');
         b.classList.add('btn-success');
-        console.dir(b);
         document.body.appendChild(b);
         return b;
     },
@@ -51,7 +50,6 @@ chatwrapper = {
         i.style.zIndex = 99999999;
         i.id = 'chatwrapper_window';
         i.style.boxShadow = '10px 20px 30px black';
-        console.dir(i);
         document.body.appendChild(i);
         chatwrapper.iframe = i;
         chatwrapper.show();
