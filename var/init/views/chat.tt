@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-secondary">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="/chaticon-200.png" rel="apple-touch-icon" sizes="200x200" />
+  <link href="/chaticon-200.png" rel="icon" sizes="200x200" />
+  <title>Chat</title>
+  [% INCLUDE wing_ui_css_requirements.tt %]
+  <meta charset="UTF-8">
+  <style type="text/css">
+    .roomname, .panelname {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .roomname {
+        max-width: calc(100% - 120px);
+    }
+    .panelname {
+        max-width: calc(100% - 70px);
+    }
+  </style>
+</head>
+<body class="container-fluid p-0">
+    <div id="chat">
+
+        <room-list></room-list>
+
+    </div>
+
+    [% USE JSON.Escape %]
+    [% INCLUDE wing_ui_js_requirements.tt %]
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.0/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/linkifyjs@2.1.6/dist/linkify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/linkifyjs@2.1.6/dist/linkify-html.js"></script>
+    <script src="/wing.chat.js?v=1"></script>
+    <script>
+        chat.init({
+            firebase : [% firebase.json %],
+            user : [% user.json %],
+        });
+    </script>
+
+</body>
+</html>

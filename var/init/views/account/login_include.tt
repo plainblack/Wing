@@ -1,3 +1,6 @@
+[% IF error_message %]
+<div class="alert alert-warning">[% error_message %]</div>
+[% END %]
 <form action="/login" method="POST" enctype="multipart/form-data">
     [% IF redirect_after || params.redirect_after %]
         <input type="hidden" name="redirect_after" value="[% redirect_after || params.redirect_after %]">

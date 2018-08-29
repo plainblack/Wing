@@ -5,45 +5,44 @@
 
 <div class="row" id="app">
 
-
-
-    <div class="col-sm" v-if="apikeys.objects.length > 0">
+    <div class="col-md" v-if="apikeys.objects.length > 0">
 
         <h2>Existing API Keys</h2>
-        <table class="table table-striped table-hover">
-            <tr>
-                <th>Application Name</th>
-                <th>Public Key</th>
-            </tr>
-            <tr v-for="apikey in apikeys.objects">
-                <td><a :href="apikey.properties.edit_uri">{{apikey.properties.name}}</a></td>
-                <td>{{apikey.properties.id}}</td>
-            </tr>
-        </table>
-
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <tr>
+                    <th>Application Name</th>
+                    <th>Public Key</th>
+                </tr>
+                <tr v-for="apikey in apikeys.objects">
+                    <td><a :href="apikey.properties.edit_uri">{{apikey.properties.name}}</a></td>
+                    <td>{{apikey.properties.id}}</td>
+                </tr>
+            </table>
+        </div>
     </div>
 
-    <div class="col-sm">
+    <div class="col-md">
 
         <h2>Create An API Key</h2>
         <div class="form-group">
             <label  for="name">Application Name</label>
-            <input class="form-control" type="text" name="name" id="name" v-model="new_apikey.name">
+            <input class="form-control" type="text" name="name" id="name" v-model="apikeys.new.name">
             <small class="form-text text-muted">This must be unique among all applications in our system.</small>
         </div>
         <div class="form-group">
             <label  for="uri">Application URL</label>
-            <input class="form-control" type="text" name="uri" id="uri" v-model="new_apikey.uri">
+            <input class="form-control" type="text" name="uri" id="uri" v-model="apikeys.new.uri">
             <small class="form-text text-muted">Optional, but appreciated. The URL of your application if it is a web app.</small>
         </div>
         <div class="form-group">
             <label  for="reason">Reason</label>
-            <textarea rows="5"  maxlength="255" class="form-control" name="reason" id="reason" v-model="new_apikey.reason"></textarea>
-            <characters-remaining :max="255" :property="new_apikey.reason"></characters-remaining>
+            <textarea rows="5"  maxlength="255" class="form-control" name="reason" id="reason" v-model="apikeys.new.reason"></textarea>
+            <characters-remaining :max="255" :property="apikeys.new.reason"></characters-remaining>
             <small class="form-text text-muted">Optional, but appreciated. The reason you are building your app. What does it do?</small>
         </div>
         <div class="form-group">
-            <button class="btn btn-success" @click="create()">Create</button>
+            <button class="btn btn-success" @click="apikeys.create()">Create</button>
         </div>
 
     </div>
@@ -66,15 +65,9 @@
                     window.location.href = properties.edit_uri;
                 },
             }),
-            new_apikey : {},
         },
         mounted() {
             this.apikeys.all();
-        },
-        methods : {
-            create() {
-                this.apikeys.create(this.new_apikey);
-            },
         },
     })
     </script>

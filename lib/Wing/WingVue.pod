@@ -19,6 +19,7 @@ L<https://vuejs.org>
             },
             list_api : '/api/user',
             create_api : '/api/user',
+            new_defaults : { some_id : 'xxx' },
             on_create : function(properties, index) {
                 wing.success(properties.username + ' created.');
             },
@@ -93,6 +94,12 @@ Automatically save the value of a form element anytime the model is updated for 
 
 
 =head1 Filters
+
+=head2 bytes
+
+Converts a number into a formatted bytes string.
+
+ {{some_object.file_size | bytes}} // 11.3 MB
 
 =head2 capitalize
 
@@ -449,6 +456,22 @@ If this is C<true> then the user will not be asked to confirm the delete.
 
 =back
 
+=head3 stash(name, [value])
+
+If you need to create some temporary data in an object just for the life of the page, then this is how you can do it. It returns the value stored in C<name>. By default every value will be C<null>.
+
+=over
+
+=item name
+
+Required. The name of the element you wish to retrieve/store.
+
+=item value
+
+Optional. The value you'd like to store.
+
+=back
+
 
 =head2 wing.object_list()
 
@@ -463,6 +486,7 @@ A factory that generates and manages a list of Wing objects, aka a selection of 
                   _include_related_objects : ['photo'], // assumes you have a related object called photo
               },
               list_api : '/api/user',
+              new_defaults : { some_id : 'xxx' },
               create_api : '/api/user',
               on_create : function(properties, index) {
                   wing.success(properties.username + ' created.');
@@ -504,6 +528,10 @@ An object containing the parameters used to filter the list of objects retrieved
 Required if you want to create objects. The URI to post to to create an object of this type.
 
  /api/user
+
+=item new_defaults
+
+There is an object called C<new> who's entire purpose is to be filled by form element's v-models when you add a new object to this list. This property allows you to set the defaults for that C<new> object.
 
 =item options_api
 
@@ -551,6 +579,18 @@ An object containing pagination information about the current list.
   "page_number" : "1"
  }
 
+=head3 new
+
+A javascript object that holds parameters waiting to be used in a new object that will be added to this list. By default it is empty:
+
+ { }
+
+However, you can set default values in this object by setting C<new_defaults> when you create the list. C<new> will also be reset to C<new_defaults> whenever C<reset_new()> is called.
+
+=head3 reset_new()
+
+Resets the C<new> to object to C<new_defaults>. This is automatically called when you call C<create()> on the list to reset C<new> after the object has been created and added to the list.
+
 =head3 find_object_id(id)
 
 Return the index number of a specific object in the list based upon C<id>. Returns C<-1> if the object is not found.
@@ -590,6 +630,10 @@ An object containing various search behavior modifications.
 =item params
 
 Put search params here that you don't want to be attached to all subsequent queries via the C<fetch_options>.
+
+=item prepend_item
+
+An object representing an item that you'd like prepended to the search results. This is useful for things like typeahead where you might want to add a "Create New Item" button or something.
 
 =item accumulate
 
@@ -714,6 +758,16 @@ Create a new object in the database and insert it into this list, and then retur
 
 =over
 
+=item properties
+
+Optionally set the properties of the new object when you call create(). Normally though, you would be setting the properties directly on the list's C<new> object, or by using C<new_defaults>.
+
+=item options
+
+Optional configurable parameters when create executes.
+
+=over
+
 =item unshift
 
 By default new objects are pushed on to the end of the list. If this property is set to true then the new object will be prepended to the list.
@@ -721,6 +775,8 @@ By default new objects are pushed on to the end of the list. If this property is
 =item on_success
 
 A function to be executed if the object is sucessfully created. It is passed a list of properties.
+
+=back
 
 =back
 
@@ -788,7 +844,17 @@ See C<delete_update()> in C<objectManager> for details.
 
 =back
 
+=head3 remove(id)
 
+Removes an object from this list without making a call to the server. See C<delete()> if you wish to remove it from the server too.
+
+=over
+
+=item id
+
+The unique id of the object you wish to delete.
+
+=back
 
 =head1 Notifications
 
@@ -844,18 +910,45 @@ The message you want to be diplayed.
 
 =head1 Utilities
 
+=head2 wing.get_cookie(name)
+
+Fetches the value of a cookie.
+
+=over
+
+=item name
+
+The name of the cookie to retrieve.
+
+=back
+
+=head2 wing.scroll_to(element)
+
+Scroll the window to a particular element.
+
+=over
+
+=item element
+
+The DOM element to scroll to. Use C<document.getElementById()> or some such.
+
+=back
 
 =head2 wing.get_query_param(name, [url])
 
 Returns the value of a query param.
 
-=head3 name
+=over
+
+=item name
 
 The name of the parameter you wish to fetch.
 
-=head3 url
+=item url
 
 Optional. Defaults to C<window.location.href>.
+
+=back
 
 =head2 wing.parse_date(input, timezone)
 

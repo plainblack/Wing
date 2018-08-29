@@ -10,12 +10,14 @@ use Data::GUID;
 use Ouch;
 use Moose::Role;
 use String::Random qw(random_string);
+use Crypt::JWT qw(encode_jwt);
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::DateTimeField';
 with 'Wing::Role::Result::PrivilegeField';
 with 'Wing::Role::Result::Child';
 use Wing::ContentFilter;
-
+use Wing::Firebase;
+use Digest::MD5 qw(md5_hex);
 
 =head1 NAME
 
@@ -46,6 +48,14 @@ The name this user will type to authenticate themselves.
 =item real_name
 
 Their name in meatspace.
+
+=item facebook_uid
+
+String. The unique id of a user's Facebook account.
+
+=item facebook_token
+
+String. The token Facebook gives us to allow us to take actions for a user on Facebook.
 
 =item email
 
@@ -82,6 +92,12 @@ A datetime indicating the time last time this user authenticated to the system. 
 =item last_ip
 
 The IP address when the user last logged in or created their account.
+
+
+=item avatar_uri
+
+The URI to the C<avatar> image from facebook or gravatar.
+
 
 =back
 
@@ -120,6 +136,16 @@ before wing_finalize_class => sub {
             view    => 'private',
             edit    => 'postable',
             filter  => sub { Wing::ContentFilter::neutralize_html(\$_[0], {entities=>1},); return $_[0]; },
+        },
+        facebook_uid            => {
+            dbic                => { data_type => 'bigint', is_nullable => 1 },
+            view                => 'private',
+            edit                => 'admin',
+        },
+        facebook_token          => {
+            dbic                => { data_type => 'varchar', size => 100, is_nullable => 1 },
+            view                => 'private',
+            edit                => 'admin',
         },
         email                   => {
             dbic    => { data_type => 'varchar', size => 255, is_nullable => 1 },
@@ -203,6 +229,7 @@ around describe => sub {
     my ($orig, $self, %options) = @_;
     my $out = $orig->($self, %options);
     $out->{display_name} = $self->display_name;
+    $out->{avatar_uri} = $self->determine_avatar_uri;
     $out->{view_uri} = $self->view_uri;
     if ($options{include_private}) {
         $out->{edit_uri} = $self->edit_uri;
@@ -251,6 +278,42 @@ Sends a templated email to this user. See C<send_templated_email> in L<Wing> for
 
 Generates a password reset code that is valid for 24 hours and returns it.
 
+=item firebase_jwt ( [ claims ] )
+
+Returns a Firebase JWT auth token according to the Firebase Client 4.x specification.
+
+=over
+
+=item claims
+
+Optional. A hash reference of claims to add to the firebase auth token. Example:
+
+ { moderator : 1 }
+
+=back
+
+
+=item  firebase_status ( payload )
+
+Displays a status message in the user's browser.
+
+=over
+
+=item payload
+
+Can be either a scalar or a hash reference. If it's a scalar, then the scalar will be displayed as an info message to the user (the most common case). If it's a hash reference, then it should take the form of:
+
+ {
+    message => 'some message',
+    type    => 'info'
+ }
+
+Where C<type> can be one of C<info>, C<error>, C<warn> C<success>.
+
+=item type
+
+If not specified in a hash reference payload, you can set the type as an optional second parameter. Defaults to C<info>. Must be one of C<info>, C<error>, C<warn> C<success>.
+
 =item has_secondary_auth_token ()
 
 A 2 factor authentication token has been verified recently.
@@ -278,6 +341,99 @@ Check a secondary auth token to see if it is valid, and if it is, generate a sec
 =back
 
 =cut
+
+sub firebase_jwt {
+    my $self = shift;
+    my $claims = shift;
+    my $firebase_config = Wing->config->get('firebase');
+    my $now = time();
+    my $payload = {
+        iss     => $firebase_config->{service_email},
+        sub     => $firebase_config->{service_email},
+        aud     => "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
+        iat     => $now,
+        exp     => $now+(60*60),  # Maximum expiration time is one hour
+        uid     => $self->id,
+    };
+    if (defined $claims && ref $claims eq 'HASH') {
+        $payload->{claims} = $claims;
+    }
+    return encode_jwt(
+        payload     => $payload,
+        alg         => 'RS256',
+        key         => \$firebase_config->{admin_key},
+    );
+}
+
+sub firebase_status {
+    my ($self, $payload, $type) = @_;
+    unless (ref $payload eq 'HASH') {
+        $payload = {
+            message => $payload,
+            type    => $type || 'info'
+        };
+    }
+    Wing::Firebase->new->object_status($self,  $payload);
+    my $log_type = $payload->{type};
+    $log_type = 'info' if ($log_type eq 'success');
+    Wing->log->$log_type('Firebase status to '.$self->username.': '.$payload->{message});
+}
+
+
+
+=head2 post_message_to_chat ( message, [ options ] )
+
+Posts a message to the chat system.
+
+=over
+
+=item room_id
+
+The unique id of a room to post to. Defaults to the id of the general chat room.
+
+=item message_type
+
+Must be C<activity> or C<default>. Defaults to C<default>. Activity messages are the equivalent of typing C</me message> in the chat.
+
+=back
+
+=cut
+
+sub post_message_to_chat {
+    my ($self, $message, $options) = @_;
+    my $room_id = $options->{room_id} || 'general-chat'; # defaults to general chat
+    my $firebase_config = Wing->config->get('firebase');
+    return Wing::Firebase->new->post('chat/messages/'.$room_id, {
+        user_id     => $self->id,
+        name        => $self->display_name,
+        timestamp   => {".sv"   => "timestamp"},
+        text        => $message,
+        type        => $options->{message_type} || 'message',
+        '.priority' => {".sv"   => "timestamp"},
+    });
+}
+
+=head2 is_chat_moderator
+
+Returns a boolean if the user has chat moderator privileges.
+
+=cut
+
+sub is_chat_moderator {
+    my $self = shift;
+    return $self->is_chat_staff;
+}
+
+=head2 is_chat_staff
+
+Returns a boolean if the user has chat staff privileges.
+
+=cut
+
+sub is_chat_staff {
+    my $self = shift;
+    return $self->is_admin ? 1 : 0;
+}
 
 sub has_secondary_auth_token {
     my $self = shift;
@@ -350,7 +506,7 @@ sub is_password_valid {
     my ($self, $password) = @_;
     ouch 442, 'User is permanently deactivated' if $self->permanently_deactivated;
     my $encrypted_password;
-    if ($self->password_type eq 'md5') { 
+    if ($self->password_type eq 'md5') {
         $encrypted_password = Digest::MD5::md5_base64(Encode::encode_utf8($password));
     }
     else {
@@ -458,6 +614,16 @@ sub view_uri {
 sub edit_uri {
     my $self = shift;
     return '/account';
+}
+
+sub determine_avatar_uri {
+    my $self = shift;
+    if ($self->facebook_uid) {
+        return '//graph.facebook.com/'.$self->facebook_uid.'/picture';
+    }
+    else {
+        return '//www.gravatar.com/avatar/'.md5_hex($self->email).'?s=300';
+    }
 }
 
 1;

@@ -25,6 +25,7 @@ axios.interceptors.response.use(function (response) {
     if (response.headers['content-type'] === "application/json; charset=utf-8" && "_warnings" in response.data.result) {
         for (var warning in response.data.result._warnings) {
             document.dispatchEvent(new CustomEvent('wing_warn', { message : response.data.result._warnings[warning].message }));
+            wing.warn(response.data.result._warnings[warning].message);
         }
     }
     return response;
@@ -45,6 +46,7 @@ axios.interceptors.response.use(function (response) {
             }
         }
     }
+    document.dispatchEvent(new CustomEvent('wing_error', { message : message }));
     wing.error(message);
     return Promise.reject(error);
 });
@@ -55,7 +57,7 @@ axios.interceptors.response.use(function (response) {
 
 var throbber = document.createElement('div');
 throbber.innerHTML = `<div id="wingajaxprogress" style="z-index: 10000; position: fixed; top: 0px; width: 100%;">
-    <template v-if="counter > 0"><b-progress :value="counter" :max="max" height="5px" animated></b-progress></template>
+    <template v-if="counter > 0"><b-progress :value="counter" :max="max" height="10px" animated></b-progress></template>
 </div>`;
 document.body.appendChild(throbber);
 
@@ -68,7 +70,7 @@ document.body.appendChild(throbber);
 Vue.filter('moment', function(input, format, timezone){
     if (typeof moment !== 'undefined') {
         if (!_.isString(format)) {
-            format = 'MMMM d, YYYY';
+            format = 'MMMM D, YYYY';
         }
         return wing.parse_date(input, timezone).format(format);
     }
@@ -88,20 +90,33 @@ Vue.filter('timeago', function(input){
 
 
 /*
- * Format a date into a relative time
+ * Round a decimal to some level of precision
  */
 
 Vue.filter('round', function(number, precision){
     number = parseFloat(number);
     precision |= 0;
     var shift = function (number, precision, reverseShift) {
-    if (reverseShift) {
-      precision = -precision;
-    }
-    numArray = ("" + number).split("e");
-    return +(numArray[0] + "e" + (numArray[1] ? (+numArray[1] + precision) : precision));
-  };
-  return shift(Math.round(shift(number, precision, false)), precision, true);
+        if (reverseShift) {
+          precision = -precision;
+        }
+        numArray = ("" + number).split("e");
+        return +(numArray[0] + "e" + (numArray[1] ? (+numArray[1] + precision) : precision));
+    };
+    return shift(Math.round(shift(number, precision, false)), precision, true);
+});
+
+
+/*
+ * format a file size using common bytes multiples
+ */
+
+Vue.filter('bytes', function(bytes){
+    if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
+    if (typeof precision === 'undefined') precision = 1;
+    var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
+        number = Math.floor(Math.log(bytes) / Math.log(1024));
+    return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
 });
 
 /*
@@ -210,19 +225,33 @@ Vue.component('confirmation-toggle', {
 
 const wing = {
 
+   /*
+    * get a cookie by name
+    */
+
+    get_cookie(a) {
+         let b = document.cookie.match('(^|;)\\s*' + a + '\\s*=\\s*([^;]+)');
+         return b ? b.pop() : '';
+    },
+
+    /*
+    * scroll the window to an element
+    */
+
+    scroll_to (el) {
+        var elbox = el.getBoundingClientRect();
+        var bodybox = document.body.getBoundingClientRect();
+        window.scroll(elbox.left - bodybox.left, elbox.top - bodybox.top);
+    },
+
     /*
      * base URI when you're working against a server that is not on your domain
      */
 
-     base_uri : null,
+     base_uri : '',
 
      format_base_uri : function(uri_suffix) {
-         if (wing.base_uri == null) {
-             return uri_suffix;
-         }
-         else {
-             return wing.base_uri + uri_suffix;
-         }
+         return wing.base_uri + uri_suffix;
      },
 
     /*
@@ -244,7 +273,7 @@ const wing = {
                     self.counter = 1;
                     setTimeout(function() {
                         self.counter = 0;
-                    }, 500)
+                    }, 200)
                 }
             },
         }
@@ -274,16 +303,47 @@ const wing = {
     * Manages a single wing database record via Ajax.
     */
 
+    format_post_data(params) {
+        var form = new FormData();
+        _.forEach(params, function(value, key) {
+            if (typeof(value) == 'object') {
+                _.forEach(value, function(element) {
+                    form.append(key, element);
+                });
+            }
+            else {
+                form.append(key, value);
+            }
+        });
+        return form;
+    },
+
     object : (behavior) => ({
 
-        id : typeof behavior.properties !== 'undefined' ? behavior.properties.id : null,
         properties : behavior.properties || {},
         params : _.defaultsDeep({}, behavior.params, { _include_relationships : 1}),
         create_api : behavior.create_api,
         fetch_api : behavior.fetch_api,
+        _stash : {},
+
+        stash(name,value) {
+            const self = this;
+            if (typeof(value) !== 'undefined') {
+                Vue.set(self._stash, name, value);
+            }
+            if (name in self._stash) {
+                return self._stash[name];
+            }
+            else {
+                return null;
+            }
+        },
 
         fetch : function(options) {
             const self = this;
+            if (!self.fetch_api) {
+                console.error('wing.object fetch_api is empty');
+            }
             const promise = axios({
                 method:'get',
                 url: wing.format_base_uri((typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || self.fetch_api),
@@ -302,7 +362,7 @@ const wing = {
                 }
             })
             .catch( function (error) {
-                console.error(error);
+                console.dir(error);
                 const data = error.response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
@@ -317,7 +377,10 @@ const wing = {
 
         create : function(properties, options) {
             const self = this;
-            const params = _.extend({}, self.params, properties);
+            if (!self.create_api) {
+                console.error('wing.object create_api is empty');
+            }
+            const params = wing.format_post_data(_.extend({}, self.params, properties));
             const promise = axios({
                 method:'post',
                 url: wing.format_base_uri(self.create_api),
@@ -353,11 +416,15 @@ const wing = {
             return self.partial_update(self.properties, options);
         },
 
-        save : function(property) {
+        save : _.debounce(function(property) {
+            return this._save(property);
+        }, 200),
+
+        _save : function(property) {
             const self = this;
             const update = {};
             update[property] = self.properties[property];
-            return self.partial_update(update);
+            return self._partial_update(update);
         },
 
         call : function(method, uri, properties, options) {
@@ -370,7 +437,7 @@ const wing = {
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             };
             if (config.method == 'put' || config.method == 'post') {
-                config['data'] = params;
+                config['data'] = wing.format_post_data(params);
             }
             else {
                 config['params'] = params;
@@ -384,7 +451,8 @@ const wing = {
                 }
             })
             .catch( function (error) {
-                console.error(error);
+                console.error('Problem with CALL: '+uri);
+                console.dir(error);
                 const data = error.response.data;
                 if (typeof options !== 'undefined' && typeof options.on_error !== 'undefined') {
                     options.on_error(data.result);
@@ -402,7 +470,7 @@ const wing = {
 
         _partial_update : function(properties, options) {
             const self = this;
-            const params = _.extend({}, self.params, properties);
+            const params = wing.format_post_data(_.extend({}, self.params, properties));
             const promise = axios({
                 method: 'put',
                 url: wing.format_base_uri(self.properties._relationships.self),
@@ -483,6 +551,8 @@ const wing = {
         params : _.defaultsDeep({}, behavior.params, { _include_relationships : 1}),
         objects : [],
         paging : {},
+        new : _.defaultsDeep({}, behavior.new_defaults),
+        reset_new() { this.new = _.defaultsDeep({}, behavior.new_defaults) },
         list_api : behavior.list_api,
         create_api : behavior.create_api,
         field_options : {},
@@ -521,13 +591,11 @@ const wing = {
                 on_update : behavior.on_update,
                 on_delete : function(properties) {
                     const myself = this;
+                    self.paging.total_items--;
                     if ('on_delete' in behavior) {
                         behavior.on_delete(properties);
                     }
-                    const index = self.find_object_index(properties.id);
-                    if (index >= 0) {
-                        self.objects.splice(index, 1);
-                    }
+                    self.remove(properties.id);
                 },
             });
         },
@@ -538,6 +606,9 @@ const wing = {
 
         _search : function(options) {
             const self = this;
+            if (!self.list_api) {
+                console.error('wing.object_list list_api is empty');
+            }
             let pagination = {
                 _page_number : self.paging.page_number || 1,
                 _items_per_page : self.paging.items_per_page || 10,
@@ -589,6 +660,9 @@ const wing = {
 
         _all : function(options, page_number) {
             const self = this;
+            if (!self.list_api) {
+                console.error('wing.object_list list_api is empty');
+            }
             let params = _.extend({}, {
                 _page_number: page_number || 1,
                 _items_per_page: 10,
@@ -697,16 +771,25 @@ const wing = {
             return promise;
         },
 
-        create : function(properties, options) {
+        create : function(new_properties, options) {
             const self = this;
+            if (!self.create_api) {
+                console.error('wing.object_list create_api is empty');
+            }
+            let properties = new_properties;
+            if (typeof properties === 'undefined') {
+                properties = self.new;
+            }
             const new_object = self._create_object(properties);
             const add_it = function() {
-                if (typeof options !== 'undefined' && typeof options.unshift !== 'undefined' && options.unshift == true) {
+                if ((typeof options !== 'undefined' && typeof options.unshift !== 'undefined' && options.unshift == true) || (typeof behavior.unshift_on_create !== 'undefined' && behavior.unshift_on_create)) {
                     self.objects.unshift(new_object);
                 }
                 else {
                     self.objects.push(new_object);
                 }
+                self.paging.total_items++;
+                self.reset_new();
             };
             if (typeof options !== 'undefined') {
                 if (typeof options.on_success !== 'undefined') {
@@ -745,6 +828,14 @@ const wing = {
             const self = this;
             return self.objects[index].delete(options);
         },
+
+        remove : function(id) {
+            const self = this;
+            const index = self.find_object_index(id);
+            if (index >= 0) {
+                self.objects.splice(index, 1);
+            }
+        }
 
     }),
 
@@ -820,7 +911,7 @@ const wing = {
     },
 
     /*
-     * parses a date into a momemnt object
+     * parses a date into a moment object
      */
 
      parse_date : (input, timezone) => {
@@ -843,9 +934,13 @@ const wing = {
              else if (input instanceof moment) {
                  date = input;
              }
+             else if (typeof input === 'number' && input > 1000000000000) { // milliseconds since epoch
+                 date = moment(input);
+             }
              else if (typeof input === 'number') { // seconds since epoch
                  date = moment.unix(input);
-             } else { // must be a normal date
+             }
+             else { // must be a normal date
                  date = moment(input);
              }
              if (typeof moment.tz === 'function' && _.isString(timezone)) {

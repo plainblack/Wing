@@ -16,6 +16,8 @@ documentation.
 
  * Vue 2 Filters - https://github.com/freearhey/vue2-filters
 
+ * Qs - https://github.com/ljharb/qs
+
  * Axios - https://github.com/axios/axios
 
  * Lodash - https://lodash.com/docs/

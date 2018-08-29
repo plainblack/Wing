@@ -4,7 +4,7 @@
     <p>Welcome [% current_user.display_name FILTER html %]. Not [% current_user.display_name FILTER html %]? <a href="/logout">Click here</a>.</p>
 
     <div class="row">
-        <div class="col-sm">
+        <div class="col-md">
             <h2>Account Information</h2>
 
             <div class="form-group">
@@ -40,7 +40,7 @@
 
         </div>
 
-        <div class="col-sm">
+        <div class="col-md">
             <h2>Change Password</h2>
             <form action="/account" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
@@ -61,7 +61,7 @@
 
 
 
-    <div>
+    <div class="alert alert-danger">
         <h2>Permanently Deactivate Account</h2>
         <p>Once you deactivate your account you will not be able to log in, recover your password, access your private content, and you will never receive any emails from us ever again. This change cannot be reversed.</p>
         <p>If you wish to permanently deactivate your account, confirm your password:</p>

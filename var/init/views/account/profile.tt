@@ -6,20 +6,23 @@
 [% END %]
 
 [% USE date %]
-<table class="table table-striped table-hover">
-    <tr>
-        <th>Known As</th>
-        <td>[% profile_user.display_name %]</td>
-    </tr>
-    <tr>
-        <th>Member Since</th>
-        <td>[% date.format(profile_user.date_created,'%F') %]</td>
-    </tr>
-    <tr>
-        <th>Last Login</th>
-        <td>[% date.format(profile_user.last_login,'%F') %]</td>
-    </tr>
-</table>
+<img src="[% profile_user.avatar_uri %]" class="img-responsive">
+<div class="table-responsive">
+    <table class="table table-striped">
+        <tr>
+            <th>Known As</th>
+            <td>[% profile_user.display_name %]</td>
+        </tr>
+        <tr>
+            <th>Member Since</th>
+            <td>[% date.format(profile_user.date_created,'%F') %]</td>
+        </tr>
+        <tr>
+            <th>Last Login</th>
+            <td>[% date.format(profile_user.last_login,'%F') %]</td>
+        </tr>
+    </table>
+</div>
 
 [% IF current_user.id == profile_user.id %]
     [% INCLUDE account/footer_include.tt %]
