@@ -277,7 +277,7 @@ chat.init = function(config) {
 
         let message = {
             text : text,
-            timestamp : chat.last_message_timestamp,
+            timestamp : firebase.database.ServerValue.TIMESTAMP,
             type : options.type || 'message',
             user_id : chat.current_user.id,
             name : chat.current_user.name,
@@ -736,9 +736,9 @@ chat.init = function(config) {
               const message = snapshot.val();
               message.id = snapshot.key;
               message.like_count = 0;
-             // if (self.messages.length == 0 || self.messages[self.messages.length - 1].timestamp - 1000 < message.timestamp ) { // stops old messages from popping in when messages are deleted
+              if (self.messages.length == 0 || self.messages[self.messages.length - 1].timestamp - 1000 < message.timestamp ) { // stops old messages from popping in when messages are deleted
                   self.messages.push(message);
-             // }
+              }
           });
 
           /* message deleted */
