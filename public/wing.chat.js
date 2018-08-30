@@ -800,6 +800,9 @@ chat.init = function(config) {
               if (self.messages.length == 0 || self.messages[self.messages.length - 1].timestamp - 1000 < message.timestamp ) { // stops old messages from popping in when messages are deleted
                   self.messages.push(message);
               }
+              else {
+                  console.info('stopped an old message from being appended');
+              }
           });
 
           /* message deleted */
