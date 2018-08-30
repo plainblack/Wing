@@ -547,6 +547,7 @@ chat.init = function(config) {
                self.focus_room(id);
           },
           increment_recent_message_count(room) {
+              if (room.id != this.current_room)
               room.recent_message_count++;
           },
           find_current_room() {
