@@ -749,10 +749,11 @@ chat.init = function(config) {
 
           /* increment like counter */
           chat.refs.likes.child(self.room.id).limitToLast(200).on('child_added', function(snapshot) {
-              const message_id = snapshot.val();
+              const like = snapshot.val();
               for (var i in self.messages) {
-                  if (self.messages[i].id == message_id) {
+                  if (self.messages[i].id == like.message_id) {
                       self.messages[i].like_count++;
+                      break;
                   }
               }
           });
@@ -841,7 +842,7 @@ chat.init = function(config) {
           },
           like_message(message_id) {
               const self = this;
-              chat.refs.likes.child(self.room.id).child(chat.current_user.id).set(message_id);
+              chat.refs.likes.child(self.room.id).push({ user_id : chat.current_user.id, message_id : message_id});
               chat.focus(self.room.id, 1);
           },
           delete_message(message) {
