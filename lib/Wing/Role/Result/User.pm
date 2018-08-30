@@ -409,7 +409,6 @@ sub post_message_to_chat {
         timestamp   => {".sv"   => "timestamp"},
         text        => $message,
         type        => $options->{message_type} || 'message',
-        '.priority' => {".sv"   => "timestamp"},
     });
 }
 
