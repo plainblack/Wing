@@ -4,6 +4,12 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-09-30
+ * Bunch of chat bug fixes.
+ * Added /badge and /badge-color commands to chat.
+ * Added windowing controls to chat wrapper.
+ * Admins automatically handle secondary auth when they "become" a user now.
+
 2018-09-29
  * Add S3File role, for uploading files vs images into a private bucket.
 

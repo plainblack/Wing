@@ -40,17 +40,56 @@ chatwrapper = {
 
     initialize() {
         chatwrapper.initialized = true;
+        const m = document.createElement('div');
+        m.style.position = 'fixed';
+        m.style.bottom = '40px';
+        m.style.right = '20px';
+        m.style.width = localStorage.getItem('chatwrapper.width') || '95%';
+        m.style.height = localStorage.getItem('chatwrapper.height') || '90%';
+        m.style.zIndex = 99999999;
+        m.id = 'chatwrapper_modal';
+        m.style.boxShadow = '10px 20px 30px black';
+        const nav = document.createElement('div');
+        nav.style.position = 'absolute';
+        nav.style.top = '0';
+        nav.style.left = '0';
+        nav.style.width = '100%';
+        nav.style.height = '40px';
+        nav.style.backgroundColor = 'black';
+        nav.style.color = 'white';
+        m.appendChild(nav);
+        const min = document.createElement('span');
+        min.innerHTML = '&times;';
+        min.style.paddingLeft = '10px';
+        min.addEventListener('click',chatwrapper.hide);
+        nav.appendChild(min);
+        const resize = document.createElement('span');
+        resize.innerHTML = '&sdotb;';
+        resize.style.paddingLeft = '10px';
+        resize.addEventListener('click',function() {
+            if (m.style.width == '95%') {
+                m.style.width = '50%';
+                m.style.height = '45%';
+            }
+            else {
+                m.style.width = '95%';
+                m.style.height = '90%';
+            }
+            localStorage.setItem('chatwrapper.width', m.style.width);
+            localStorage.setItem('chatwrapper.height', m.style.height);
+        });
+        nav.appendChild(resize);
         const i = document.createElement('iframe');
         i.src = '/chat';
-        i.style.position = 'fixed';
-        i.style.bottom = '40px';
-        i.style.right = '20px';
-        i.style.width = '95%';
-        i.style.height = '90%';
-        i.style.zIndex = 99999999;
-        i.id = 'chatwrapper_window';
-        i.style.boxShadow = '10px 20px 30px black';
-        document.body.appendChild(i);
+        i.style.position = 'absolute';
+        i.style.bottom = '0';
+        i.style.left = '0';
+        i.style.width = '100%';
+        i.style.height = 'calc(100% - 30px)';
+        i.style.border = '0';
+        m.appendChild(i);
+        document.body.appendChild(m);
+        chatwrapper.modal = m;
         chatwrapper.iframe = i;
         chatwrapper.show();
     },
@@ -58,13 +97,13 @@ chatwrapper = {
     show() {
         chatwrapper.visible = true;
         chatwrapper.button.innerHTML = chatwrapper.labels.icon + ' ' + chatwrapper.labels.close;
-        chatwrapper.iframe.style.visibility = "visible";
+        chatwrapper.modal.style.visibility = "visible";
     },
 
     hide() {
         chatwrapper.visible = false;
         chatwrapper.button.innerHTML = chatwrapper.labels.icon + ' ' + chatwrapper.labels.open;
-        chatwrapper.iframe.style.visibility = "hidden";
+        chatwrapper.modal.style.visibility = "hidden";
     },
 
 };

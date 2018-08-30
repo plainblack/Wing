@@ -356,11 +356,11 @@ chat.init = function(config) {
     /* manage rooms */
     Vue.component('room-list', {
       template : `<div>
-        <b-card no-body :bg-variant="color_mode" :text-variant="color_mode == 'light' ? 'dark' : 'white'">
+        <div class="card border-0 m-0 p-0" :class="{'bg-dark' : color_mode == 'dark', 'bg-light' : color_mode == 'light', 'text-light' : color_mode == 'dark', 'text-dark' : color_mode == 'light'}">
             <div class="row m-0 p-0">
                 <div class="col-8 col-md-9 m-0 p-0 card-body" id="rooms">
                     <div class="tab-content">
-                        <div style="height: 100vh; overflow-y: scroll" class="tab p-3" :class="{'d-none' : current_room != 'settings'}">
+                        <div style="overflow-y: scroll" class="tab p-3" :class="{'d-none' : current_room != 'settings'}">
                             <h2>Settings</h2>
                             <b-form-group label="Color Mode">
                              <b-form-radio-group
@@ -391,7 +391,7 @@ chat.init = function(config) {
                                 </table>
                              </div>
                         </div>
-                        <div style="height: 100vh; overflow-y: scroll" class="tab p-3" :class="{'d-none' : current_room != 'create_room'}">
+                        <div style="overflow-y: scroll" class="tab p-3" :class="{'d-none' : current_room != 'create_room'}">
                             <h2>Create Public Room</h2>
                             <p>Everyone will have access to this room and will join automatically to it.</p>
                             <div class="form-control-group">
@@ -414,33 +414,35 @@ chat.init = function(config) {
                     </div>
                 </div>
                 <div class="col-4 col-md-3 p-1 card-header" id="tabs">
-                    <div class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
-                        <a class="nav-link" :class="{active : current_room == 'settings'}" @click="focus_room('settings')">
-                            <div class="p-1 float-left"><i v-b-tooltip.hover.left title="Settings" class="fas fa-sliders-h"></i></div>
-                            <div class="p-1 d-none d-sm-inline-block panelname float-left">Settings</div>
-                        </a>
-                        <a v-if="chat.current_user.moderator" class="nav-link" :class="{active : current_room == 'create_room'}" @click="focus_room('create_room')">
-                            <div class="p-1 float-left"><i v-b-tooltip.hover.left title="Create Public Room" class="fas fa-comment-plus"></i></div>
-                            <div class="p-1 d-none d-sm-inline-block panelname float-left">Create Public Room</div>
-                        </a>
-                        <a v-if="invites.length > 0" class="nav-link" :class="{active : current_room == 'invites'}" @click="focus_room('invites')">
-                            <div class="p-1 float-left"><i v-b-tooltip.hover.left title="Pending Invitations" class="fas fa-comment-exclamation"></i></div>
-                            <div class="p-1 d-none d-sm-inline-block panelname float-left">Pending Invitations</div>
-                            <div class="p-1 mt-1 badge badge-danger float-left">{{invites.length}}</div>
-                        </a>
-                        <a class="nav-link" :class="{active : current_room == room.id}" v-for="room in orderBy(Object.values(rooms),'name')" :key="room.id" @click="focus_room(room.id)">
-                            <div class="p-1 float-left"><i v-b-tooltip.hover.left :title="room.name" class="fas" :class="{'fa-comments' : room.type == 'official', 'fa-comment-lines' : room.type == 'public', 'fa-comment-smile' : room.type == 'private'}"></i></div>
-                            <div class="p-1 d-none d-sm-inline-block roomname float-left">{{room.name}}</div>
-                            <div class="p-1 mt-1 badge badge-secondary float-left" v-if="room.recent_message_count > 0">{{room.recent_message_count}}</div>
-                            <div class="float-right ml-2" v-if="room.type != 'official'">
-                                <span title="Remove Room" @click="remove_room(room.id)" v-if="chat.current_user.id == room.created_by || chat.current_user.moderator"><i class="fas fa-trash-alt"></i></span>
-                                <span class="ml-1" title="Leave Room" @click="leave_room(room.id)"><i class="fas fa-sign-out-alt"></i></span>
-                            </div>
-                        </a>
+                    <div style="height: 100vh; overflow-y: scroll;">
+                        <div class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
+                            <a class="nav-link" :class="{active : current_room == 'settings'}" @click="focus_room('settings')">
+                                <div class="p-1 float-left"><i v-b-tooltip.hover.left title="Settings" class="fas fa-sliders-h"></i></div>
+                                <div class="p-1 d-none d-sm-inline-block panelname float-left">Settings</div>
+                            </a>
+                            <a v-if="chat.current_user.moderator" class="nav-link" :class="{active : current_room == 'create_room'}" @click="focus_room('create_room')">
+                                <div class="p-1 float-left"><i v-b-tooltip.hover.left title="Create Public Room" class="fas fa-comment-plus"></i></div>
+                                <div class="p-1 d-none d-sm-inline-block panelname float-left">Create Public Room</div>
+                            </a>
+                            <a v-if="invites.length > 0" class="nav-link" :class="{active : current_room == 'invites'}" @click="focus_room('invites')">
+                                <div class="p-1 float-left"><i v-b-tooltip.hover.left title="Pending Invitations" class="fas fa-comment-exclamation"></i></div>
+                                <div class="p-1 d-none d-sm-inline-block panelname float-left">Pending Invitations</div>
+                                <div class="p-1 mt-1 badge badge-danger float-left">{{invites.length}}</div>
+                            </a>
+                            <a class="nav-link" :class="{active : current_room == room.id}" v-for="room in orderBy(Object.values(rooms),'name')" :key="room.id" @click="focus_room(room.id)">
+                                <div class="p-1 float-left"><i v-b-tooltip.hover.left :title="room.name" class="fas" :class="{'fa-comments' : room.type == 'official', 'fa-comment-lines' : room.type == 'public', 'fa-comment-smile' : room.type == 'private'}"></i></div>
+                                <div class="p-1 d-none d-sm-inline-block roomname float-left">{{room.name}}</div>
+                                <div class="p-1 mt-1 badge badge-secondary float-left" v-if="room.recent_message_count > 0">{{room.recent_message_count}}</div>
+                                <div class="float-right ml-2" v-if="room.type != 'official'">
+                                    <span title="Remove Room" @click="remove_room(room.id)" v-if="chat.current_user.id == room.created_by || chat.current_user.moderator"><i class="fas fa-trash-alt"></i></span>
+                                    <span class="ml-1" title="Leave Room" @click="leave_room(room.id)"><i class="fas fa-sign-out-alt"></i></span>
+                                </div>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </b-card>
+        </div>
       </div>`,
       data() {
           return {
@@ -673,7 +675,7 @@ chat.init = function(config) {
       template : `
         <div><div style="height: 100vh">
             <message-list :color_mode="color_mode" @create_private_chat="$emit('create_private_chat',$event)" :room="room" class="message-list" style="height:calc(100vh - 70px); overflow-y: scroll"></message-list>
-            <textarea :class="colors()" :id="'createmessage'+room.id" autofocus="true" v-model="message_text" @keydown="handle_keystroke($event)" placeholder="say something or type /help for options" class="position-absolute w-100 p-2" style="resize: none; bottom: 0; left: 0" rows="2"></textarea>
+            <textarea :class="colors()" :id="'createmessage'+room.id" autofocus="true" v-model="message_text" @keydown="handle_keystroke($event)" placeholder="say something or type /help for options" class="border-0 position-absolute w-100 p-2" style="resize: none; bottom: 0; left: 0; height='70px';"></textarea>
         </div></div>`,
       props: ['room','color_mode'],
       data() {

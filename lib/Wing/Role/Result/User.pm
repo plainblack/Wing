@@ -454,9 +454,14 @@ sub email_secondary_auth_verification {
 sub verify_secondary_auth {
     my ($self, $token) = @_;
     if (defined $token && $token ne "" && $token eq Wing->cache->get('2factor-verify-'.$self->id)) {
-        return Wing->cache->set('2factor-verified-'.$self->id, 1, 60 * 60 * 24);
+        return $self->mark_secondary_auth_verified;
     }
     return 0;
+}
+
+sub mark_secondary_auth_verified {
+    my $self = shift;
+    return Wing->cache->set('2factor-verified-'.$self->id, 1, 60 * 60 * 24);
 }
 
 sub start_session {
