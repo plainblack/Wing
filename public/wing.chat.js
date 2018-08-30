@@ -359,7 +359,7 @@ chat.init = function(config) {
       template : `<div>
         <div class="card border-0 m-0 p-0" :class="{'bg-dark' : color_mode == 'dark', 'bg-light' : color_mode == 'light', 'text-light' : color_mode == 'dark', 'text-dark' : color_mode == 'light'}">
             <div class="row m-0 p-0">
-                <div class="col-8 col-md-9 m-0 p-0 card-body" id="rooms">
+                <div class="col-9 m-0 p-0 card-body" id="rooms">
                     <div class="tab-content">
                         <div style="overflow-y: scroll" class="tab p-3" :class="{'d-none' : current_room != 'settings'}">
                             <h2>Settings</h2>
@@ -414,7 +414,7 @@ chat.init = function(config) {
                         </div>
                     </div>
                 </div>
-                <div class="col-4 col-md-3 p-1 card-header" id="tabs">
+                <div class="col-3 p-1 card-header" id="tabs">
                     <div style="height: 100vh; overflow-y: scroll;">
                         <div class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
                             <a class="nav-link" :class="{active : current_room == 'settings'}" @click="focus_room('settings')">
