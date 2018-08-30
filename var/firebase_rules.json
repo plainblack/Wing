@@ -46,7 +46,10 @@
             		".write": "(auth != null) && (!data.exists() || $uid === auth.uid || data.child('from_user_id').val() === auth.uid)",
             		".validate": "newData.hasChildren(['from_user_id','from_user_name','room_id','room_name']) && (newData.child('room_id').val() === $room_id)"
           		},
-        		},
+        	},
+            "badge" : {
+              ".validate" : "newData.val().length <= 10",
+            },
         },
       },
       "moderators" : {
@@ -76,7 +79,7 @@
     },
     "status" : {
       ".read": true,
-      "$user_id" : { 
+      "$user_id" : {
         ".write" : "auth.uid == $user_id"
       }
     },

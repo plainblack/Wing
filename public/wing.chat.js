@@ -34,6 +34,10 @@ chat.init = function(config) {
             callback(chat.cache.users[user_id]);
         }
     };
+    chat.refs.users.on('child_changed', function(snapshot) {
+        const user = snapshot.val();
+        chat.cache.users[user.id] = user;
+    });
     chat.lookup_user_by_name = function (name, callback) {
         var self = this;
         let user = _.find(chat.cache.users, function(o) { return o.name == name});
@@ -106,7 +110,11 @@ chat.init = function(config) {
                 if (sorted[i].moderator_only && !chat.current_user.moderator) {
                     continue; // skip it
                 }
-                help += '<p><b>' + sorted[i].name + '</b> - ' + sorted[i].help + '</p>';
+                help += '<p><b>' + sorted[i].name + '</b> - ' + sorted[i].help;
+                if (sorted[i].moderator_only) {
+                    help + ' <span class="badge badge-secondary">Moderator Only</span>';
+                }
+                help += '</p>';
             }
             ui.add_system_message(help);
         },
@@ -132,8 +140,41 @@ chat.init = function(config) {
             const search = text.match(self.match);
             chat.add_message(ui.room.id, search[1], { type : 'notice' });
         },
-        name    : "/notice [message]",
+        name    : "/notice [announcement]",
         help    : "Post an announcement for all to see. Please use sparingly and not in jest.",
+        moderator_only : true,
+    });
+
+    chat.add_command({
+        match   : /^\/badge\s+(.*)$/,
+        func : function(text, ui) {
+            const self = this;
+            const search = text.match(self.match);
+            let badge = search[1].substring(0,10);
+            chat.refs.current_user.child('badge').set(badge);
+            ui.add_system_message('Your badge has been set to "'+badge+'".');
+
+        },
+        name    : "/badge [text]",
+        help    : "A max 10 character label after your name.",
+        moderator_only : true,
+    });
+
+    chat.add_command({
+        match   : /^\/badge-color\s+(.*)$/,
+        func : function(text, ui) {
+            const self = this;
+            const search = text.match(self.match);
+            let color = search[1];
+            const colors = ['red','orange','yellow','green','blue','purple'];
+            if (colors.indexOf(color) == -1) {
+                color = 'grey';
+            }
+            chat.refs.current_user.child('badge_color').set(color);
+            ui.add_system_message('Your badge color has been set to "'+color+'".');
+        },
+        name    : "/badge-color [color]",
+        help    : "Set a color for your badge. Must be one of grey, red, orange, yellow, green, blue, or purple.",
         moderator_only : true,
     });
 
@@ -631,7 +672,7 @@ chat.init = function(config) {
       template : `
         <div><div style="height: 100vh">
             <message-list :color_mode="color_mode" @create_private_chat="$emit('create_private_chat',$event)" :room="room" class="message-list" style="height:calc(100vh - 70px); overflow-y: scroll"></message-list>
-            <textarea :class="colors()" :id="'createmessage'+room.id" autofocus="true" v-model="message_text" @keyup="handle_keystroke($event)" placeholder="say something or type /help for options" class="position-absolute w-100 p-2" style="resize: none; bottom: 0; left: 0" rows="2"></textarea>
+            <textarea :class="colors()" :id="'createmessage'+room.id" autofocus="true" v-model="message_text" @keydown="handle_keystroke($event)" placeholder="say something or type /help for options" class="position-absolute w-100 p-2" style="resize: none; bottom: 0; left: 0" rows="2"></textarea>
         </div></div>`,
       props: ['room','color_mode'],
       data() {
@@ -658,6 +699,7 @@ chat.init = function(config) {
                       // allow enter to register
                   }
                   else {
+                      event.preventDefault();
                       self.create_message();
                   }
               }
@@ -786,7 +828,7 @@ chat.init = function(config) {
                 <b-img v-if="message.type == 'message'" slot="aside" :src="user.avatar_uri" width="50" height="50" alt="placeholder" class="rounded d-none d-sm-block" />
                 <div :class="{'text-center' : (message.type == 'emote')}">
 
-                    <a :href="user.profile_uri" target="_new" :class="{'text-secondary' : !user.moderator, 'text-success' : user.staff, 'text-info' : user.moderator && !user.staff}">{{user.name}}</a>
+                    <a :href="user.profile_uri" target="_new" :class="{'text-secondary' : !user.moderator, 'text-success' : user.staff, 'text-info' : user.moderator && !user.staff}">{{user.name}} <small v-if="user.badge" :style="'color:'+badge_color(user)">{{user.badge}}</small></a>
                     <span v-if="message.type == 'emote'" class="font-italic" v-html="filter_content(message.text)"></span>
 
                     <small v-if="message.type == 'message'" class="ml-3">{{message.timestamp | moment('h:mm a')}}</small>
@@ -823,6 +865,29 @@ chat.init = function(config) {
           }
       },
       methods : {
+          badge_color(user) {
+              if (user.badge_color == 'green') {
+                  return '#1cc500';
+              }
+              else if (user.badge_color == 'blue') {
+                  return '#0066ff';
+              }
+              else if (user.badge_color == 'red') {
+                  return '#cc0000';
+              }
+              else if (user.badge_color == 'yellow') {
+                  return '#ddce22';
+              }
+              else if (user.badge_color == 'orange') {
+                  return '#ff9c00';
+              }
+              else if (user.badge_color == 'purple') {
+                  return '#9c00ff';
+              }
+              else {
+                  return '#9999aa';
+              }
+          },
           colors() {
              if (this.color_mode == 'light') {
                  return 'bg-light text-dark';
@@ -906,7 +971,7 @@ chat.init = function(config) {
 
                 const start_app = function() {
                     /* the base app */
-                    const app = new Vue({
+                     new Vue({
                         el : '#chat',
                     });
                 }
