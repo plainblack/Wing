@@ -447,6 +447,11 @@ get '/account/profile/:id' => sub {
     };
 };
 
+get '/account/avatar/:id' => sub {
+    my $user = fetch_object('User');
+    return redirect 'https:'.$user->determine_avatar_uri;
+};
+
 sub facebook {
     return Facebook::Graph->new(Wing->config->get('facebook'));
 }

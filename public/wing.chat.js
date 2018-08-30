@@ -964,8 +964,16 @@ chat.init = function(config) {
       },
       created() {
           const self = this;
+          self.user = { // need this in case a server posts to chat on behalf of a user, and they have never actually logged into chat
+              name : self.message.name,
+              id : self.message.user_id,
+              avatar_uri : '/account/avatar/'+self.message.user_id,
+              profile_uri : '/account/profile/'+self.message.user_id,
+          };
           chat.lookup_user(self.message.user_id, function(user) {
-              self.user = user;
+              if (user != null) {
+                  self.user = user;
+              }
           });
       }
     });
