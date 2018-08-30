@@ -430,16 +430,20 @@ chat.init = function(config) {
                   console.error(error);
               });
           },
+          remove_ban_from_list(user_id) {
+              const self = this;
+              for (var i = 0, len = self.bans.length; i < len; i++) {
+                  if (self.bans[i].user.id === user_id) {
+                      self.bans.splice(i,1);
+                      break;
+                  }
+              }
+          },
           lift_ban(user) {
               const self = this;
               chat.refs.bans.child(user.id).remove(function(error) {
                   wing.info('Ban lifted.');
-                  for (var i = 0, len = self.bans.length; i < len; i++) {
-                      if (self.bans[i].user.id === user.id) {
-                          self.bans.splice(i,1);
-                          break;
-                      }
-                  }
+                  self.remove_ban_from_list(user.id);
               });
           },
           create_public_room() {
@@ -592,6 +596,9 @@ chat.init = function(config) {
                           until : snapshot.val(),
                       });
                   });
+              });
+              chat.refs.bans.on('child_removed', function(snapshot) {
+                  self.remove_ban_from_list(snapshot.key);
               });
           }
 
