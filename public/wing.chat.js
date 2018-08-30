@@ -112,7 +112,8 @@ chat.init = function(config) {
                 }
                 help += '<p><b>' + sorted[i].name + '</b> - ' + sorted[i].help;
                 if (sorted[i].moderator_only) {
-                    help + ' <span class="badge badge-secondary">Moderator Only</span>';
+                    console.log('got here');
+                    help += ' <span class="badge badge-secondary">Moderator Only</span>';
                 }
                 help += '</p>';
             }
