@@ -307,9 +307,14 @@ const wing = {
         var form = new FormData();
         _.forEach(params, function(value, key) {
             if (typeof(value) == 'object') {
-                _.forEach(value, function(element) {
-                    form.append(key, element);
-                });
+                if (value instanceof File) {
+                    form.append(key, value);
+                }
+                else {
+                    _.forEach(value, function(element) {
+                        form.append(key, element);
+                    });
+                }
             }
             else {
                 form.append(key, value);
