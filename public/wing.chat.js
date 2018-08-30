@@ -152,12 +152,17 @@ chat.init = function(config) {
             const self = this;
             const search = text.match(self.match);
             let badge = search[1].substring(0,10);
-            chat.refs.current_user.child('badge').set(badge);
-            ui.add_system_message('Your badge has been set to "'+badge+'".');
-
+            if (badge == '-') {
+                chat.refs.current_user.child('badge').remove();
+                ui.add_system_message('Your badge has removed.');
+            }
+            else {
+                chat.refs.current_user.child('badge').set(badge);
+                ui.add_system_message('Your badge has been set to "'+badge+'".');
+            }
         },
         name    : "/badge [text]",
-        help    : "A max 10 character label after your name.",
+        help    : "A max 10 character label after your name. Set to '-' to remove.",
         moderator_only : true,
     });
 
