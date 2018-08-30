@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-09-29
+ * Add S3File role, for uploading files vs images into a private bucket.
+
 2018-09-25
  * Converted UI to use Vue 2 and Bootstrap 4.
  * Read angular2vue.txt for migration details.
