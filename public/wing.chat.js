@@ -126,6 +126,18 @@ chat.init = function(config) {
     });
 
     chat.add_command({
+        match   : /^\/notice\s+(.*)$/,
+        func : function(text, ui) {
+            const self = this;
+            const search = text.match(self.match);
+            chat.add_message(ui.room.id, search[1], { type : 'notice' });
+        },
+        name    : "/notice [message]",
+        help    : "Post an announcement for all to see. Please use sparingly and not in jest.",
+        moderator_only : true,
+    });
+
+    chat.add_command({
         match   : /^\/topic\s+(.*)$/,
         func : function(text, ui) {
             if (ui.room.type == 'official') {
@@ -800,6 +812,7 @@ chat.init = function(config) {
                 </div>
             </b-media>
             <div v-else class="border border-secondary p-3 rounded" :class="colors()">
+                <i v-if="chat.current_user.moderator" class="fas fa-trash-alt float-right" title="delete message" @click="delete_message(message)"></i>
                 <a :href="user.profile_uri" target="_new" :class="{'text-secondary' : !user.moderator, 'text-success' : user.staff, 'text-info' : user.moderator && !user.staff}">{{user.name}}</a> {{message.text}}
             </div>
         </div>`,
