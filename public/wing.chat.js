@@ -787,7 +787,7 @@ chat.init = function(config) {
                         <b-dropdown-item v-if="chat.current_user.moderator || message.user_id == chat.current_user.id" title="delete message" @click="delete_message(message)"><i class="fas fa-trash-alt"></i> Delete</b-dropdown-item>
                     </b-dropdown>
                 </div>
-                <div v-if="message.type == 'message'" v-html="filter_content(message.text)" style="white-space: pre-wrap;"></div>
+                <div v-if="message.type == 'message'" v-html="filter_content(message.text)"></div>
                 <div class="text-danger" :class="{'text-center' : (message.type == 'emote')}">
                     <i @click="like_message(message.id)" class="fas fa-heart mr-1" v-for="index in message.like_count"></i>
                 </div>
@@ -815,6 +815,9 @@ chat.init = function(config) {
               // remove html
               const doc = new DOMParser().parseFromString(html, 'text/html');
               let out = doc.body.textContent || "";
+
+              // carriage returns
+              out = out.replace(/\n/g, '<br>');
 
               // render icons
               out = out.replace(/(\:\w+\:)/g,function(match, offset, string){
