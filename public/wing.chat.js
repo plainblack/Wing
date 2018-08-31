@@ -437,7 +437,7 @@ chat.init = function(config) {
                             </a>
                             <a class="nav-link" :class="{active : current_room == room.id}" v-for="room in orderBy(Object.values(rooms),'name')" :key="room.id" @click="focus_room(room.id)">
                                 <div class="p-1 float-left"><i v-b-tooltip.hover.left :title="room.name" class="fas" :class="{'fa-comments' : room.type == 'official', 'fa-comment-lines' : room.type == 'public', 'fa-comment-smile' : room.type == 'private'}"></i></div>
-                                <div class="p-1 d-none d-sm-inline-block roomname float-left">{{room.name}}</div>
+                                <div class="p-1 d-none d-sm-inline-block float-left" :class="{roomname : room.type != 'official', panelname : room.type == 'official'}">{{room.name}}</div>
                                 <div class="p-1 mt-1 badge badge-secondary float-left" v-if="room.recent_message_count > 0">{{room.recent_message_count}}</div>
                                 <div class="float-right ml-2" v-if="room.type != 'official'">
                                     <span title="Remove Room" @click="remove_room(room.id)" v-if="chat.current_user.id == room.created_by || chat.current_user.moderator"><i class="fas fa-trash-alt"></i></span>
@@ -680,8 +680,8 @@ chat.init = function(config) {
     Vue.component('room-controller', {
       template : `
         <div><div style="height: 100vh">
-            <message-list :color_mode="color_mode" @create_private_chat="$emit('create_private_chat',$event)" :room="room" class="message-list" style="height:calc(100vh - 70px); overflow-y: scroll"></message-list>
-            <textarea :class="colors()" :id="'createmessage'+room.id" autofocus="true" v-model="message_text" @keydown="handle_keystroke($event)" placeholder="say something or type /help for options" class="border-0 position-absolute w-100 p-2" style="resize: none; bottom: 0; left: 0; height='70px';"></textarea>
+            <message-list :color_mode="color_mode" @create_private_chat="$emit('create_private_chat',$event)" :room="room" class="message-list" style="height:calc(100vh - 70px); overflow-y: scroll; overflow-x: hidden;"></message-list>
+            <textarea :class="colors()" :id="'createmessage'+room.id" autofocus="true" v-model="message_text" @keydown="handle_keystroke($event)" placeholder="say something or type /help for options" class="border-0 position-absolute w-100 p-2" style="resize: none; bottom: 0; left: 0; height:70px; overflow-x: hidden;"></textarea>
         </div></div>`,
       props: ['room','color_mode'],
       data() {
@@ -837,7 +837,7 @@ chat.init = function(config) {
     Vue.component('message-control', {
       template : `<div class="mb-2">
             <b-media v-if="message.type != 'notice'">
-                <b-img v-if="message.type == 'message'" slot="aside" :src="user.avatar_uri" width="50" height="50" alt="placeholder" class="rounded d-none d-sm-block" />
+                <b-img v-if="message.type == 'message'" slot="aside" :src="user.avatar_uri" width="50" height="50" alt="placeholder" class="avatar rounded" />
                 <div :class="{'text-center' : (message.type == 'emote')}">
 
                     <a :href="user.profile_uri" target="_new" :class="{'text-secondary' : !user.moderator, 'text-success' : user.staff, 'text-info' : user.moderator && !user.staff}">{{user.name}} <small v-if="user.badge" :style="'color:'+badge_color(user)">{{user.badge}}</small></a>

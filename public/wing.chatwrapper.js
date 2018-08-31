@@ -55,17 +55,19 @@ chatwrapper = {
         nav.style.left = '0';
         nav.style.width = '100%';
         nav.style.height = '40px';
-        nav.style.backgroundColor = 'black';
+        nav.style.backgroundColor = 'grey';
         nav.style.color = 'white';
         m.appendChild(nav);
         const min = document.createElement('span');
         min.innerHTML = '&times;';
         min.style.paddingLeft = '10px';
+        min.title = 'Minimize';
         min.addEventListener('click',chatwrapper.hide);
         nav.appendChild(min);
         const resize = document.createElement('span');
         resize.innerHTML = '&sdotb;';
         resize.style.paddingLeft = '10px';
+        resize.title = 'Resize';
         resize.addEventListener('click',function() {
             if (m.style.width == '95%') {
                 m.style.width = '50%';
@@ -79,6 +81,14 @@ chatwrapper = {
             localStorage.setItem('chatwrapper.height', m.style.height);
         });
         nav.appendChild(resize);
+        const oinw = document.createElement('span');
+        oinw.innerHTML = '&boxbox;';
+        oinw.style.paddingLeft = '10px';
+        oinw.title = 'Open in new window';
+        oinw.addEventListener('click',function() {
+            window.open('/chat');
+        });
+        nav.appendChild(oinw);
         const i = document.createElement('iframe');
         i.src = '/chat';
         i.style.position = 'absolute';
