@@ -22,7 +22,7 @@
     }
   </style>
 </head>
-<body class="container-fluid p-0">
+<body class="chat-container p-0">
     <div id="chat">
 
         <room-list></room-list>
@@ -34,7 +34,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.0/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/linkifyjs@2.1.6/dist/linkify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/linkifyjs@2.1.6/dist/linkify-html.js"></script>
-    <script src="/wing.chat.js?v=1"></script>
+    <script src="/wing.chat.js?v=6"></script>
     <script>
         chat.init({
             firebase : [% firebase.json %],
