@@ -419,7 +419,7 @@ chat.init = function(config) {
                         </div>
                     </div>
                 </div>
-                <div class="col-3 p-1 card-header" id="tabs">
+                <div class="col-3 p-0 border-0 card-header" id="tabs">
                     <div style="height: 100vh; overflow-y: scroll;">
                         <div class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
                             <a class="nav-link" :class="{active : current_room == 'settings'}" @click="focus_room('settings')">
