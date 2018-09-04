@@ -61,12 +61,14 @@ chatwrapper = {
         const min = document.createElement('span');
         min.innerHTML = '&times;';
         min.style.paddingLeft = '10px';
+        min.style.cursor = 'pointer';
         min.title = 'Minimize';
         min.addEventListener('click',chatwrapper.hide);
         nav.appendChild(min);
         const resize = document.createElement('span');
         resize.innerHTML = '&sdotb;';
         resize.style.paddingLeft = '10px';
+        resize.style.cursor = 'pointer';
         resize.title = 'Resize';
         resize.addEventListener('click',function() {
             if (m.style.width == '95%') {
@@ -84,6 +86,7 @@ chatwrapper = {
         const oinw = document.createElement('span');
         oinw.innerHTML = '&boxbox;';
         oinw.style.paddingLeft = '10px';
+        oinw.style.cursor = 'pointer';
         oinw.title = 'Open in new window';
         oinw.addEventListener('click',function() {
             window.open('/chat');
