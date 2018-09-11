@@ -89,9 +89,6 @@ sub initialize {
         $meta->{$key} = $value;
     }
     $self->metadata($meta);
-    unless ($meta->{FileType} ~~ ['PDF','DOC','DOCX','ODT']) {
-        ouch 442, 'File must be a .pdf, .doc, .docx or .odt';
-    }
     $self->upload_file_to_s3($path, $self->filename);
     $self->insert;
     return $self;
