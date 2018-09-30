@@ -909,9 +909,17 @@ chat.init = function(config) {
              }
           },
           filter_content(html) {
+
               // remove html
-              const doc = new DOMParser().parseFromString(html, 'text/html');
-              let out = doc.body.textContent || "";
+              let out = (''+html)
+                .replace(/\\/g, '\\\\') /* This MUST be the 1st replacement. */
+                .replace(/\t/g, '\\t') /* These 2 replacements protect whitespaces. */
+                .replace(/\u00A0/g, '\\u00A0') /* Useful but not absolutely necessary. */
+                .replace(/&/g,'&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;');
 
               // carriage returns
               out = out.replace(/\n/g, '<br>');
