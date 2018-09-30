@@ -90,8 +90,13 @@ sub initialize {
     my $self = Wing->db->resultset($class)->new({});
     $self->id(Data::GUID->new->as_string); # want the id and haven't inserted yet
     $self->image_relationship_id($related_id);
-    $self->filename($self->fix_filename($filename));
     $self->resize_image($path) unless $noresize;
+    $self->handle_upload($filename, $path);
+}
+
+sub handle_upload {
+    my ($self, $filename, $path) = @_;
+    $self->filename($self->fix_filename($filename));
     my $info = Image::ExifTool::ImageInfo($path, [], { Exclude => ['FileName','Directory','FilePermissions']});
     my $meta;
     while ( my ($key, $value) = each %{$info}) {
@@ -105,7 +110,7 @@ sub initialize {
     my $thumbnail = $self->generate_thumbnail($path);
     $self->upload_file_to_s3($path, $self->filename);
     $self->upload_file_to_s3($thumbnail, 'thumbnail'.$self->extension);
-    $self->insert;
+    $self->touch;
     return $self;
 }
 

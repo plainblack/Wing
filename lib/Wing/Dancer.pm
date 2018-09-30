@@ -386,8 +386,11 @@ register login => sub {
             return redirect '/sso/authorize?sso_id='.$sso->id;
         }
     }
+    my $uri = params->{redirect_after};
     my $cookie = cookies->{redirect_after};
-    my $uri = $cookie->value if defined $cookie;
-    $uri ||= params->{redirect_after} || '/account';
+    if (!$uri && defined $cookie && $cookie->value) {
+        $uri = $cookie->value;
+    }
+    $uri ||= '/account';
     return redirect $uri;
 };
