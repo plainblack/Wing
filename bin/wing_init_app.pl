@@ -21,6 +21,7 @@ make_path('/data/'.$project.'/var');
 make_path('/data/'.$project.'/var/mkits');
 make_path('/data/'.$project.'/var/mkits/generic.mkit');
 make_path('/data/'.$project.'/var/mkits/reset_password.mkit');
+make_path('/data/'.$project.'/var/mkits/secondary_auth.mkit');
 make_path('/data/'.$project.'/dbicdh/_common/deploy/1');
 make_path('/data/'.$project.'/views');
 make_path('/data/'.$project.'/views/admin');
@@ -73,6 +74,10 @@ template($tt,'var/mkits/reset_password.mkit/documentation.txt', $vars);
 template($tt,'var/mkits/reset_password.mkit/manifest.json', $vars);
 template($tt,'var/mkits/reset_password.mkit/body.txt', $vars);
 template($tt,'var/mkits/reset_password.mkit/body.html', $vars);
+template($tt,'var/mkits/secondary_auth.mkit/documentation.txt', $vars);
+template($tt,'var/mkits/secondary_auth.mkit/manifest.json', $vars);
+template($tt,'var/mkits/secondary_auth.mkit/body.txt', $vars);
+template($tt,'var/mkits/secondary_auth.mkit/body.html', $vars);
 
 # set up views, using alternate template tags since they're templates
 my $t_alt = Template->new({ABSOLUTE => 1, START_TAG => quotemeta('[%['), END_TAG => quotemeta(']%]')});

@@ -746,6 +746,7 @@ const wing = {
         },
 
         options_api : function() {
+            const self = this;
             if (behavior.options_api != null) {
                 return behavior.options_api;
             }
