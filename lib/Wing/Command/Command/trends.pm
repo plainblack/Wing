@@ -95,7 +95,7 @@ sub deltas {
     my $trends_daily = Wing->db->resultset('TrendsLogDaily');
     my $trends_monthly = Wing->db->resultset('TrendsLogMonthly');
     foreach my $key (keys %{$deltas}) {
-        log_trend_hourly($key, $deltas->{$key}->(), $day);
+        log_trend_hourly($key, $deltas->{$key}->($day), $day);
         my $hourly = $trends_hourly->search({name => $key},{rows => 24});
         log_trend_daily($key, $hourly->get_column('value')->sum / $hourly->count, $day);
         my $daily = $trends_daily->search({name => $key},{rows => 30});
