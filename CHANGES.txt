@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2018-10-18
  * Trends deltas now take an average over time rather than having last write be the value for daily, monthly, yearly. This means delta trends won't have perfect accuracy for a while.
+ * Trends don't log if value eq undef
 
 2018-09-30
  * Bunch of chat bug fixes.

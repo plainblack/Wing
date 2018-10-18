@@ -25,12 +25,14 @@ sub trend_deltas {
 
 sub log_trend {
     my ($name, $value, $note, $date) = @_;
+    return unless defined $value;
     $date ||= DateTime->now;
     Wing->db->resultset('TrendsLog')->new({name => $name, value => $value, note => $note, date_created => $date, date_updated => $date})->insert;
 }
 
 sub log_trend_hourly {
     my ($name, $value, $hour) = @_;
+    return unless defined $value;
     my $dtf = Wing->db->storage->datetime_parser;
     my $trends_hourly = Wing->db->resultset('TrendsLogHourly');
     my $row = $trends_hourly->search({hour => $dtf->format_datetime($hour), name => $name},{rows=>1})->single;
@@ -46,6 +48,7 @@ sub log_trend_hourly {
 
 sub log_trend_daily {
     my ($name, $value, $date) = @_;
+    return unless defined $value;
     my $dtf = Wing->db->storage->datetime_parser;
     my $day = $date->clone;
     $day->set_hour(0);
@@ -63,6 +66,7 @@ sub log_trend_daily {
 
 sub log_trend_monthly {
     my ($name, $value, $date) = @_;
+    return unless defined $value;
     my $dtf = Wing->db->storage->datetime_parser;
     my $month = $date->clone;
     $month->set_hour(0);
@@ -81,6 +85,7 @@ sub log_trend_monthly {
 
 sub log_trend_yearly {
     my ($name, $value, $date) = @_;
+    return unless defined $value;
     my $dtf = Wing->db->storage->datetime_parser;
     my $year = $date->clone;
     $year->set_hour(0);
@@ -100,6 +105,7 @@ sub log_trend_yearly {
 
 sub log_trend_all {
     my ($name, $value, $day) = @_;
+    return unless defined $value;
     log_trend_hourly($name, $value, $day);
     log_trend_daily($name, $value, $day);
     log_trend_monthly($name, $value, $day);
