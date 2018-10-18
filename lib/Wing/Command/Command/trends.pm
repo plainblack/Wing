@@ -96,9 +96,12 @@ sub deltas {
     my $trends_monthly = Wing->db->resultset('TrendsLogMonthly');
     foreach my $key (keys %{$deltas}) {
         log_trend_hourly($key, $deltas->{$key}->(), $day);
-        log_trend_daily($key, $trends_hourly->search({name => $key},{rows => 24})->get_column('value')->sum / 24, $day);
-        log_trend_monthly($key, $trends_daily->search({name => $key},{rows => 30})->get_column('value')->sum / 30, $day);
-        log_trend_yearly($key, $trends_monthly->search({name => $key},{rows => 12})->get_column('value')->sum / 12, $day);
+        my $hourly = $trends_hourly->search({name => $key},{rows => 24});
+        log_trend_daily($key, $hourly->get_column('value')->sum / $hourly->count, $day);
+        my $daily = $trends_daily->search({name => $key},{rows => 30});
+        log_trend_monthly($key, $daily->get_column('value')->sum / $daily->count, $day);
+        my $monthly = $trends_monthly->search({name => $key},{rows => 12});
+        log_trend_yearly($key, $monthly->get_column('value')->sum / $monthly->count, $day);
     }
 }
 
