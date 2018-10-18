@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2018-10-18
+ * Trends deltas now take an average over time rather than having last write be the value for daily, monthly, yearly. This means delta trends won't have perfect accuracy for a while.
+
 2018-09-30
  * Bunch of chat bug fixes.
  * Added /badge and /badge-color commands to chat.

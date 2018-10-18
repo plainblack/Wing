@@ -73,7 +73,7 @@ sub execute {
         daily($day, \@names, \@delta_names);
         monthly($day, \@names, \@delta_names);
         yearly($day, \@names, \@delta_names);
-    
+
         # now we can update the current time
         $day->add(hours=>1);
         deltas($day, $deltas);
@@ -91,8 +91,14 @@ sub execute {
 sub deltas {
     my ($day, $deltas) = @_;
     my $db = Wing->db;
+    my $trends_hourly = Wing->db->resultset('TrendsLogHourly');
+    my $trends_daily = Wing->db->resultset('TrendsLogDaily');
+    my $trends_monthly = Wing->db->resultset('TrendsLogMonthly');
     foreach my $key (keys %{$deltas}) {
-        log_trend_all($key, $deltas->{$key}->(), $day);
+        log_trend_hourly($key, $deltas->{$key}->(), $day);
+        log_trend_daily($key, $trends_hourly->search({name => $key},{rows => 24})->get_column('value')->sum / 24, $day);
+        log_trend_monthly($key, $trends_daily->search({name => $key},{rows => 30})->get_column('value')->sum / 30, $day);
+        log_trend_yearly($key, $trends_monthly->search({name => $key},{rows => 12})->get_column('value')->sum / 12, $day);
     }
 }
 
@@ -173,7 +179,7 @@ wing trends - Calculate trends.
  wing trends --calc
 
  wing trends --recalc --start="2015-01-01 00:00:00" --end="2015-02-01 00:00:00"
- 
+
 =head1 DESCRIPTION
 
 This provides calculation of long-term trends. It should be run regularly (at least hourly) via a cron job. The resulting data is viewable through trends reports in the admin web interface.
@@ -183,6 +189,3 @@ This provides calculation of long-term trends. It should be run regularly (at le
 Copyright 2015 Plain Black Corporation.
 
 =cut
-
-
-
