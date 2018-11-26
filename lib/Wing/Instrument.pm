@@ -13,7 +13,7 @@ has id => (
 
 has sensitivity => (
     is => 'rw',
-    default => 0.5,
+    default => 1,
 );
 
 has recordings => (
