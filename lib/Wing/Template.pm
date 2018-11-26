@@ -9,9 +9,11 @@ use Dancer::Plugin;
 $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
 
 use Wing::Web;
+use Wing::Instrument;
 
 hook 'before_template_render' => sub {
     my $tokens = shift;
+    my $instrument = Wing::Instrument->new(sensitivity => 0.5);
     $tokens->{money} = sub {
                                 my $value  = shift || 0;
                                 my $digits = shift || 2;
@@ -26,11 +28,15 @@ hook 'before_template_render' => sub {
         $text =~ s/\n/<br>/g;
         return $text;
     };
+    $instrument->record('formatters');
     $tokens->{system_alert_message} = Wing->cache->get('system_alert_message');
+    $instrument->record('system_alert_message');
     if (exists $tokens->{current_user} && $tokens->{current_user}) {
         my $current_user = delete $tokens->{current_user};
         $tokens->{current_user} = describe($current_user, current_user => $current_user, include_relationships => 1, include_options => 1, include_private => 1, );
     }
+    $instrument->record('current_user');
+    $instrument->log('Wing::Template');
 };
 
 register_plugin;
