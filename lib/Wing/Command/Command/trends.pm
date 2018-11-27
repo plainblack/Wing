@@ -91,17 +91,27 @@ sub execute {
 sub deltas {
     my ($day, $deltas) = @_;
     my $db = Wing->db;
-    my $trends_hourly = Wing->db->resultset('TrendsLogHourly');
-    my $trends_daily = Wing->db->resultset('TrendsLogDaily');
-    my $trends_monthly = Wing->db->resultset('TrendsLogMonthly');
+    my $dtf = Wing->db->storage->datetime_parser;
+    my $end_date = $day->clone;
+    $end_date->set_minute(0);
+    $end_date->set_second(0);
+    my $end = $dtf->format_datetime($end_date);
+    my $start = $dtf->format_datetime($end_date->clone->subtract(days => 1));
+    my $trends_hourly = Wing->db->resultset('TrendsLogHourly')->search({hour => {-between => [$start, $end]}});
+    $end_date->set_hour(0);
+    $end = $dtf->format_datetime($end_date);
+    $start = $dtf->format_datetime($end_date->clone->subtract(months => 1));
+    my $trends_daily = Wing->db->resultset('TrendsLogDaily')->search({day => {-between => [$start, $end]}});
+    $end_date->set_day(1);
+    $end = $dtf->format_datetime($end_date);
+    $start = $dtf->format_datetime($end_date->clone->subtract(years => 1));
+    my $trends_monthly = Wing->db->resultset('TrendsLogMonthly')->search({month => {-between => [$start, $end]}});
+
     foreach my $key (keys %{$deltas}) {
         log_trend_hourly($key, $deltas->{$key}->($day), $day);
-        my $hourly = $trends_hourly->search({name => $key},{rows => 24});
-        log_trend_daily($key, $hourly->get_column('value')->sum / $hourly->count, $day);
-        my $daily = $trends_daily->search({name => $key},{rows => 30});
-        log_trend_monthly($key, $daily->get_column('value')->sum / $daily->count, $day);
-        my $monthly = $trends_monthly->search({name => $key},{rows => 12});
-        log_trend_yearly($key, $monthly->get_column('value')->sum / $monthly->count, $day);
+        log_trend_daily($key, $trends_hourly->search({name => $key})->get_column('value')->func('AVG'), $day);
+        log_trend_monthly($key, $trends_daily->search({name => $key})->get_column('value')->func('AVG'), $day);
+        log_trend_yearly($key, $trends_monthly->search({name => $key})->get_column('value')->func('AVG'), $day);
     }
 }
 
