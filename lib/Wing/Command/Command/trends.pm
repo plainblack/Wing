@@ -20,7 +20,8 @@ sub description {'Examples:
 sub opt_spec {
     return (
       [ 'calc', 'calculate todays trends' ],
-      [ 'recalc', 'recalculate trends in the past, must include a start and end' ],
+      [ 'recalc', 'recalculate trends in the past, must include a start and end, and may include a target' ],
+      [ 'target=s', 'when performing a recalc, what should be recalculated. Choose from "all" (default), "hourly", "daily", "monthly", "yearly", or "deltas"' ],
       [ 'quiet', 'silence output' ],
       [ 'start=s', 'where to start the recalculation' ],
       [ 'end=s', 'where to end the recalculation' ],
@@ -49,15 +50,17 @@ sub execute {
     }
     elsif ($opt->{recalc} && $opt->{start} && $opt->{end}) { # recalc some period of time
         say "Recalculating trends from ".$opt->{start}." to ".$opt->{end}."..." unless $opt->{quiet};
+        my $target = $opt->{target} || 'all';
         my $day = Wing->from_mysql($opt->{start});
         my $stop = Wing->from_mysql($opt->{end});
         while ($day <= $stop) {
             say $day unless $opt->{quiet};
-            hourly($day, \@names, \@delta_names);
+            hourly($day, \@names, \@delta_names) if $target eq 'all' || $target eq 'hourly';
             if ($day->hour == 23) {
-                daily($day, \@names, \@delta_names);
-                monthly($day, \@names, \@delta_names);
-                yearly($day, \@names, \@delta_names);
+                daily($day, \@names, \@delta_names) if $target eq 'all' || $target eq 'daily';
+                monthly($day, \@names, \@delta_names) if $target eq 'all' || $target eq 'monthly';
+                yearly($day, \@names, \@delta_names) if $target eq 'all' || $target eq 'yearly';
+                deltas($day, $deltas, 1) if $target eq 'all' || $target eq 'deltas';
             }
             $day->add(hours => 1);
         }
@@ -89,7 +92,7 @@ sub execute {
 }
 
 sub deltas {
-    my ($day, $deltas) = @_;
+    my ($day, $deltas, $skip_hourly) = @_;
     my $db = Wing->db;
     my $dtf = Wing->db->storage->datetime_parser;
     my $end_date = $day->clone;
@@ -108,7 +111,7 @@ sub deltas {
     my $trends_monthly = Wing->db->resultset('TrendsLogMonthly')->search({month => {-between => [$start, $end]}});
 
     foreach my $key (keys %{$deltas}) {
-        log_trend_hourly($key, $deltas->{$key}->($day), $day);
+        log_trend_hourly($key, $deltas->{$key}->($day), $day) unless $skip_hourly;
         log_trend_daily($key, $trends_hourly->search({name => $key})->get_column('value')->func('AVG'), $day);
         log_trend_monthly($key, $trends_daily->search({name => $key})->get_column('value')->func('AVG'), $day);
         log_trend_yearly($key, $trends_monthly->search({name => $key})->get_column('value')->func('AVG'), $day);
