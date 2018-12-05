@@ -57,7 +57,7 @@ wing.angular_http_interceptor = function ($q) {
                 else {
                     var matches = message.split(/ /);
                     var field = matches[0].toLowerCase();
-                    var label = $('label[for="'+field+'"]').text();
+                    var label = $('label[for="'+field+'"]').first().text();
                     if (label) {
                         message = message.replace(field,label);
                     }   
