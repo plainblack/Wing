@@ -67,7 +67,7 @@ sub run {
             $args->{options},
         );
     };
-    if (hug 442) { ##bad address
+    if (kiss 442) { ##bad address
         Wing->log->warn("Could not send templated email to user: $@");
         $job->delete;
     }

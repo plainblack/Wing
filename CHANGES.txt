@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-01-28
+ * Fix a long standing bug with false logging of email errors.
+
 2018-11-26
  * Fix trends delta roll up calculation.
  * Add --target option to wing trends command line.
