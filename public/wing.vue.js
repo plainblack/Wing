@@ -346,12 +346,13 @@ const wing = {
 
         fetch : function(options) {
             const self = this;
-            if (!self.fetch_api) {
+            const fetch_api = (typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || self.fetch_api;
+            if (!fetch_api) {
                 console.error('wing.object fetch_api is empty');
             }
             const promise = axios({
                 method:'get',
-                url: wing.format_base_uri((typeof self.properties !== 'undefined' && typeof self.properties._relationships !== 'undefined' && self.properties._relationships.self) || self.fetch_api),
+                url: wing.format_base_uri(fetch_api),
                 params : self.params,
                 withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true,
             });
@@ -605,6 +606,19 @@ const wing = {
             });
         },
 
+        append : function(properties, options) {
+            const self = this;
+            const new_object = self._create_object(properties);
+            self.objects.push(new_object);
+            if (typeof options !== 'undefined' && typeof options.on_each !== 'undefined') {
+                options.on_each(properties, self.objects[self.objects.length -1]);
+            }
+            if (typeof behavior.on_each !== 'undefined') {
+                behavior.on_each(properties, self.objects[self.objects.length -1]);
+            }
+            return new_object;
+        },
+
         search : _.debounce(function(options) {
             return this._search(options);
         }, 200),
@@ -634,13 +648,7 @@ const wing = {
                     self.objects = [];
                 }
                 for (var index = 0; index < data.result.items.length; index++) {
-                    self.objects.push(self._create_object(data.result.items[index]));
-                    if (typeof options !== 'undefined' && typeof options.on_each !== 'undefined') {
-                        options.on_each(data.result.items[index], self.objects[self.objects.length -1]);
-                    }
-                    if (typeof behavior.on_each !== 'undefined') {
-                        behavior.on_each(data.result.items[index], self.objects[self.objects.length -1]);
-                    }
+                    self.append(data.result.items[index], options);
                 }
                 self.paging = data.result.paging;
                 const items = data.result.items;
@@ -684,13 +692,7 @@ const wing = {
             promise.then(function (response) {
                 const data = response.data;
                 for (var index in data.result.items) {
-                    self.objects.push(self._create_object(data.result.items[index]));
-                    if (typeof options !== 'undefined' && typeof options.on_each !== 'undefined') {
-                        options.on_each(data.result.items[index], self.objects[self.objects.length -1]);
-                    }
-                    if (typeof behavior.on_each !== 'undefined') {
-                        behavior.on_each(data.result.items[index], self.objects[self.objects.length -1]);
-                    }
+                    self.append(data.result.items[index], options);
                 }
                 if (typeof options !== 'undefined' && typeof options.on_success !== 'undefined') {
                     options.on_success();

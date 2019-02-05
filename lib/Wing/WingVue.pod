@@ -585,6 +585,30 @@ A javascript object that holds parameters waiting to be used in a new object tha
 
  { }
 
+=head3 append(properties, options)
+
+Adds a new object ot the list that you created via some other method.
+
+=over
+
+=item properties
+
+The properties list returned for this object via the REST API.
+
+=item options
+
+An object containing various things that should be done with the data when it is appended.
+
+=over
+
+=item on_each
+
+A function to be executed when an object as it is appended. It will be passed the properties of the object, and the C<objectManager> instance of the object.
+
+=back
+
+=back
+
 However, you can set default values in this object by setting C<new_defaults> when you create the list. C<new> will also be reset to C<new_defaults> whenever C<reset_new()> is called.
 
 =head3 reset_new()

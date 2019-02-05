@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2019-02-05
  * Modified S3Image to allow verification of an image outside of the handle upload method.
+ * Added the append() method to wing.object_list in wing.vue.js.
 
 2019-02-04
  * Modified S3Image to allow for images not attached to other objects by passing '-none-' into image_relationship_name.
