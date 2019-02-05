@@ -31,28 +31,42 @@ before wing_finalize_class => sub {
     );
 };
 
+sub has_image_relationship {
+    my $self = shift;
+    return $self->image_relationship_name eq '-none-' ? 0 : 1;
+}
+
 sub image_relationship_id {
     my $self = shift;
+    return unless $self->has_image_relationship;
     my $method = $self->image_relationship_name.'_id';
     return $self->$method(@_);
 }
 
+sub image_relationship_path {
+    my $self = shift;
+    if ($self->has_image_relationship) {
+        return $self->image_relationship_id.'/';
+    }
+    return '';
+}
+
 sub image_uri {
     my $self = shift;
-    return '//s3.amazonaws.com/'.Wing->config->get('aws/'.$self->s3_bucket_name).'/'.$self->image_relationship_id.'/'.$self->id.'/'.$self->filename;
+    return '//s3.amazonaws.com/'.Wing->config->get('aws/'.$self->s3_bucket_name).'/'.$self->image_relationship_path.$self->id.'/'.$self->filename;
 }
 
 sub thumbnail_uri {
     my $self = shift;
-    return '//s3.amazonaws.com/'.Wing->config->get('aws/'.$self->s3_bucket_name).'/'.$self->image_relationship_id.'/'.$self->id.'/thumbnail'.$self->extension;
+    return '//s3.amazonaws.com/'.Wing->config->get('aws/'.$self->s3_bucket_name).'/'.$self->image_relationship_path.$self->id.'/thumbnail'.$self->extension;
 }
 
 before delete => sub {
     my $self = shift;
     my $s3 = $self->s3;
     my $bucket = $s3->bucket(Wing->config->get('aws/'.$self->s3_bucket_name));
-    $bucket->delete_key($self->image_relationship_id.'/'.$self->id.'/'.$self->filename) or die $s3->err . ": " . $s3->errstr;
-    $bucket->delete_key($self->image_relationship_id.'/'.$self->id.'/thumbnail'.$self->extension) or die $s3->err . ": " . $s3->errstr;
+    $bucket->delete_key($self->image_relationship_path.$self->id.'/'.$self->filename) or die $s3->err . ": " . $s3->errstr;
+    $bucket->delete_key($self->image_relationship_path.$self->id.'/thumbnail'.$self->extension) or die $s3->err . ": " . $s3->errstr;
 };
 
 sub file_size {
@@ -89,7 +103,7 @@ sub initialize {
     $log->info('Trying to handle upload for '.$path);
     my $self = Wing->db->resultset($class)->new({});
     $self->id(Data::GUID->new->as_string); # want the id and haven't inserted yet
-    $self->image_relationship_id($related_id);
+    $self->image_relationship_id($related_id) if $self->has_image_relationship;
     $self->resize_image($path) unless $noresize;
     $self->handle_upload($filename, $path);
 }
@@ -166,7 +180,7 @@ sub upload_file_to_s3 {
     my $log = Wing->log;
     $log->info('Uploading file '.$path.' to S3.');
     my $success = eval { $bucket->add_key_filename(
-        $self->image_relationship_id.'/'.$self->id.'/'.$filename,
+        $self->image_relationship_path.$self->id.'/'.$filename,
         $path,
         {
             'Content-Type'  => $type,
