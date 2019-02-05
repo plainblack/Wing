@@ -168,7 +168,7 @@ Vue.directive('autosave', {
  */
 
 Vue.component('wing-select', {
-  template : `<select @change="object.save(property)" class="form-control" v-model="object.properties[property]">
+  template : `<select @change="object.save(property)" class="form-control custom-select" v-model="object.properties[property]">
     <option v-for="option in options()" :value="option">{{_option(option)}}</option>
   </select>`,
   props: ['object','property'],
