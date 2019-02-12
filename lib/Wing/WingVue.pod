@@ -200,6 +200,34 @@ Returns true if confirmations are disabled.
 
 Sets confirmations equal to true if they are currently false and false if they are currently true. If they are currently true then the user will be asked to confirm whether they want to disable confirmations.
 
+=head2 wing.get_field_options()
+
+Returns an array of objects for a particular field formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and L<wing.object_list()>.
+
+=over
+
+=item field
+
+Required. The name of the field to return the options for.
+
+=item wing_options
+
+Required. An object containing the options returned from wing when you C<_include_options>.
+
+=back
+
+=head2 wing.format_field_options()
+
+Returns an object of objects formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and L<wing.object_list()>.
+
+=over
+
+=item wing_options
+
+Required An object containing the options returned from wing when you C<_include_options>.
+
+=back
+
 =head2 wing.object()
 
 Creates an instance of a Wing object, aka a row in the database.
@@ -469,6 +497,26 @@ Required. The name of the element you wish to retrieve/store.
 =item value
 
 Optional. The value you'd like to store.
+
+=back
+
+=head3 get_field_options(field)
+
+Returns an array of objects for a particular field formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and L<wing.object_list()>.
+
+=over
+
+=item field
+
+Required. The name of the field to return the options for.
+
+=back
+
+=head3 format_field_options()
+
+Returns an object of objects formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and L<wing.object_list()>.
+
+=over
 
 =back
 
@@ -877,6 +925,26 @@ Removes an object from this list without making a call to the server. See C<dele
 =item id
 
 The unique id of the object you wish to delete.
+
+=back
+
+=head3 get_field_options(field)
+
+Returns an array of objects for a particular field formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and L<wing.object_list()>.
+
+=over
+
+=item field
+
+Required. The name of the field to return the options for.
+
+=back
+
+=head3 format_field_options()
+
+Returns an object of objects formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and L<wing.object_list()>.
+
+=over
 
 =back
 

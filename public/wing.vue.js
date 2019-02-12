@@ -186,7 +186,7 @@ Vue.component('wing-select', {
 });
 
 /*
- * A component to generate select lists from wing options.
+ * A component to count the characters remaining in a text area.
  */
 
 Vue.component('characters-remaining', {
@@ -252,6 +252,41 @@ const wing = {
 
      format_base_uri : function(uri_suffix) {
          return wing.base_uri + uri_suffix;
+     },
+
+     /*
+      * format wing options as bootstrap-vue options
+      */
+     format_field_options : function(wing_options) {
+         const bv_options = {};
+         for (const field in wing_options) {
+             if (!field.startsWith('_')) {
+                 bv_options[field] = [];
+                 for (const key in wing_options[field]) {
+                     const value = wing_options[field][key];
+                     bv_options[field].push({
+                         value : value,
+                         text : wing_options['_'+field][value],
+                     });
+                 }
+             }
+         }
+         return bv_options;
+     },
+
+     /*
+      * return field options for a particular field formatted as bootstrap-vue options
+      */
+     get_field_options : function(field, wing_options) {
+         const bv_options = [];
+         for (const key in wing_options[field]) {
+             const value = wing_options[field][key];
+             bv_options.push({
+                 value : value,
+                 text : wing_options['_'+field][value],
+             });
+         }
+         return bv_options;
      },
 
     /*
@@ -379,6 +414,14 @@ const wing = {
                 return self;
             });
             return promise;
+        },
+
+        format_field_options : function() {
+            return wing.format_field_options(this.properties._options || {});
+        },
+
+        get_field_options : function(field) {
+            return wing.get_field_options(field, this.properties._options || {});
         },
 
         create : function(properties, options) {
@@ -777,6 +820,14 @@ const wing = {
                 }
             });
             return promise;
+        },
+
+        format_field_options : function() {
+            return wing.format_field_options(this.field_options || {});
+        },
+
+        get_field_options : function(field) {
+            return wing.get_field_options(field, this.field_options || {});
         },
 
         create : function(new_properties, options) {
