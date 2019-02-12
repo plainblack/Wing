@@ -502,7 +502,7 @@ Optional. The value you'd like to store.
 
 =head3 get_field_options(field)
 
-Returns an array of objects for a particular field formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and L<wing.object_list()>.
+Returns an array of objects for a particular field formatted for Bootstrap-Vue select/radio lists. This method also exists as a stand alone method and on L<wing.object_list()>.
 
 =over
 
@@ -514,7 +514,7 @@ Required. The name of the field to return the options for.
 
 =head3 format_field_options()
 
-Returns an object of objects formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and L<wing.object_list()>.
+Returns an object of objects formatted for Bootstrap-Vue select/radio lists. This method also exists as a stand alone method and on L<wing.object_list()>.
 
 =over
 
@@ -930,7 +930,7 @@ The unique id of the object you wish to delete.
 
 =head3 get_field_options(field)
 
-Returns an array of objects for a particular field formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and L<wing.object_list()>.
+Returns an array of objects for a particular field formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and as a stand alone method.
 
 =over
 
@@ -942,9 +942,21 @@ Required. The name of the field to return the options for.
 
 =head3 format_field_options()
 
-Returns an object of objects formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and L<wing.object_list()>.
+Returns an object of objects formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and as a stand alone method.
 
 =over
+
+=back
+
+=head3 format_objects_as_field_options(text_field)
+
+Formats the entire list as a Bootstrap-Vue select/radio option list.
+
+=over
+
+=item text_field
+
+The name of the field you want to use as the text label for the option. Often this will be C<name>.
 
 =back
 

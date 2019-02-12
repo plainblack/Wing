@@ -830,6 +830,18 @@ const wing = {
             return wing.get_field_options(field, this.field_options || {});
         },
 
+        format_objects_as_field_options : function(text_field) {
+            const self = this;
+            const bv_options = [];
+            for (const key in self.objects) {
+                bv_options.push({
+                    text : self.objects[key].properties[text_field],
+                    value : self.objects[key].properties.id,
+                });
+            }
+            return bv_options;
+        },
+
         create : function(new_properties, options) {
             const self = this;
             if (!self.create_api) {
