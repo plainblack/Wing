@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-02-25
+ * Added option to wing.object.save() in wing.vue.js.
+
 2019-02-12
  * Added get_field_options() and format_field_options() to wing.vue.js.
  * Added format_objects_as_field_options() to object_list in wing.vue.js.

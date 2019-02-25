@@ -386,9 +386,21 @@ See C<partial_update()> for details.
 
 =back
 
-=head3 save(property)
+=head3 save(property, value)
 
 Updates the value of C<property> in the database with the value of C<property> in this object, and then returns a promise from the HTTP request.
+
+=over
+
+=item property
+
+Required. The name of the property to save.
+
+=item value
+
+Optional. The value to save to this property. If not set, then whatever value is already stored in the property client side will be sent to the server.
+
+=back
 
 =head3 partial_update(properties, options)
 

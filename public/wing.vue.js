@@ -465,14 +465,14 @@ const wing = {
             return self.partial_update(self.properties, options);
         },
 
-        save : _.debounce(function(property) {
-            return this._save(property);
+        save : _.debounce(function(property, value) {
+            return this._save(property, value);
         }, 200),
 
-        _save : function(property) {
+        _save : function(property, value) {
             const self = this;
             const update = {};
-            update[property] = self.properties[property];
+            update[property] = value || self.properties[property];
             return self._partial_update(update);
         },
 
