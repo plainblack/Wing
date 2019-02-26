@@ -197,7 +197,6 @@ Vue.component('wing-select-new', {
   methods : {
     options() {
         if (this.property in this.list.field_options) {
-            console.dir(this.list.field_options);
             return this.list.field_options[this.property];
         }
         return [];
