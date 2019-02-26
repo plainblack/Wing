@@ -33,13 +33,26 @@ L<https://vuejs.org>
     },
     mounted() {
         this.users.search();
+        this.users.fetch_options();
     },
   });
 
   <!-- in html -->
   <div id="app">
     <div v-for="user in users.objects">{{user.properties.username}} <button @click="user.delete()">Delete</button></div>
+    <div>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input id="username" type="text" v-model="users.new.username" placeholder="username" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="developer">Is a software developer?</label>
+            <wing-select-new :list="users" property="developer"></wing-select-new>
+        </div>
+        <button @click="users.create()"></button>
+    </div>
   </div>
+
 
 
 =head1 Components
@@ -78,7 +91,7 @@ Generates a select list from from a C<wing.object> field that has enumerated opt
 
 Generates a select list from from a C<wing.object_list>'s C<fetch_options> method.
 
- <wing-select-new :options="users.field_options" :object="new_user" property="admin"></wing-select>
+ <wing-select-new :options="users.field_options" :list="users" property="admin"></wing-select>
 
 
 

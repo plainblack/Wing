@@ -186,6 +186,29 @@ Vue.component('wing-select', {
 });
 
 /*
+ * A component to generate select lists from wing options.
+ */
+
+Vue.component('wing-select-new', {
+  template : `<select class="form-control custom-select" v-model="list.new[property]">
+    <option v-for="option in options()" :value="option">{{_option(option)}}</option>
+  </select>`,
+  props: ['list','property'],
+  methods : {
+    options() {
+        if (this.property in this.list.field_options) {
+            console.dir(this.list.field_options);
+            return this.list.field_options[this.property];
+        }
+        return [];
+    },
+    _option(option) {
+        return this.list.field_options['_'+this.property][option];
+    },
+  },
+});
+
+/*
  * A component to count the characters remaining in a text area.
  */
 
