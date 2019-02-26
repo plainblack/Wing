@@ -52,11 +52,11 @@
                 [%[ IF required_params.size ]%][%[ FOREACH field IN required_params ]%][%[ NEXT IF field == 'user_id' ]%]
                 <div class="form-group">
                     <label for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-                    [%[ IF field_options.exists(field) ]%]<wing-select-new :options="[%[ lower_class ]%]s.field_options" :object="new_[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select-new>[%[ ELSE ]%]<input class="form-control" type="text" name="[%[ field ]%]" id="[%[ field ]%]" v-model="new_[%[ lower_class ]%].[%[ field ]%]">[%[ END ]%]
+                    [%[ IF field_options.exists(field) ]%]<wing-select-new :list="[%[ lower_class ]%]s" property="[%[ field ]%]"></wing-select-new>[%[ ELSE ]%]<input class="form-control" type="text" name="[%[ field ]%]" id="[%[ field ]%]" v-model="[%[ lower_class ]%]s.new.[%[ field ]%]">[%[ END ]%]
                 </div>
                 [%[ END ]%][%[ END ]%]
                 <div class="form-group">
-                    <button class="btn btn-success" @click="create()"><i class="fas fa-plus"></i> Create [%[ class_name ]%]</button>
+                    <button class="btn btn-success" @click="[%[ lower_class ]%]s.create()"><i class="fas fa-plus"></i> Create [%[ class_name ]%]</button>
                 </div>
             [% ELSE %]
                 You must <a href="/account?redirect_after=/[%[ lower_class ]%]s">login or create an account</a> to create a new [%[ lower_class ]%].
@@ -78,7 +78,6 @@ new Vue({
     el:     '#app',
     data:   {
         confirmations: wing.confirmations,
-        new_[%[ lower_class ]%] : {},
         fields: [
             [%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%]{key : 'properties.[%[ field ]%]', label : '[%[ field.ucfirst ]%]'},
             [%[ END ]%][%[ END ]%]
@@ -102,14 +101,9 @@ new Vue({
         }),
     },
     mounted() {
-        const self = this;
-        self.[%[ lower_class ]%]s._search();
-        self.[%[ lower_class ]%]s.fetch_options();
-    },
-    methods : {
-        create() {
-            this.[%[ lower_class ]%]s.create(this.new_[%[ lower_class ]%]);
-        },
+        const vm = this;
+        vm.[%[ lower_class ]%]s._search();
+        vm.[%[ lower_class ]%]s.fetch_options();
     },
 });
 
