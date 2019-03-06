@@ -442,7 +442,7 @@ sub has_secondary_auth_token {
 sub email_secondary_auth_verification {
     my ($self, $redirect) = @_;
     my $verify = random_string('ssssssss');
-    Wing->cache->set('2factor-verify-'.$self->id, $verify, 60 * 10);
+    Wing->cache->set('2factor-verify-'.$self->id, $verify, 60 * 30);
     eval {
         $self->send_templated_email('secondary_auth', { token => $verify, redirect => $redirect });
     };

@@ -21,7 +21,7 @@ get '/account/verify/secondary/auth' => sub {
     if ($user->verify_secondary_auth(param('token'))) {
         return redirect param('redirect') || '/';
     }
-    ouch(428, 'Check your email! Please click on the link we emailed you to access the page you requested.');
+    ouch(428, 'Check your email! Please click on the link we emailed you to access the page you requested. You have 30 minutes to click the button in your email.');
 };
 
 post '/account/deactivate' => sub {
