@@ -61,7 +61,7 @@ L<https://vuejs.org>
 
 Generates a float-right div that shows how many characters a field has left.
 
- <characters-remaining max="100" property="user.properties.bio"></characters-remaining>
+ <characters-remaining max="100" :property="user.properties.bio"></characters-remaining>
 
 =head2 confirmation-toggle
 
