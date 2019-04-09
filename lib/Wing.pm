@@ -266,6 +266,8 @@ sub send_templated_email {
         };
         if (hug) {
             __PACKAGE__->log->fatal('Email Problem: '.bleep);
+            use Data::Dumper;
+            __PACKAGE__->log->debug('Parameters: '.Dumper($params));
             __PACKAGE__->log->debug('Defective Email: '.$email->as_string);
             my $error = bleep;
             $error =~ s/(.*?)\s+Trace begun.*/$1/gms;
