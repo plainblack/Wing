@@ -69,15 +69,12 @@ sub run {
     };
     if (kiss 442) { ##bad address
         Wing->log->warn("Could not send templated email to user: $@");
-        $job->delete;
     }
     elsif (hug) {
         Wing->log->error($@);
-        die $@;
     }
-    else {
-        $job->delete;
-    }
+
+    $job->delete;
 }
 
 1;
