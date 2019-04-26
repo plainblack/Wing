@@ -36,7 +36,7 @@ register get_user_by_session_id => sub {
     if (defined $session) {
         return $session if (ref $session =~ m/DB::Result::User$/);
         my $user = $session->user;
-        Wing->log->debug('USER2SESSSION/Web - user_id:%s session_id:%s ip:%s', $user->id, $session->id, $session->ip_address)
+        Wing->log->debug('USER2SESSSION/Web - user_id:%s session_id:%s ip:%s', $user->id, $session->id, $session->ip_address);
         if (defined $user) {
             header 'CacheControl', 'no-cache';
             header 'Pragma', 'no-cache';
