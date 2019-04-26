@@ -4,6 +4,13 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-04-15
+ * Do not die in sending email jobs.  Just delete the job.
+
+2019-04-09
+ * Add additional debug for email problems.
+ * Remove real_name/display_name from mkits due to unsafe characters.
+
 2019-03-06
  * Increased the timeout of secondary auth to 30 minutes.
  * Made a better secondary auth email template.
