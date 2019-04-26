@@ -15,11 +15,12 @@ register get_session => sub {
     my (%options) = @_;
     my $session_id = $options{session_id} || params->{session_id};
     my $cookie = cookies->{session_id};
-    Wing->log->debug(sprintf('USER2SESSSION/Rest - options:%s params:%s cookie:%s', $options{session_id}, params->{session_id}, cookies->{session_id}->value));
     if (!defined $session_id && defined $cookie) {
+        Wing->log->debug(sprintf('USER2SESSSION/Rest - options:%s params:%s cookie:%s', $options{session_id}, params->{session_id}, cookies->{session_id}->value));
         $session_id = $cookie->value;
     }
     unless (defined $session_id) {
+        Wing->log->debug(sprintf('USER2SESSSION/Rest - options:%s params:%s no cookie', $options{session_id}, params->{session_id}));
         ouch 441, 'session_id is required', 'session_id';
     }
     return $session_id if (ref $session_id eq 'Wing::Session');
