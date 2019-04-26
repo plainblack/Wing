@@ -16,7 +16,7 @@ register get_session => sub {
     my (%options) = @_;
     my $session_id = $options{session_id} || params->{session_id};
     my $cookie = cookies->{session_id};
-    Wing->log->debug(sprintf('USER2SESSSION/Web - options:%s params:%s cookie:%s', $options{session_id}, params->{session_id}, cookies->{session_id}));
+    Wing->log->debug(sprintf('USER2SESSSION/Web - options:%s params:%s cookie:%s', $options{session_id}, params->{session_id}, cookies->{session_id}->value));
     if (!defined $session_id && defined $cookie) {
         $session_id = $cookie->value;
     }
