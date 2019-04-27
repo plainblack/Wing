@@ -181,7 +181,7 @@ my $_cachelog = $_config->get('cachelog');
     }
     sub flush {
         my $self = shift;
-        if (ref($self->{chi}) =~ m/MemcachedFast/) {
+        if (ref($self->{chi}) =~ m/Memcached::Fast/) {
             $self->{chi}->memd->flush_all;
         }
         elsif (ref($self->{chi}) =~ m/FastMmap/) {
