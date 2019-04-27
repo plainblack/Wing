@@ -5,6 +5,7 @@ use Wing::Perl;
 use Data::GUID;
 use URI::Escape;
 use Ouch;
+use JSON;
 
 sub key {
     my $self = shift;
@@ -30,6 +31,8 @@ sub BUILD {
     if (defined $session_data && ref $session_data eq 'HASH') {
         if ($self->id ne $session_data->{session_id}) {
             Wing->log->fatal(sprintf('SESSION ID CONFLICT: Session %s fetched data for session %s containing user %s', $self->id, $session_data->{session_id}, $session_data->{user_id}));
+            my $other_data = Wing->cache->get('session-'.$session_data->{session_id});
+            Wing->log->debug(sprintf('SESSION ID CONFLICT: Looking up the other session %s resulted in session %s containing user %s', $session_data->{session_id}, $other_data->{session_id}, $other_data->{user_id}));
             Wing->cache->remove($self->key);
             ouch 401, 'An error occured that required us to log you out. Log back in and try again.';
         }
