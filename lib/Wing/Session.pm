@@ -131,6 +131,7 @@ sub check_permissions {
 
 sub extend {
     my $self = shift;
+    Wing->log->info(sprintf('SESSION: Extending %s for user %s.', $self->id, $self->user_id));
     if ($self->password_hash ne $self->user->password) {
         $self->end;
         return;
@@ -149,6 +150,7 @@ sub extend {
         },
         60 * 60 * 24 * 7,
     );
+    Wing->log->info(sprintf('SESSION: Extended %s for user %s.', $self->id, $self->user_id));
     return $self;
 }
 
@@ -162,12 +164,15 @@ sub is_human {
 
 sub end {
     my $self = shift;
+    Wing->log->info(sprintf('SESSION: %s ending.', $self->id));
     Wing->cache->remove($self->key);
+    Wing->log->info(sprintf('SESSION: %s ended.', $self->id));
     return $self;
 }
 
 sub start {
     my ($self, $user, $options) = @_;
+    Wing->log->info(sprintf('SESSION: %s starting for user %s', $self->id, $user->id));
     $self->user_id($user->id);
     $self->password_hash($user->password);
     $user->current_session($self);
@@ -175,6 +180,7 @@ sub start {
     $self->sso($options->{sso});
     $self->ip_address($options->{ip_address});
     $self->api_key_id($options->{api_key_id});
+    Wing->log->info(sprintf('SESSION: %s started for user %s', $self->id, $user->id));
     return $self->extend;
 }
 
