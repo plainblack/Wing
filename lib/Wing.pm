@@ -154,7 +154,7 @@ my $_cachelog = $_config->get('cachelog');
         if ($_cachelog eq 'db') {
             $self->{cachelog_rs}->new({
                 action      => $action,
-                key         => $key,
+                name        => $key,
                 value       => $out,
                 process_id  => $$,
             })->insert();
@@ -178,6 +178,18 @@ my $_cachelog = $_config->get('cachelog');
         my $self = shift;
         $self->log('remove',$_[0]) if defined $_cachelog;
         return $self->{chi}->remove(@_);
+    }
+    sub flush {
+        my $self = shift;
+        if (ref($self->{chi}) =~ m/MemcachedFast/) {
+            $self->{chi}->memd->flush_all;
+        }
+        elsif (ref($self->{chi}) =~ m/FastMmap/) {
+            $self->{chi}->fm_cache->clear;
+        }
+        else {
+            warn "Don't know how to flush this cache type: ".ref $self->{chi};
+        }
     }
 }
 my $_cache = Wing::Cache->new;

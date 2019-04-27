@@ -11,6 +11,7 @@ sub usage_desc { 'Manipulate items in the cache.' }
 
 sub opt_spec {
     return (
+      [ 'flush', 'Empty the cache.'],
       [ 'get=s', 'Get an item from cache with key.'],
       [ 'remove=s', 'Remove cache key.'],
       [ 'set=s', 'Set an item in cache with key.'],
@@ -27,6 +28,11 @@ sub validate_args {
 
 sub execute {
     my ($self, $opt, $args) = @_;
+
+    if (exists $opt->{flush}) {
+        Wing->cache->flush();
+        say "Cache has been emptied.";
+    }
 
     if (exists $opt->{remove}) {
         Wing->cache->remove($opt->{remove});
@@ -54,7 +60,7 @@ sub execute {
 
 =head1 NAME
 
-wing cache - manipulate items in cache 
+wing cache - manipulate items in cache
 
 =head1 SYNOPSIS
 

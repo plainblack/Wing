@@ -3,6 +3,7 @@ package Wing::Role::Result::CacheLog;
 use Wing::Perl;
 use Ouch;
 use Moose::Role;
+use Time::HiRes;
 with 'Wing::Role::Result::Field';
 
 =head1 NAME
@@ -33,7 +34,7 @@ You'll need to create a class called AppName::DB::Result::CacheLog that uses thi
 
 The action taken. Can be one of C<get>, C<set>, or C<remove>.
 
-=item key
+=item name
 
 The name of the cache key.
 
@@ -45,6 +46,10 @@ The stringified value stored with the key.
 
 The system process id that took these actions. Can be useful to see when a group of cache requests happened in the same operation.
 
+=item microseconds
+
+A high resolution epoch time for setting of cache. It takes the format of seconds.microseconds from January 1, 1970.
+
 =back
 
 =cut
@@ -55,7 +60,7 @@ before wing_finalize_class => sub {
         action    => {
             dbic    => { data_type => 'varchar', size => 6, is_nullable => 0 },
         },
-        key                     => {
+        name                     => {
             dbic    => { data_type => 'varchar', size => 255, is_nullable => 1 },
         },
         value                  => {
@@ -64,7 +69,16 @@ before wing_finalize_class => sub {
         process_id             => {
             dbic    => { data_type => 'int', is_nullable => 0 },
         },
+        microseconds             => {
+            dbic    => { data_type => 'bigint', is_nullable => 0 },
+        },
     );
+};
+
+before insert => sub {
+    my $self = shift;
+    warn Time::HiRes::time();
+    $self->microseconds(Time::HiRes::time() * 1_000_000);
 };
 
 1;
