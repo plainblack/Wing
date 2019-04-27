@@ -133,7 +133,54 @@ sub tenant_db {
 
 # cache
 die "'cache' directive missing from config file" unless $_config->get('cache');
-my $_cache = CHI->new(%{$_config->get('cache')});
+my $_cachelog = $_config->get('cachelog');
+{
+    package Wing::Cache;
+    use JSON;
+    sub new {
+        my $class = shift;
+        return bless {
+            chi     => CHI->new(%{$_config->get('cache')}),
+            cachelog_rs => $_cachelog eq 'db' ? Wing->db->resultset('CacheLog') : undef,
+        };
+    }
+    sub log {
+        my ($self, $action, $key, $value) = @_;
+        return unless defined $_cachelog;
+        my $out = $value;
+        if (ref $out eq 'HASH' || ref $out eq 'ARRAY') {
+            $out = to_json($out, {canonical => 1});
+        }
+        if ($_cachelog eq 'db') {
+            $self->{cachelog_rs}->new({
+                action      => $action,
+                key         => $key,
+                value       => $out,
+                process_id  => $$,
+            })->insert();
+        }
+        elsif ($_cachelog eq 'log') {
+            Wing->log->info(sprintf('CACHE: %s %s = "%s" via %s', $action, $key, $out, $$));
+        }
+    }
+    sub get {
+        my $self = shift;
+        my $value = $self->{chi}->get(@_);
+        $self->log('get',$_[0],$value) if defined $_cachelog;
+        return $value;
+    }
+    sub set {
+        my $self = shift;
+        $self->log('set',$_[0],$_[1]) if defined $_cachelog;
+        return $self->{chi}->set(@_);
+    }
+    sub remove {
+        my $self = shift;
+        $self->log('remove',$_[0]) if defined $_cachelog;
+        return $self->{chi}->remove(@_);
+    }
+}
+my $_cache = Wing::Cache->new;
 
 =head2 cache
 
