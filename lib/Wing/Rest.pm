@@ -38,7 +38,6 @@ register get_user_by_session_id => sub {
     return $session if (ref $session =~ m/DB::Result::User$/);
     my $user = $session->user;
     if (defined $user) {
-        Wing->log->debug(sprintf('USER2SESSSION/Rest - user_id:%s session_id:%s ip:%s', $user->id, $session->id, $session->ip_address));
         my $max = Wing->config->get('rpc_limit') || 30;
         if ($user->rpc_count > $max) {
             ouch 452, 'Slow down! You are only allowed to make ('.$max.') requests per minute to the server.', $max;

@@ -6,6 +6,11 @@ use Data::GUID;
 use URI::Escape;
 use Ouch;
 
+sub key {
+    my $self = shift;
+    return 'session-'.$self->id;
+}
+
 has db => (
     is          => 'ro',
     required    => 1,
@@ -21,8 +26,13 @@ has id => (
 
 sub BUILD {
     my $self = shift;
-    my $session_data = Wing->cache->get('session'.$self->id);
+    my $session_data = Wing->cache->get($self->key);
     if (defined $session_data && ref $session_data eq 'HASH') {
+        if ($self->id ne $session_data->{session_id}) {
+            Wing->log->fatal(sprintf('SESSION ID CONFLICT: Session %s fetched data for session %s containing user %s', $self->id, $session_data->{session_id}, $session_data->{user_id}));
+            Wing->cache->remove($self->key);
+            ouch 401, 'An error occured that required us to log you out. Log back in and try again.';
+        }
         $self->password_hash($session_data->{password_hash});
         $self->user_id($session_data->{user_id});
         $self->extended($session_data->{extended});
@@ -117,7 +127,7 @@ sub extend {
     }
     $self->extended( $self->extended + 1 );
     Wing->cache->set(
-        'session'.$self->id,
+        $self->key,
         {
             password_hash    => $self->password_hash, # this hash is stored here so that if the user changes their password we can log out all existing sessions
             user_id     => $self->user_id,
@@ -125,6 +135,7 @@ sub extend {
             sso         => $self->sso,
             api_key_id  => $self->api_key_id,
             ip_address  => $self->ip_address,
+            session_id  => $self->id,
         },
         60 * 60 * 24 * 7,
     );
@@ -141,7 +152,7 @@ sub is_human {
 
 sub end {
     my $self = shift;
-    Wing->cache->remove('session'.$self->id);
+    Wing->cache->remove($self->key);
     return $self;
 }
 
