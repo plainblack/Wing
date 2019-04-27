@@ -30,11 +30,18 @@ sub BUILD {
     my $session_data = Wing->cache->get($self->key);
     if (defined $session_data && ref $session_data eq 'HASH') {
         if ($self->id ne $session_data->{session_id}) {
-            Wing->log->fatal(sprintf('SESSION ID CONFLICT: Session %s fetched data for session %s containing user %s', $self->id, $session_data->{session_id}, $session_data->{user_id}));
+            Wing->log->fatal(sprintf('SESSION ID CONFLICT 1: Session %s fetched data for session %s containing user %s', $self->id, $session_data->{session_id}, $session_data->{user_id}));
             my $other_data = Wing->cache->get('session-'.$session_data->{session_id});
-            Wing->log->debug(sprintf('SESSION ID CONFLICT: Looking up the other session %s resulted in session %s containing user %s', $session_data->{session_id}, $other_data->{session_id}, $other_data->{user_id}));
-            Wing->cache->remove($self->key);
-            ouch 401, 'An error occured that required us to log you out. Log back in and try again.';
+            Wing->log->debug(sprintf('SESSION ID CONFLICT 2: Looking up the other session %s resulted in session %s containing user %s', $session_data->{session_id}, $other_data->{session_id}, $other_data->{user_id}));
+            if ($self->id eq $other_data->{session_id}) {
+                Wing->log->info(sprintf('SESSION ID CONFLICT 3a: Was able to replace primary lookup with secondary lookup for session %s on user %s.', $other_data->{session_id}, $other_data->{user_id}));
+                $session_data = $other_data;
+            }
+            else {
+                Wing->log->info(sprintf('SESSION ID CONFLICT 3b: Was NOT able to take corrective action for original session %s with secondary session %s.', $session_data->{session_id}, $other_data->{session_id}));
+                Wing->cache->remove($self->key);
+                ouch 401, 'An error occured that required us to log you out. Log back in and try again.';
+            }
         }
         $self->password_hash($session_data->{password_hash});
         $self->user_id($session_data->{user_id});
