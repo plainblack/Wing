@@ -192,17 +192,22 @@ my $_cachelog = $_config->get('cachelog');
         }
     }
 }
-my $_cache = Wing::Cache->new;
+
+##Not using a pre-fork shared cache object due to this URL:
+## https://stackoverflow.com/questions/23358787/memcache-get-returns-wrong-object-celery-django
+my $_cache;
 
 =head2 cache
 
-Return a copy of a cache object for this object as a L<CHI> object
+Return a CHI cache object for this process.
 
 =cut
 
 sub cache {
-    #return $_cache;
-    return Wing::Cache->new;
+    if (! $_cache) {
+        $_cache = Wing::Cache->new;
+    }
+    return $_cache;
 }
 
 ## utility methods

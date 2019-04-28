@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-04-28
+ * Use per-process cache object.
+
 2019-04-27
  * Added cachelog subsystem. To use add "cachelog" : "log" to your config, or see Wing::Role::Result::CacheLog for a database log.
  * Added "flush" to wing command cache. Only works with FastMmap and MemcachedFast.
