@@ -17,11 +17,9 @@ register get_session => sub {
     my $session_id = $options{session_id} || params->{session_id};
     my $cookie = cookies->{session_id};
     if (!defined $session_id && defined $cookie) {
-        Wing->log->debug(sprintf('USER2SESSSION/Web - options:%s params:%s cookie:%s', $options{session_id}, params->{session_id}, cookies->{session_id}->value));
         $session_id = $cookie->value;
     }
     else {
-        Wing->log->debug(sprintf('USER2SESSSION/Web - options:%s params:%s no cookie', $options{session_id}, params->{session_id}));
     }
     return undef unless $session_id;
     return $session_id if (ref $session_id eq 'Wing::Session');
