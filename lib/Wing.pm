@@ -201,7 +201,8 @@ Return a copy of a cache object for this object as a L<CHI> object
 =cut
 
 sub cache {
-    return $_cache;
+    #return $_cache;
+    return Wing::Cache->new;
 }
 
 ## utility methods

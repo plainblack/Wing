@@ -77,7 +77,6 @@ before wing_finalize_class => sub {
 
 before insert => sub {
     my $self = shift;
-    warn Time::HiRes::time();
     $self->microseconds(Time::HiRes::time() * 1_000_000);
 };
 
