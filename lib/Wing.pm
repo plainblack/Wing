@@ -195,7 +195,6 @@ my $_cachelog = $_config->get('cachelog');
 
 ##Not using a pre-fork shared cache object due to this URL:
 ## https://stackoverflow.com/questions/23358787/memcache-get-returns-wrong-object-celery-django
-my $_cache;
 
 =head2 cache
 
@@ -204,10 +203,7 @@ Return a CHI cache object for this process.
 =cut
 
 sub cache {
-    if (! $_cache) {
-        $_cache = Wing::Cache->new;
-    }
-    return $_cache;
+    return Wing::Cache->new;
 }
 
 ## utility methods
