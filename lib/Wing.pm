@@ -163,6 +163,14 @@ my $_cachelog = $_config->get('cachelog');
             Wing->log->info(sprintf('CACHE: %s %s = "%s" via %s', $action, $key, $out, $$));
         }
     }
+    ##Pass through all other CHI methods to the internal CHI object
+    sub AUTOLOAD {
+        our $AUTOLOAD;
+        my $self = shift;
+        my $name = (split /::/, $AUTOLOAD)[-1];
+        return if $name eq 'DESTROY';
+        return $self->{chi}->$name(@_);
+    }
     sub get {
         my $self = shift;
         my $value = $self->{chi}->get(@_);
