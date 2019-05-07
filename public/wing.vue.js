@@ -364,16 +364,22 @@ const wing = {
         var form = new FormData();
         _.forEach(params, function(value, key) {
             if (typeof(value) == 'object') {
-                if (value instanceof File) {
+                if (value instanceof File) { // handle file upload
                     form.append(key, value);
                 }
-                else {
+                else if (Array.isArray(value) && typeof(value[0]) == 'object') { // handle an array of objects as JSON
+                    form.append(key, JSON.stringify(value));
+                }
+                else if (Array.isArray(value)) { // handle an array of values as individual key value pairs
                     _.forEach(value, function(element) {
                         form.append(key, element);
                     });
                 }
+                else { // just a normal object hash
+                    form.append(key, JSON.stringify(value));
+                }
             }
-            else {
+            else { // handle values
                 form.append(key, value);
             }
         });

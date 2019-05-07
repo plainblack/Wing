@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-05-07
+ * wing.vue.js post can properly handle a JSON blob on post.
+
 2019-04-28
  * Use per-process cache object.
 
