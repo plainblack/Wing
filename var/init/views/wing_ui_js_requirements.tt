@@ -1,6 +1,6 @@
 <script src="https://unpkg.com/babel-polyfill@6.26.0/dist/polyfill.min.js"></script><!-- IE 11 -->
 <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
-<script src="https://unpkg.com/bootstrap-vue@2.0.0-rc.2/dist/bootstrap-vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap-vue@2.0.0-rc.19/dist/bootstrap-vue.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue2-filters@0.3.0/dist/vue2-filters.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/noty@3.2.0-beta/lib/noty.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>

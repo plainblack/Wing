@@ -41,6 +41,13 @@
         </table>
     </div>
 
+<button class="btn btn-success" @click="success()">Success</button>
+<button class="btn btn-warning" @click="wing.warn('test')">warn</button>
+<button class="btn btn-info" @click="wing.info('test')">info</button>
+<button class="btn btn-danger" @click="wing.error('test')">error</button>
+
+
+
     <br>
     <a href="/admin/trends/reports/manage" class="btn btn-primary">Manage Reports</a>
 </div>
@@ -92,6 +99,20 @@ new Vue({
         }});
     },
     methods : {
+        success() {
+            wing.success('Item added to cart. <a href="/cart" class="btn btn-primary">View Cart</a>');
+
+            const h = this.$createElement;
+            
+            wing.success('Some message.', { href : 'http://www.google.com' });
+
+            wing.success(
+                h('div', {}, [
+                    'Item added to cart.',
+                    h('a', { attrs : {href : '/cart'}, class : 'btn btn-primary'}, 'View Cart')
+                ])
+            );
+        },
         fetch_report_data : _.debounce(function() { // some browsers fire events before updating the model, this gets around that
             const self = this;
             axios.get('/api/trends/'+self.filters.granularity+'/'+self.filters.report_id, { params: { start : self.filters.start, range : self.filters.range }})

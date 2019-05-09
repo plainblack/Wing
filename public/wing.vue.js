@@ -61,7 +61,13 @@ throbber.innerHTML = `<div id="wingajaxprogress" style="z-index: 10000; position
 </div>`;
 document.body.appendChild(throbber);
 
+/*
+ * Toast element used for rendering system messages. See wing.info, wing.success, wing.error, and wing.warn.
+ */
 
+var toastdiv = document.createElement('div');
+toastdiv.id = 'wingtoast';
+document.body.appendChild(toastdiv);
 
 /*
  * Format a date
@@ -939,17 +945,77 @@ const wing = {
     }),
 
     /*
+    *  toast
+    */
+
+    toast : new Vue({
+        el : '#wingtoast',
+        methods : {
+            success : function (message, options) {
+                if (typeof(options) != 'object') {
+                    options = {};
+                }
+                this.$bvToast.toast(
+                    message,
+                    {
+                        autoHideDelay : options.ttl || 80000000,
+                        variant : 'success',
+                        toaster: 'b-toaster-bottom-left',
+                        title : options.title || 'Success',
+                    }
+                );
+            },
+            error : function (message) {
+                if (typeof(options) != 'object') {
+                    options = {};
+                }
+                this.$bvToast.toast(
+                    message,
+                    {
+                        autoHideDelay : options.ttl || 15000,
+                        variant : 'danger',
+                        toaster: 'b-toaster-top-center',
+                        title : options.title || 'Error',
+                    }
+                );
+            },
+            warn : function (message) {
+                if (typeof(options) != 'object') {
+                    options = {};
+                }
+                this.$bvToast.toast(
+                    message,
+                    {
+                        autoHideDelay : options.ttl || 8000,
+                        variant : 'warning',
+                        toaster: 'b-toaster-bottom-left',
+                        title : options.title || 'Warning',
+                    }
+                );
+            },
+            info : function (message) {
+                if (typeof(options) != 'object') {
+                    options = {};
+                }
+                this.$bvToast.toast(
+                    message,
+                    {
+                        autoHideDelay : options.ttl || 8000,
+                        variant : 'info',
+                        toaster: 'b-toaster-bottom-left',
+                        title : options.title || 'Info',
+                    }
+                );
+            },
+        }
+    }),
+
+    /*
     * display an error message
     */
 
     error : (message) => {
-        const n = new Noty({
-            text: message,
-            theme : 'bootstrap-v4',
-            type: 'error',
-            layout: 'center',
-            timeout : 15000,
-        }).show();
+        wing.toast.error(message);
     },
 
     /*
@@ -957,13 +1023,7 @@ const wing = {
     */
 
     success : (message) => {
-        new Noty({
-            text: message,
-            theme : 'bootstrap-v4',
-            type: 'success',
-            layout: 'bottomLeft',
-            timeout : 8000,
-        }).show();
+        wing.toast.success(message);
     },
 
     /*
@@ -971,13 +1031,7 @@ const wing = {
     */
 
     warn : (message) => {
-        new Noty({
-            text: message,
-            theme : 'bootstrap-v4',
-            type: 'warning',
-            layout: 'bottomLeft',
-            timeout : 8000,
-        }).show();
+        wing.toast.warn(message);
     },
 
     /*
@@ -985,13 +1039,7 @@ const wing = {
     */
 
     info : (message) => {
-        new Noty({
-            text: message,
-            theme : 'bootstrap-v4',
-            type: 'info',
-            layout: 'bottomLeft',
-            timeout : 8000,
-        }).show();
+        wing.toast.info(message);
     },
 
     /*
