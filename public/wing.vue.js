@@ -363,23 +363,34 @@ const wing = {
     format_post_data(params) {
         var form = new FormData();
         _.forEach(params, function(value, key) {
+            //console.log('--'+key+'--');
+            //console.dir(value)
             if (typeof(value) == 'object') {
                 if (value instanceof File) { // handle file upload
+                    //console.log(key+' is a file');
                     form.append(key, value);
                 }
+                else if (value == null) { // handle null
+                    //console.log(key+' is null');
+                    // skip it
+                }
                 else if (Array.isArray(value) && typeof(value[0]) == 'object') { // handle an array of objects as JSON
+                    //console.log(key+' is an array of objects');
                     form.append(key, JSON.stringify(value));
                 }
                 else if (Array.isArray(value)) { // handle an array of values as individual key value pairs
+                    //console.log(key+' is an array of key value pairs');
                     _.forEach(value, function(element) {
                         form.append(key, element);
                     });
                 }
                 else { // just a normal object hash
+                    //console.log(key+' is an object hash');
                     form.append(key, JSON.stringify(value));
                 }
             }
             else { // handle values
+                //console.log(key+' is an normal value');
                 form.append(key, value);
             }
         });
