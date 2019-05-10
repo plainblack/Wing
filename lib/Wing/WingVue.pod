@@ -999,6 +999,7 @@ Wing gives you an easy way to notify users. The message can take one of the foll
 
 L<https://vuejs.org/v2/guide/render-function.html#The-Virtual-DOM>
 
+ const h = this.$createElement;
  wing.success(
     h('div', {}, [
         'Item added to cart.',
