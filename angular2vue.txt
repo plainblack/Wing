@@ -70,7 +70,13 @@ we have a program you can run on a template to do some of the conversion work:
  will be made automatically.
 
 
- ### CAVEATS ###
+### NOTIFICATION CHANGES ####
+
+If you are using Wing notifications such as wing.success() and your notifications
+contain HTML then you'll need to check out the documentation for sending formatted
+notifications in WingVue.pod. 
+
+### CAVEATS ###
 
  The following things may not be obvious:
 
