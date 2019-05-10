@@ -962,26 +962,50 @@ const wing = {
     toast : new Vue({
         el : '#wingtoast',
         methods : {
-            success : function (message, options) {
+            format_options (options) {
                 if (typeof(options) != 'object') {
                     options = {};
                 }
+                return options;
+            },
+            build_dom(message) {
+                const self = this;
+                const h = this.$createElement;
+                if (Array.isArray(message[2])) {
+                    for (const i in message[2]) {
+                        message[2][i] = Array.isArray(message[2][i]) ? self.build_dom(message[2][i]) : message[2][i];
+                    }
+                }
+                return h(message[0], message[1], message[2]);
+            },
+            format_message (message) {
+                if (Array.isArray(message)) { // an array of objects to make into a tree
+                    return this.build_dom(message);
+                }
+                else if (typeof(message) == 'string' && message.charAt(0) == '[') { // looks like json
+                    return this.build_dom(JSON.parse(message));
+                }
+                else { // just a string
+                    return message;
+                }
+            },
+            success (message, options) {
+                options = this.format_options(options);
                 this.$bvToast.toast(
-                    message,
+                    this.format_message(message),
                     {
-                        autoHideDelay : options.ttl || 80000000,
+                        autoHideDelay : options.ttl || 8000,
                         variant : 'success',
                         toaster: 'b-toaster-bottom-left',
                         title : options.title || 'Success',
+                        href : options.href,
                     }
                 );
             },
-            error : function (message) {
-                if (typeof(options) != 'object') {
-                    options = {};
-                }
+            error (message, options) {
+                options = this.format_options(options);
                 this.$bvToast.toast(
-                    message,
+                    this.format_message(message),
                     {
                         autoHideDelay : options.ttl || 15000,
                         variant : 'danger',
@@ -990,12 +1014,10 @@ const wing = {
                     }
                 );
             },
-            warn : function (message) {
-                if (typeof(options) != 'object') {
-                    options = {};
-                }
+            warn (message, options) {
+                options = this.format_options(options);
                 this.$bvToast.toast(
-                    message,
+                    this.format_message(message),
                     {
                         autoHideDelay : options.ttl || 8000,
                         variant : 'warning',
@@ -1004,12 +1026,10 @@ const wing = {
                     }
                 );
             },
-            info : function (message) {
-                if (typeof(options) != 'object') {
-                    options = {};
-                }
+            info (message, options) {
+                options = this.format_options(options);
                 this.$bvToast.toast(
-                    message,
+                    this.format_message(message),
                     {
                         autoHideDelay : options.ttl || 8000,
                         variant : 'info',
@@ -1025,7 +1045,7 @@ const wing = {
     * display an error message
     */
 
-    error : (message) => {
+    error : (message, options) => {
         wing.toast.error(message);
     },
 
@@ -1033,15 +1053,15 @@ const wing = {
     * display a success message
     */
 
-    success : (message) => {
-        wing.toast.success(message);
+    success : (message, options) => {
+        wing.toast.success(message, options);
     },
 
     /*
     * display a warning
     */
 
-    warn : (message) => {
+    warn : (message, options) => {
         wing.toast.warn(message);
     },
 
@@ -1049,7 +1069,7 @@ const wing = {
     * display some info
     */
 
-    info : (message) => {
+    info : (message, options) => {
         wing.toast.info(message);
     },
 

@@ -987,9 +987,51 @@ The name of the field you want to use as the text label for the option. Often th
 
 =head1 Notifications
 
-Wing gives you an easy way to notify users.
+Wing gives you an easy way to notify users. The message can take one of the following formats:
 
-=head2 wing.error(message)
+=over
+
+=item String
+
+ wing.success('Item added to cart.');
+
+=item Vue Virtual DOM
+
+L<https://vuejs.org/v2/guide/render-function.html#The-Virtual-DOM>
+
+ wing.success(
+    h('div', {}, [
+        'Item added to cart.',
+        h('a', { attrs : {href : '/cart'}, class : 'btn btn-primary'}, 'View Cart')
+    ])
+ );
+
+=back
+
+=item Array of objects
+
+Just a straight Javascript data structure that will be turned into a Vue Virtual DOM.
+
+ wing.success([
+    'div', {}, [
+        'Item added to cart. ',
+        ['a', {attrs : {href : '/cart'}, class : 'btn btn-primary'}, 'View Cart']
+    ]
+ ]);
+
+=item JSON string
+
+A JSON string that will be turned into a Vue Virtual DOM. Use this when you want to do some fancy formatting, but need to pass a string message around, like through Firebase notifications.
+
+ wing.success(`[
+    "div", {}, [
+        "Item added to cart. ",
+        ["a", {"attrs" : {"href" : "/cart"}, "class" : "btn btn-primary"}, "View Cart"]
+    ]
+ ]`);
+ 
+
+=head2 wing.error(message, options)
 
 A red box in the center of the screen to let the user know something bad has happened.
 
@@ -999,9 +1041,29 @@ A red box in the center of the screen to let the user know something bad has hap
 
 The message you want to be diplayed.
 
+=item options
+
+An optional object with the following optional parameters:
+
+=over
+
+=item ttl
+
+In milliseconds, how long should the message remain on screen. Default 15000.
+
+=item href
+
+If specified, the message will be linked to this URL.
+
+=item title
+
+Optionally override the title of the message. Defaults to C<Error>.
+
 =back
 
-=head2 wing.info(message)
+=back
+
+=head2 wing.info(message, options)
 
 A blue box in the lower left corner of the screen to let the user know something they should be aware of, like an ongoing process.
 
@@ -1011,9 +1073,29 @@ A blue box in the lower left corner of the screen to let the user know something
 
 The message you want to be diplayed.
 
+=item options
+
+An optional object with the following optional parameters:
+
+=over
+
+=item ttl
+
+In milliseconds, how long should the message remain on screen. Default 8000.
+
+=item href
+
+If specified, the message will be linked to this URL.
+
+=item title
+
+Optionally override the title of the message. Defaults to C<Info>.
+
 =back
 
-=head2 wing.success(message)
+=back
+
+=head2 wing.success(message, options)
 
 A green box in the lower left corner of the screen to let the user know something they did worked.
 
@@ -1023,9 +1105,29 @@ A green box in the lower left corner of the screen to let the user know somethin
 
 The message you want to be diplayed.
 
+=item options
+
+An optional object with the following optional parameters:
+
+=over
+
+=item ttl
+
+In milliseconds, how long should the message remain on screen. Default 8000.
+
+=item href
+
+If specified, the message will be linked to this URL.
+
+=item title
+
+Optionally override the title of the message. Defaults to C<Success>.
+
 =back
 
-=head2 wing.warn(message)
+=back
+
+=head2 wing.warn(message, options)
 
 A blue box in the lower left corner of the screen to let the user know something that may be of concern, but isn't an error.
 
@@ -1034,6 +1136,26 @@ A blue box in the lower left corner of the screen to let the user know something
 =item message
 
 The message you want to be diplayed.
+
+=item options
+
+An optional object with the following optional parameters:
+
+=over
+
+=item ttl
+
+In milliseconds, how long should the message remain on screen. Default 8000.
+
+=item href
+
+If specified, the message will be linked to this URL.
+
+=item title
+
+Optionally override the title of the message. Defaults to C<Warning>.
+
+=back
 
 =back
 

@@ -4,6 +4,11 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-05-10
+ * Wing notifications (wing.info, wing.success, etc) have been upgraded to use Bootstrap Toasts. See WingVue.pod for usage notes.
+ * You must upgrade to bootstrap-vue@2.0.0-rc.19 and bootstrap@4.3.1.
+ * You can remove noty from wing_ui_css_requirements.tt and wing_ui_js_requirements.tt.
+
 2019-05-08
  * Fixed bug with nulls in wing.vue.js.
 
