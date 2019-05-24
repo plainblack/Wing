@@ -407,6 +407,7 @@ get '/account/facebook/postback' => sub {
         ouch 401, 'Could not authenticate your Facebook account.';
     }
 
+    ##This only gets hit if the user is logged in, and the user is never sent to this URL unless they're logged out
     my $user = eval { get_user_by_session_id() };
     if (defined $user) {
         if ($user->permanently_deactivated) {
