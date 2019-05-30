@@ -40,9 +40,12 @@ axios.interceptors.response.use(function (response) {
             message = error.response.data.error.message;
             var matches = message.split(/ /);
             var field = matches[0].toLowerCase();
-            var label = document.querySelectorAll('label[for="'+field+'"]').innerHtml;
-            if (label) {
-                message = message.replace(field,label);
+            var nodelist = document.querySelectorAll('label[for="'+field+'"]');
+            if (nodelist.length > 0) {
+                var label = nodelist[0].innerText;
+                if (label) {
+                    message = message.replace(field,label);
+                }
             }
         }
     }
