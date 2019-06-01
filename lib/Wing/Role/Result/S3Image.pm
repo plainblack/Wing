@@ -168,6 +168,7 @@ has s3 => (
             aws_access_key_id     => $config->get('aws/access_key'), 
             aws_secret_access_key => $config->get('aws/secret_key'),
             retry                 => 1,
+            use_virtual_host      => 0,
         );
     },
 );
