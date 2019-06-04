@@ -260,7 +260,8 @@ Vue.component('comments', {
                             <tr v-for="comment in comments.objects">
                                 <td>
                                     <textarea class="form-control" v-if="comment.stash('edit')" rows="5" v-model="comment.properties.comment" v-autosave="comment"></textarea>
-                                    <div v-if="!comment.stash('edit')" style="white-space: pre-wrap;">{{comment.properties.comment}}</div>
+                                    <div v-if="!comment.stash('edit')" style="white-space: pre-wrap;">{{comment.properties.comment|truncate(comment_length)}}</div>
+                                    <button class="btn btn-secondary btn-sm mt-3" v-if="comment_length < 1000000 && comment.properties.comment.length > 200" @click="comment_length=1000000">Read More</button>
                                 </td>
                                 <td style="width: 40%">
                                     <a :href="comment.properties.user.profile_uri"><img v-if="comment.properties.user.avatar_uri" :src="comment.properties.user.avatar_uri" class="rounded" alt="avatar" style="height: 30px"> {{comment.properties.user.display_name}}</a>
@@ -289,6 +290,9 @@ Vue.component('comments', {
                     </div>
     </template>`,
     props: ['comments','special_badge_label','special_badge_user_id', 'current_user_id', 'is_admin'],
+    data () {
+        return { comment_length : 200,  }
+    },
     methods : {
         like_comment(comment) {
             comment.call('POST', comment.properties._relationships.self+'/like', {});
