@@ -249,6 +249,55 @@ Vue.component('confirmation-toggle', {
                 <button v-else class="btn btn-secondary" @click="wing.confirmations.toggle()"><i class="fas fa-check-circle"></i> Enable Confirmations</button>`,
 });
 
+/*
+ * Comments.
+ */
+
+Vue.component('comments', {
+    template : `<template>
+    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <tr v-for="comment in comments.objects">
+                                <td>
+                                    <textarea class="form-control" v-if="comment.stash('edit')" rows="5" v-model="comment.properties.comment" v-autosave="comment"></textarea>
+                                    <div v-if="!comment.stash('edit')" style="white-space: pre-wrap;">{{comment.properties.comment}}</div>
+                                </td>
+                                <td style="width: 40%">
+                                    <a :href="comment.properties.user.profile_uri"><img v-if="comment.properties.user.avatar_uri" :src="comment.properties.user.avatar_uri" class="rounded" alt="avatar" style="height: 30px"> {{comment.properties.user.display_name}}</a>
+                                    <span class="badge badge-secondary" v-if="special_badge_user_id == comment.properties.user_id">{{special_badge_label}}</span>
+                                    <br>
+                                    {{comment.properties.date_created|timeago}}
+                                    <br>
+                                    <i class="far fa-heart" v-show="!comment.properties.i_like" @click="like_comment(comment)"></i>
+                                    <i class="fas fa-heart" v-show="comment.properties.i_like" @click="unlike_comment(comment)"></i>
+                                    ({{comment.properties.like_count}} likes)
+                                    <br>
+                                    <button class="btn btn-primary btn-sm" @click="comment.stash('edit', !comment.stash('edit'))" v-if="!comment.stash('edit')" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="btn btn-success btn-sm" @click="comment.stash('edit', !comment.stash('edit'))" v-if="comment.stash('edit')" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-edit"></i> Save</button>
+                                    <button class="btn btn-danger btn-sm" @click="comment.delete()" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-trash-alt"></i> Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <textarea class="form-control" rows="5" v-model="comments.new.comment"></textarea>
+                                </td>
+                                <td>
+                                    <button class="btn btn-success" @click="comments.create()"><i class="fas fa-edit"></i> Add Comment</button>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+    </template>`,
+    props: ['comments','special_badge_label','special_badge_user_id', 'current_user_id', 'is_admin'],
+    methods : {
+        like_comment(comment) {
+            comment.call('POST', comment.properties._relationships.self+'/like', {});
+        },
+        unlike_comment(comment) {
+            comment.call('DELETE', comment.properties._relationships.self+'/like', {});
+        },
+    },
+});
 
 /*
  * Wing Factories, Services, and Utilities

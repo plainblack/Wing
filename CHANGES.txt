@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-06-04
+ * Added comments as a directive to wing.vue.js to be used in conjunction with Wing::Role::Result::Comment.
+
 2019-06-03
  * Upgrade to Facebook::OpenGraph
  * Requires Net::Amazon::S3 0.86 or higher.

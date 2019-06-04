@@ -63,6 +63,34 @@ Generates a float-right div that shows how many characters a field has left.
 
  <characters-remaining max="100" :property="user.properties.bio"></characters-remaining>
 
+
+=head2 comments
+
+Used in comjunction with L<Wing::Role::Result::Comment> to generate a comments section.
+
+ <div id="app">
+   <comments :comments="comments" current_user_id="[% current_user.id %]" is_admin="[% current_user.is_admin || 0 %]" special_badge_label="designer" :special_badge_user_id="designer.properties.user_id"></comments>
+ </div>
+
+ <script type="text/javascript">
+        const app = new Vue({
+            el : '#app',
+            data : {
+                comments : wing.object_list({
+                    list_api : '[% designasset._relationships.comments %]',
+                    create_api : '/api/designassetcomment',
+                    new_defaults : {
+                        designasset_id : '[% designasset.id %]',
+                    },
+                    params : {
+                        _include_related_objects : ['user'],
+                        _order_by : ['date_created'],
+                    },
+                }),
+            },
+        });
+ </script>
+
 =head2 confirmation-toggle
 
 Generates a button that toggles C<wing.confirmations> on/off.
