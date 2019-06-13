@@ -7,7 +7,7 @@ use Wing;
 use Wing::Web;
 use Wing::SSO;
 use Wing::Client;
-use Facebook::Graph;
+use Facebook::OpenGraph;
 use String::Random qw(random_string);
 
 require Wing::Dancer;
@@ -385,10 +385,19 @@ get '/account/facebook' => sub {
     if (params->{sso_id}) {
         set_cookie sso_id  => params->{sso_id};
     }
+<<<<<<< HEAD
     if (params->{redirect_after}) {
         set_cookie redirect_after  => params->{redirect_after};
     }
     my $fb = facebook();
+=======
+    my $redirect_after = param('redirect_after');
+    if ($redirect_after) {
+        set_cookie redirect_after  => $redirect_after;
+    }
+    my $redirect_uri = 'https://'.Wing->config->get('sitename').$redirect_after;
+    my $fb = facebook(redirect_uri => $redirect_uri,);
+>>>>>>> facebook_opengraph
     my $fb_config = Wing->config->get('facebook');
     redirect $fb->auth_uri({
         scope    => [qw/email/],
@@ -461,6 +470,7 @@ get '/account/avatar/:id' => sub {
 };
 
 sub facebook {
+<<<<<<< HEAD
     my $fb_config = Wing->config->get('facebook');
     return Facebook::OpenGraph->new(
         access_token => $fb_config->{access_token},
@@ -470,6 +480,13 @@ sub facebook {
         version      => 'v3.1', ##Should be moved into config file
         postback     => $fb_config->{postback},
     );
+=======
+    my %args = @_;
+    my %fb_config = %{ Wing->config->get('facebook') };
+    @args{ keys %fb_config } = values %fb_config;
+    $args{version} = 3.1;
+    return Facebook::OpenGraph->new(\%args);
+>>>>>>> facebook_opengraph
 }
 
 true;
