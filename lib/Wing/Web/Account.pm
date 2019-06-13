@@ -7,7 +7,7 @@ use Wing;
 use Wing::Web;
 use Wing::SSO;
 use Wing::Client;
-use Facebook::OpenGraph;
+use Facebook::Graph;
 use String::Random qw(random_string);
 
 require Wing::Dancer;
@@ -385,18 +385,10 @@ get '/account/facebook' => sub {
     if (params->{sso_id}) {
         set_cookie sso_id  => params->{sso_id};
     }
-    my $redirect_after = param('redirect_after');
-    if ($redirect_after) {
-        set_cookie redirect_after  => $redirect_after;
+    if (params->{redirect_after}) {
+        set_cookie redirect_after  => params->{redirect_after};
     }
-    my $redirect_uri = 'https://'.Wing->config->get('sitename').$redirect_after;
-    my $fb = facebook(redirect_uri => $redirect_uri,);
-    my $fb_config = Wing->config->get('facebook');
-    redirect $fb->auth_uri({
-        scope    => [qw/email/],
-        postback => $fb_config->{postback},
-    });
-    return;
+    redirect facebook()->authorize->extend_permissions(qw(email))->uri_as_string;
 };
 
 get '/account/facebook/postback' => sub {
@@ -463,11 +455,7 @@ get '/account/avatar/:id' => sub {
 };
 
 sub facebook {
-    my %args = @_;
-    my %fb_config = %{ Wing->config->get('facebook') };
-    @args{ keys %fb_config } = values %fb_config;
-    $args{version} = 3.1;
-    return Facebook::OpenGraph->new(\%args);
+    return Facebook::Graph->new(Wing->config->get('facebook'));
 }
 
 true;
