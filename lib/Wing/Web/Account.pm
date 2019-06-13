@@ -393,9 +393,8 @@ get '/account/facebook' => sub {
 
 get '/account/facebook/postback' => sub {
     my $fb = facebook();
-    my $token_ref = $fb->get_user_access_token_by_code(params->{code});
-    $fb->set_access_token($token_ref->{access_token});
-    my $fbuser = $fb->fetch('me');
+    $fb->request_access_token(params->{code});
+    my $fbuser = $fb->query->find('me')->request->as_hashref;
 
     unless (exists $fbuser->{id}) {
         ouch 401, 'Could not authenticate your Facebook account.';
