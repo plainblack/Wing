@@ -460,14 +460,14 @@ get '/account/avatar/:id' => sub {
 
 sub facebook {
     my $fb_config = Wing->config->get('facebook');
-    return Facebook::OpenGraph->new(
+    return Facebook::OpenGraph->new(+{
         access_token => $fb_config->{access_token},
         api_key      => $fb_config->{api_key},
         app_id       => $fb_config->{app_id},
         secret       => $fb_config->{secret},
         version      => 'v3.1', ##Should be moved into config file
         redirect_uri => $fb_config->{postback},
-    );
+    });
 }
 
 true;
