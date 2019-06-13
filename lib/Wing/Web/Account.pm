@@ -397,7 +397,7 @@ get '/account/facebook' => sub {
 
 get '/account/facebook/postback' => sub {
     my $fb = facebook();
-    my $token_ref = $fb->get_user_token_by_code(params->{code});
+    my $token_ref = $fb->get_user_token_by_code(params('code'));
     $fb->set_access_token($token_ref->{access_token});
     my $fbuser = $fb->fetch('me');
 
