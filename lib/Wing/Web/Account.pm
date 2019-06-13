@@ -7,7 +7,7 @@ use Wing;
 use Wing::Web;
 use Wing::SSO;
 use Wing::Client;
-use Facebook::Graph;
+use Facebook::OpenGraph;
 use String::Random qw(random_string);
 
 require Wing::Dancer;
@@ -388,13 +388,18 @@ get '/account/facebook' => sub {
     if (params->{redirect_after}) {
         set_cookie redirect_after  => params->{redirect_after};
     }
-    redirect facebook()->authorize->extend_permissions(qw(email))->uri_as_string;
+    my $fb = facebook();
+    redirect $fb->auth_uri(+{
+        scope    => [qw/email/],
+    });
+    return;
 };
 
 get '/account/facebook/postback' => sub {
     my $fb = facebook();
-    $fb->request_access_token(params->{code});
-    my $fbuser = $fb->query->find('me')->request->as_hashref;
+    my $token_ref = $fb->get_user_access_token_by_code(params->{code});
+    $fb->set_access_token($token_ref->{access_token});
+    my $fbuser = $fb->fetch('me');
 
     unless (exists $fbuser->{id}) {
         ouch 401, 'Could not authenticate your Facebook account.';
@@ -454,7 +459,15 @@ get '/account/avatar/:id' => sub {
 };
 
 sub facebook {
-    return Facebook::Graph->new(Wing->config->get('facebook'));
+    my $fb_config = Wing->config->get('facebook');
+    return Facebook::OpenGraph->new(
+        access_token => $fb_config->{access_token},
+        api_key      => $fb_config->{api_key},
+        app_id       => $fb_config->{app_id},
+        secret       => $fb_config->{secret},
+        version      => 'v3.1', ##Should be moved into config file
+        redirect_uri => $fb_config->{postback},
+    );
 }
 
 true;
