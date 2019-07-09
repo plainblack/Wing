@@ -34,7 +34,13 @@ axios.interceptors.response.use(function (response) {
     var message = 'Error communicating with server.';
     if (_.isObject(error.response) && _.isObject(error.response.headers) && error.response.headers['content-type'] === "application/json; charset=utf-8" && "error" in error.response.data) {
         if (error.response.data.error.code == 401) {
-            message = 'You must <a href="/account" class="btn btn-primary btn-sm">log in</a> to do that.';
+            var message =[
+                'div', {}, [
+                    'You must ',
+                    ['a', {attrs : {href : '/account'}, class : 'btn btn-primary btn-sm'}, 'log in'],
+                    ' to do that.'
+                ]
+            ];
         }
         else {
             message = error.response.data.error.message;
