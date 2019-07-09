@@ -21,6 +21,8 @@ sub opt_spec {
     return (
       [ 'calc', 'calculate todays trends' ],
       [ 'recalc', 'recalculate trends in the past, must include a start and end, and may include a target' ],
+      [ 'names', 'output all names, including delta_names' ],
+      [ 'delta_names', 'output all delta_names' ],
       [ 'target=s', 'when performing a recalc, what should be recalculated. Choose from "all" (default), "hourly", "daily", "monthly", "yearly", or "deltas"' ],
       [ 'quiet', 'silence output' ],
       [ 'start=s', 'where to start the recalculation' ],
@@ -85,6 +87,12 @@ sub execute {
         monthly($day, \@names, \@delta_names);
         yearly($day, \@names, \@delta_names);
         say "Calculation complete." unless $opt->{quiet};
+    }
+    elsif ($opt->{names}) {
+        say join "\n", @names;
+    }
+    elsif ($opt->{delta_names}) {
+        say join "\n", @delta_names;
     }
     else {
         say "You must specify --calc, --recalc, or --log.";
