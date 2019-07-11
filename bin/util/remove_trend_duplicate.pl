@@ -53,6 +53,16 @@ my $count = $entries->count;
 
 say "$hour $name has $count entries in table $table_name";
 
+my $skip_first = 1;
 while (my $entry = $entries->next) {
     say join ' ', $entry->id, $entry->date_created, $entry->date_updated, $entry->value;
+    if ($fix) {
+        if ($skip_first) {
+            $skip_first = 0;
+        }
+        else {
+            say "Deleting older duplicate";
+            #$entry->delete;
+        }
+    }
 }
