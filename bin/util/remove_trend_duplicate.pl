@@ -62,7 +62,7 @@ while (my $entry = $entries->next) {
         }
         else {
             say "Deleting older duplicate";
-            #$entry->delete;
+            $entry->delete;
         }
     }
 }
