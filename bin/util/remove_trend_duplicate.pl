@@ -48,7 +48,7 @@ elsif ($year) {
 
 my $rs = Wing->db->resultset($table_name);
 
-my $entries = $rs->search({$date_name => $date, name => $name, });
+my $entries = $rs->search({$date_name => $date, name => $name, }, {order_by => { -desc => [qw/date_created date_updated/], } });
 my $count = $entries->count;
 
 say "$hour $name has $count entries in table $table_name";
