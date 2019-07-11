@@ -18,7 +18,7 @@ GetOptions(
 
 my ($date, $single_name);
 
-if (scalar @ARGV == 3) {
+if (scalar @ARGV == 3 || scalar(@ARGV) == 2 && $names) {
     $date = shift(@ARGV) . ' '. shift(@ARGV);
     $single_name = shift(@ARGV)
 }
