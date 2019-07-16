@@ -22,7 +22,6 @@ unless (flock(DATA, LOCK_EX|LOCK_NB)) {
 use Wing::Command;
 
 my $app = Wing::Command->new();
-warn ("Got app\n");
 
 unshift @ARGV, qw/trends --calc/;
 
