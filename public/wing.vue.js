@@ -145,7 +145,8 @@ Vue.directive('autosave', {
             console.log('Cannot use v-autosave unless on an element with a v-model.');
         }
         else {
-            const field = vnode.data.directives[index].expression.split(/\./)[2];
+            var field_array = vnode.data.directives[index].expression.split(/\./);
+            const field = field_array[field_array.length];
             var timer;
             var original_value = binding.value.properties[field];
             const debounce = function(e) {
