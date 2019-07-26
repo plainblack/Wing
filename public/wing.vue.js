@@ -146,7 +146,7 @@ Vue.directive('autosave', {
         }
         else {
             var field_array = vnode.data.directives[index].expression.split(/\./);
-            const field = field_array[field_array.length];
+            const field = field_array[field_array.length - 1];
             var timer;
             var original_value = binding.value.properties[field];
             const debounce = function(e) {
