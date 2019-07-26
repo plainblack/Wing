@@ -95,7 +95,7 @@ sub execute {
         say join "\n", @delta_names;
     }
     else {
-        say "You must specify --calc, --recalc, or --log.";
+        say "You must specify --calc, --recalc, --names, --delta_names, or --log.";
     }
 }
 

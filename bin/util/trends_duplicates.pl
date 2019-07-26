@@ -45,7 +45,7 @@ DAY: while (my $day = $days->next) {
         my $day_count = $days_rs->search({day => $day, name => $name, })->count;
         next NAME unless $day_count > 1;
         $days_to_repair{$day}->{$name}++;
-        say "$day $name";
+        say "DUPL $day $name";
     }
 }
 
@@ -60,7 +60,7 @@ MONTH: while (my $month = $months->next) {
         my $month_count = $months_rs->search({month => $month, name => $name, })->count;
         next NAME unless $month_count > 1;
         $months_to_repair{$month}->{$name}++;
-        say "$month $name";
+        say "DUPL $month $name";
     }
 }
 
@@ -75,6 +75,6 @@ YEAR: while (my $year = $years->next) {
         my $year_count = $years_rs->search({year => $year, name => $name, })->count;
         next NAME unless $year_count > 1;
         $years_to_repair{$year}->{$name}++;
-        say "$year $name";
+        say "DUPL $year $name";
     }
 }
