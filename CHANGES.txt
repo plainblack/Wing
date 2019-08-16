@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-08-16
+ * Fix "read more" link in comments.
+
 2019-07-10
  * Add file-locked trends script to prevent more than 1 copy from running at a time.
 
