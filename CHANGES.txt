@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-08-19
+ * Added wing trends --recalc_one
+
 2019-08-16
  * Fix "read more" link in comments.
 

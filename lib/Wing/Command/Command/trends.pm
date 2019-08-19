@@ -21,6 +21,7 @@ sub opt_spec {
     return (
       [ 'calc', 'calculate todays trends' ],
       [ 'recalc', 'recalculate trends in the past, must include a start and end, and may include a target' ],
+      [ 'recalc_one=s', 'recalculate a specific trend passed in her, must include a start and an end' ],
       [ 'names', 'output all names, including delta_names' ],
       [ 'delta_names', 'output all delta_names' ],
       [ 'target=s', 'when performing a recalc, what should be recalculated. Choose from "all" (default), "hourly", "daily", "monthly", "yearly", or "deltas"' ],
@@ -49,6 +50,26 @@ sub execute {
     if ($opt->{log} && $opt->{value}) {
         log_trend($opt->{log}, $opt->{value}, $opt->{note});
         say $opt->{log}.' logged.' unless $opt->{quiet};
+    }
+    elsif ($opt->{recalc_one} && $opt->{start} && $opt->{end}) { # recalc some period of time for one specific trend name
+        say "Recalculating '".$opt->{recalc_one}."' from ".$opt->{start}." to ".$opt->{end}."..." unless $opt->{quiet};
+        if ($opt->{recalc_one} ~~ \@delta_names) {
+            $self->usage_error("Cannot recalculate deltas via this method.");
+        }
+        my $target = $opt->{target} || 'all';
+        my $day = Wing->from_mysql($opt->{start});
+        my $stop = Wing->from_mysql($opt->{end});
+        while ($day <= $stop) {
+            say $day unless $opt->{quiet};
+            hourly($day, [$opt->{recalc_one}], []);
+            if ($day->hour == 23) {
+                daily($day, [$opt->{recalc_one}], []);
+                monthly($day, [$opt->{recalc_one}], []);
+                yearly($day, [$opt->{recalc_one}], []);
+            }
+            $day->add(hours => 1);
+        }
+        say "Recalc complete." unless $opt->{quiet};
     }
     elsif ($opt->{recalc} && $opt->{start} && $opt->{end}) { # recalc some period of time
         say "Recalculating trends from ".$opt->{start}." to ".$opt->{end}."..." unless $opt->{quiet};
