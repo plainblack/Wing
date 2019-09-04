@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-09-04
+ * Use Text::Demoroniser to clean messages being sent to Firebase
+
 2019-08-19
  * Added wing trends --recalc_one
 

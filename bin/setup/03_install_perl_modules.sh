@@ -74,4 +74,5 @@ URI::Find::Delimited \
 Crypt::JWT \
 Firebase \
 Template::Plugin::JSON::Escape \
-Data::Structure::Util 
+Data::Structure::Util \
+Text::Demoroniser
