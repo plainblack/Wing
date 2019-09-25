@@ -4,6 +4,7 @@ use Wing;
 use Moo;
 
 extends 'Firebase';
+use Encode;
 use Time::HiRes;
 use Text::Demoroniser qw/demoroniser_utf8/;
 
@@ -28,6 +29,8 @@ sub object_status {
     if (ref($payload) eq 'HASH' && exists $payload->{message}) {
         $payload->{message} = demoroniser_utf8($payload->{message});
     }
+    utf8::upgrade($payload->{message});
+    utf8::encode($payload->{message});
     return $self->put($directory, $payload, @_);
 }
 
