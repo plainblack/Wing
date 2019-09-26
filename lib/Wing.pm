@@ -160,11 +160,11 @@ Destroys all stash variables.
     }
 
     sub get {
-        return $_[0]->{$_[1]};
+        return $_[0]->{stash}{$_[1]};
     }
 
     sub set {
-        $_[0]->{$_[1]} = $_[2]; 
+        $_[0]->{stash}{$_[1]} = $_[2]; 
         return $_[2];
     }
 
@@ -173,8 +173,9 @@ Destroys all stash variables.
     }
 }
 
+my $_stash = Wing::Stash->new;
 sub stash {
-    return Wing::Stash->new;
+    return $_stash;
 }
 
 
