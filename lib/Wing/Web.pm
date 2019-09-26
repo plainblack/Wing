@@ -64,6 +64,10 @@ register get_admin_by_session_id => sub {
     }
 };
 
+hook before => sub {
+    Wing->stash->reset();
+};
+
 hook before_error_init => sub {
     my $error = shift;
     if (ref $error->exception eq 'Ouch') {

@@ -203,6 +203,11 @@ register generate_all_relationships => sub {
     }
 };
 
+# not sure this is entirely necessary, but just want to make sure it is absolutely per request
+hook before => sub {
+    Wing->stash->reset();
+};
+
 hook before_serializer => sub {
     my $response = shift;
     my $content  = $response->{content};

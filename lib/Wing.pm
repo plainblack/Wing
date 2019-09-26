@@ -77,6 +77,7 @@ if ($_config->get('dbic_trace')) {
     $_db->storage->debugfh(IO::File->new($_config->get('dbic_trace'), 'w'));
 }
 
+
 =head2 db
 
 Return a copy of a database handle for this object as a L<DBIx::Class> object
@@ -130,6 +131,52 @@ sub tenant_db {
     my ($class, $name) = @_;
     return $class->tenant($name)->connect_to_database;
 }
+
+=head2 stash
+
+Returns an object that let's you set variables that will last only the duration of a request (in a request based environment)
+
+=head3 get(name)
+
+Get a variable by name.
+
+=head3 set(name,value)
+
+Set a value by name. The value can even be complete data structures and objects since stash variables are never serialized and only last the request.
+
+=head3 reset()
+
+Destroys all stash variables.
+
+=cut
+
+{
+    package Wing::Stash;
+    our $stash = {};
+
+    sub new {
+        my $class = shift;
+        return bless { stash => {} }, $class;
+    }
+
+    sub get {
+        return $_[0]->{$_[1]};
+    }
+
+    sub set {
+        $_[0]->{$_[1]} = $_[2]; 
+        return $_[2];
+    }
+
+    sub reset {
+        $_[0]->{stash} = {};
+    }
+}
+
+sub stash {
+    return Wing::Stash->new;
+}
+
 
 # cache
 die "'cache' directive missing from config file" unless $_config->get('cache');
