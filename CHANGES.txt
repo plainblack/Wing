@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-09-26
+ * Remove unneeded param from .call in wing.vue.js
+
 2019-09-23
  * UTF-8 encode messages to Firebase, too.
 

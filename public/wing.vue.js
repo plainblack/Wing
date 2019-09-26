@@ -872,7 +872,7 @@ const wing = {
 
         call : function(method, uri, properties, options) {
             const self = this;
-            const params = _.extend({}, params, self.params, properties);
+            const params = _.extend({}, self.params, properties);
             const promise = axios({
                 method: method.toLowerCase(),
                 url: wing.format_base_uri(uri),
