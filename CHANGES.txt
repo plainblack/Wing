@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2019-10-11
+ * Added a bury command to wingman.
+
 2019-09-26
  * Remove unneeded param from .call in wing.vue.js
  * Added Wing->stash which allows variables that last only 1 request.
