@@ -19,7 +19,6 @@ wing bury --job=90782
 sub opt_spec {
     my $config = Wing->config->get('wingman/beanstalkd');
     return (
-      [ 'tube=s', 'tube to bury.  all tubes by default', { default => undef } ],
       [ 'job=s', 'job id to bury', { default => undef } ],
     );
 }
@@ -33,22 +32,16 @@ sub execute {
     my $wingman = Wingman->new;
     my %seen_jobs = ();
     my $found = 0;
-    my @tubes;
-    if ($opt->{tube}) {
-        push @tubes, $opt->{tube};
-    }
-    else {
-        @tubes = $wingman->list_tubes;
-    }
+    my @tubes = $wingman->list_tubes;
     TUBE: foreach my $tube (@tubes) {
-        JOB: while (my $job = $wingman->peek_buried($tube)) {
+        JOB: while (my $job = $wingman->peek_ready($tube)) {
             next TUBE unless $job;
             ##If there's only one job, this will loop forever, so keep track of what we've seen
             ##and move on to the next tube.
             next TUBE if $seen_jobs{$job->id}++;
             if ($job->id eq $opt->{job}) {
                 $job->bury;
-                say "Buried job";
+                say "Buried job ".$opt->{job};
                 $found = 1;
                 last TUBE;
             }
