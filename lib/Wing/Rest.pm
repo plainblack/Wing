@@ -135,6 +135,11 @@ register generate_relationship => sub {
         my $current_user = eval{get_user_by_session_id(permissions => $options{permissions})};
         my $object = fetch_object($wing_object_type);
         my $data = $object->$relationship_name();
+        unless ( $data->can( 'format_list' ) ) {
+            my $msg = qq|"$relationship_name" is not a child relationship.|;
+            $msg .= ' You might have a parent relationship object by mistake.' if defined $data;
+            ouch 440, $msg;
+        }
         if (exists $options{queryable}) {
             my %query;
             my $prefetch = param('_include_related_objects');
