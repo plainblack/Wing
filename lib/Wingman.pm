@@ -286,6 +286,10 @@ The maximum number of seconds to wait for a job to become available. Defaults to
 sub reserve {
     my ($self, $timeout) = @_;
     my $beanstalk_job = $self->beanstalk->reserve($timeout);
+    if (defined $timeout && ! defined $beanstalk_job) {
+        ##Mimic behavior of core Beanstalk::Client
+        return undef;
+    }
     $self->log_info($beanstalk_job, 'Fetched a job.');
     return $self->_instantiate_job($beanstalk_job);
 }
