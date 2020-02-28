@@ -7,6 +7,12 @@ with respect to new features and compatibility changes.
 2020-02-28
  * Added wing.copy_to_clipboard() method.
 
+2020-01-28
+ * Make Wingman behave like Beanstalk::Client when a timeout is specified
+
+2019-10-22
+ * Add v-autosavedelay to increase timeout on autosave
+
 2019-10-11
  * Added a bury command to wingman.
 

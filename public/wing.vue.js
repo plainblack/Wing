@@ -141,10 +141,16 @@ Vue.filter('bytes', function(bytes){
 Vue.directive('autosave', {
     inserted: function (el, binding, vnode) {
         const index = _.findIndex(vnode.data.directives, {rawName : 'v-model'});
+        const delay_index = _.findIndex(vnode.data.directives, {rawName : 'v-autosavedelay'});
+        console.log("Delay of "+delay+" seconds set on "+index);
         if (index == -1) {
             console.log('Cannot use v-autosave unless on an element with a v-model.');
         }
         else {
+            var delay = 2000;
+            if (delay_index != -1) {
+                delay = vnode.data.directives[delay_index].expression;
+            }
             var field_array = vnode.data.directives[index].expression.split(/\./);
             const field = field_array[field_array.length - 1];
             var timer;
@@ -162,7 +168,7 @@ Vue.directive('autosave', {
                             original_value = binding.value.properties[field];
                             binding.value.save(field);
                         }
-                    }, 2000);
+                    }, delay);
                 }
             }
             el.addEventListener('keyup', debounce, false);
