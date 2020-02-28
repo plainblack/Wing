@@ -1190,6 +1190,18 @@ Optionally override the title of the message. Defaults to C<Warning>.
 
 =head1 Utilities
 
+=head2 wing.copy_to_clipboard(value)
+
+Adds some text to the user's clipboard.
+
+=over
+
+=item value
+
+A string.
+
+=back
+
 =head2 wing.get_cookie(name)
 
 Fetches the value of a cookie.
