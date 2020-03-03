@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-02-03
+ * Added a better error message when an object things a reference should exist but does not.
+
 2020-02-28
  * Added wing.copy_to_clipboard() method.
 
