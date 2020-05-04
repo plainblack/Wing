@@ -48,6 +48,7 @@ Email::MIME::Kit::Renderer::TT \
 Authen::SASL \
 String::Random \
 Facebook::Graph \
+Facebook::OpenGraph \
 Text::CSV_XS \
 Data::Serializer \
 Spawn::Safe \
