@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-06-29
+ * Allow fields in a class to be prioritized, to guarantee some get processed before others.
+
 2020-02-03
  * Added a better error message when an object things a reference should exist but does not.
 

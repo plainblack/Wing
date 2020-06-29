@@ -346,6 +346,34 @@ sub privileged_params {
     return {};
 }
 
+=head2 postable_params_by_priority()
+
+Is wrapped by roles like L<Wing::Role::Result::Field> to build a list of all parameters that can be posted, in order of priority so they're processed in the correct order.
+
+=cut
+
+sub postable_params_by_priority {
+    return [];
+}
+
+=head2 get_postable_params_by_priority()
+
+Get the list of params that can be posted, by name
+
+=cut
+
+sub get_postable_params_by_priority {
+    my ($self) = @_;
+    my $params = $self->postable_params_by_priority;
+    use JSON qw//;
+    Wing->log->debug(JSON::to_json($params, { pretty => 1}));
+    my @params = map { $_->[0] }
+                 sort { $a->[1] <=> $b->[1] }
+                 @{ $params }
+                 ;
+    return @params;
+}
+
 =head2 admin_postable_params()
 
 Is wrapped by roles like L<Wing::Role::Result::Field> to only allow this field to be postable by admin users.
@@ -507,7 +535,7 @@ sub verify_posted_params {
     my $required_params = $self->required_params;
     my $privileged_params = $self->privileged_params;
     my $admin_postable_params = $self->admin_postable_params;
-    my @postable_params = (@{$self->postable_params}, @{ $admin_postable_params }, );
+    my @postable_params = $self->get_postable_params_by_priority;
     PARAM: foreach my $param (@postable_params) {
         if (exists $params->{$param}) {
             my $saveit = sub {
