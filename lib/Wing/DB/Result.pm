@@ -365,8 +365,6 @@ Get the list of params that can be posted, by name
 sub get_postable_params_by_priority {
     my ($self) = @_;
     my $params = $self->postable_params_by_priority;
-    use JSON qw//;
-    Wing->log->debug(JSON::to_json($params, { pretty => 1}));
     my @params = map { $_->[0] }
                  sort { $a->[1] <=> $b->[1] }
                  @{ $params }
