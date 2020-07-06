@@ -222,11 +222,20 @@ sub wing_field {
 
             }
 
+            my $priority = exists $options->{priority} ? $options->{priority} : 50;
+
             if (any {$_ eq $options->{edit}} (qw(postable required unique))) {
                 $class->meta->add_around_method_modifier(postable_params => sub {
                     my ($orig, $self) = @_;
                     my $params = $orig->($self);
                     push @$params, $field;
+                    return $params;
+                });
+
+                $class->meta->add_around_method_modifier(postable_params_by_priority => sub {
+                    my ($orig, $self) = @_;
+                    my $params = $orig->($self);
+                    push @{ $params }, [$field, $priority];
                     return $params;
                 });
 
@@ -251,6 +260,12 @@ sub wing_field {
                     my ($orig, $self) = @_;
                     my $params = $orig->($self);
                     push @$params, $field;
+                    return $params;
+                });
+                $class->meta->add_around_method_modifier(postable_params_by_priority => sub {
+                    my ($orig, $self) = @_;
+                    my $params = $orig->($self);
+                    push @{ $params }, [$field, $priority];
                     return $params;
                 });
             }

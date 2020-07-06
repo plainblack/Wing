@@ -98,7 +98,7 @@ sub wing_parent_relationship {
             if (exists $describe_options{include_related_objects}) {
                 if ((ref $describe_options{include_related_objects} eq 'ARRAY' && $field ~~ $describe_options{include_related_objects}) || (ref $describe_options{include_related_objects} ne 'ARRAY' && $describe_options{include_related_objects})) {
                     if ($self->$id) {
-			if ($self->$field eq undef) {
+			if (!defined($self->$field)) {
 				ouch 440, $field.' ('.$self->$id.') does not exist for '.$self->wing_object_name.' ('.$self->id.').';
 			}
 			else { 
