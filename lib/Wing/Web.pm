@@ -7,6 +7,7 @@ use Dancer ':syntax';
 use Wing::Session;
 use Dancer::Plugin;
 use DateTime::Format::Strptime;
+use Wing::Captcha;
 
 $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
 
@@ -76,6 +77,9 @@ hook before_error_init => sub {
         $error->{code} = $code;
         $error->{title} = $exception->message;
         $error->{message} = $exception->scalar;
+        if ($code eq 401 && Wing->config->get('captcha/on_create_account')) {
+            $error->{exception} = { captcha => Wing::Captcha::get() };
+        }
     }
     else {
         $error->{code} = 500;

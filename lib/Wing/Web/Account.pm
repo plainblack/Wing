@@ -9,11 +9,24 @@ use Wing::SSO;
 use Wing::Client;
 use Facebook::OpenGraph;
 use String::Random qw(random_string);
+use Wing::Captcha;
 
 require Wing::Dancer;
 
+sub add_captcha_to_vars {
+    my $vars = shift || {};
+    if (Wing->config->get('captcha/on_create_account')) {
+        $vars->{captcha} = Wing::Captcha::get();
+    }
+    return $vars;
+}
+
+sub display_login {
+    return template 'account/login', add_captcha_to_vars(shift);
+}
+
 get '/login' => sub {
-    template 'account/login';
+    return display_login()
 };
 
 get '/account/verify/secondary/auth' => sub {
@@ -42,8 +55,8 @@ post '/account/deactivate' => sub {
 };
 
 post '/login' => sub {
-    return template 'account/login', { error_message => 'You must specify a username or email address.'} unless params->{login};
-    return template 'account/login', { error_message => 'You must specify a password.'} unless params->{password};
+    return display_login({ error_message => 'You must specify a username or email address.'}) unless params->{login};
+    return display_login({ error_message => 'You must specify a password.'}) unless params->{password};
     my $username = params->{login};
     my $password = params->{password};
     my $user = site_db()->resultset('User')->search({email => $username },{rows=>1})->single;
@@ -59,7 +72,7 @@ post '/login' => sub {
             my $lookup = eval { $wing->post('session/tenantsso', { username => $username , password => $password, api_key => Wing->config->get('tenants/sso_key'), }); };
             if (hug) {
                 Wing->log->warn('Error with tenant sso: '.$@);
-                return template 'account/login', { error_message => $@};
+                return display_login({ error_message => $@});
             }
             else {
                 $user = site_db()->resultset('User')->new({});
@@ -75,7 +88,7 @@ post '/login' => sub {
                 my $lookup = eval { $wing->post('session/tenantsso', { user_id => $user->master_user_id, password => $password, api_key => Wing->config->get('tenants/sso_key'), }); };
                 if (hug) {
                     Wing->log->warn('Error with tenant sso: '.$@);
-                    return template 'account/login', { error_message => $@ };
+                    return display_login({ error_message => $@ });
                 }
                 else {
                     $user->sync_with_remote_data($lookup, @syncable_fields);
@@ -98,12 +111,12 @@ post '/login' => sub {
 sub standard_login_check {
     my $user = shift;
     my $password = shift;
-    return template 'account/login', { error_message => 'User not found.'} unless defined $user;
+    return display_login({ error_message => 'User not found.'}) unless defined $user;
     # validate password
     if ($user->is_password_valid($password)) {
         return login($user);
     }
-    return template 'account/login', { error_message => 'Password incorrect.'};
+    return display_login({ error_message => 'Password incorrect.'});
 }
 
 any '/logout' => sub {
@@ -239,6 +252,9 @@ post '/account/create' => sub {
     my %params = params;
     my $user = site_db()->resultset('User')->new({});
     eval {
+        if (Wing->config->get('captcha/on_create_account')) {
+            Wing::Captcha::verify($params{_captcha_key},$params{_captcha_answer});
+        }
         $user->verify_creation_params(\%params, $user);
         $user->verify_posted_params(\%params, $user);
         if (params->{password1} eq params->{password2}) {
@@ -249,7 +265,7 @@ post '/account/create' => sub {
         }
     };
     if ($@) {
-        return template 'account/login', { error_message => bleep };
+        return display_login({ error_message => bleep });
     }
     $user->insert;
     return login($user);
@@ -346,7 +362,7 @@ get '/sso' => sub {
             return redirect '/sso/authorize?sso_id='.$sso->id;
         }
     }
-    template 'account/login', {sso_id => $sso->id};
+    template display_login({sso_id => $sso->id});
 };
 
 get '/sso/authorize' => sub {
@@ -439,7 +455,7 @@ get '/account/facebook/postback' => sub {
         }
     }
     elsif (! defined $user) {
-        return template 'account/finish_facebook', { facebook => $fbuser };
+        return template 'account/finish_facebook', add_captcha_to_vars({ facebook => $fbuser  });
     }
     return login($user);
 };

@@ -4,6 +4,42 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-07-06
+ * Added captcha at account creation. If you have an existing app and want to use it you'll need to do the following:
+
+    in etc/wing.conf add:
+
+        "captcha" : {
+            "on_create_account" : 1,
+        },
+
+    in views/account/create_accont_include.tt add:
+
+        [% IF captcha.riddle %]
+        <div class="form-group">
+            <label for="_captcha_answer">Fill in the blank</label><br>
+            <input type="hidden" name="_captcha_key" value="[% captcha.key %]">
+                
+                <div class="input-group">
+                <div class="input-group-prepend">
+                        <span class="input-group-text">[% captcha.riddle %]</span>
+                </div>
+                <input class="form-control" type="text" name="_captcha_answer" id="_captcha_answer">
+            </div>
+            <span class="form-text text-muted">(Required)</span>
+        </div>
+        [% END %]
+
+    in views/error.tt replace:
+
+        [% INCLUDE account/authenticate_include.tt redirect_after=params.redirect_after || request.path %]
+
+    with:
+
+        [% INCLUDE account/authenticate_include.tt redirect_after=params.redirect_after || request.path captcha=exception.captcha %]
+
+
+
 2020-02-03
  * Added a better error message when an object things a reference should exist but does not.
 
