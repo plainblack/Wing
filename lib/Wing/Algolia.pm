@@ -90,7 +90,12 @@ sub handle_response {
     #say $request->as_string;
     my $ua = LWP::UserAgent->new(timeout => 10);
     my $response = $ua->request($request);
-    die $response->status_line unless $response->is_success; 
+    if (! $response->is_success) {
+        Wing->log->error("ALGOLIA FAILURE");
+        Wing->log->error("Request: ". $request->as_string);
+        Wing->log->error("Response: ". $response->as_string);
+        die "Error updating search index\n";
+    }
     return 1 unless $response->content;
     return $response->content;
 }
