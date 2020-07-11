@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-07-09
+ * Give better diagnostics for Algolia API failures.
+
 2020-07-06
  * Added captcha at account creation. If you have an existing app and want to use it you'll need to do the following:
 
