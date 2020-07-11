@@ -4,7 +4,7 @@ use Wing;
 use Wing::Perl;
 use String::Random qw(random_string);
 use Ouch;
-use Wing::Util qw(random_element)
+use Wing::Util qw(random_element);
 
 sub get {
 	my $riddle = choose_riddle(); 
