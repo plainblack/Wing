@@ -3,12 +3,7 @@ use List::MoreUtils qw(any);
 
 require Exporter;
 @ISA = qw(Exporter);
-@EXPORT_OK = qw(
-    randint
-    random_element
-    commify
-    is_in
-    );
+@EXPORT_OK = qw(randint random_element commify is_in);
 
 
 # Return a random integer between $low and $high inclusive

@@ -4,6 +4,7 @@ use Wing;
 use Wing::Perl;
 use String::Random qw(random_string);
 use Ouch;
+use Wing::Util qw(random_element)
 
 sub get {
 	my $riddle = choose_riddle(); 
@@ -147,19 +148,6 @@ sub to_entities {
 	return $out;
 }
 
-# Return a random integer between $low and $high inclusive
-sub randint {
-    my ($low, $high) = @_;
-    $low = 0 unless defined $low;
-    $high = 1 unless defined $high;
-    ($low, $high) = ($high,$low) if $low > $high;
-    return int($low + int( rand( $high - $low + 1 ) ));
-}
-
-sub random_element {
-    my ($list) = @_;
-    return $list->[randint(0, scalar(@{$list} -1 ))];
-}
 
 
 1;
