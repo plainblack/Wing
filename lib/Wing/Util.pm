@@ -5,12 +5,9 @@ require Exporter;
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(
     randint
-    format_date
     random_element
     commify
-    consolidate_items
-    kmbtq
-    real_ip_address
+    is_in
     );
 
 
@@ -35,7 +32,8 @@ sub commify {
 }
 
 sub is_in {
-
+    my ($key, $array_ref) = @_;
+    return any {$_ eq $key}, @{$array_ref};
 }
 
 1;
