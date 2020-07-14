@@ -1,5 +1,6 @@
 package Wing::Util;
 use List::MoreUtils qw(any);
+use Ouch;
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -28,7 +29,8 @@ sub commify {
 
 sub is_in {
     my ($key, $array_ref) = @_;
-    return any {$_ eq $key}, @{$array_ref};
+    ouch(500, 'Needs array ref') unless ref $array_ref eq 'ARRAY';
+    return any {$_ eq $key} @{$array_ref};
 }
 
 1;

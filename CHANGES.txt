@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-07-13
+ * Fixed bug in Wing::Util::is_in() where it always returned true.
+
 2020-07-10
  * Added Wing::Util with several utility functions that are useful all over wing apps.
 
