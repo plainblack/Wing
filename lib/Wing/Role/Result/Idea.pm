@@ -56,7 +56,7 @@ before wing_finalize_class => sub {
             dbic        => { data_type => 'varchar', size => 20, is_nullable => 0, default_value => 'Unlocked', },
             view        => 'public',
             edit        => 'postable',
-            options     => [qw/Incomprehensible Infeasible Completed Merged Unlocked/],
+            options     => [qw/Incomprehensible Infeasible Completed Merged Unlocked/, 'Wrong Place', 'Not An Idea'],
         },
     );
     my $namespace = $class;
