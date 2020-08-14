@@ -37,14 +37,7 @@
         [% END %]
     </b-table>
 
-    <b-row v-if="tests.paging.total_pages > 1">
-        <b-col>
-            <b-pagination size="md" @change="tests.search()" :total-rows="tests.paging.total_items" v-model="tests.paging.page_number" :per-page="tests.paging.items_per_page"></b-pagination>
-        </b-col>
-        <b-col lg="2" md="3" sm="4">
-            <b-form-select id="items_per_page" @change="tests.search()" v-model="tests.paging.items_per_page" :options="tests.items_per_page_options" class="mb-3" />
-        </b-col>
-    </b-row>
+    <wing-pagination :list="tests"></wing-pagination>
 
     <div class="card">
         <h2 class="card-header">Add A Test</h2>

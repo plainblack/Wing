@@ -4,6 +4,12 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-08-14
+ * Updated bootstrap-vue to 2.16.0.
+ * Updated vue to 2.6.7.
+ * Updated bootstrap to 4.5.2.
+ * Added wing-pagination component to wing.vue.js.
+
 2020-07-13
  * Fixed bug in Wing::Util::is_in() where it always returned true.
 

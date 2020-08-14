@@ -36,14 +36,7 @@
         [% END %]
     </b-table>
 
-    <b-row v-if="[%[ lower_class ]%]s.paging.total_pages > 1">
-        <b-col>
-            <b-pagination size="md" @change="[%[ lower_class ]%]s.search()" :total-rows="[%[ lower_class ]%]s.paging.total_items" v-model="[%[ lower_class ]%]s.paging.page_number" :per-page="[%[ lower_class ]%]s.paging.items_per_page"></b-pagination>
-        </b-col>
-        <b-col lg="2" md="3" sm="4">
-            <b-form-select id="items_per_page" @change="[%[ lower_class ]%]s.search()" v-model="[%[ lower_class ]%]s.paging.items_per_page" :options="[%[ lower_class ]%]s.items_per_page_options" class="mb-3" />
-        </b-col>
-    </b-row>
+    <wing-pagination :list="[%[ lower_class ]%]s"></wing-pagination>
 
     <div class="card">
         <h2 class="card-header">Add A [%[ class_name ]%]</h2>

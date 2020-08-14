@@ -10,26 +10,19 @@
     </b-input-group>
 
     <b-table hover striped stacked="md" :items="users.objects" :fields="fields">
-        <template slot="properties.username" slot-scope="data"><a :href="'/admin/user/'+data.item.properties.id">{{data.item.properties.username}}</a></template>
-        <template slot="properties.deactivated" slot-scope="data">
+        <template v-slot:cell(properties.username)="data"><a :href="'/admin/user/'+data.item.properties.id">{{data.item.properties.username}}</a></template>
+        <template v-slot:cell(properties.deactivated)="data">
             <template v-if="data.item.properties.deactivated == 1">Yes</template>
             <template v-else>No</template>
         </template>
-        <template slot="manage" slot-scope="data">
+        <template v-slot:cell(manage)="data">
             <form :action="'/admin/user/'+data.item+'/become'" method="POST">
                 <button class="btn btn-secondary">Become</button>
             </form>
         </template>
     </b-table>
 
-    <b-row v-if="users.paging.total_pages > 1">
-        <b-col>
-            <b-pagination size="md" @change="users.search()" :total-rows="users.paging.total_items" v-model="users.paging.page_number" :per-page="users.paging.items_per_page"></b-pagination>
-        </b-col>
-        <b-col lg="2" md="3" sm="4">
-            <b-form-select id="items_per_page" @change="users.search()" v-model="users.paging.items_per_page" :options="users.items_per_page_options" class="mb-3" />
-        </b-col>
-    </b-row>
+    <wing-pagination :list="users"></wing-pagination>
 
     <div class="card">
         <h2 class="card-header">Add A User</h2>

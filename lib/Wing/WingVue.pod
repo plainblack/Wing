@@ -108,6 +108,14 @@ NOTE: You need to include C<wing.confirmations> in the data section of your app 
       ...
     });
 
+
+=head2 wing-pagination
+
+Generates a pagination selector.
+
+ <wing-pagination :list="users"></wing-pagination>
+
+
 =head2 wing-select
 
 Generates a select list from from a C<wing.object> field that has enumerated options.

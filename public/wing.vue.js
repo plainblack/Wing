@@ -230,6 +230,23 @@ Vue.component('wing-select-new', {
 });
 
 /*
+ * Standardize pagination formatting.
+ */
+
+Vue.component('wing-pagination', {
+  template : `<template><b-row v-if="list.paging.total_pages > 1">
+            <b-col>
+                <b-pagination size="md" @change="list.search()" :total-rows="list.paging.total_items" v-model="list.paging.page_number" limit="10" last-number first-number :per-page="list.paging.items_per_page"></b-pagination>
+            </b-col>
+            <b-col lg="2" md="3" sm="4">
+                <b-form-select id="items_per_page" @change="list.search()" v-model="list.paging.items_per_page" :options="list.items_per_page_options" class="mb-3" />
+            </b-col>
+        </b-row></template>`,
+  props: ['list'],
+});
+
+
+/*
  * A component to count the characters remaining in a text area.
  */
 
