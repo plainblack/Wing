@@ -169,12 +169,12 @@ sub format_image {
 
 sub format_youtube {
     my $id = shift;
-    return q{<div class="embed-responsive embed-responsive-4by3"><iframe class="youtube_video embed-responsive-item" src="https://www.youtube.com/embed/}.$id.q{?rel=0" frameborder="0" allowfullscreen></iframe></div>};
+    return q{<div class="embed-responsive embed-responsive-4by3"><iframe class="youtube_video embed-responsive-item" src="https://www.youtube.com/embed/}.$id.q{?rel=0" allowfullscreen></iframe></div>};
 }
 
 sub format_vimeo {
     my $id = shift;
-    return q{<div class="embed-responsive embed-responsive-4by3"><iframe class="vimeo_video embed-responsive-item" src="https://player.vimeo.com/video/}.$id.q{" frameborder="0"></iframe></div>};
+    return q{<div class="embed-responsive embed-responsive-4by3"><iframe class="vimeo_video embed-responsive-item" src="https://player.vimeo.com/video/}.$id.q{"></iframe></div>};
 }
 
 1;
