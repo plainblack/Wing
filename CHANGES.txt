@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-08-19
+ * Added wing.natural_sort() utility for sorting lists so that numbers appear naturally in alpha-numeric lists.
+
 2020-08-14
  * Updated bootstrap-vue to 2.16.0.
  * Updated vue to 2.6.7.

@@ -1220,6 +1220,20 @@ Fetches the value of a cookie.
 
 The name of the cookie to retrieve.
 
+=head2 wing.natural_sort(a,b)
+
+Sort the values of a list so that numeric values show up in the order you would expect in an alpha-numeric list.
+
+=over
+
+=item a
+
+The first sort value, compatible with Javascript's C<sort()> function. L<https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort>
+
+=item b
+
+The second sort value, compatible with Javascript's C<sort()> function. L<https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort>
+
 =back
 
 =head2 wing.scroll_to(element)

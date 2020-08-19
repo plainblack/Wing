@@ -359,6 +359,16 @@ const wing = {
     },
 
     /*
+     * sort numeric items naturally within alpha numeric characters
+     */
+    natural_sort(a, b) {
+        return a.name.localeCompare(b.name, undefined, {
+          numeric: true,
+          sensitivity: 'base'
+        });
+      },
+
+    /*
      * base URI when you're working against a server that is not on your domain
      */
 
