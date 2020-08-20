@@ -265,6 +265,18 @@ Required. An object containing the options returned from wing when you C<_includ
 
 =back
 
+=head2 wing.format_field_label( field_name )
+
+Returns a human readable string from a field name in an automatic way.
+
+=over 
+
+=item field_name
+
+The name of a field.
+
+=back 
+
 =head2 wing.format_field_options()
 
 Returns an object of objects formatted for Bootstrap-Vue select/radio lists. This method also exists on L<wing.object()> and L<wing.object_list()>.

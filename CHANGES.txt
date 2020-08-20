@@ -5,6 +5,9 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2020-08-19
+ * Added wing.format_field_label() for generating make shift field labels on the fly.
+
+2020-08-19
  * Added wing.natural_sort() utility for sorting lists so that numbers appear naturally in alpha-numeric lists.
 
 2020-08-14
