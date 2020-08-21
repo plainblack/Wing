@@ -279,7 +279,7 @@ Vue.component("toggle", {
       }
     },
   },
-  template: `<span :class-wrap="classWrap">
+  template: `<span :class="classWrap">
                 <label v-if="label" :for="id" @click="toggle()">{{label}}</label><br v-if="label">
                         <span :id="id" class="far toggle" style="font-size: 200%" v-bind:class="{'fa-toggle-on': toggled, 'fa-toggle-off': !toggled, 'text-success': toggled, 'text-muted': !toggled}" @click="toggle()"></span> 
                 </span>`,
