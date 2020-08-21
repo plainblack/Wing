@@ -232,6 +232,60 @@ Vue.directive("autosave", {
 });
 
 /*
+ * A toggle switch
+ */
+
+Vue.component("toggle", {
+  data() {
+    return {
+      toggled: !!this.value,
+    };
+  },
+  props: {
+    value: {
+      required: true,
+    },
+    id: {
+      required: true,
+      type: String,
+    },
+    label: {
+      required: false,
+      type: String,
+    },
+    classWrap: {
+      required: false,
+      type: String,
+    },
+    sync: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  methods: {
+    toggle() {
+      const toggled = !this.toggled;
+      if (!this.sync) {
+        this.toggled = toggled;
+      }
+      this.toggled = toggled;
+      this.$emit("input", toggled);
+    },
+  },
+  watch: {
+    value(value) {
+      if (this.sync) {
+        this.toggled = !!value;
+      }
+    },
+  },
+  template: `<span :class-wrap="classWrap">
+                <label v-if="label" :for="id" @click="toggle()">{{label}}</label><br v-if="label">
+                        <span :id="id" class="far toggle" style="font-size: 200%" v-bind:class="{'fa-toggle-on': toggled, 'fa-toggle-off': !toggled, 'text-success': toggled, 'text-muted': !toggled}" @click="toggle()"></span> 
+                </span>`,
+});
+
+/*
  * A component to get the label for a wing field with options from a single object
  */
 

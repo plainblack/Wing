@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-08-21
+ * Added toggle switch component to wing.vue.js.
+
 2020-08-19
  * Added wing.format_field_label() for generating make shift field labels on the fly.
  * Added search_params to wing.vue.js wing.object_list.all() and wing.object_list.search().

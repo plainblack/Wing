@@ -109,6 +109,37 @@ NOTE: You need to include C<wing.confirmations> in the data section of your app 
     });
 
 
+=head2 toggle
+
+A toggle switch component.
+
+ <toggle v-model="edit_mode" label="Edit Mode"></toggle>
+
+=over
+
+=item v-model
+
+The field to toggle back and forth. 
+
+=item label
+
+An optional label for the switch.
+
+=item id
+
+Add a DOM id to the control.
+
+=item classWrap
+
+A CSS class to wrap the whole control in.
+
+=item sync
+
+A boolean indicating whether to debounce the value changing from outside the toggle.
+
+=back
+
+
 =head2 wing-option-label
 
 Allows you to generate a field value label from a list of options for that field. So you can display the label rather than the value. You can either use it with an C<object_list> where you have called C<fetch_options> like this:
