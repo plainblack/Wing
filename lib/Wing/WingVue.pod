@@ -109,6 +109,17 @@ NOTE: You need to include C<wing.confirmations> in the data section of your app 
     });
 
 
+=head2 wing-option-label
+
+Allows you to generate a field value label from a list of options for that field. So you can display the label rather than the value. You can either use it with an C<object_list> where you have called C<fetch_options> like this:
+
+ <wing-option-label :list="parts" :object="part" :property="columns[name].name"></wing-option-label>
+
+Or you can call it on a C<object> where you have set C<_include_options> in the fetch like this:
+
+ <wing-option-label :object="deck" property="brand_approval"></wing-option-label>
+
+
 =head2 wing-pagination
 
 Generates a pagination selector.
@@ -143,7 +154,7 @@ Or, you can specify the property name with C<v-autosavefield>, like this:
 
  <input v-autosavefield="'property_name'" v-autosave="object">
 
-C<v-autosavefield> has priority over looking up the property name in the C<v-model> so you can use this to save hierarchical properties, like a JSON object stored in MySQL.
+C<v-autosavefield> has priority over looking up the property name in the C<v-model> so you can use this to save into individual object properties, like a JSON object stored in MySQL.
 
 Optionally you can specify a delay (in milliseconds), which defaults to 2000, for autosave using:
 

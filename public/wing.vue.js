@@ -232,6 +232,44 @@ Vue.directive("autosave", {
 });
 
 /*
+ * A component to get the label for a wing field with options from a single object
+ */
+
+Vue.component("wing-object-option-label", {
+  template: `{{_option(object.property[property])}}`,
+  props: ["object", "property"],
+  methods: {
+    _option(option) {
+      return this.object.properties._options["_" + this.property][option];
+    },
+  },
+});
+
+/*
+ * A component to get the label for a wing field with options from a single object
+ */
+
+Vue.component("wing-option-label", {
+  template: `<template>
+      <span v-if="has_list">
+        {{list.field_options[_property] && object.properties[property] && list.field_options[_property][object.properties[property]]}}
+      </span>
+      <span v-else>
+        {{object.properties._options && object.properties._options[_property][object.properties[property]]}}
+      </span>
+    </template>`,
+  props: ["list", "object", "property"],
+  computed: {
+    _property() {
+      return "_" + this.property;
+    },
+    has_list() {
+      return typeof this.list !== "undefined";
+    },
+  },
+});
+
+/*
  * A component to generate select lists from wing options.
  */
 
