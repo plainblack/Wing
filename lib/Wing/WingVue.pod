@@ -135,10 +135,20 @@ Generates a select list from from a C<wing.object_list>'s C<fetch_options> metho
 
 =head2 v-autosave
 
-Automatically save the value of a form element anytime the model is updated for a C<wing.object>. Saves after 2 seconds, or if the user hits "enter", or if they leave the field.
+Automatically save the value of a form element anytime the model is updated for a C<wing.object>. Saves after 2 seconds, or if the user hits "enter", or if they leave the field. It can automatically grab the property name to save from C<v-model>, like this:
 
-<input v-model="object.properties.property_name" v-autosave="object">
+ <input v-autosave="object" v-model="object.properties.property_name">
 
+Or, you can specify the property name with C<v-autosavefield>, like this:
+
+ <input v-autosavefield="'property_name'" v-autosave="object">
+
+C<v-autosavefield> has priority over looking up the property name in the C<v-model> so you can use this to save hierarchical properties, like a JSON object stored in MySQL.
+
+Optionally you can specify a delay (in milliseconds), which defaults to 2000, for autosave using:
+
+ <input v-model="object.properties.property_name" v-autosave="object" v-autosavedelay="5000">
+ 
 
 
 
@@ -776,6 +786,10 @@ An object containing various search behavior modifications.
 
 Put search params here that you don't want to be attached to all subsequent queries via the C<fetch_options>.
 
+=item search_params
+
+Like C<params> but only applies to this call and not any other calls you may make on this object.
+
 =item prepend_item
 
 An object representing an item that you'd like prepended to the search results. This is useful for things like typeahead where you might want to add a "Create New Item" button or something.
@@ -826,6 +840,10 @@ Similar to C<search()> except that it fetches the complete list of objects, not 
 =item params
 
 Put search params here that you don't want to be attached to all subsequent queries via the C<fetch_options>.
+
+=item search_params
+
+Like C<params> but only applies to this call and not any other calls you may make on this object.
 
 =item on_each
 

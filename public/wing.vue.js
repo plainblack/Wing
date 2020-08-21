@@ -171,19 +171,31 @@ Vue.filter("bytes", function (bytes) {
 Vue.directive("autosave", {
   inserted: function (el, binding, vnode) {
     const index = _.findIndex(vnode.data.directives, { rawName: "v-model" });
-    const delay_index = _.findIndex(vnode.data.directives, {
-      rawName: "v-autosavedelay",
+    const field_index = _.findIndex(vnode.data.directives, {
+      rawName: "v-autosavefield",
     });
-    console.log("Delay of " + delay + " seconds set on " + index);
-    if (index == -1) {
-      console.log("Cannot use v-autosave unless on an element with a v-model.");
+    if (index == -1 && field_index == -1) {
+      console.log(
+        "Cannot use v-autosave unless on an element with a v-model or v-autosavefield."
+      );
     } else {
       var delay = 2000;
+      const delay_index = _.findIndex(vnode.data.directives, {
+        rawName: "v-autosavedelay",
+      });
       if (delay_index != -1) {
         delay = vnode.data.directives[delay_index].expression;
       }
-      var field_array = vnode.data.directives[index].expression.split(/\./);
-      const field = field_array[field_array.length - 1];
+      var field = null;
+      if (field_index != -1) {
+        field = vnode.data.directives[field_index].value;
+      } else {
+        var field_array = vnode.data.directives[index].expression.split(/\./);
+        field = field_array[field_array.length - 1];
+      }
+      if (field == null) {
+        console.log("v-autosave could not find v-model or v-autosavefield.");
+      }
       var timer;
       var original_value = binding.value.properties[field];
       const debounce = function (e) {
@@ -849,6 +861,9 @@ const wing = {
    */
   object_list: (behavior) => ({
     params: _.defaultsDeep({}, behavior.params, { _include_relationships: 1 }),
+    search_params: _.defaultsDeep({}, behavior.search_params, {
+      _include_relationships: 1,
+    }),
     objects: [],
     paging: {},
     new: _.defaultsDeep({}, behavior.new_defaults),
@@ -937,7 +952,7 @@ const wing = {
       ) {
         pagination = _.extend({}, pagination, options.params);
       }
-      const params = _.extend({}, pagination, self.params);
+      const params = _.extend({}, pagination, self.params, self.search_params);
       const promise = axios({
         method: "get",
         url: wing.format_base_uri(self.list_api),
@@ -998,7 +1013,8 @@ const wing = {
           _page_number: page_number || 1,
           _items_per_page: 10,
         },
-        self.params
+        self.params,
+        self.search_params
       );
       if (
         typeof options !== "undefined" &&
