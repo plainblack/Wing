@@ -48,12 +48,9 @@ sub wing_json_field {
                 }
                 else {
                     my $perl = eval { from_json($json) };
-                    if ($@) {
-                        my $error = $@;
-                        $error =~ m/^(.*)\sat\s.*/; 
-                        my $help = $1;
-                        Wing->log->warn($field.': '. $error);
-                        ouch 442, 'Invalid JSON for '.$field.': '.$help, $field;
+                    if ($@) { 
+			# assume it's a single element of an array rather than an error, because that is more useful
+			return $orig->($self, [$json]);
                     }
                     else {
                         return $orig->($self, $perl);
