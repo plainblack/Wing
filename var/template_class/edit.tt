@@ -26,7 +26,6 @@
             <h2 class="card-header">Admin Only</h2>
             <div class="card-body">
 				[%[ FOREACH field IN admin_postable_params ]%]
-				[% field %]
 				<div class="form-group">
 					<label for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
 					[%[ IF field_options.exists(field) ]%]<wing-select :object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select>[%[ ELSE ]%]<input class="form-control" type="text" id="[%[ field ]%]" v-autosave="[%[ lower_class ]%]" v-model="[%[ lower_class ]%].properties.[%[ field ]%]">[%[ END ]%]
@@ -51,6 +50,7 @@ new Vue({
             params : {
                 _include_options : 1,
             },
+	    fetch_api : '[% [%[ lower_class ]%].properties._relationships.self %]',
             on_update : function(properties) {
                 wing.success(properties.name + ' saved.');
             },
