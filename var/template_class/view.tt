@@ -1,40 +1,42 @@
 [% page_title = [%[ lower_class ]%].name %]
 [% INCLUDE header_include.tt %]
-<div class="container-fluid" id="app">
-    <br>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item"><a href="/[%[ lower_class ]%]s">[%[ class_name ]%]s</a></li>
-        <li class="breadcrumb-item active" aria-current="page">[% page_title %]</li>
-      </ol>
-    </nav>
-    <h1>[% page_title %]</h1>
-    <div>
-    [%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%]
+<div id="app">
+    <div class="container-fluid p-0">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/[%[ lower_class ]%]s">[%[ class_name ]%]s</a></li>
+                <li class="breadcrumb-item active" aria-current="page">[% page_title %]</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="container-fluid">
+        <h1>[% page_title %]</h1>
         <div>
-            <b>[%[ field.ucfirst ]%]:</b> [%[ IF field == 'user_id' ]%]<a href="[%[ lower_class ]%].user.view_uri">[% [%[ lower_class ]%].user.display_name %]</a> ([% [%[ lower_class ]%].user_id %])[%[ ELSIF field_options.exists(field) ]%][% [%[ lower_class ]%]._options._[%[ field ]%].${[%[ lower_class ]%].[%[ field ]%]} %][%[ ELSE ]%][% [%[ lower_class ]%].[%[ field ]%] %][%[ END ]%]
-        </div>
-    [%[ END ]%][%[ END ]%]
-    [%[ IF admin_viewable_params.size ]%][%[ FOREACH field IN admin_viewable_params ]%]
-        [% IF current_user.is_admin %]
+        [%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%]
             <div>
-                <b>[%[ field.ucfirst ]%]:</b> [%[ IF field == 'user_id' ]%]<a href="[%[ lower_class ]%].user.view_uri">[% [%[ lower_class ]%].user.display_name %]</a> ([% [%[ lower_class ]%].user_id %])[%[ ELSIF field_options.exists(field) ]%][% [%[ lower_class ]%]._options._[%[ field ]%].${[%[ lower_class ]%].[%[ field ]%]} %][%[ ELSE ]%][% [%[ lower_class ]%].[%[ field ]%] %][%[ END ]%]
+                <b>[%[ field.ucfirst ]%]:</b> [%[ IF field == 'user_id' ]%]<a :href="[%[ lower_class ]%].properties.user.view_uri">{{[%[ lower_class ]%].properties.user.display_name}}</a> ({{[%[ lower_class ]%].properties.user_id}})[%[ ELSIF field_options.exists(field) ]%]<wing-option-label :object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-option-label>[%[ ELSE ]%]{{[%[ lower_class ]%].properties.[%[ field ]%]}}[%[ END ]%]
+            </div>
+        [%[ END ]%][%[ END ]%]
+        [%[ IF admin_viewable_params.size ]%][%[ FOREACH field IN admin_viewable_params ]%]
+            [% IF current_user.is_admin %]
+                <div>
+                    <b>[%[ field.ucfirst ]%]:</b> [%[ IF field == 'user_id' ]%]<a :href="[%[ lower_class ]%].properties.user.view_uri">{{[%[ lower_class ]%].properties.user.display_name}}</a> ({{[%[ lower_class ]%].properties.user_id}})[%[ ELSIF field_options.exists(field) ]%]<wing-option-label :object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-option-label>[%[ ELSE ]%]{{[%[ lower_class ]%].properties.[%[ field ]%]}}[%[ END ]%]
+                </div>
+            [% END %]
+        [%[ END ]%][%[ END ]%]
+        </div>
+
+        [% IF [%[ lower_class ]%].can_edit %]
+            <div class="card mt-5 mb-5">
+                <h2 class="card-header">Manage</h2>
+                <div class="card-body">
+                    <a :href="[[%[ lower_class ]%].properties.edit_uri" class="btn btn-success"><i class="fas fa-edit"></i> Edit</a>
+                    <button class="btn btn-danger" @click="[%[ lower_class ]%].delete()"><i class="fas fa-trash-alt"></i> Delete</button>
+                </div>
             </div>
         [% END %]
-    [%[ END ]%][%[ END ]%]
     </div>
-
-    [% IF [%[ lower_class ]%].can_edit %]
-        <br>
-        <div class="card">
-            <h2 class="card-header">Manage</h2>
-            <div class="card-body">
-                <a href="[% [%[ lower_class ]%].edit_uri %]" class="btn btn-success"><i class="fas fa-edit"></i> Edit</a>
-                <button class="btn btn-danger" @click="[%[ lower_class ]%].delete()"><i class="fas fa-trash-alt"></i> Delete</button>
-            </div>
-        </div>
-    [% END %]
 </div>
 
 [% foot_tags = BLOCK %]

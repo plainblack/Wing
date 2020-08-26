@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-08-26
+ * Modernized the template_class templates.
+
 2020-08-21
  * Added toggle switch component to wing.vue.js.
  * JSON fields now assume a non JSON string is a single element array as it's more useful than assuming it's an error.

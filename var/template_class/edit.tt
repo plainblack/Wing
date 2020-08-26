@@ -1,41 +1,44 @@
 [% page_title = "Edit ${[%[ lower_class ]%].name}" %]
 [% INCLUDE header_include.tt %]
-<div class="container-fluid" id="app">
-    <br>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item"><a href="/[%[ lower_class ]%]s">[%[ class_name ]%]s</a></li>
-        <li class="breadcrumb-item"><a :href="[%[ lower_class ]%].properties.view_uri">{{[%[ lower_class ]%].properties.name}}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Edit</li>
-      </ol>
-    </nav>
-    <h1>Edit {{[%[ lower_class ]%].properties.name}}</h1>
+<div id="app">
+    <div class="container-fluid p-0">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/[%[ lower_class ]%]s">[%[ class_name ]%]s</a></li>
+                <li class="breadcrumb-item"><a :href="[%[ lower_class ]%].properties.view_uri">{{[%[ lower_class ]%].properties.name}}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="container-fluid">
+        <h1>Edit {{[%[ lower_class ]%].properties.name}}</h1>
 
-		[%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%]
-		<div class="form-group">
-			<label for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-			[%[ IF field_options.exists(field) ]%]<wing-select :object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select>[%[ ELSE ]%]<input class="form-control" type="text" id="[%[ field ]%]" v-autosave="[%[ lower_class ]%]" v-model="[%[ lower_class ]%].properties.[%[ field ]%]">[%[ END ]%]
-		</div>
-		[%[ END ]%][%[ END ]%]
-
-        [%[ IF admin_postable_params.size ]%]
-        [% IF current_user.is_admin %]
-
-        <div class="card">
-            <h2 class="card-header">Admin Only</h2>
-            <div class="card-body">
-				[%[ FOREACH field IN admin_postable_params ]%]
-				<div class="form-group">
-					<label for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-					[%[ IF field_options.exists(field) ]%]<wing-select :object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select>[%[ ELSE ]%]<input class="form-control" type="text" id="[%[ field ]%]" v-autosave="[%[ lower_class ]%]" v-model="[%[ lower_class ]%].properties.[%[ field ]%]">[%[ END ]%]
-				</div>
-				[%[ END ]%]
+            [%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%]
+            <div class="form-group">
+                <label for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+                [%[ IF field_options.exists(field) ]%]<wing-select :object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select>[%[ ELSE ]%]<input class="form-control" type="text" id="[%[ field ]%]" v-autosave="[%[ lower_class ]%]" v-model="[%[ lower_class ]%].properties.[%[ field ]%]">[%[ END ]%]
             </div>
-        </div>
-        [% END %]
-        [%[ END ]%]
+            [%[ END ]%][%[ END ]%]
 
+            [%[ IF admin_postable_params.size ]%]
+            [% IF current_user.is_admin %]
+
+            <div class="card">
+                <h2 class="card-header">Admin Only</h2>
+                <div class="card-body">
+                    [%[ FOREACH field IN admin_postable_params ]%]
+                    <div class="form-group">
+                        <label for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+                        [%[ IF field_options.exists(field) ]%]<wing-select :object="[%[ lower_class ]%]" property="[%[ field ]%]"></wing-select>[%[ ELSE ]%]<input class="form-control" type="text" id="[%[ field ]%]" v-autosave="[%[ lower_class ]%]" v-model="[%[ lower_class ]%].properties.[%[ field ]%]">[%[ END ]%]
+                    </div>
+                    [%[ END ]%]
+                </div>
+            </div>
+            [% END %]
+            [%[ END ]%]
+
+    </div>
 </div>
 
 [% foot_tags = BLOCK %]

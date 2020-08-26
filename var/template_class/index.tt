@@ -1,63 +1,66 @@
 [% page_title = "[%[ class_name ]%]s" %]
 [% INCLUDE header_include.tt %]
 
-<div class="container-fluid" id="app">
-    <br>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item active" aria-current="page">[%[ class_name ]%]s</li>
-      </ol>
-    </nav>
-    [% IF current_user %]<div class="float-right"><confirmation-toggle></confirmation-toggle></div>[% END %]
-    <h1>[% page_title %]</h1>
-
-    <b-input-group>
-        <b-input-group-text slot="prepend">
-            <i class="fas fa-search"></i>
-        </b-input-group-text>
-        <b-form-input type="text" @keyup.native="[%[ lower_class ]%]s.search({ params : {_page_number : 1}})" placeholder="name" v-model="[%[ lower_class ]%]s.params.query"></b-form-input>
-    </b-input-group>
-
-    <b-table hover striped stacked="md" :items="[%[ lower_class ]%]s.objects" :fields="fields">
-        <template slot="properties.name" slot-scope="data"><a :href="data.item.properties.view_uri">{{data.item.properties.name}}</a></template>
-        [%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%][%[ IF field_options.exists(field) ]%]<template slot="properties.[%[ field ]%]" slot-scope="data">{{[%[ lower_class ]%]s.field_options._[%[ field ]%][data.item.properties.[%[ field ]%]]}}</a></template>
-        [%[ ELSIF field.match('date') ]%]<template slot="properties.[%[ field ]%]" slot-scope="data">{{data.item.properties.[%[ field ]%]|moment}}</a></template>
-        [%[ END ]%][%[ END ]%][%[ END ]%]
-        [% IF current_user %]
-            <template slot="manage" slot-scope="data">
-                <b-dropdown variant="success" right split @click="window.location.href=data.item.properties.edit_uri" v-if="data.item.properties.can_edit">
-                 <template slot="button-content"><i class="fas fa-edit"></i> Edit</template>
-                  <b-dropdown-item :href="data.item.properties.view_uri"><i class="fas fa-eye"></i> View</b-dropdown-item>
-                  <b-dropdown-divider></b-dropdown-divider>
-                  <b-dropdown-item-button @click="data.item.delete()" class="text-danger"><i class="fas fa-trash-alt"></i> Delete</b-dropdown-item-button>
-                </b-dropdown>
-            </template>
-        [% END %]
-    </b-table>
-
-    <wing-pagination :list="[%[ lower_class ]%]s"></wing-pagination>
-
-    <div class="card">
-        <h2 class="card-header">Add A [%[ class_name ]%]</h2>
-        <div class="card-body">
-            [% IF current_user %]
-                [%[ IF required_params.size ]%][%[ FOREACH field IN required_params ]%][%[ NEXT IF field == 'user_id' ]%]
-                <div class="form-group">
-                    <label for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
-                    [%[ IF field_options.exists(field) ]%]<wing-select-new :list="[%[ lower_class ]%]s" property="[%[ field ]%]"></wing-select-new>[%[ ELSE ]%]<input class="form-control" type="text" name="[%[ field ]%]" id="[%[ field ]%]" v-model="[%[ lower_class ]%]s.new.[%[ field ]%]">[%[ END ]%]
-                </div>
-                [%[ END ]%][%[ END ]%]
-                <div class="form-group">
-                    <button class="btn btn-success" @click="[%[ lower_class ]%]s.create()"><i class="fas fa-plus"></i> Create [%[ class_name ]%]</button>
-                </div>
-            [% ELSE %]
-                You must <a href="/account?redirect_after=/[%[ lower_class ]%]s">login or create an account</a> to create a new [%[ lower_class ]%].
-            [% END %]
-        </div>
+<div id="app">
+    <div class="container-fluid p-0">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">[%[ class_name ]%]s</li>
+            </ol>
+        </nav>
     </div>
+    <div class="container-fluid">
+        [% IF current_user %]<div class="float-right"><confirmation-toggle></confirmation-toggle></div>[% END %]
+        <h1>[% page_title %]</h1>
 
-</div><!-- container -->
+        <b-input-group>
+            <b-input-group-text slot="prepend">
+                <i class="fas fa-search"></i>
+            </b-input-group-text>
+            <b-form-input type="text" @keyup.native="[%[ lower_class ]%]s.search({ params : {_page_number : 1}})" placeholder="name" v-model="[%[ lower_class ]%]s.params.query"></b-form-input>
+        </b-input-group>
+
+        <b-table hover striped stacked="md" :items="[%[ lower_class ]%]s.objects" :fields="fields">
+            <template v-slot:cell(properties.name)="data"><a :href="data.item.properties.view_uri">{{data.item.properties.name}}</a></template>
+            [%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%][%[ IF field_options.exists(field) ]%]<template v-slot:cell(properties.[%[ field ]%])="data"><wing-option-label :list="{[%[ lower_class ]%]s" :object="data.item" property="[%[ field ]%]"></wing-option-label></template>
+            [%[ ELSIF field.match('date') ]%]<template v-slot:cell(properties.[%[ field ]%])="data">{{data.item.properties.[%[ field ]%]|moment}}</a></template>
+            [%[ END ]%][%[ END ]%][%[ END ]%]
+            [% IF current_user %]
+                <template v-slot:cell(manage)="data">
+                    <b-dropdown variant="success" right split @click="window.location.href=data.item.properties.edit_uri" v-if="data.item.properties.can_edit">
+                    <template slot="button-content"><i class="fas fa-edit"></i> Edit</template>
+                    <b-dropdown-item :href="data.item.properties.view_uri"><i class="fas fa-eye"></i> View</b-dropdown-item>
+                    <b-dropdown-divider></b-dropdown-divider>
+                    <b-dropdown-item-button @click="data.item.delete()" class="text-danger"><i class="fas fa-trash-alt"></i> Delete</b-dropdown-item-button>
+                    </b-dropdown>
+                </template>
+            [% END %]
+        </b-table>
+
+        <wing-pagination :list="[%[ lower_class ]%]s"></wing-pagination>
+
+        <div class="card">
+            <h2 class="card-header">Add A [%[ class_name ]%]</h2>
+            <div class="card-body">
+                [% IF current_user %]
+                    [%[ IF required_params.size ]%][%[ FOREACH field IN required_params ]%][%[ NEXT IF field == 'user_id' ]%]
+                    <div class="form-group">
+                        <label for="[%[ field ]%]">[%[ field.ucfirst ]%]</label>
+                        [%[ IF field_options.exists(field) ]%]<wing-select-new :list="[%[ lower_class ]%]s" property="[%[ field ]%]"></wing-select-new>[%[ ELSE ]%]<input class="form-control" type="text" name="[%[ field ]%]" id="[%[ field ]%]" v-model="[%[ lower_class ]%]s.new.[%[ field ]%]">[%[ END ]%]
+                    </div>
+                    [%[ END ]%][%[ END ]%]
+                    <div class="form-group">
+                        <button class="btn btn-success" @click="[%[ lower_class ]%]s.create()"><i class="fas fa-plus"></i> Create [%[ class_name ]%]</button>
+                    </div>
+                [% ELSE %]
+                    You must <a href="/account?redirect_after=/[%[ lower_class ]%]s">login or create an account</a> to create a new [%[ lower_class ]%].
+                [% END %]
+            </div>
+        </div>
+
+    </div><!-- container -->
+</div><!-- app -->
 
 [% foot_tags = BLOCK %]
 
