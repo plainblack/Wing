@@ -103,388 +103,6 @@ toastdiv.id = "wingtoast";
 document.body.appendChild(toastdiv);
 
 /*
- * Format a date
- */
-
-Vue.filter("moment", function (input, format, timezone) {
-  if (typeof moment !== "undefined") {
-    if (!_.isString(format)) {
-      format = "MMMM D, YYYY";
-    }
-    return wing.parse_date(input, timezone).format(format);
-  }
-  return input;
-});
-
-/*
- * Format a date into a relative time
- */
-
-Vue.filter("timeago", function (input) {
-  if (typeof moment !== "undefined") {
-    return wing.parse_date(input).fromNow();
-  }
-  return input;
-});
-
-/*
- * Round a decimal to some level of precision
- */
-
-Vue.filter("round", function (number, precision) {
-  number = parseFloat(number);
-  precision |= 0;
-  var shift = function (number, precision, reverseShift) {
-    if (reverseShift) {
-      precision = -precision;
-    }
-    numArray = ("" + number).split("e");
-    return +(
-      numArray[0] +
-      "e" +
-      (numArray[1] ? +numArray[1] + precision : precision)
-    );
-  };
-  return shift(Math.round(shift(number, precision, false)), precision, true);
-});
-
-/*
- * format a file size using common bytes multiples
- */
-
-Vue.filter("bytes", function (bytes) {
-  if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return "-";
-  if (typeof precision === "undefined") precision = 1;
-  var units = ["bytes", "kB", "MB", "GB", "TB", "PB"],
-    number = Math.floor(Math.log(bytes) / Math.log(1024));
-  return (
-    (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +
-    " " +
-    units[number]
-  );
-});
-
-/*
- * Automatically save an input field.
- */
-
-Vue.directive("autosave", {
-  inserted: function (el, binding, vnode) {
-    const index = _.findIndex(vnode.data.directives, { rawName: "v-model" });
-    const field_index = _.findIndex(vnode.data.directives, {
-      rawName: "v-autosavefield",
-    });
-    if (index == -1 && field_index == -1) {
-      console.log(
-        "Cannot use v-autosave unless on an element with a v-model or v-autosavefield."
-      );
-    } else {
-      var delay = 2000;
-      const delay_index = _.findIndex(vnode.data.directives, {
-        rawName: "v-autosavedelay",
-      });
-      if (delay_index != -1) {
-        delay = vnode.data.directives[delay_index].expression;
-      }
-      var field = null;
-      if (field_index != -1) {
-        field = vnode.data.directives[field_index].value;
-      } else {
-        var field_array = vnode.data.directives[index].expression.split(/\./);
-        field = field_array[field_array.length - 1];
-      }
-      if (field == null) {
-        console.log("v-autosave could not find v-model or v-autosavefield.");
-      }
-      var timer;
-      var original_value = binding.value.properties[field];
-      const debounce = function (e) {
-        if (timer) {
-          clearTimeout(timer);
-        }
-        if (e.keyCode == 13 && el.tagName != "TEXTAREA") {
-          binding.value.save(field);
-        } else {
-          timer = setTimeout(function () {
-            if (original_value != binding.value.properties[field]) {
-              original_value = binding.value.properties[field];
-              binding.value.save(field);
-            }
-          }, delay);
-        }
-      };
-      el.addEventListener("keyup", debounce, false);
-      el.addEventListener("change", debounce, false);
-      el.addEventListener("focus", debounce, false);
-      el.addEventListener(
-        "blur",
-        function () {
-          if (original_value != binding.value.properties[field]) {
-            clearTimeout(timer);
-            original_value = binding.value.properties[field];
-            binding.value.save(field);
-          }
-        },
-        false
-      );
-    }
-  },
-});
-
-/*
- * A toggle switch
- */
-
-Vue.component("toggle", {
-  data() {
-    return {
-      toggled: !!this.value,
-    };
-  },
-  props: {
-    value: {
-      required: true,
-    },
-    id: {
-      required: true,
-      type: String,
-    },
-    label: {
-      required: false,
-      type: String,
-    },
-    classWrap: {
-      required: false,
-      type: String,
-    },
-    sync: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  methods: {
-    toggle() {
-      const toggled = !this.toggled;
-      if (!this.sync) {
-        this.toggled = toggled;
-      }
-      this.toggled = toggled;
-      this.$emit("input", toggled);
-    },
-  },
-  watch: {
-    value(value) {
-      if (this.sync) {
-        this.toggled = !!value;
-      }
-    },
-  },
-  template: `<span :class="classWrap">
-                <label v-if="label" :for="id" @click="toggle()">{{label}}</label><br v-if="label">
-                        <span :id="id" class="far toggle" style="font-size: 200%" v-bind:class="{'fa-toggle-on': toggled, 'fa-toggle-off': !toggled, 'text-success': toggled, 'text-muted': !toggled}" @click="toggle()"></span> 
-                </span>`,
-});
-
-/*
- * A component to get the label for a wing field with options from a single object
- */
-
-Vue.component("wing-object-option-label", {
-  template: `{{_option(object.property[property])}}`,
-  props: ["object", "property"],
-  methods: {
-    _option(option) {
-      return this.object.properties._options["_" + this.property][option];
-    },
-  },
-});
-
-/*
- * A component to get the label for a wing field with options from a single object
- */
-
-Vue.component("wing-option-label", {
-  template: `<template>
-      <span v-if="has_list">
-        {{list.field_options[_property] && object.properties[property] && list.field_options[_property][object.properties[property]]}}
-      </span>
-      <span v-else>
-        {{object.properties._options && object.properties._options[_property][object.properties[property]]}}
-      </span>
-    </template>`,
-  props: ["list", "object", "property"],
-  computed: {
-    _property() {
-      return "_" + this.property;
-    },
-    has_list() {
-      return typeof this.list !== "undefined";
-    },
-  },
-});
-
-/*
- * A component to generate select lists from wing options.
- */
-
-Vue.component("wing-select", {
-  template: `<select @change="object.save(property)" class="form-control custom-select" v-model="object.properties[property]">
-    <option v-for="option in options()" :value="option">{{_option(option)}}</option>
-  </select>`,
-  props: ["object", "property"],
-  methods: {
-    options() {
-      if ("_options" in this.object.properties) {
-        return this.object.properties._options[this.property];
-      }
-      return [];
-    },
-    _option(option) {
-      return this.object.properties._options["_" + this.property][option];
-    },
-  },
-});
-
-/*
- * A component to generate select lists from wing options.
- */
-
-Vue.component("wing-select-new", {
-  template: `<select class="form-control custom-select" v-model="list.new[property]">
-    <option v-for="option in options()" :value="option">{{_option(option)}}</option>
-  </select>`,
-  props: ["list", "property"],
-  methods: {
-    options() {
-      if (this.property in this.list.field_options) {
-        return this.list.field_options[this.property];
-      }
-      return [];
-    },
-    _option(option) {
-      return this.list.field_options["_" + this.property][option];
-    },
-  },
-});
-
-/*
- * Standardize pagination formatting.
- */
-
-Vue.component("wing-pagination", {
-  template: `<template><b-row v-if="list.paging.total_pages > 1">
-            <b-col>
-                <b-pagination size="md" @change="list.search()" :total-rows="list.paging.total_items" v-model="list.paging.page_number" limit="10" last-number first-number :per-page="list.paging.items_per_page"></b-pagination>
-            </b-col>
-            <b-col lg="2" md="3" sm="4">
-                <b-form-select id="items_per_page" @change="list.search()" v-model="list.paging.items_per_page" :options="list.items_per_page_options" class="mb-3" />
-            </b-col>
-        </b-row></template>`,
-  props: ["list"],
-});
-
-/*
- * A component to count the characters remaining in a text area.
- */
-
-Vue.component("characters-remaining", {
-  template: `<small v-bind:class="{'text-danger': toobig, 'text-warning': nearlyfull}" class="text-sm float-right form-text">Characters Remaining: {{remaining}} / {{max}}</small>`,
-  props: ["property", "max"],
-  computed: {
-    remaining() {
-      if (_.isString(this.property)) {
-        return this.max - this.property.length;
-      }
-      return this.max;
-    },
-    toobig() {
-      return this.remaining <= 0;
-    },
-    nearlyfull() {
-      const fivepercent = this.max * 0.05;
-      return this.remaining < fivepercent && this.remaining > 0;
-    },
-  },
-});
-
-/*
- * A button to toggle confirmations.
- */
-
-Vue.component("confirmation-toggle", {
-  template: `<button v-if="wing.confirmations.enabled()" class="btn btn-danger" @click="wing.confirmations.toggle()"><i class="fas fa-minus-circle"></i> Disable Confirmations</button>
-                <button v-else class="btn btn-secondary" @click="wing.confirmations.toggle()"><i class="fas fa-check-circle"></i> Enable Confirmations</button>`,
-});
-
-/*
- * Comments.
- */
-
-Vue.component("comments", {
-  template: `<template>
-    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <tr v-for="comment in comments.objects">
-                                <td>
-                                    <textarea class="form-control" v-if="comment.stash('edit')" rows="5" v-model="comment.properties.comment" v-autosave="comment" title="Comment"></textarea>
-                                    <div v-if="!comment.stash('edit')" style="white-space: pre-wrap;">{{comment.properties.comment|truncate(comment.stash('comment_length')||200)}}</div>
-                                    <button class="btn btn-secondary btn-sm mt-3" v-if="comment.stash('comment_length') < 1000000 && comment.properties.comment.length > 200" @click="comment.stash('comment_length',1000000)">Read More</button>
-                                </td>
-                                <td style="width: 40%">
-                                    <a :href="comment.properties.user.profile_uri"><img v-if="comment.properties.user.avatar_uri" :src="comment.properties.user.avatar_uri" class="rounded" alt="avatar" style="height: 30px"> {{comment.properties.user.display_name}}</a>
-                                    <span class="badge badge-secondary" v-if="special_badge_user_id == comment.properties.user_id">{{special_badge_label}}</span>
-                                    <br>
-                                    {{comment.properties.date_created|timeago}}
-                                    <br>
-                                    <i class="far fa-heart" v-show="!comment.properties.i_like" @click="like_comment(comment)"></i>
-                                    <i class="fas fa-heart" v-show="comment.properties.i_like" @click="unlike_comment(comment)"></i>
-                                    ({{comment.properties.like_count}} likes)
-                                    <br>
-                                    <button class="btn btn-primary btn-sm" @click="comment.stash('edit', !comment.stash('edit'))" v-if="!comment.stash('edit')" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-edit"></i> Edit</button>
-                                    <button class="btn btn-success btn-sm" @click="comment.stash('edit', !comment.stash('edit'))" v-if="comment.stash('edit')" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-edit"></i> Save</button>
-                                    <button class="btn btn-danger btn-sm" @click="comment.delete()" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-trash-alt"></i> Delete</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <textarea class="form-control" rows="5" v-model="comments.new.comment" title="New Comment"></textarea>
-                                </td>
-                                <td>
-                                    <button class="btn btn-success" @click="comments.create()"><i class="fas fa-edit"></i> Add Comment</button>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-    </template>`,
-  props: [
-    "comments",
-    "special_badge_label",
-    "special_badge_user_id",
-    "current_user_id",
-    "is_admin",
-  ],
-  data() {
-    return {};
-  },
-  methods: {
-    like_comment(comment) {
-      comment.call(
-        "POST",
-        comment.properties._relationships.self + "/like",
-        {}
-      );
-    },
-    unlike_comment(comment) {
-      comment.call(
-        "DELETE",
-        comment.properties._relationships.self + "/like",
-        {}
-      );
-    },
-  },
-});
-
-/*
  * Wing Factories, Services, and Utilities
  */
 
@@ -496,6 +114,10 @@ const wing = {
   get_cookie(a) {
     let b = document.cookie.match("(^|;)\\s*" + a + "\\s*=\\s*([^;]+)");
     return b ? b.pop() : "";
+  },
+
+  generate_id() {
+    return "_" + Math.random().toString(36).substr(2, 9);
   },
 
   /*
@@ -1564,3 +1186,356 @@ const wing = {
     }
   },
 };
+
+/*
+ * Format a date
+ */
+
+Vue.filter("moment", function (input, format, timezone) {
+  if (typeof moment !== "undefined") {
+    if (!_.isString(format)) {
+      format = "MMMM D, YYYY";
+    }
+    return wing.parse_date(input, timezone).format(format);
+  }
+  return input;
+});
+
+/*
+ * Format a date into a relative time
+ */
+
+Vue.filter("timeago", function (input) {
+  if (typeof moment !== "undefined") {
+    return wing.parse_date(input).fromNow();
+  }
+  return input;
+});
+
+/*
+ * Round a decimal to some level of precision
+ */
+
+Vue.filter("round", function (number, precision) {
+  number = parseFloat(number);
+  precision |= 0;
+  var shift = function (number, precision, reverseShift) {
+    if (reverseShift) {
+      precision = -precision;
+    }
+    numArray = ("" + number).split("e");
+    return +(
+      numArray[0] +
+      "e" +
+      (numArray[1] ? +numArray[1] + precision : precision)
+    );
+  };
+  return shift(Math.round(shift(number, precision, false)), precision, true);
+});
+
+/*
+ * format a file size using common bytes multiples
+ */
+
+Vue.filter("bytes", function (bytes) {
+  if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return "-";
+  if (typeof precision === "undefined") precision = 1;
+  var units = ["bytes", "kB", "MB", "GB", "TB", "PB"],
+    number = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (
+    (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +
+    " " +
+    units[number]
+  );
+});
+
+/*
+ * Automatically save an input field.
+ */
+
+Vue.directive("autosave", {
+  inserted: function (el, binding, vnode) {
+    const index = _.findIndex(vnode.data.directives, { rawName: "v-model" });
+    const field_index = _.findIndex(vnode.data.directives, {
+      rawName: "v-autosavefield",
+    });
+    if (index == -1 && field_index == -1) {
+      console.log(
+        "Cannot use v-autosave unless on an element with a v-model or v-autosavefield."
+      );
+    } else {
+      var delay = 2000;
+      const delay_index = _.findIndex(vnode.data.directives, {
+        rawName: "v-autosavedelay",
+      });
+      if (delay_index != -1) {
+        delay = vnode.data.directives[delay_index].expression;
+      }
+      var field = null;
+      if (field_index != -1) {
+        field = vnode.data.directives[field_index].value;
+      } else {
+        var field_array = vnode.data.directives[index].expression.split(/\./);
+        field = field_array[field_array.length - 1];
+      }
+      if (field == null) {
+        console.log("v-autosave could not find v-model or v-autosavefield.");
+      }
+      var timer;
+      var original_value = binding.value.properties[field];
+      const debounce = function (e) {
+        if (timer) {
+          clearTimeout(timer);
+        }
+        if (e.keyCode == 13 && el.tagName != "TEXTAREA") {
+          binding.value.save(field);
+        } else {
+          timer = setTimeout(function () {
+            if (original_value != binding.value.properties[field]) {
+              original_value = binding.value.properties[field];
+              binding.value.save(field);
+            }
+          }, delay);
+        }
+      };
+      el.addEventListener("keyup", debounce, false);
+      el.addEventListener("change", debounce, false);
+      el.addEventListener("focus", debounce, false);
+      el.addEventListener(
+        "blur",
+        function () {
+          if (original_value != binding.value.properties[field]) {
+            clearTimeout(timer);
+            original_value = binding.value.properties[field];
+            binding.value.save(field);
+          }
+        },
+        false
+      );
+    }
+  },
+});
+
+/*
+ * A component to get the label for a wing field with options from a single object
+ */
+
+Vue.component("wing-object-option-label", {
+  template: `{{_option(object.property[property])}}`,
+  props: ["object", "property"],
+  methods: {
+    _option(option) {
+      return this.object.properties._options["_" + this.property][option];
+    },
+  },
+});
+
+/*
+ * A component to get the label for a wing field with options from a single object
+ */
+
+Vue.component("wing-option-label", {
+  template: `<template>
+      <span v-if="has_list">
+        {{list.field_options[_property] && object.properties[property] && list.field_options[_property][object.properties[property]]}}
+      </span>
+      <span v-else>
+        {{object.properties._options && object.properties._options[_property][object.properties[property]]}}
+      </span>
+    </template>`,
+  props: ["list", "object", "property"],
+  computed: {
+    _property() {
+      return "_" + this.property;
+    },
+    has_list() {
+      return typeof this.list !== "undefined";
+    },
+  },
+});
+
+/*
+ * A component to generate select lists from wing options.
+ */
+
+Vue.component("wing-select", {
+  template: `<select @change="object.save(property)" class="form-control custom-select" v-model="object.properties[property]">
+    <option v-for="option in options()" :value="option">{{_option(option)}}</option>
+  </select>`,
+  props: ["object", "property"],
+  methods: {
+    options() {
+      if ("_options" in this.object.properties) {
+        return this.object.properties._options[this.property];
+      }
+      return [];
+    },
+    _option(option) {
+      return this.object.properties._options["_" + this.property][option];
+    },
+  },
+});
+
+/*
+ * A component to generate select lists from wing options.
+ */
+
+Vue.component("wing-select-new", {
+  template: `<select class="form-control custom-select" v-model="list.new[property]">
+    <option v-for="option in options()" :value="option">{{_option(option)}}</option>
+  </select>`,
+  props: ["list", "property"],
+  methods: {
+    options() {
+      if (this.property in this.list.field_options) {
+        return this.list.field_options[this.property];
+      }
+      return [];
+    },
+    _option(option) {
+      return this.list.field_options["_" + this.property][option];
+    },
+  },
+});
+
+/*
+ * Standardize pagination formatting.
+ */
+
+Vue.component("wing-pagination", {
+  template: `<template><b-row v-if="list.paging.total_pages > 1">
+            <b-col>
+                <b-pagination size="md" @change="list.search()" :total-rows="list.paging.total_items" v-model="list.paging.page_number" limit="10" last-number first-number :per-page="list.paging.items_per_page"></b-pagination>
+            </b-col>
+            <b-col lg="2" md="3" sm="4">
+                <b-form-select id="items_per_page" @change="list.search()" v-model="list.paging.items_per_page" :options="list.items_per_page_options" class="mb-3" />
+            </b-col>
+        </b-row></template>`,
+  props: ["list"],
+});
+
+/*
+ * A component to count the characters remaining in a text area.
+ */
+
+Vue.component("characters-remaining", {
+  template: `<small v-bind:class="{'text-danger': toobig, 'text-warning': nearlyfull}" class="text-sm float-right form-text">Characters Remaining: {{remaining}} / {{max}}</small>`,
+  props: ["property", "max"],
+  computed: {
+    remaining() {
+      if (_.isString(this.property)) {
+        return this.max - this.property.length;
+      }
+      return this.max;
+    },
+    toobig() {
+      return this.remaining <= 0;
+    },
+    nearlyfull() {
+      const fivepercent = this.max * 0.05;
+      return this.remaining < fivepercent && this.remaining > 0;
+    },
+  },
+});
+
+/*
+ * A button to toggle confirmations.
+ */
+
+Vue.component("confirmation-toggle", {
+  template: `<button v-if="wing.confirmations.enabled()" class="btn btn-danger" @click="wing.confirmations.toggle()"><i class="fas fa-minus-circle"></i> Disable Confirmations</button>
+                <button v-else class="btn btn-secondary" @click="wing.confirmations.toggle()"><i class="fas fa-check-circle"></i> Enable Confirmations</button>`,
+});
+
+/*
+ * Comments.
+ */
+
+Vue.component("comments", {
+  template: `<template>
+    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <tr v-for="comment in comments.objects">
+                                <td>
+                                    <textarea class="form-control" v-if="comment.stash('edit')" rows="5" v-model="comment.properties.comment" v-autosave="comment" title="Comment"></textarea>
+                                    <div v-if="!comment.stash('edit')" style="white-space: pre-wrap;">{{comment.properties.comment|truncate(comment.stash('comment_length')||200)}}</div>
+                                    <button class="btn btn-secondary btn-sm mt-3" v-if="comment.stash('comment_length') < 1000000 && comment.properties.comment.length > 200" @click="comment.stash('comment_length',1000000)">Read More</button>
+                                </td>
+                                <td style="width: 40%">
+                                    <a :href="comment.properties.user.profile_uri"><img v-if="comment.properties.user.avatar_uri" :src="comment.properties.user.avatar_uri" class="rounded" alt="avatar" style="height: 30px"> {{comment.properties.user.display_name}}</a>
+                                    <span class="badge badge-secondary" v-if="special_badge_user_id == comment.properties.user_id">{{special_badge_label}}</span>
+                                    <br>
+                                    {{comment.properties.date_created|timeago}}
+                                    <br>
+                                    <i class="far fa-heart" v-show="!comment.properties.i_like" @click="like_comment(comment)"></i>
+                                    <i class="fas fa-heart" v-show="comment.properties.i_like" @click="unlike_comment(comment)"></i>
+                                    ({{comment.properties.like_count}} likes)
+                                    <br>
+                                    <button class="btn btn-primary btn-sm" @click="comment.stash('edit', !comment.stash('edit'))" v-if="!comment.stash('edit')" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="btn btn-success btn-sm" @click="comment.stash('edit', !comment.stash('edit'))" v-if="comment.stash('edit')" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-edit"></i> Save</button>
+                                    <button class="btn btn-danger btn-sm" @click="comment.delete()" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-trash-alt"></i> Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <textarea class="form-control" rows="5" v-model="comments.new.comment" title="New Comment"></textarea>
+                                </td>
+                                <td>
+                                    <button class="btn btn-success" @click="comments.create()"><i class="fas fa-edit"></i> Add Comment</button>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+    </template>`,
+  props: [
+    "comments",
+    "special_badge_label",
+    "special_badge_user_id",
+    "current_user_id",
+    "is_admin",
+  ],
+  data() {
+    return {};
+  },
+  methods: {
+    like_comment(comment) {
+      comment.call(
+        "POST",
+        comment.properties._relationships.self + "/like",
+        {}
+      );
+    },
+    unlike_comment(comment) {
+      comment.call(
+        "DELETE",
+        comment.properties._relationships.self + "/like",
+        {}
+      );
+    },
+  },
+});
+
+/*
+ * A toggle switch
+ */
+
+Vue.component("toggle", {
+  template: `<span><span ref="toggle" :id="id" class="far toggle" v-bind:class="{'fa-toggle-on': output, 'fa-toggle-off': !output, 'text-primary': output, 'text-muted': !output}" @click="handle()" style="font-size: 170%"></span> <label @click="handle()" style="vertical-align: middle" :for="id"><slot></slot></label></span>`,
+  props: { value: { required: 1 }, id: { default: wing.generate_id() } },
+  data() {
+    return {
+      output: this.value,
+    };
+  },
+  methods: {
+    handle(e) {
+      if (typeof this.output === "boolean") {
+        this.output = !this.output;
+      } else {
+        this.output = this.output ? 0 : 1;
+      }
+      this.$emit("input", this.output);
+      this.$emit("change", this.output);
+    },
+  },
+});

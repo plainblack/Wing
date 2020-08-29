@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-08-29
+ * Refactored the <toggle> component.
+ * Added wing.generate_id().
+
 2020-08-26
  * Modernized the template_class templates.
 
