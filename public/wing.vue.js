@@ -1337,7 +1337,7 @@ Vue.component("wing-object-option-label", {
 Vue.component("wing-option-label", {
   template: `<template>
       <span v-if="has_list">
-        {{list.field_options[_property] && object.properties[property] && list.field_options[_property][object.properties[property]]}}
+        {{list.field_options[_property] && list.field_options[_property][object.properties[property]]}}
       </span>
       <span v-else>
         {{object.properties._options && object.properties._options[_property][object.properties[property]]}}
