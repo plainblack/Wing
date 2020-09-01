@@ -17,7 +17,7 @@ sub wing_webfiltered_fields {
 sub wing_webfiltered_field {
     my ($object_class, $field, $options) = @_;
 
-    my %dbic = ( data_type => 'mediumtext', is_nullable => 1 );
+    my %dbic = ( data_type => 'mediumtext', is_nullable => 0, default_value => '' );
     $options->{dbic} = \%dbic;
     $object_class->wing_field($field, $options);
 
