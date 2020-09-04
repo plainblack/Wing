@@ -1539,3 +1539,101 @@ Vue.component("toggle", {
     },
   },
 });
+
+/*
+ * date time form control
+ */
+
+Vue.component("date-time", {
+  template: `<span :id="id">
+                  <b-input-group append="UTC">
+                  <b-form-datepicker v-model="date" @input="handle"></b-form-datepicker>
+                  <b-form-timepicker v-model="time" @input="handle" locale="en"></b-form-timepicker>
+                  </b-input-group>
+              </span>`,
+  props: { value: { required: 1 }, id: { default: wing.generate_id() } },
+  data() {
+    var date = moment(this.value);
+    return {
+      date: date.format("YYYY-MM-DD"),
+      time: date.format("HH:mm:ss"),
+    };
+  },
+  methods: {
+    handle(e) {
+      var output = this.date + " " + this.time;
+      this.$emit("input", output);
+      this.$emit("change", output);
+    },
+  },
+});
+
+/*
+ * markdown editor - https://github.com/code-farmer-i/vue-markdown-editor
+ */
+
+Vue.component("markdown-editor", {
+  template: `<div class="row">
+          <div class="col-lg">
+              <v-md-editor v-model="object.properties[property]" :toolbar="toolbar" :ref="id" :id="id" @change="fix_first()" @save="save()" :left-toolbar="left_toolbar" :right-toolbar="right_toolbar" mode="edit" height="90vh"></v-md-editor>
+          </div>
+          <div class="col-lg" v-if="rendered">
+              <div v-html="object.properties[rendered]"></div>
+          </div>
+      </div>`,
+  props: {
+    object: { required: 1 },
+    property: { required: 1 },
+    rendered: {},
+    help: {
+      default: "http://help.thegamecrafter.com/article/253-advanced-formatting",
+    },
+    id: { default: wing.generate_id() },
+  },
+  data() {
+    var self = this;
+    return {
+      first: true,
+      left_toolbar:
+        "save | undo redo | h bold italic strikethrough quote | ul ol table hr | link image",
+      right_toolbar: "help fullscreen",
+      toolbar: {
+        help: {
+          title: "Formatting Help",
+          icon: "fas fa-question-circle",
+          action(editor) {
+            window.open(self.help);
+          },
+        },
+      },
+    };
+  },
+  methods: {
+    save() {
+      var self = this;
+      var cursor = self.$refs[self.id].codemirrorInstance.getCursor();
+      var params = {};
+      params[self.property] = self.object.properties[self.property];
+      self.object._partial_update(params, {
+        on_success() {
+          setTimeout(function () {
+            // reset the cursor where it was
+            self.$refs[self.id].codemirrorInstance.setCursor(cursor);
+            self.$refs[self.id].codemirrorInstance.focus();
+          }, 0);
+        },
+      });
+    },
+    fix_first() {
+      // the editor calls a change event immediately upon load for some reason
+      if (this.first) {
+        this.first = false;
+      } else {
+        this.debounced_save();
+      }
+    },
+    debounced_save: _.debounce(function () {
+      this.save();
+    }, 3500),
+  },
+});

@@ -83,6 +83,8 @@ template($tt,'var/mkits/secondary_auth.mkit/body.html', $vars);
 my $t_alt = Template->new({ABSOLUTE => 1, START_TAG => quotemeta('[%['), END_TAG => quotemeta(']%]')});
 template($t_alt,'views/footer_include.tt', $vars);
 template($t_alt,'views/header_include.tt', $vars);
+template($t_alt,'views/markdowneditor_js_include.tt', $vars);
+template($t_alt,'views/markdowneditor_css_include.tt', $vars);
 template($t_alt,'views/wing_ui_css_requirements.tt', $vars);
 template($t_alt,'views/wing_ui_js_requirements.tt', $vars);
 template($t_alt,'views/error.tt', $vars);
