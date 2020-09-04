@@ -1264,7 +1264,7 @@ Vue.directive("autosave", {
         "Cannot use v-autosave unless on an element with a v-model or v-autosavefield."
       );
     } else {
-      var delay = 2000;
+      var delay = el.tagName == "SELECT" ? 0 : 2000;
       const delay_index = _.findIndex(vnode.data.directives, {
         rawName: "v-autosavedelay",
       });
