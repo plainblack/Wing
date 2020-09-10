@@ -1521,7 +1521,14 @@ Vue.component("comments", {
 
 Vue.component("toggle", {
   template: `<span><span ref="toggle" :id="id" class="far toggle" v-bind:class="{'fa-toggle-on': output, 'fa-toggle-off': !output, 'text-primary': output, 'text-muted': !output}" @click="handle()" style="font-size: 170%"></span> <label @click="handle()" style="vertical-align: middle" :for="id"><slot></slot></label></span>`,
-  props: { value: { required: 1 }, id: { default: wing.generate_id() } },
+  props: {
+    value: { required: 1 },
+    id: {
+      default: function () {
+        return wing.generate_id();
+      },
+    },
+  },
   data() {
     return {
       output: this.value,
@@ -1551,7 +1558,14 @@ Vue.component("date-time", {
                   <b-form-timepicker v-model="time" @input="handle" locale="en"></b-form-timepicker>
                   </b-input-group>
               </span>`,
-  props: { value: { required: 1 }, id: { default: wing.generate_id() } },
+  props: {
+    value: { required: 1 },
+    id: {
+      default: function () {
+        return wing.generate_id();
+      },
+    },
+  },
   data() {
     var date = moment(this.value);
     return {
@@ -1588,7 +1602,11 @@ Vue.component("markdown-editor", {
     help: {
       default: "http://help.thegamecrafter.com/article/253-advanced-formatting",
     },
-    id: { default: wing.generate_id() },
+    id: {
+      default: function () {
+        return wing.generate_id();
+      },
+    },
   },
   data() {
     var self = this;

@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-09-10
+ * Fix static id bug by wrapping id default in function.
+
 2020-09-05
  * Added <markdown-editor> component to wing.vue.js.
  * Added <date-time> component to wing.vue.js.
