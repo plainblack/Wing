@@ -1588,10 +1588,10 @@ Vue.component("date-time", {
 
 Vue.component("markdown-editor", {
   template: `<div class="row">
-          <div class="col-lg">
+          <div class="col-lg mb-3">
               <v-md-editor v-model="object.properties[property]" :toolbar="toolbar" :ref="id" :id="id" @change="fix_first()" @save="save()" :left-toolbar="left_toolbar" :right-toolbar="right_toolbar" mode="edit" height="90vh"></v-md-editor>
           </div>
-          <div class="col-lg" v-if="rendered">
+          <div class="col-lg mb-3" v-if="rendered">
               <div v-html="object.properties[rendered]"></div>
           </div>
       </div>`,
@@ -1613,8 +1613,8 @@ Vue.component("markdown-editor", {
     return {
       first: true,
       left_toolbar:
-        "save | undo redo | h bold italic strikethrough quote | ul ol table hr | link image",
-      right_toolbar: "help fullscreen",
+        "save | undo redo | h bold italic strikethrough quote | ul ol table hr | link | help fullscreen",
+      right_toolbar: "",
       toolbar: {
         help: {
           title: "Formatting Help",
