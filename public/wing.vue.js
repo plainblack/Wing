@@ -1630,12 +1630,17 @@ Vue.component("markdown-editor", {
     save() {
       var self = this;
       var cursor = self.$refs[self.id].codemirrorInstance.getCursor();
+      self.$refs[self.id].codemirrorInstance.setOption("readOnly", "nocursor");
       var params = {};
       params[self.property] = self.object.properties[self.property];
       self.object._partial_update(params, {
         on_success() {
           setTimeout(function () {
             // reset the cursor where it was
+            self.$refs[self.id].codemirrorInstance.scrollIntoView({
+              line: cursor.line + 5,
+            });
+            self.$refs[self.id].codemirrorInstance.setOption("readOnly", false);
             self.$refs[self.id].codemirrorInstance.setCursor(cursor);
             self.$refs[self.id].codemirrorInstance.focus();
           }, 0);

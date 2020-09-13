@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-09-13
+ * Markdown editor goes into readonly mode while saving.
+ * Markdwon editor scrolls to same line number + 5 after saving.
+
 2020-09-10
  * Fix static id bug by wrapping id default in function.
 
