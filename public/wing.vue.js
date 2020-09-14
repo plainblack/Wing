@@ -1113,10 +1113,10 @@ const wing = {
         // mysql datetime
         var parts = input.split(/\s/);
         var string = parts[0] + "T" + parts[1] + "+00:00"; // wing dates are UTC
-        date = moment(string);
+        date = moment.utc(string);
       } else if (typeof input === "string" && input.length == 10) {
         // mysql date
-        date = moment(input, "YYYY-MM-DD", true);
+        date = moment.utc(input, "YYYY-MM-DD", true);
       } else if (input instanceof moment) {
         date = input;
       } else if (typeof input === "number" && input > 1000000000000) {
@@ -1129,7 +1129,7 @@ const wing = {
         // must be a normal date
         date = moment(input);
       }
-      if (typeof moment.tz === "function" && _.isString(timezone)) {
+      if (typeof moment.tz === "function" && typeof timezone !== "undefined") {
         date = date.tz(timezone);
       }
       return date;
@@ -1557,6 +1557,7 @@ Vue.component("date-time", {
                   <b-form-datepicker v-model="date" @input="handle"></b-form-datepicker>
                   <b-form-timepicker v-model="time" @input="handle" locale="en"></b-form-timepicker>
                   </b-input-group>
+                  {{date}} {{time}}
               </span>`,
   props: {
     value: { required: 1 },
