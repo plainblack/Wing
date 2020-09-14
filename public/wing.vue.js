@@ -1557,7 +1557,6 @@ Vue.component("date-time", {
                   <b-form-datepicker v-model="date" @input="handle"></b-form-datepicker>
                   <b-form-timepicker v-model="time" @input="handle" locale="en"></b-form-timepicker>
                   </b-input-group>
-                  {{date}} {{time}}
               </span>`,
   props: {
     value: { required: 1 },
