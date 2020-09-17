@@ -114,14 +114,17 @@ The same as C<postable>, but only editable by users with the admin bit flipped.
 
 =item check_privilege
 
-Specifies the name of a method to call to verify whether the current user is allowed to update this field. The method needs to take an array of arguments including C<current_user>, C<field_name>, and C<new_field_value>. And must return either a 1 if the field is allowed to be updated, or L<Ouch> 450 if the field is not allowed to be updated. Example method:
+Specifies the name of a method to call to verify whether the current user is allowed to update this field. The method needs to take an array of arguments including C<current_user>, C<field_name>, and C<new_field_value>. And must return either a true value (a 1 or something else perl deems truthy) if the field is allowed to be updated, or L<Ouch> 450 if the field is not allowed to be updated. Example method:
 
  sub check_user_is_cool {
      my ($self, $current_user, $field, $value) = @_;
      unless ($current_user->is_in_group('Cool People')) { # using a hypothetical is_in_group method
          ouch 450, $current_user->display_name.' not cool enough to edit '.$field;
      }
+     return 1;
  }
+
+For example you could use L<Wing::Role::Result::PrivilegeField> fields with it. So if you had a privilege called C<curator> then you could use the generated C<verify_is_curator> method to check this.
 
 =item indexed
 
