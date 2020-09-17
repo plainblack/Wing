@@ -140,8 +140,6 @@ Example method:
      return 1;
  }
 
-For example you could use L<Wing::Role::Result::PrivilegeField> fields with it. So if you had a privilege called C<curator> then you could use the generated C<is_curator> or C<verify_is_curator> method to check this.
-
 =item indexed
 
 Boolean. Indicates whether this field should have an index applied to it in the database for quicker searching. This is automatic when C<edit> is set to C<unique>.

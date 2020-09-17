@@ -5,7 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2020-09-16
- * Minor change to Wing::DB::Result->check_privilege_method so that it returns a 1 instead of the result of the called method if it passes it's checks. This way you can use Wing::Role::Result::PrivilegeField->verify_is_ methods with it.
+ * Minor change to Wing::DB::Result->check_privilege_method so that it returns a 1 instead of the result of the called method if it passes it's checks. It's just checking for truthiness not specfically a 1.
 
 2020-09-13
  * Markdown editor goes into readonly mode while saving.
