@@ -503,7 +503,7 @@ sub verify_creation_params {
     }
 }
 
-=head2 verify_posted_params(params, current_user)
+=head2 verify_posted_params(params, current_user, tracer)
 
 Used by web/rest interfaces to validate posted parameters for update. Throws a 441 ouch if a required parameter is not present.  Otherwise, it updates the object with the parameters.
 
