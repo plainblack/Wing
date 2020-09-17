@@ -617,7 +617,7 @@ sub check_privilege_method {
         Wing->log->warn($method.' on '.$self->wing_object_name.' failed with '.$@);
         return 0;
     }
-    return 1;
+    return $result ? 1 : 0;
 }
 
 =head2 SEE ALSO
