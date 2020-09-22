@@ -151,7 +151,7 @@ register generate_relationship => sub {
                     next unless $1 ~~ $prefetch;
                 }
                 my $key = $name =~ m/\./ ? $name : 'me.'.$name;
-                $query{$key} = { like => '%'.param('query').'%' } if defined param('query');
+                $query{$key} = { like => param('query').'%' } if defined param('query');
             }
             my %where = %query;
             if (scalar(keys %query)) {

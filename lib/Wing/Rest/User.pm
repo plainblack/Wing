@@ -9,9 +9,9 @@ use Wing::Rest;
 get '/api/user' => sub {
     my $user = get_user_by_session_id();
     my $users = site_db()->resultset('User')->search({ -or => {
-        username    => { like => '%'.(params->{query} || '').'%'},
-        email       => { like => '%'.(params->{query} || '').'%'},
-        real_name   => { like => '%'.(params->{query} || '').'%'},
+        username    => { like => (params->{query} || '').'%'},
+        email       => { like => (params->{query} || '').'%'},
+        real_name   => { like => (params->{query} || '').'%'},
     }}, {order_by => 'username'});
     return format_list($users, current_user => $user);
 };
@@ -19,9 +19,9 @@ get '/api/user' => sub {
 get '/api/user-not-me' => sub {
     my $user = get_user_by_session_id();
     my $users = site_db()->resultset('User')->search({ -or => {
-        username    => { like => '%'.(params->{query} || '').'%'},
-        email       => { like => '%'.(params->{query} || '').'%'},
-        real_name   => { like => '%'.(params->{query} || '').'%'},
+        username    => { like => (params->{query} || '').'%'},
+        email       => { like => (params->{query} || '').'%'},
+        real_name   => { like => (params->{query} || '').'%'},
     }, id => { '<>' => $user->id }, }, {order_by => 'username'});
     return format_list($users, current_user => $user);
 };
