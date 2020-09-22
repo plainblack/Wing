@@ -11,8 +11,8 @@ get '/api/ideacomment' => sub {
     my $user = eval { get_user_by_session_id() };
     my $ideacomments = site_db()->resultset('IdeaComment')->search({
         -or => {
-            'me.name' => { like => '%'.params->{query}.'%'},
-            #'me.description' => { like => '%'.params->{query}.'%'}, # pretty damn slow, suggest using a real search engine rather than a database
+            'me.name' => { like => params->{query}.'%'},
+            #'me.description' => { like => params->{query}.'%'}, # pretty damn slow, suggest using a real search engine rather than a database
         }
     }, {
         order_by => { -desc => 'me.date_created' }
