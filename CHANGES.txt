@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-09-21
+ * Changed check_privilege_method to log on debug instead of warn.
+
 2020-09-16
  * Minor change to Wing::DB::Result->check_privilege_method so that it returns a 1 instead of the result of the called method if it passes it's checks. It's just checking for truthiness not specfically a 1.
 

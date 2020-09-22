@@ -614,7 +614,7 @@ sub check_privilege_method {
     return 0 unless defined $current_user;
     my $result = eval { $self->$method($current_user) };
     if ($@) {
-        Wing->log->warn($method.' on '.$self->wing_object_name.' failed with '.$@);
+        Wing->log->debug($method.' on '.$self->wing_object_name.' failed privilege check with '.$@);
         return 0;
     }
     return $result ? 1 : 0;
