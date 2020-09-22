@@ -220,10 +220,11 @@ before wing_finalize_class => sub {
     );
 };
 
-sub sqlt_deploy_hook {
-    my ($self, $sqlt_table) = @_;
+around sqlt_deploy_hook => sub {
+    my ($orig, $self, $sqlt_table) = @_;
+    $orig->($self, $sqlt_table);
     $sqlt_table->add_index(name => 'idx_search', fields => ['real_name','username','email']);
-}
+};
 
 around describe => sub {
     my ($orig, $self, %options) = @_;
