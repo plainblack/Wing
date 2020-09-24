@@ -87,6 +87,12 @@ before wing_finalize_class => sub {
     );
 };
 
+around sqlt_deploy_hook => sub {
+    my ($orig, $self, $sqlt_table) = @_;
+    $orig->($self, $sqlt_table);
+    $sqlt_table->add_index(name => 'idx_name_description', fields => ['name','description'], type => 'FULLTEXT');
+};
+
 before delete => sub {
     my $self = shift;
     $self->opinions->delete_all;
@@ -180,45 +186,37 @@ sub search_ideas {
 
     # decide sort
     my %sorts = $class->sorts;
-    my $query = {};
+    my $query = { -and => []};
     my $options = {
         order_by => $sorts{$params->{_sort_by}} || $sorts{$class->default_sort},
     };
 
-    my ($keyword_clause, $filter_clause, $owner_clause, $locked_clause);
     # define query parameters
     if ($params->{'keyword'}) {
-        $query->{'-or'} = [
-            name        => { 'like', '%' . $params->{keyword} . '%'},
-            description => { 'like', '%' . $params->{keyword} . '%'},
-        ];
+        push @{$query->{'-and'}}, \['match(name,description) against(? in boolean mode)', $params->{keyword}.'*'];
     }
 
     if ($params->{_sort_whose} eq 'Mine') {
-        $query->{user_id} = $user->id;
+        push @{$query->{'-and'}}, user_id => $user->id;
     }
 
     if ($params->{_sort_status} eq 'Closed') {
-        $query->{locked} = 1;
+        push @{$query->{'-and'}}, locked => 1;
     }
     elsif ($params->{_sort_status} eq 'Infeasible') {
-        $query->{locked} = 1;
-        $query->{locked_status} = 'Infeasible';
+        push @{$query->{'-and'}}, locked => 1, locked_status => 'Infeasible';
     }
     elsif ($params->{_sort_status} eq 'Incomprehensible') {
-        $query->{locked} = 1;
-        $query->{locked_status} = 'Incomprehensible';
+        push @{$query->{'-and'}}, locked => 1, locked_status => 'Incomprehensible';
     }
     elsif ($params->{_sort_status} eq 'Completed') {
-        $query->{locked} = 1;
-        $query->{locked_status} = 'Completed';
+        push @{$query->{'-and'}}, locked => 1, locked_status => 'Completed';
     }
     elsif ($params->{_sort_status} eq 'Merged') {
-        $query->{locked} = 1;
-        $query->{locked_status} = 'Merged';
+        push @{$query->{'-and'}}, locked => 1, locked_status => 'Completed';
     }
     elsif ($params->{_sort_status} eq 'Open') {
-        $query->{locked} = 0;
+        push @{$query->{'-and'}}, locked => 0;
     }
     ##Implicit case for All, which is don't care about locked and locked_status
 
