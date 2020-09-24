@@ -91,12 +91,15 @@ __PACKAGE__->wing_datetime_fields(
 
 __PACKAGE__->wing_finalize_class( table_name => '[% String.new(class_name).lower.append('s') %]');
 
-# uncomment if you want to create a special DB index
-#around sqlt_deploy_hook  => sub {
-#    my ($orig, $self, $sqlt_table) = @_;
-#    $orig->($self, $sqlt_table);
-#    $sqlt_table->add_index(name => 'idx_ending_soon', fields => ['status','end_date']);
-#};
+around sqlt_deploy_hook  => sub {
+    my ($orig, $self, $sqlt_table) = @_;
+    $orig->($self, $sqlt_table);
+    $sqlt_table->add_index(name => 'idx_name', fields => ['name'], type => 'FULLTEXT');
+
+    # uncomment if you want to create a special DB index
+    # $sqlt_table->add_index(name => 'idx_ending_soon', fields => ['status','end_date']);
+    
+};
 
 around describe => sub {
     my ($orig, $self, %options) = @_;
