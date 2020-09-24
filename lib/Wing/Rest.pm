@@ -135,8 +135,8 @@ register generate_relationship => sub {
         my $current_user = eval{get_user_by_session_id(permissions => $options{permissions})};
         my $object = fetch_object($wing_object_type);
         my $data = $object->$relationship_name();
-        if (exists $options{queryable}) {
-            my %query;
+        if (exists $options{queryable} || exists $options{fulltextquery}) {
+            my @query;
             my $prefetch = param('_include_related_objects');
             if (defined $prefetch) {
                 if (ref $prefetch ne 'ARRAY' && $prefetch !~ m/^\d$/) {
@@ -146,18 +146,25 @@ register generate_relationship => sub {
             if (ref $prefetch ne 'ARRAY') {
                 $prefetch = [];
             }
-            foreach my $name (@{$options{queryable}}) {
-                if ($name =~ m/(\w+)\.\w+/) { # skip a joined query if there is no prefetch on that query, needed when you have queriable params in a joined table like 'user.real_name'.
-                    next unless $1 ~~ $prefetch;
+            my $query = param('query');
+            if (defined $query && $query ne '') {
+                foreach my $name (@{$options{queryable}}) {
+                    if ($name =~ m/(\w+)\.\w+/) { # skip a joined query if there is no prefetch on that query, needed when you have queriable params in a joined table like 'user.real_name'.
+                        next unless $1 ~~ $prefetch;
+                    }
+                    my $key = $name =~ m/\./ ? $name : 'me.'.$name;
+                    push @query, $key => { like => $query.'%' };
                 }
-                my $key = $name =~ m/\./ ? $name : 'me.'.$name;
-                $query{$key} = { like => param('query').'%' } if defined param('query');
+                foreach my $name (@{$options{fulltextquery}}) {
+                    if ($name =~ m/(\w+)\.\w+/) { # skip a joined query if there is no prefetch on that query, needed when you have queriable params in a joined table like 'user.real_name'.
+                        next unless $1 ~~ $prefetch;
+                    }
+                    my $key = $name =~ m/\./ ? $name : 'me.'.$name;
+                    push @query, \['match('.$key.') against(? in boolean mode)', $query.'*']
+                }
+                my %where = ( -or => \@query );
+                $data = $data->search(\%where);
             }
-            my %where = %query;
-            if (scalar(keys %query)) {
-                %where = ( -or => \%query );
-            }
-            $data = $data->search(\%where);
         }
         if (exists $options{qualifiers}) {
             my %where;
