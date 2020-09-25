@@ -155,12 +155,16 @@ register generate_relationship => sub {
                     my $key = $name =~ m/\./ ? $name : 'me.'.$name;
                     push @query, $key => { like => $query.'%' };
                 }
-                foreach my $name (@{$options{fulltextquery}}) {
-                    if ($name =~ m/(\w+)\.\w+/) { # skip a joined query if there is no prefetch on that query, needed when you have queriable params in a joined table like 'user.real_name'.
-                        next unless $1 ~~ $prefetch;
+		if (scalar @{$options{fulltextquery}}) {
+		    my @keys = ();
+                    foreach my $name (@{$options{fulltextquery}}) {
+                        if ($name =~ m/(\w+)\.\w+/) { # skip a joined query if there is no prefetch on that query, needed when you have queriable params in a joined table like 'user.real_name'.
+                            next unless $1 ~~ $prefetch;
+                        }
+                        my $key = $name =~ m/\./ ? $name : 'me.'.$name;
+		        push @keys, $key;
                     }
-                    my $key = $name =~ m/\./ ? $name : 'me.'.$name;
-                    push @query, \['match('.$key.') against(? in boolean mode)', $query.'*']
+                    push @query, \['match('.join(',', @keys).') against(? in boolean mode)', $query.'*'];
                 }
                 my %where = ( -or => \@query );
                 $data = $data->search(\%where);
