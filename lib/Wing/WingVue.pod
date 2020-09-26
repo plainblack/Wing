@@ -853,7 +853,7 @@ The unique id of the object in the database.
 
 =head3 search(options)
 
-Retrieves a page of data from the Wing Rest API then populates the C<objects> list, and then returns a promise from the HTTP request.
+Retrieves a page of data from the Wing Rest API then populates the C<objects> list, and then returns a promise from the HTTP request. Does a 500ms debounce before sending the request. There is also C<search_fast()> which does the same thing, but only 200ms.
 
 =over
 
