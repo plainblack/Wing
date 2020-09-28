@@ -14,8 +14,8 @@ get '/api/[% lower_class %]' => sub {
     my $query = param('query');
     if (defined $query && $query) {
         push @{$where->{'-and'}}, \['match(me.name) against(? in boolean mode)', $query.'*'];
-        $options->{'+select'} = [\['match(me.name) against(?) as fulltextscore', $query]]
-        $options->{order_by} = { -desc => 'fulltextscore'},
+        $options->{'+select'} = [\['match(me.name) against(?) as fulltextscore', $query]];
+        $options->{order_by} = { -desc => 'fulltextscore'};
     }
     ### add in other fields to search on
     # my $is_cool = param('is_cool');
