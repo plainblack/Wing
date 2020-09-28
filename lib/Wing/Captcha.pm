@@ -19,7 +19,7 @@ sub get {
 sub verify {
 	my ($key, $user_answer) = @_;
 	my $correct_answer = Wing->cache->get('captcha_'.$key);
-	unless ($correct_answer) {
+	if ($correct_answer eq '') {
 		ouch 412, 'Captcha expired';
 	}
 	unless ($user_answer eq $correct_answer) {
