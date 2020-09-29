@@ -1,57 +1,51 @@
 [% page_title = "Trends Reports" %]
-[% head_tags = BLOCK %]
-<link href="//unpkg.com/flatpickr@4/dist/flatpickr.min.css" rel="stylesheet">
-[% END %]
 [% INCLUDE admin/header_include.tt %]
-
-
 
 <div id="app">
 
-    <div class="row">
-        <div class="col-md">
-            <select class="form-control" v-model="filters.report_id" @change="fetch_report_data()">
-              <option v-for="report in reports.objects" :value="report.properties.id">{{report.properties.name}}</option>
-            </select>
+        <div class="row">
+            <div class="col-md">
+                <b-form-select v-model="filters.report_id" @change="fetch_report_data()">
+                    <option v-for="report in reports.objects" :value="report.properties.id">{{report.properties.name}}</option>
+                </b-form-select>
+            </div>
+            <div class="col-md">
+                <b-form-select v-model="filters.granularity" @change="update_granularity()" :options="granularity_options"></b-form-select>
+            </div>
+            <div class="col-md">
+                <input type="number" class="form-control" v-model="filters.range" @change="fetch_report_data()">
+            </div>
+            <div class="col-md">
+                <b-form-datepicker v-model="filters.start"></b-form-datepicker>
+            </div>
         </div>
-        <div class="col-md">
-            <select class="form-control" v-model="filters.granularity" @change="update_granularity()">
-              <option v-for="granularity in granularity_options" :value="granularity.name">{{granularity.label}}</option>
-            </select>
-        </div>
-        <div class="col-md">
-            <input type="number" class="form-control" v-model="filters.range" @change="fetch_report_data()">
-        </div>
-        <div class="col-md">
-            <flat-pickr v-model="filters.start" class="form-control" @on-change="fetch_report_data()"></flat-pickr>
-        </div>
-    </div>
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <tr>
-                <th v-for="head in report.headings">{{head}}</th>
-            </tr>
-            <tr v-for="row in report.rows">
-                <template v-for="(col,index) in row">
-                    <th v-if="index == 0">{{col}}</th>
-                    <td v-else>{{col}}</td>
-                </template>
-            </tr>
-        </table>
-    </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <tr>
+                    <th v-for="head in report.headings">{{head}}</th>
+                </tr>
+                <tr v-for="row in report.rows">
+                    <template v-for="(col,index) in row">
+                        <th v-if="index == 0">{{col}}</th>
+                        <td v-else>{{col}}</td>
+                    </template>
+                </tr>
+            </table>
+        </div>
 
-    <br>
-    <a href="/admin/trends/reports/manage" class="btn btn-primary">Manage Reports</a>
+        <div>
+            <a href="/admin/trends/reports/manage" class="btn btn-primary"><i class="fas fa-tasks"></i> Manage Reports</a>
+            <button class="btn btn-primary" @click="export_to_csv()"><i class="fas fa-file-csv"></i> Export to CSV</button>
+        </div>
 </div>
 
 [% foot_tags = BLOCK %]
-<script src="//unpkg.com/flatpickr@4/dist/flatpickr.min.js"></script>
-<script src="//unpkg.com/vue-flatpickr-component@7.0.0/dist/vue-flatpickr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js" integrity="sha256-Xjq9HM9n3XzT47n/NmSEaJUwPi7hme++D8mxHfSr+0Q=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.2/dist/FileSaver.min.js" integrity="sha256-u/J1Urdrk3nCYFefpoeTMgI5viU1ujCDu2fXXoSJjhg=" crossorigin="anonymous"></script>
 <script type="text/javascript">
 'use strict';
 
-Vue.component('flat-pickr', VueFlatpickr);
 new Vue({
     el:     '#app',
     data:   {
@@ -63,16 +57,16 @@ new Vue({
         },
         granularity_options : [
             {
-                name: "hourly", label : "Hourly",
+                value: "hourly", text : "Hourly",
             },
             {
-                name: "daily", label : "Daily",
+                value: "daily", text : "Daily",
             },
             {
-                name: "monthly", label : "Monthly",
+                value: "monthly", text : "Monthly",
             },
             {
-                name: "yearly", label : "Yearly",
+                value: "yearly", text : "Yearly",
             },
         ],
         filters : { granularity: 'monthly', range : 12, start: (new Date()).toISOString().split('T')[0] },
@@ -102,6 +96,14 @@ new Vue({
         update_granularity() {
             this.filters.range = this.range_defaults[this.filters.granularity];
             this.fetch_report_data();
+        },
+        export_to_csv() {
+            var self = this;
+            var headers = self.report.headings;
+            var csv = Papa.unparse([headers]);
+            csv += '\r\n' + Papa.unparse(self.report.rows);
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            saveAs(blob, self.report.name+'.csv');
         },
     },
 });
