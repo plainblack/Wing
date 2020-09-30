@@ -9,11 +9,14 @@ use Wing::Rest;[% USE String %][% lower_class = String.new(class_name).lower %]
 get '/api/[% lower_class %]' => sub {
     ##remove the eval for data accessible only by registered users
     my $user = eval { get_user_by_session_id() };
-    my $where = {'-and' => []};
+    my $where = {};
     my $options = { order_by => { -desc => 'me.name' } };
     my $query = param('query');
     if (defined $query && $query) {
-        push @{$where->{'-and'}}, \['match(me.name) against(? in boolean mode)', $query.'*'];
+        $where->{-or} = [
+            \['match(me.name) against(? in boolean mode)', $query.'*'],
+            'me.name' => { like => substr($query,0,2).'%' },
+        ];        
         $options->{'+select'} = [\['match(me.name) against(?) as fulltextscore', $query]];
         $options->{'+as'} = [qw(fulltextscore)];
         $options->{order_by} = { -desc => 'fulltextscore'};
@@ -21,7 +24,7 @@ get '/api/[% lower_class %]' => sub {
     ### add in other fields to search on
     # my $is_cool = param('is_cool');
     # unless (defined $is_cool and $is_cool ne '') {
-    #     push @{$where->{'-and'}}, 'me.is_cool' => $is_cool;
+    #     $where->{'me.is_cool'} = $is_cool;
     # }
     my $[% lower_class %]s = site_db()->resultset('[% class_name %]')->search($where, $options);
     return format_list($[% lower_class %]s, current_user => $user); 

@@ -8,15 +8,13 @@ extends 'Wing::DB::Result';[% USE String %][% lower_class = String.new(class_nam
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::UriPart';
 with 'Wing::Role::Result::UserControlled';
-with 'Wing::Role::Result::DateTimeField';
 
-#with 'Wing::Role::Result::Child';
-#with 'Wing::Role::Result::Parent';
 
 #with 'Wing::Role::Result::PrivilegeControlled';
 #__PACKAGE__->wing_controlled_by_privilege('supervisor');
 #__PACKAGE__->wing_viewed_by_privilege('employee');
 
+#with 'Wing::Role::Result::Child';
 #__PACKAGE__->wing_children(
 #    votes => {
 #        view           => 'public',
@@ -27,7 +25,8 @@ with 'Wing::Role::Result::DateTimeField';
 #    #Add children here
 #
 #);
-#
+
+#with 'Wing::Role::Result::Parent';
 #__PACKAGE__->wing_parents(
 #    [% lower_class %]_container => {
 #        view           => 'public',
@@ -74,6 +73,7 @@ __PACKAGE__->wing_fields(
     
 );
 
+with 'Wing::Role::Result::DateTimeField';
 __PACKAGE__->wing_datetime_fields(
     start_date => {
         set_on_create   => 1,
@@ -94,7 +94,8 @@ __PACKAGE__->wing_finalize_class( table_name => '[% String.new(class_name).lower
 around sqlt_deploy_hook  => sub {
     my ($orig, $self, $sqlt_table) = @_;
     $orig->($self, $sqlt_table);
-    $sqlt_table->add_index(name => 'idx_name', fields => ['name'], type => 'FULLTEXT');
+    $sqlt_table->add_index(name => 'idxft_name', fields => ['name'], type => 'FULLTEXT');
+    $sqlt_table->add_index(name => 'idx_name', fields => ['name']);
 
     # uncomment if you want to create a special DB index
     # $sqlt_table->add_index(name => 'idx_ending_soon', fields => ['status','end_date']);
