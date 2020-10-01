@@ -7,6 +7,7 @@ use LWP::UserAgent;
 use HTTP::Request::Common qw(PUT DELETE POST);
 use Encode qw(encode_utf8);
 use JSON;
+no strict 'refs';
 
 sub BUILDARGS {
     my $class = shift;
@@ -34,7 +35,7 @@ has base_url => (
     lazy    => 1,
     default => sub {
         my $self = shift;
-        return 'https://' . $self->application_id . '.algolia.io/1';
+        return 'https://' . $self->application_id . '.algolia.net/1';
     }
 );
 
@@ -52,41 +53,37 @@ has headers => (
 
 sub replace_index_object {
     my ($self, $index, $id, $data) = @_;
-    my $url = join('/', $self->base_url, 'indexes', $index, $id);
-    my $json = JSON->new;
-    return $self->handle_response(PUT $url, %{$self->headers}, ( content => encode_utf8($json->encode($data)) ));
+    return $self->make_request('PUT', ['indexes', $index, $id], $data);
 }
 
 sub update_index_settings {
     my ($self, $index, $data) = @_;
-    my $url = join('/', $self->base_url, 'indexes', $index, 'settings');
-    my $json = JSON->new;
-    return $self->handle_response(PUT $url, %{$self->headers}, ( content => encode_utf8($json->encode($data)) ));
+    return $self->make_request('PUT', ['indexes', $index, 'settings'], $data);
 }
 
 sub delete_index_object {
     my ($self, $index, $id) = @_;
-    my $url = join('/', $self->base_url, 'indexes', $index, $id);
-    my $json = JSON->new;
-    return $self->handle_response(DELETE $url, %{$self->headers});
+    return $self->make_request('DELETE', ['indexes', $index, $id]);
 }
 
 sub delete_index {
     my ($self, $index) = @_;
-    my $url = join('/', $self->base_url, 'indexes', $index);
-    my $json = JSON->new;
-    return $self->handle_response(DELETE $url, %{$self->headers});
+    return $self->make_request('DELETE', ['indexes', $index]);
 }
 
 sub clear_index {
     my ($self, $index, $id) = @_;
-    my $url = join('/', $self->base_url, 'indexes', $index, 'clear');
-    my $json = JSON->new;
-    return $self->handle_response(POST $url, %{$self->headers});
+    return $self->make_request('POST', ['indexes', $index, 'clear']);
 }
 
-sub handle_response {
-    my ($self, $request) = @_;
+sub make_request {
+    my ($self, $method, $url_parts, $data) = @_;
+    my %encoded_data = ();
+    if ($data) {
+        my $json = JSON->new;
+	%encoded_data = ( content => encode_utf8($json->encode($data)));
+    }
+    my $request = $method->(join('/', $self->base_url, @{$url_parts}), %{$self->headers}, %encoded_data);
     #say $request->as_string;
     my $ua = LWP::UserAgent->new(timeout => 10);
     my $response = $ua->request($request);
