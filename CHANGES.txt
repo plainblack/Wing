@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2020-10-01
  * Made the algolia search code a bit more elegant to make it easier to implement their recommended retry strategy.
+ * Fixed: Can't use an undefined value as an ARRAY reference at /data/Wing/lib/Wing/Rest.pm line 158.
 
 2020-09-29
  * Fulltext searches below 3 characters are off limits unless you change innodb_ft_min_token_size, which isn't always possible or desirable. Therefore wing generated classes now add a non-fulltext index in addition to the fulltext one so that you can do substring searches on that as well.

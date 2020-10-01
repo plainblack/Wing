@@ -155,7 +155,7 @@ register generate_relationship => sub {
                     my $key = $name =~ m/\./ ? $name : 'me.'.$name;
                     push @query, $key => { like => $query.'%' };
                 }
-		if (scalar @{$options{fulltextquery}}) {
+		if (exists $options{fulltextquery} && scalar @{$options{fulltextquery}}) {
 		    my @keys = ();
                     foreach my $name (@{$options{fulltextquery}}) {
                         if ($name =~ m/(\w+)\.\w+/) { # skip a joined query if there is no prefetch on that query, needed when you have queriable params in a joined table like 'user.real_name'.
