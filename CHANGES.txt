@@ -7,6 +7,7 @@ with respect to new features and compatibility changes.
 2020-10-01
  * Made the algolia search code a bit more elegant to make it easier to implement their recommended retry strategy.
  * Wing::Algolia has been updated to cycle through 4 different URLs for redundancy.
+ * Wing::Rest generate_relationship with named_options "queryable" now does a full wildcard search again.
  * Fixed: Can't use an undefined value as an ARRAY reference at /data/Wing/lib/Wing/Rest.pm line 158.
 
 2020-09-29

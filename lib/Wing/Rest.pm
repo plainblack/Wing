@@ -153,7 +153,7 @@ register generate_relationship => sub {
                         next unless $1 ~~ $prefetch;
                     }
                     my $key = $name =~ m/\./ ? $name : 'me.'.$name;
-                    push @query, $key => { like => $query.'%' };
+                    push @query, $key => { like => '%'.$query.'%' };
                 }
 		if (exists $options{fulltextquery} && scalar @{$options{fulltextquery}}) {
 		    my @keys = ();
