@@ -4,6 +4,7 @@ use Wing::Perl;
 use Wing;
 use Dancer;
 use Ouch;
+use Wing::Util qw(trigram_match_against);
 use Wing::Rest;[% USE String %][% lower_class = String.new(class_name).lower %]
 
 get '/api/[% lower_class %]' => sub {
@@ -13,13 +14,22 @@ get '/api/[% lower_class %]' => sub {
     my $options = { order_by => { -desc => 'me.name' } };
     my $query = param('query');
     if (defined $query && $query) {
+
+        ## CHOOSE ONE OF THE FOLLOWING:
+
+        # SIMPLE SUBSTRING SEARCH
+        $where->{'me.name'} => { like => '%'.$query.'%' },
+
+        # FULLTEXT SEARCH
         $where->{-or} = [
             \['match(me.name) against(? in boolean mode)', $query.'*'],
-            'me.name' => { like => substr($query,0,2).'%' },
         ];        
-        $options->{'+select'} = [\['match(me.name) against(?) as fulltextscore', $query]];
-        $options->{'+as'} = [qw(fulltextscore)];
-        $options->{order_by} = { -desc => 'fulltextscore'};
+        delete $options->{order_by}; # will automatically order by relevance 
+
+        # TRIGRAM SEARCH
+        $where->{-or} = [ trigram_match_against($query) ];
+        delete $options->{order_by}; # will automatically order by relevance 
+
     }
     ### add in other fields to search on
     # my $is_cool = param('is_cool');

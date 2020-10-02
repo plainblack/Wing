@@ -6,6 +6,8 @@ use Wing::Command -command;
 use DBIx::Class::DeploymentHandler;
 use FindBin;
 
+$|=1; # autoflush
+
 ##Keep a copy of these in case we are working with tenants.
 my $master_schema      = Wing->db;
 my $master_app         = $ENV{WING_APP};
@@ -36,6 +38,7 @@ sub opt_spec {
       [ 'prepare_install', 'run to create files for installing the current version'],
       [ 'initialize', 'prepare a database that has not yet been upgraded to use DBIx::Class::DeploymentHandler (depricated)'],
       [ 'doom|do=s', 'execute a SQL statement on one or more databases'],
+      [ 'index_trigram|trigram=s', 'indexes the trigram search index for the specified resultset, see Wing::Role::Result::Trigram for details' ],
     );
 }
 
@@ -215,6 +218,24 @@ sub execute {
             say "Adding DeploymentHandler to your current db";
             $dh->install_version_storage;
             $dh->add_database_version({ version => $schema->schema_version });
+            say "done";
+        }
+        elsif ($opt->{index_trigram}) {
+            say "Indexing Trigram for ".$opt->{index_trigram};
+            my $rs = Wing->db->resultset($opt->{index_trigram})->search;
+            my $total = $rs->count;
+            my $one_percent = int($total / 100);
+            my $counter = 0;
+            print "0% |";
+            while (my $row = $rs->next) {
+                $counter++;
+                if ($counter >= $one_percent) {
+                    print "|";
+                    $counter = 0;
+                }
+                $row->populate_trigram_search->update;
+            }
+            say " 100%";
             say "done";
         }
         elsif ($opt->{prepare_update}) {

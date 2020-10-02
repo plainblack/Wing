@@ -6,6 +6,8 @@ use Ouch;
 use Dancer ':syntax';
 use Dancer::Plugin;
 no warnings 'experimental::smartmatch';
+use Wing::Util qw(trigram_match_against);
+
 
 set serializer => 'JSON';
 
@@ -155,16 +157,19 @@ register generate_relationship => sub {
                     my $key = $name =~ m/\./ ? $name : 'me.'.$name;
                     push @query, $key => { like => '%'.$query.'%' };
                 }
-		if (exists $options{fulltextquery} && scalar @{$options{fulltextquery}}) {
-		    my @keys = ();
+                if (exists $options{fulltextquery} && scalar @{$options{fulltextquery}}) {
+                    my @keys = ();
                     foreach my $name (@{$options{fulltextquery}}) {
                         if ($name =~ m/(\w+)\.\w+/) { # skip a joined query if there is no prefetch on that query, needed when you have queriable params in a joined table like 'user.real_name'.
                             next unless $1 ~~ $prefetch;
                         }
                         my $key = $name =~ m/\./ ? $name : 'me.'.$name;
-		        push @keys, $key;
+		                push @keys, $key;
                     }
                     push @query, \['match('.join(',', @keys).') against(? in boolean mode)', $query.'*'];
+                }
+                if (exists $options{trigramquery} && $options{trigramquery}) {
+                    push @query, trigram_match_against($query);
                 }
                 my %where = ( -or => \@query );
                 $data = $data->search(\%where);

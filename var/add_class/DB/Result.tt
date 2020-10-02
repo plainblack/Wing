@@ -89,16 +89,25 @@ __PACKAGE__->wing_datetime_fields(
     },
 );
 
+## This is a custom index called a trigram which allows for fast substring searching of large tables.
+use constant trigram_index_fields => ['name'];
+with 'Wing::Role::Result::Trigram';
+
 __PACKAGE__->wing_finalize_class( table_name => '[% String.new(class_name).lower.append('s') %]');
 
+## You will either want to delete all of these or some of it. 
 around sqlt_deploy_hook  => sub {
     my ($orig, $self, $sqlt_table) = @_;
     $orig->($self, $sqlt_table);
-    $sqlt_table->add_index(name => 'idxft_name', fields => ['name'], type => 'FULLTEXT');
+
+    # creating a regular index, which could be useful for sorting by name or "name like 'Dav%'" type searches. Won't be useful for searching if you want to do "name like '%Dav%'" with a wildcard at the front. Also you can create this by just doing "indexed => 1" on the name definition.
     $sqlt_table->add_index(name => 'idx_name', fields => ['name']);
 
-    # uncomment if you want to create a special DB index
-    # $sqlt_table->add_index(name => 'idx_ending_soon', fields => ['status','end_date']);
+    # creating a MySQL full text search, which is great for fast searching words or phrases
+    $sqlt_table->add_index(name => 'idxft_name', fields => ['name'], type => 'FULLTEXT');
+
+    # if you want to create a special DB index
+    $sqlt_table->add_index(name => 'idx_ending_soon', fields => ['status','end_date']);
     
 };
 
