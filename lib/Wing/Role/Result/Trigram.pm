@@ -80,6 +80,10 @@ L<Wing::Rest> has a function called C<generate_relationship> (or C<generate_all_
 
 L<Wing::Util> has two helper functions called C<trigram_match_against> and C<generate_trigram_from_string>
 
+ generate_all_relationships('SomeClass', named_options => {
+     somekids => { trigramquery => 'me' },
+ });
+
 L<Wing::Command::Command::db>
 
 You can use the C<wing> command line interface to index or re-index a trigram like this

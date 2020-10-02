@@ -137,7 +137,7 @@ register generate_relationship => sub {
         my $current_user = eval{get_user_by_session_id(permissions => $options{permissions})};
         my $object = fetch_object($wing_object_type);
         my $data = $object->$relationship_name();
-        if (exists $options{queryable} || exists $options{fulltextquery}) {
+        if (exists $options{queryable} || exists $options{fulltextquery} || exists $options{trigramquery}) {
             my @query;
             my $prefetch = param('_include_related_objects');
             if (defined $prefetch) {
@@ -169,7 +169,7 @@ register generate_relationship => sub {
                     push @query, \['match('.join(',', @keys).') against(? in boolean mode)', $query.'*'];
                 }
                 if (exists $options{trigramquery} && $options{trigramquery}) {
-                    push @query, trigram_match_against($query);
+                    push @query, trigram_match_against($query, $options{trigramquery});
                 }
                 my %where = ( -or => \@query );
                 $data = $data->search(\%where);

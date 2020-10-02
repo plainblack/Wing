@@ -145,7 +145,7 @@ sub generate_trigram_from_string {
     return join ' ', @list_of_trigrams;
 }
 
-=head2 trigram_match_against( string )
+=head2 trigram_match_against( string, [dbix_slot_prefix] )
 
 Returns an array reference reference that can be used as a L<DBIx::Class::ResultSet> search literal. Works as a class method or object method.
 
@@ -157,13 +157,18 @@ Returns an array reference reference that can be used as a L<DBIx::Class::Result
 
 The string to search the trigram for.
 
+=item dbix_slot_prefix
+
+Optional. If not specified, then it defaults to C<me>. This is used as an alias for a table name.
+
 =back
 
 =cut
 
 sub trigram_match_against {
-    my ($string) = @_;
-    return \['match(trigram_search) against(? in boolean mode)',generate_trigram_from_string($string)];
+    my ($string, $dbix_slot_prefix) = @_;
+    $dbix_slot_prefix //= 'me';
+    return \['match('.$dbix_slot_prefix.'.trigram_search) against(? in boolean mode)',generate_trigram_from_string($string)];
 }
 
 1;
