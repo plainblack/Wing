@@ -130,7 +130,10 @@ sub populate_trigram_search {
     my $self = shift;
     my $string;
     foreach my $field (@{$self->trigram_index_fields}) {
-        $string .= $self->$field() . ' ';
+        my $value = $self->$field();
+        if (defined $value) {
+            $string .= $value . ' ';
+        }
     }
     $self->trigram_search(generate_trigram_from_string($string));
     return $self;
