@@ -196,7 +196,6 @@ sub search_ideas {
     if ($params->{'keyword'}) {
         $query->{-or} = [
 	    \['match(name,description) against(? in boolean mode)', $params->{keyword}.'*'],
-            name => { like => substr($params->{keyword},0,2).'%' },	
 	],
     }
 
