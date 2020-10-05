@@ -283,8 +283,8 @@ const wing = {
   },
 
   object: (behavior) => ({
-    properties: behavior.properties || { _relationships: {} },
-    params: _.defaultsDeep({}, behavior.params, {}),
+    properties: behavior.properties || {},
+    params: _.defaultsDeep({}, behavior.params, { _include_relationships: 1 }),
     create_api: behavior.create_api,
     fetch_api: behavior.fetch_api,
     _stash: {},
