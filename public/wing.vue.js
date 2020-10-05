@@ -283,8 +283,8 @@ const wing = {
   },
 
   object: (behavior) => ({
-    properties: behavior.properties || {},
-    params: _.defaultsDeep({}, behavior.params, { _include_relationships: 1 }),
+    properties: behavior.properties || { _relationships: {} },
+    params: _.defaultsDeep({}, behavior.params, {}),
     create_api: behavior.create_api,
     fetch_api: behavior.fetch_api,
     _stash: {},
@@ -298,6 +298,16 @@ const wing = {
         return self._stash[name];
       } else {
         return null;
+      }
+    },
+
+    set_fetch_api(new_uri) {
+      this.fetch_api = new_uri;
+      if (
+        typeof self.properties !== "undefined" &&
+        typeof self.properties._relationships !== "undefined"
+      ) {
+        this.properties._relationships.self = new_uri;
       }
     },
 

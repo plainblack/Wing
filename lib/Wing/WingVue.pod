@@ -498,6 +498,18 @@ A function to call if the fetch fails.
 
 =back
 
+=head3 set_fetch_api( new_uri )
+
+Due to the dynamic nature of objects you cannot unfortunatelly just set C<object.fetch_api = some_new_uri>. So if you need to override the API URI for any reason, then you need to call this method.
+
+=over
+
+=item new_uri
+
+The new object fetch URI.
+
+=back
+
 =head3 create(properties, options)
 
 Create this object in Wing, inserts the properties into C<properties>, and then returns a promise from the HTTP request.
