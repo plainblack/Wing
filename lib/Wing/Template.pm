@@ -10,6 +10,7 @@ $Template::Stash::PRIVATE = 0; # allows options and whatnot access to templates
 
 use Wing::Web;
 use Wing::Instrument;
+use Wing::Util;
 
 hook 'before_template_render' => sub {
     my $tokens = shift;
@@ -19,6 +20,7 @@ hook 'before_template_render' => sub {
                                 my $digits = shift || 2;
                                 return sprintf '$%.'.$digits.'f', $value;
                            };
+    $tokens->{commify} 	    = \&Wing::Util::commify;
     $tokens->{int}          = sub { my $value = shift; return $value ? int $value : 0; };
     $tokens->{text_as_html} = sub {
         my $text = shift;
