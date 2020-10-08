@@ -136,6 +136,8 @@ A markdown editor to use with L<Wing::Role::Result::WebFilteredField>s.
 
 B<NOTE:> You need to use [% INCLUDE markdowneditor_js_include.tt %] in your footer and [% INCLUDE markdowneditor_css_include.tt %] in your header.
 
+It also supplies a default slot, so that you can place content below the editor.
+
 =item object
 
 A reference to the C<wing_object> that contains the property you wish to edit.

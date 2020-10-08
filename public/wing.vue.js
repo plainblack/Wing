@@ -127,6 +127,7 @@ const wing = {
   scroll_to(el) {
     var elbox = el.getBoundingClientRect();
     var bodybox = document.body.getBoundingClientRect();
+    console.dir([elbox, bodybox]);
     window.scroll(elbox.left - bodybox.left, elbox.top - bodybox.top);
   },
 
@@ -1425,7 +1426,9 @@ Vue.component("wing-pagination", {
                 <b-form-select id="items_per_page" @change="list.search_fast()" v-model="list.paging.items_per_page" :options="list.items_per_page_options" class="mb-3" />
             </b-col>
         </b-row></template>`,
-  props: ["list"],
+  props: {
+    list: { required: 1 },
+  },
 });
 
 /*
@@ -1604,6 +1607,7 @@ Vue.component("markdown-editor", {
   template: `<div class="row">
           <div class="col-lg mb-3">
               <v-md-editor v-model="object.properties[property]" :toolbar="toolbar" :ref="id" :id="id" @change="fix_first()" @save="save()" :left-toolbar="left_toolbar" :right-toolbar="right_toolbar" mode="edit" height="90vh"></v-md-editor>
+              <slot name="default"></slot>
           </div>
           <div class="col-lg mb-3" v-if="rendered">
               <div v-html="object.properties[rendered]"></div>
