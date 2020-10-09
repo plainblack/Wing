@@ -1428,7 +1428,7 @@ Vue.component("wing-pagination", {
         </b-row></template>`,
   props: {
     list: { required: 1 },
-    scroll_to_id: { default: null },
+    scroll_to_id: { default: "app" },
   },
   methods: {
     change_page() {
