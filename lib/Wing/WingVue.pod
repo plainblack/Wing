@@ -198,6 +198,8 @@ Generates a pagination selector.
 
  <wing-pagination :list="users"></wing-pagination>
 
+ <wing-pagination :list="users" :scroll_to_id="app"></wing-pagination>
+
 
 =head2 wing-select
 

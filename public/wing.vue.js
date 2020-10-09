@@ -1420,7 +1420,7 @@ Vue.component("wing-select-new", {
 Vue.component("wing-pagination", {
   template: `<template><b-row v-if="list.paging.total_pages > 1">
             <b-col>
-                <b-pagination size="md" @change="list.search_fast()" :total-rows="list.paging.total_items" v-model="list.paging.page_number" limit="10" last-number first-number :per-page="list.paging.items_per_page"></b-pagination>
+                <b-pagination size="md" @change="change_page()" :total-rows="list.paging.total_items" v-model="list.paging.page_number" limit="10" last-number first-number :per-page="list.paging.items_per_page"></b-pagination>
             </b-col>
             <b-col lg="2" md="3" sm="4">
                 <b-form-select id="items_per_page" @change="list.search_fast()" v-model="list.paging.items_per_page" :options="list.items_per_page_options" class="mb-3" />
@@ -1428,6 +1428,19 @@ Vue.component("wing-pagination", {
         </b-row></template>`,
   props: {
     list: { required: 1 },
+    scroll_to_id: { default: null },
+  },
+  methods: {
+    change_page() {
+      var self = this;
+      self.list.search_fast({
+        on_success(properties) {
+          if (self.scroll_to_id != null) {
+            wing.scroll_to(document.getElementById(self.scroll_to_id));
+          }
+        },
+      });
+    },
   },
 });
 

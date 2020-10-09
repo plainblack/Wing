@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-10-09
+ * Exposed "scroll_to_id" prop on wing-pagination component.
+
 2020-10-08
  * Exposed Wing::Util::commify() to Wing::Template.
  * wing.vue.js markdown-editor component exposes a default slot so you can place content below the editor.
