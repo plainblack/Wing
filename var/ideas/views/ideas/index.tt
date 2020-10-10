@@ -147,7 +147,7 @@ new Vue({
         [% END %]
         var search_params = null;
         try {
-            search_params = JSON.parse(window.sessionStorage.getItem('xxx'));
+            search_params = JSON.parse(window.sessionStorage.getItem('idea_search'));
         }
         catch (e) {}
         if (typeof search_params === 'object' && search_params != null) {
@@ -165,7 +165,7 @@ new Vue({
     methods : {
         search() {
             var self = this;
-            window.sessionStorage.setItem( 'xxx', JSON.stringify( self.ideas.search_params ) );
+            window.sessionStorage.setItem( 'idea_search', JSON.stringify( self.ideas.search_params ) );
             self.ideas.search({params : {_page_number : 1}});
         },
         vote(opinion) {
