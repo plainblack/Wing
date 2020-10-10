@@ -1,301 +1,275 @@
 [% page_title = idea.name %]
-[% head_tags = BLOCK %]
-<style type="text/css" rel="stylesheet">
-  .myopinion {
-      border-width: 1px;
-      border-color: black;
-  }
-</style>
-[% END %]
+[% page_title = "Site Ideas" %]
 [% INCLUDE header_include.tt %]
-
-<div class="container-fluid" ng-app="ideasApp" ng-controller="ideasCtrl" ng-cloak>
-
-    <h1><a href="/ideas">Ideas</a> / <span id="name">{{idea.properties.name}}</span> <span class="glyphicon glyphicon-lock" ng-show="idea.properties.locked"></span></h1>
-
-    <div class="row">
-        <div class="col-sm-8">
-            <div class="well well-lg">
-                <div id="description" class="lead">{{idea.properties.description}}</div>
-                <div class="buttons" ng-hide="idea.properties.locked">
-                    <button id="yes_opinion"  class="btn btn-success" ng-class="{myopinion : idea.properties.myopinion.opinion == 'yes'}" type="button" ng-click="vote('yes');"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i> Yes</button>
-                    <button id="skip_opinion" class="btn btn-warning" ng-class="{myopinion : idea.properties.myopinion.opinion == 'skip'}" type="button" ng-click="vote('skip');"><i class="fa fa-hand-o-right" aria-hidden="true"></i> Skip</button>
-                </div>
-            </div>
-            <div ng-show="idea.properties.locked">
-                This idea is closed.
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <dl class="dl-horizontal">
-                <dt>Submitted</dt><dd>{{idea.properties.date_created|datetime:'mediumDate'}}</dd>
-                <dt>Submitter</dt><dd><a href="{{idea.properties.user.view_uri}}"><img ng-src="{{idea.properties.user.avatar_uri}}" alt="avatar" class="avatar"> {{idea.properties.user.display_name}}</a></dd>
-                <dt ng-if="idea.properties.locked">Closed</dt><dd ng-if="idea.properties.locked">{{idea.properties.locked_status}}</dd>
-                <span ng-show="idea.properties.merged_into_id"><dt>Merged into</dt><dd><a href="{{idea.properties.merged_into.view_uri}}">{{idea.properties.merged_into.name}}</a></dd></span>
-                <dt><i class="fa fa-star-o" aria-hidden="true"></i> Rank</dt><dd>{{idea.properties.rank}}</dd>
-                <dt><i class="fa fa-thumbs-o-up" aria-hidden="true"></i> Yes opinions</dt><dd>{{idea.properties.yes}} ({{yes_percentage()|number:1}}%)</dd>
-                <dt><i class="fa fa-hand-o-right" aria-hidden="true"></i> Skip opinions</dt><dd>{{idea.properties.skip}} ({{skip_percentage()|number:1}}%)</dd>
-                <dt>Total opinions</dt><dd>{{total_opinions()}} (100%)</dd>
-                <dt>My Subscription</dt><dd>
-                    <button ng-click="unsubscribe()" class="btn btn-default btn-xs" ng-if="idea.properties.mysubscription">Unsubscribe</button>
-                    <button ng-click="subscribe()" class="btn btn-default btn-xs" ng-if="!idea.properties.mysubscription">Subscribe</button>
-                </dd>
-            </dl>
-        </div>
-
+<div id="app">
+    <div class="container-fluid p-0">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/ideas">Ideas</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{idea.properties.name}}</li>
+            </ol>
+        </nav>
     </div>
 
-    [% IF idea.can_edit || current_user.is_admin %]
-        <h3>Manage</h3>
-        [% IF current_user.admin %]
-            <a ng-click="idea.delete()" class="btn btn-danger">Delete</a>
-            <a ng-click="unlock_idea()" class="btn btn-default" ng-show="idea.properties.locked">Reopen</a>
-            <button class="btn btn-default" ng-click="show_merge_form=true" ng-hide="idea.properties.locked">Merge</button>
+    <div class="container-fluid">
+        <h1>[% page_title %]</h1>
+
+        <b-row>
+            <b-col xl="8" md="6">
+                <b-card v-if="idea.properties.id">
+                    <template v-slot:header>
+                        <h2>{{idea.properties.name}}</h2>
+                    </template>
+                    <div class="lead">{{ idea.properties.description }}</div>
+                    
+                    <template v-slot:footer>
+                        <b-button :variant="idea.properties.myopinion && idea.properties.myopinion.opinion == 'yes' ? 'success' : 'secondary'" @click="vote('yes');"><i class="fas fa-thumbs-up"></i> Yes</b-button>
+                        <b-button :variant="idea.properties.myopinion && idea.properties.myopinion.opinion == 'skip' ? 'warning' : 'secondary'"  @click="vote('skip');"><i class="fas fa-hand-point-right"></i> Skip</b-button>
+                    </template>
+                </b-card>
+                <div v-show="idea.properties.locked" class="mt-3 alert alert-warning">
+                    <i class="fas fa-lock"></i> This idea is closed.
+                </div>
+                [% IF idea.can_edit || current_user.is_admin %]
+                    <b-card header="Manage" header-tag="h2" class="mt-5">
+                        [% IF current_user.admin %]
+                            <a @click="idea.delete()" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Delete</a>
+                        [% END %]
+                        [% IF current_user.is_admin %]
+                            <a @click="unlock_idea()" class="btn btn-secondary" v-show="idea.properties.locked"><i class="fas fa-lock-open-alt"></i> Reopen</a>
+                            <button class="btn btn-secondary" @click="show_merge_form=!show_merge_form" v-show="!idea.properties.locked"><i class="fas fa-code-merge"></i> Merge</button>
+                        [% END %]
+                        <button @click="show_lock_form = !show_lock_form" class="btn btn-secondary" v-show="!idea.properties.locked"><i class="fas fa-lock"></i> Close</button>
+                        <button class="btn btn-secondary" @click="show_edit_form = !show_edit_form" v-show="!idea.properties.locked"><i class="fas fa-edit"></i> Edit</button>
+                    </b-card>
+                [% END %]
+            </b-col>
+            <b-col xl="4" md="6">
+                <table class="table table-striped">
+                    <tr><td>Submitted</td><td colspan="2">{{idea.properties.date_created|moment}}</td></tr>
+                    <tr><td>Submitter</td><td colspan="2"><a :href="idea.properties.user.view_uri"><img v-if="idea.properties.user.avatar_uri" :src="idea.properties.user.avatar_uri" alt="avatar" style="width: 25px;"> {{idea.properties.user.display_name}}</a></td></tr>
+                    <tr v-if="idea.properties.locked"><td>Closed</td><td colspan="2">{{idea.properties.locked_status}}</td></tr>
+                    <tr v-if="idea.properties.merged_into_id"><td colspan="2">Merged into</td><td><a :href="idea.properties.merged_into && idea.properties.merged_into.view_uri">{{idea.properties.merged_into && idea.properties.merged_into.name}}</a></td></tr>
+                    <tr><td><i class="fas fa-star"></i> Rank</td><td colspan="2">{{idea.properties.rank}}</td></tr>
+                    <tr>
+                        <td><i class="fas fa-thumbs-up"></i> Yes opinions</td>
+                        <td>{{idea.properties.yes}}</td>
+                        <td>
+                            <b-progress :max="100" height="2rem" variant="success">
+                                <b-progress-bar :value="yes_percentage">
+                                     {{yes_percentage|round}}%
+                                </b-progress-bar>
+                            </b-progress>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><i class="fas fa-hand-point-right"></i> Skip opinions</td>
+                        <td> {{idea.properties.skip}} </td>
+                        <td>
+                            <b-progress :max="100" height="2rem">
+                                <b-progress-bar :value="skip_percentage" variant="warning">
+                                     {{skip_percentage|round}}%
+                                </b-progress-bar>
+                            </b-progress>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Total opinions</td>
+                        <td>{{total_opinions}}</td>
+                        <td>
+                            <b-progress :max="100" height="2rem">
+                                <b-progress-bar :value="100">
+                                     100%
+                                </b-progress-bar>
+                            </b-progress>
+                        </td>
+                    </tr>
+                    <tr><td>My Subscription</td><td colspan="2">
+                        <button @click="unsubscribe()" class="btn btn-secondary btn-sm" v-if="idea.properties.mysubscription"><i class="fas fa-ban"></i> Unsubscribe</button>
+                        <button @click="subscribe()" class="btn btn-secondary btn-sm" v-if="!idea.properties.mysubscription"><i class="fas fa-check"></i> Subscribe</button>
+                    </td></tr>
+                </table>
+            </b-col>
+        </b-row>
+
+
+
+        [% IF idea.can_edit || current_user.is_admin %]
+            <b-row>
+                <b-col md="6" v-show="show_edit_form">
+                    <b-card header="Edit This Idea" header-tag="h2" class="mb-3">
+                        <div class="form-group">
+                            <label for="name_field">Name your Idea</label>
+                            <input class="form-control" id="name_field" type="text" v-model="idea.properties.name" v-autosave="idea" maxlength="60">
+                            <characters-remaining :property="idea.properties.name" :max="60"></characters-remaining>
+                        </div>
+                        <div class="form-group">
+                            <label for="description_field">Describe your idea</label>
+                            <textarea rows="5" class="form-control" id="description_field" v-model="idea.properties.description" v-autosave="idea" maxlength="250"></textarea>
+                            <characters-remaining :property="idea.properties.description" :max="250"></characters-remaining>
+                        </div>
+                        <button class="btn btn-success" @click="show_edit_form=false"><i class="fas fa-times"></i> Close Editor</button>
+                    </b-card>
+                </b-col>
+                <b-col md="6" v-show="show_merge_form">
+                    <b-card header="Merge This Idea With Another" header-tag="h2" class="mb-3">
+                        <div class="form-group">
+                            <label>This Idea's Id</label>
+                            <div>
+                                [% idea.id %]
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="merge_id">Idea To Merge Id</label>
+                            <input class="form-control" id="merge_id" type="text" v-model="merge_id">
+                            <small class="text-muted">The ID you type will be merged into this idea, including the opinions of the idea.</small>
+                        </div>
+                        <button @click="show_merge_form = false; merge()" class="btn btn-success"><i class="fas fa-code-merge"></i> Merge Ideas</button>
+                        <button class="btn btn-warning" @click="show_merge_form=false"><i class="fas fa-times"></i> Cancel</button>
+                    </b-card>
+                </b-col>
+                <b-col md="6" v-show="show_lock_form">
+                    <b-card header="Close This Idea" header-tag="h2" class="mb-3">
+                        <div class="form-group">
+                            <label for="lock_status">Reason</label>
+                            <b-form-select id="sort_status" v-model="close_reason" :options="idea.get_field_options('locked_status')"></b-form-select>
+                        </div>
+                        <button @click="show_lock_form = false; lock_idea()" class="btn btn-success"><i class="fas fa-lock"></i> Close Idea</button>
+                        <button @click="show_lock_form = false" class="btn btn-warning"><i class="fas fa-times"></i> Cancel</button>
+                    </b-card>
+                </b-col>
+            </b-row>
         [% END %]
-        <a ng-click="show_lock_form = true" class="btn btn-default" ng-hide="idea.properties.locked">Close</a>
-        <button class="btn btn-default" ng-click="show_edit_form=true" ng-hide="idea.properties.locked">Edit</button>
 
 
-        <div class="row">
-            <div class="col-sm-6" ng-show="show_edit_form">
-                <h3>Edit This Idea</h3>
-                <div>
-                    <div class="form-group">
-                        <label for="name_field">Name your Idea</label>
-                        <input class="form-control" id="name_field" type="text" ng-model="idea.properties.name" autosave="idea" maxlength="60">
-                    </div>
-                    <div class="form-group">
-                        <label for="description_field">Describe your idea</label>
-                        <textarea rows="5" class="form-control" id="description_field" ng-model="idea.properties.description" autosave="idea" maxlength="250"></textarea>
-                    </div>
-                </div>
-                <button class="btn btn-success" ng-click="show_edit_form=false">Close Editor</button>
-            </div>
-            <div class="col-sm-6" ng-show="show_merge_form">
-                <h3>Merge This Idea With Another</h3>
-                <div>
-                    <div class="form-group">
-                        <label>This Idea's Id</label>
-                        <div>
-                            [% idea.id %]
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="merge_id">Idea To Merge Id</label>
-                        <div>
-                            <input class="form-control" id="merge_id" type="text" ng-model="merge_id">
-                        </div>
-                        <div class="help-block">The ID you type will be merged into this idea, including the opinions of the idea.</div>
-                    </div>
-                </div>
-                <button ng-click="show_merge_form = false; merge()" class="btn btn-success">Merge Ideas</button>
-                <button class="btn btn-warning" ng-click="show_merge_form=false">Cancel</button>
-            </div>
-            <div class="col-sm-6" ng-show="show_lock_form">
-                <h3>Close This Idea</h3>
-                <div class="form-group">
-                    <label class="sr-only" for="lock_status">Reason</label>
-                    <select class="form-control" ng-model="lock_status">
-                        <option selected="selected">Infeasible</option>
-                        <option>Incomprehensible</option>
-                        <option>Completed</option>
-                    </select>
-                </div>
-                <button ng-click="show_lock_form = false; lock_idea()" class="btn btn-success">Close Idea</button>
-                <button ng-click="show_lock_form = false" class="btn btn-warning">Cancel</button>
-            </div>
-        </div>
-    [% END %]
+        <h2 class="mt-3">Comments</h2>
+        <comments :comments="comments" current_user_id="[% current_user.id %]" is_admin="[% current_user.is_admin || 0 %]">
+            <template v-slot:above-add-comment>
+                <b-form-checkbox v-model="comments.new.subscribe" value="1" unchecked-value="0">Subscribe me to this idea.</b-form-checkbox>
+            </template>
+        </comments>
 
-
-
-
-
-    <h3>Comments</h3>
-    <table class="table table-striped">
-        <tr ng-repeat="comment in comments.objects">
-            <td>
-                <textarea class="form-control" ng-show="comment.properties.user_id == '[% current_user.id %]'" rows="5" ng-model="comment.properties.comment" autosave="comment"></textarea>
-                <div ng-show="comment.properties.user_id != '[% current_user.id %]'"><span ng-repeat="line in comment.properties.comment|newlines track by $index">{{line}}<br></span></div>
-            </td>
-            <td>
-                <a href="{{comment.properties.user.view_uri}}"><img ng-src="{{comment.properties.user.avatar_uri}}" alt="avatar" class="avatar"> {{comment.properties.user.display_name}}</a>
-                <br>
-                {{comment.properties.date_created|datetime:'mediumDate'}}
-                <br>
-                <span class="fa fa-heart-o" ng-show="!comment.properties.i_like" ng-click="like_comment(comment)"></span>
-                <span class="fa fa-heart" ng-show="comment.properties.i_like" ng-click="unlike_comment(comment)"></span>
-                ({{comment.properties.like_count}} likes)
-                <br>
-                <button class="btn btn-danger" ng-click="comment.delete()" ng-show="comment.properties.user_id == '[% current_user.id %]'">Delete</button>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <textarea class="form-control" rows="5" ng-model="new_comment"></textarea>
-            </td>
-            <td>
-                <div class="checkbox">
-                <label>
-                  <input type="checkbox" ng-model="new_subscribe" ng-true-value="1" ng-false-value="0">
-                  Subscribe me to this idea
-                </label>
-              </div>
-
-                <button class="btn btn-success" ng-click="add_comment()">Add Comment</button>
-            </td>
-        </tr>
-    </table>
-
+        <br>
+    </div>
 </div>
 
+
 [% foot_tags = BLOCK %]
-
+[% USE JSON.Escape %]
+<script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
 <script type="text/javascript">
-'use strict';
-
-angular.module('ideasApp', ['ui.bootstrap','wing'])
-.filter('newlines', function() {
-  return function(text) {
-    return text.split(/\n/g);
-  };
-})
-.controller('ideasCtrl', function($scope, $http, objectListManager, objectManager) {
-
-    $scope.new_subscribe = 1;
-
-    $scope.idea = new objectManager({
-        fetch_options : {
-            _include_relationships : 1,
-            _include_related_objects : ['user','merged_into'],
-            _include : ['rank','mysubscription','myopinion'],
+new Vue({
+    el : '#app',
+    data() {
+        var self = this;
+        return {
+            merge_id : '',
+            show_edit_form : false,
+            show_merge_form : false,
+            show_lock_form : false,
+            close_reason : 'Infeasible',
+            idea : wing.object({
+                properties : [% idea.json %],
+                params : {
+                    _include_related_objects : ['user','merged_into'],
+                    _include : ['popularity_rank','rank','mysubscription','myopinion'],
+                    _include_options : 1,
+                },
+                on_delete : function() {
+                    window.location.href = '/ideas';
+                },
+            }),
+            comments : wing.object_list({
+                params : {
+                    _include_related_objects : ['user'],
+                    _order_by : ['date_created'],
+                },
+                list_api : '[% idea._relationships.comments %]',
+                create_api : '/api/ideacomment',
+                new_defaults : {
+                    idea_id : '[% idea.id %]',
+                    comment : '',
+                    subscribe : 1,
+                },
+                on_create() {
+                    self.idea.fetch();
+                }
+            }),
+        };
+    },
+    computed : {
+        total_opinions() {
+            return parseInt(this.idea.properties.yes) + parseInt(this.idea.properties.skip);
         },
-        fetch_api : '[% idea._relationships.self %]',
-        on_delete : function() {
-            window.location.href = '/ideas';
+        yes_percentage() {
+            return this.total_opinions ? (parseInt(this.idea.properties.yes) / this.total_opinions * 100) : 0; 
         },
-    });
-    $scope.idea.fetch();
-
-    $scope.merge_id = '';
-    $scope.merge = function() {
-        if ($scope.merge_id == '[% idea.id %]') {
-            wing.warn('You cannot merge an idea into itself.');
-        }
-        else if ($scope.merge_id) {
-            $scope.idea.call('POST',$scope.idea.properties._relationships.self+'/merge', {idea2_id : $scope.merge_id}, {on_success : function(properties) {
-                $scope.idea.properties = properties;
-                wing.success('Ideas merged');
-            }});
-        }
-        else {
-            wing.warn('You must specify an idea to merge.');
-        }
-    };
-
-    $scope.comments = new objectListManager({
-        fetch_options : {
-            _include_relationships : 1,
-            _include_related_objects : ['user'],
-            _order_by : ['date_created'],
+        skip_percentage() {
+            return this.total_opinions ? (parseInt(this.idea.properties.skip) / this.total_opinions * 100) : 0;
         },
-        list_api : '[% idea._relationships.comments %]',
-        create_api : '/api/ideacomment',
-    });
-    $scope.comments.search();
-
-    $scope.add_comment = function() {
-        $scope.comments.create({
-            idea_id : '[% idea.id %]',
-            comment : $scope.new_comment,
-            subscribe : $scope.new_subscribe,
-        }, {
-            on_success : function() {
-                $scope.new_comment = '';
-                $scope.idea.fetch();
+    },
+    mounted() {
+        this.comments.all();
+    },
+    methods : {
+        merge() {
+            var self = this;
+            if (self.merge_id == '[% idea.id %]') {
+                wing.warn('You cannot merge an idea into itself.');
             }
-        });
-    };
-
-    $scope.like_comment = function(comment) {
-        comment.call('POST', comment.properties._relationships.self+'/like', {}, {
-            on_success : function(properties) {
-                comment.properties = properties;
-            },
-        });
-    };
-
-    $scope.unlike_comment = function(comment) {
-        comment.call('DELETE', comment.properties._relationships.self+'/like', {}, {
-            on_success : function(properties) {
-                comment.properties = properties;
-            },
-        });
-    };
-
-    $scope.lock_idea = function() {
-        $scope.idea.call('PUT', $scope.idea.properties._relationships.self+'/lock', {status : $scope.lock_status}, {
-            on_success : function(properties) {
-                wing.success('Idea closed.');
-                $scope.idea.properties = properties;
-            },
-        });
-    };
-
-    $scope.unlock_idea = function () {
-        if (confirm('Are you sure you wish to reopen this idea?')) {
-            $scope.idea.call('PUT', $scope.idea.properties._relationships.self+'/unlock', {}, {
+            else if (self.merge_id) {
+                self.idea.call('POST',self.idea.properties._relationships.self+'/merge', {idea2_id : self.merge_id}, {on_success(properties) {
+                    wing.success('Ideas merged');
+                }});
+            }
+            else {
+                wing.warn('You must specify an idea to merge.');
+            }
+        },
+        lock_idea() {
+            var self = this;
+            self.idea.call('PUT', self.idea.properties._relationships.self+'/lock', {status : self.close_reason}, {
                 on_success : function(properties) {
-                    wing.success('Idea reopened.');
-                    $scope.idea.properties = properties;
+                    wing.success('Idea closed.');
                 },
             });
-        }
-    };
-
-    $scope.vote = function(opinion) {
-        $scope.idea.call('POST', $scope.idea.properties._relationships.opinions, {
-            _include_relationships : 1,
-            _include_related_objects : ['user'],
-            opinion : opinion,
-        }, {on_success : function(properties) {
-            $scope.idea.properties = properties;
-            wing.success("You voted "+opinion);
-        }});
-    };
-
-    $scope.total_opinions = function() {
-        return parseInt($scope.idea.properties.yes) + parseInt($scope.idea.properties.skip);
-    };
-
-    $scope.yes_percentage = function() {
-        return parseInt($scope.idea.properties.yes) / $scope.total_opinions() * 100;
-    };
-
-    $scope.skip_percentage = function() {
-        return parseInt($scope.idea.properties.skip) / $scope.total_opinions() * 100;
-    };
-
-    $scope.unsubscribe = function() {
-        $scope.idea.call('DELETE',$scope.idea.properties._relationships.self+'/subscription', {}, {
-            on_success : function() {
-                $scope.idea.properties.mysubscription = null;
-            },
-        });
-    };
-
-    $scope.subscribe = function() {
-        $scope.idea.call('POST',$scope.idea.properties._relationships.self+'/subscription', {}, {
-            on_success : function(properties) {
-                $scope.idea.properties.mysubscription = properties;
-            },
-        });
-    };
-
+        },
+        unlock_idea() {
+            var self = this;
+            if (confirm('Are you sure you wish to reopen this idea?')) {
+                self.idea.call('PUT', self.idea.properties._relationships.self+'/unlock', {}, {
+                    on_success : function(properties) {
+                        wing.success('Idea reopened.');
+                    },
+                });
+            }
+        },
+        vote(opinion) {
+            var self = this;
+            self.idea.call('POST', self.idea.properties._relationships.opinions, {
+                opinion : opinion,
+            }, {on_success(properties) {
+                wing.success("You voted "+opinion);
+            }});
+        },
+        subscribe() {
+            var self = this;
+            axios
+            .delete(self.idea.properties._relationships.self+'/subscription')
+            .then(function (response) {
+                self.idea.properties.mysubscription = response.data.result;
+            });
+        },
+        unsubscribe() {
+            var self = this;
+            axios
+            .post(self.idea.properties._relationships.self+'/subscription')
+            .then(function (response) {
+                self.idea.properties.mysubscription = null;
+            });
+        },  
+    },
 });
-
 </script>
-
-
 [% END %]
 [% INCLUDE footer_include.tt %]

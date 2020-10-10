@@ -13,7 +13,7 @@ with 'Wing::Role::Result::Parent';
 with 'Wing::Role::Result::UserControlled';
 with 'Wing::Role::Result::UriPart';
 with 'Wing::Role::Result::Trendy';
-
+use Wing::Util qw(is_in);
 no warnings 'experimental::smartmatch';
 
 before wing_finalize_class => sub {
@@ -135,16 +135,16 @@ around describe => sub {
     $out->{view_uri} = $self->view_uri;
     $out->{age} = $self->age;
     if (exists $options{include} && ref $options{include} eq 'ARRAY') {
-        if ('rank' ~~ $options{include} && $options{current_user}) {
+        if (is_in('rank', $options{include}) && $options{current_user}) {
             $out->{rank} = $self->rank;
         }
-        if ('mysubscription' ~~ $options{include} && $options{current_user}) {
+        if (is_in('mysubscription', $options{include}) && $options{current_user}) {
             my $subscription = $self->subscriptions->search({user_id => $options{current_user}->id},{rows => 1})->single;
             if (defined $subscription) {
                 $out->{mysubscription} = $subscription->describe(include_private => 1, current_user => $options{current_user});
             }
         }
-        if ('myopinion' ~~ $options{include} && $options{current_user}) {
+        if (is_in('myopinion', $options{include}) && $options{current_user}) {
             my $opinion = $self->opinions->search({user_id => $options{current_user}->id},{rows => 1})->single;
             if (defined $opinion) {
                 $out->{myopinion} = $opinion->describe(include_private => 1, current_user => $options{current_user});
@@ -206,24 +206,16 @@ sub search_ideas {
     if ($params->{_sort_status} eq 'Closed') {
         $query->{locked} = 1;
     }
-    elsif ($params->{_sort_status} eq 'Infeasible') {
-        $query->{locked} = 1;
-	$query->{locked_status} = 'Infeasible';
-    }
-    elsif ($params->{_sort_status} eq 'Incomprehensible') {
-        $query->{locked} = 1;
-	$query->{locked_status} = 'Incomprehensible';
-    }
-    elsif ($params->{_sort_status} eq 'Completed') {
-        $query->{locked} = 1;
-	$query->{locked_status} = 'Completed';
-    }
     elsif ($params->{_sort_status} eq 'Merged') {
         $query->{locked} = 1;
-	$query->{locked_status} = 'Completed';
+	    $query->{locked_status} = 'Completed';
     }
-    elsif ($params->{_sort_status} eq 'Open') {
+    elsif (is_in($params->{_sort_status}, ['Open','Unlocked'])) {
         $query->{locked} = 0;
+    }
+    elsif (is_in($params->{_sort_status}, $class->locked_status_options)) {
+        $query->{locked} = 1;
+	    $query->{locked_status} = $params->{_sort_status};
     }
     ##Implicit case for All, which is don't care about locked and locked_status
 

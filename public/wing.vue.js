@@ -1483,39 +1483,40 @@ Vue.component("confirmation-toggle", {
 
 Vue.component("comments", {
   template: `<template>
-    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <tr v-for="comment in comments.objects">
-                                <td>
-                                    <textarea class="form-control" v-if="comment.stash('edit')" rows="5" v-model="comment.properties.comment" v-autosave="comment" title="Comment"></textarea>
-                                    <div v-if="!comment.stash('edit')" style="white-space: pre-wrap;">{{comment.properties.comment|truncate(comment.stash('comment_length')||200)}}</div>
-                                    <button class="btn btn-secondary btn-sm mt-3" v-if="comment.stash('comment_length') < 1000000 && comment.properties.comment.length > 200" @click="comment.stash('comment_length',1000000)">Read More</button>
-                                </td>
-                                <td style="width: 40%">
-                                    <a :href="comment.properties.user.profile_uri"><img v-if="comment.properties.user.avatar_uri" :src="comment.properties.user.avatar_uri" class="rounded" alt="avatar" style="height: 30px"> {{comment.properties.user.display_name}}</a>
-                                    <span class="badge badge-secondary" v-if="special_badge_user_id == comment.properties.user_id">{{special_badge_label}}</span>
-                                    <br>
-                                    {{comment.properties.date_created|timeago}}
-                                    <br>
-                                    <i class="far fa-heart" v-show="!comment.properties.i_like" @click="like_comment(comment)"></i>
-                                    <i class="fas fa-heart" v-show="comment.properties.i_like" @click="unlike_comment(comment)"></i>
-                                    ({{comment.properties.like_count}} likes)
-                                    <br>
-                                    <button class="btn btn-primary btn-sm" @click="comment.stash('edit', !comment.stash('edit'))" v-if="!comment.stash('edit')" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-edit"></i> Edit</button>
-                                    <button class="btn btn-success btn-sm" @click="comment.stash('edit', !comment.stash('edit'))" v-if="comment.stash('edit')" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-edit"></i> Save</button>
-                                    <button class="btn btn-danger btn-sm" @click="comment.delete()" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-trash-alt"></i> Delete</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <textarea class="form-control" rows="5" v-model="comments.new.comment" title="New Comment"></textarea>
-                                </td>
-                                <td>
-                                    <button class="btn btn-success" @click="comments.create()"><i class="fas fa-edit"></i> Add Comment</button>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+        <div class="table-responsive">
+          <table class="table table-striped">
+              <tr v-for="comment in comments.objects">
+                  <td>
+                      <textarea class="form-control" v-if="comment.stash('edit')" rows="5" v-model="comment.properties.comment" v-autosave="comment" title="Comment"></textarea>
+                      <div v-if="!comment.stash('edit')" style="white-space: pre-wrap;">{{comment.properties.comment|truncate(comment.stash('comment_length')||200)}}</div>
+                      <button class="btn btn-secondary btn-sm mt-3" v-if="comment.stash('comment_length') < 1000000 && comment.properties.comment.length > 200" @click="comment.stash('comment_length',1000000)">Read More</button>
+                  </td>
+                  <td style="width: 40%">
+                      <a :href="comment.properties.user.profile_uri"><img v-if="comment.properties.user.avatar_uri" :src="comment.properties.user.avatar_uri" class="rounded" alt="avatar" style="height: 30px"> {{comment.properties.user.display_name}}</a>
+                      <span class="badge badge-secondary" v-if="special_badge_user_id == comment.properties.user_id">{{special_badge_label}}</span>
+                      <br>
+                      {{comment.properties.date_created|timeago}}
+                      <br>
+                      <i class="far fa-heart" v-show="!comment.properties.i_like" @click="like_comment(comment)"></i>
+                      <i class="fas fa-heart" v-show="comment.properties.i_like" @click="unlike_comment(comment)"></i>
+                      ({{comment.properties.like_count}} likes)
+                      <br>
+                      <button class="btn btn-primary btn-sm" @click="comment.stash('edit', !comment.stash('edit'))" v-if="!comment.stash('edit')" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-edit"></i> Edit</button>
+                      <button class="btn btn-success btn-sm" @click="comment.stash('edit', !comment.stash('edit'))" v-if="comment.stash('edit')" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-edit"></i> Save</button>
+                      <button class="btn btn-danger btn-sm" @click="comment.delete()" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-trash-alt"></i> Delete</button>
+                  </td>
+              </tr>
+              <tr>
+                  <td>
+                      <textarea class="form-control" rows="5" v-model="comments.new.comment" title="New Comment"></textarea>
+                  </td>
+                  <td>
+                      <slot name="above-add-comment"></slot>
+                      <button class="btn btn-success" @click="comments.create()"><i class="fas fa-plus"></i> Add Comment</button>
+                  </td>
+              </tr>
+          </table>
+      </div>
     </template>`,
   props: [
     "comments",

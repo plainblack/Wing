@@ -20,10 +20,9 @@ get '/idea/:id/:uri_part?' => sub {
 get '/idea/:id' => sub {
     my $user = eval { get_user_by_session_id(); };
     my $idea = fetch_object('Idea');
-    my $details = describe($idea, include_relationships => 1, current_user => $user);
     template 'ideas/view', {
-        current_user => $user,
-        idea      => $details,
+        current_user    => $user,
+        idea            => describe($idea, include_relationships => 1, current_user => $user, include_options => 1, include_related_objects => ['user','merged_into'], include => ['popularity_rank','rank','mysubscription','myopinion']),
     };
 };
 

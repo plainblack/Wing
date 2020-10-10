@@ -5,7 +5,10 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2020-10-09
- * Exposed "scroll_to_id" prop on wing-pagination component.
+ * Exposed "scroll_to_id" prop on wing-pagination component. Pagination defaults to scrolling up to "app". If you want something else specify it here.
+ * Minor refactoring of ideas system.
+ * Converted ideas templates to Vue.
+ * Added slot called "above-add-comment" to wing.vue.js <comments> component.
 
 2020-10-08
  * Exposed Wing::Util::commify() to Wing::Template.
