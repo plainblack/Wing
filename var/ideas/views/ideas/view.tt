@@ -1,5 +1,4 @@
 [% page_title = idea.name %]
-[% page_title = "Site Ideas" %]
 [% INCLUDE header_include.tt %]
 <div id="app">
     <div class="container-fluid p-0">
@@ -12,21 +11,15 @@
     </div>
 
     <div class="container-fluid">
-        <h1>[% page_title %]</h1>
+        <h1>{{idea.properties.name}}</h1>
 
         <b-row>
             <b-col xl="8" md="6">
-                <b-card v-if="idea.properties.id">
-                    <template v-slot:header>
-                        <h2>{{idea.properties.name}}</h2>
-                    </template>
-                    <div class="lead">{{ idea.properties.description }}</div>
+                <div class="lead mb-3">{{ idea.properties.description }}</div>
                     
-                    <template v-slot:footer>
-                        <b-button :variant="idea.properties.myopinion && idea.properties.myopinion.opinion == 'yes' ? 'success' : 'secondary'" @click="vote('yes');"><i class="fas fa-thumbs-up"></i> Yes</b-button>
-                        <b-button :variant="idea.properties.myopinion && idea.properties.myopinion.opinion == 'skip' ? 'warning' : 'secondary'"  @click="vote('skip');"><i class="fas fa-hand-point-right"></i> Skip</b-button>
-                    </template>
-                </b-card>
+                <b-button :variant="idea.properties.myopinion && idea.properties.myopinion.opinion == 'yes' ? 'success' : 'secondary'" @click="vote('yes');"><i class="fas fa-thumbs-up"></i> Yes</b-button>
+                <b-button :variant="idea.properties.myopinion && idea.properties.myopinion.opinion == 'skip' ? 'warning' : 'secondary'"  @click="vote('skip');"><i class="fas fa-hand-point-right"></i> Skip</b-button>
+
                 <div v-show="idea.properties.locked" class="mt-3 alert alert-warning">
                     <i class="fas fa-lock"></i> This idea is closed.
                 </div>
