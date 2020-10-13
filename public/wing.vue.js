@@ -1614,6 +1614,32 @@ Vue.component("date-time", {
 });
 
 /*
+ * percent field from decimal value
+ */
+
+Vue.component('percent-from-decimal', {
+  template : `<div class="input-group"><input type="number" v-model="percent" @input="handle" min="0" max="100" class="form-control"><div class="input-group-append"><span class="input-group-text">%</span></div></div>`,
+  props : ['value'],
+  data() {
+      return {
+          percent : Math.round(parseFloat(this.value) * 100),
+      };
+  },
+  watch : {
+      value(new_value, old_value) {
+          this.percent = Math.round(parseFloat(new_value) * 100);
+      },
+  },
+  methods: {
+      handle(e) {
+          var out = this.percent / 100;
+          this.$emit("input", out);
+          this.$emit("change", out);
+      },
+  },
+});
+
+/*
  * markdown editor - https://github.com/code-farmer-i/vue-markdown-editor
  */
 
