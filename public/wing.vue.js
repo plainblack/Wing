@@ -1419,10 +1419,10 @@ Vue.component("wing-select-new", {
 
 Vue.component("wing-pagination", {
   template: `<template><b-row v-if="list.paging.total_pages > 1">
-            <b-col>
+            <b-col cols="7" sm="8" lg="9">
                 <b-pagination size="md" @change="change_page()" :total-rows="list.paging.total_items" v-model="list.paging.page_number" limit="10" last-number first-number :per-page="list.paging.items_per_page"></b-pagination>
             </b-col>
-            <b-col lg="2" md="3" sm="4">
+            <b-col cols="5" sm="4" lg="3">
                 <b-form-select id="items_per_page" @change="list.search_fast()" v-model="list.paging.items_per_page" :options="list.items_per_page_options" class="mb-3" />
             </b-col>
         </b-row></template>`,
