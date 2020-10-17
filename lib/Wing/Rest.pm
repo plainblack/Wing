@@ -89,6 +89,9 @@ register generate_create => sub {
         my $object = site_db()->resultset($db_class_name)->new({});
         my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
         my $params = expanded_params($current_user);
+        if ($db_class_name ne $wing_object_type) { # provides an identity for migrating old APIs in case that is needed
+            $params->{identity} = $wing_object_type;  
+        }
         $object->verify_creation_params($params, $current_user);
         $object->verify_posted_params($params, $current_user, get_tracer());
         if (defined $options{extra_processing}) {
