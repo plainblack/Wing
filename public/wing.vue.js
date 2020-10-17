@@ -333,7 +333,6 @@ const wing = {
         .then(function (response) {
           const data = response.data;
           self.properties = data.result;
-          self.id = data.result.id;
           if (
             typeof options !== "undefined" &&
             typeof options.on_success !== "undefined"
@@ -388,15 +387,14 @@ const wing = {
         .then(function (response) {
           const data = response.data;
           self.properties = data.result;
-          self.id = data.result.id;
           if (
             typeof options !== "undefined" &&
             typeof options.on_success !== "undefined"
           ) {
-            options.on_success(data.result);
+            options.on_success(data.result, self);
           }
           if (typeof behavior.on_create !== "undefined") {
-            behavior.on_create(data.result);
+            behavior.on_create(data.result, self);
           }
         })
         .catch(function (error) {
@@ -499,10 +497,10 @@ const wing = {
             typeof options !== "undefined" &&
             typeof options.on_success !== "undefined"
           ) {
-            options.on_success(data.result);
+            options.on_success(data.result, self);
           }
           if (typeof behavior.on_update !== "undefined") {
-            behavior.on_update(data.result);
+            behavior.on_update(data.result, self);
           }
         })
         .catch(function (error) {
@@ -559,7 +557,7 @@ const wing = {
               options.on_success(object);
             }
             if (typeof behavior.on_delete !== "undefined") {
-              behavior.on_delete(object);
+              behavior.on_delete(object, self);
             }
             self.properties = {};
           })
@@ -631,11 +629,11 @@ const wing = {
         create_api: self.create_api,
         on_create: behavior.on_create,
         on_update: behavior.on_update,
-        on_delete: function (properties) {
+        on_delete: function (properties, self) {
           const myself = this;
           self.paging.total_items--;
           if ("on_delete" in behavior) {
-            behavior.on_delete(properties);
+            behavior.on_delete(properties, self);
           }
           self.remove(properties.id);
         },

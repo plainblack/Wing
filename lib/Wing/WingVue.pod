@@ -20,13 +20,13 @@ L<https://vuejs.org>
             list_api : '/api/user',
             create_api : '/api/user',
             new_defaults : { some_id : 'xxx' },
-            on_create : function(properties, index) {
+            on_create : function(properties, object) {
                 wing.success(properties.username + ' created.');
             },
-            on_update : function(properties, index) {
+            on_update : function(properties, object) {
                 wing.success(properties.username + ' saved.');
             },
-            on_delete : function(properties, index) {
+            on_delete : function(properties, object) {
                 window.location.href = '/';
             },
         }),
@@ -414,7 +414,7 @@ Creates an instance of a Wing object, aka a row in the database.
               on_update : function(properties) {
                   wing.success(properties.username + ' saved.');
               },
-              on_delete : function(properties) {
+              on_delete : function(properties, object) {
                   wing.success('Deleted' + object.name +'.');
               },
           }),
@@ -546,7 +546,7 @@ An optional object containing behavior changing options.
 
 =item on_success
 
-A function to be called if the creation is successful. It is passed a list of properties, and then a reference to the newly created objectManager.
+A function to be called if the creation is successful. It is passed a list of properties, and then a reference to the newly created object.
 
 =item on_error
 
@@ -730,13 +730,13 @@ A factory that generates and manages a list of Wing objects, aka a selection of 
               list_api : '/api/user',
               new_defaults : { some_id : 'xxx' },
               create_api : '/api/user',
-              on_create : function(properties, index) {
+              on_create : function(properties, object) {
                   wing.success(properties.username + ' created.');
               },
-              on_update : function(properties, index) {
+              on_update : function(properties, object) {
                   wing.success(properties.username + ' saved.');
               },
-              on_delete : function(properties, index) {
+              on_delete : function(properties, object) {
                   window.location.href = '/';
               },
           }),
@@ -783,19 +783,19 @@ Normally auto generated from the create_api, but you can override it here. Used 
 
 =item on_create
 
-A function to be executed when a new object is created. It will be passed the properties of the object and an index number.
+A function to be executed when a new object is created. It will be passed the properties of the object and an object reference.
 
 =item on_update
 
-A function to be executed when an object is updated. It will be passed the properties of the object and an index number.
+A function to be executed when an object is updated. It will be passed the properties of the object and an object reference.
 
 =item on_delete
 
-A function to be executed when an object is deleted. It will be passed the properties of the object and an index number.
+A function to be executed when an object is deleted. It will be passed the properties of the object and an object reference.
 
 =item on_each
 
-A function to be executed when an object is initially retrieved. It will be passed the C<objectManager> instance of the object.
+A function to be executed when an object is initially retrieved. It will be passed the C<wing.object> instance of the object.
 
 =item with_credentials
 
@@ -845,7 +845,7 @@ An object containing various things that should be done with the data when it is
 
 =item on_each
 
-A function to be executed when an object as it is appended. It will be passed the properties of the object, and the C<objectManager> instance of the object.
+A function to be executed when an object as it is appended. It will be passed the properties of the object, and the C<wing.object> instance of the object.
 
 =back
 
@@ -911,19 +911,19 @@ If set to true, the object list will not be reset before adding the newly fetche
 
 =item on_create
 
-A function to be executed when a new object is created. It will be passed the properties of the object and an index number.
+A function to be executed when a new object is created. It will be passed the properties of the object and an object reference.
 
 =item on_update
 
-A function to be executed when an object is updated. It will be passed the properties of the object and an index number.
+A function to be executed when an object is updated. It will be passed the properties of the object and an object reference.
 
 =item on_delete
 
-A function to be executed when an object is deleted. It will be passed the properties of the object and an index number.
+A function to be executed when an object is deleted. It will be passed the properties of the object and an object reference.
 
 =item on_each
 
-A function to be executed when an object is initially retrieved. It will be passed the properties of the object, and the C<objectManager> instance of the object.
+A function to be executed when an object is initially retrieved. It will be passed the properties of the object, and the C<wing.object> instance of the object.
 
 =item on_success
 
@@ -958,7 +958,7 @@ Like C<params> but only applies to this call and not any other calls you may mak
 
 =item on_each
 
-A function to be executed when an object is initially retrieved. It will be passed the properties of the object, and the C<objectManager> instance of the object.
+A function to be executed when an object is initially retrieved. It will be passed the properties of the object, and the C<wing.object> instance of the object.
 
 =item on_all_done
 
@@ -978,7 +978,7 @@ The exact same method as C<all()> but without a debounce of 200 ms.
 
 =head3 reset()
 
-Sets the object list to empty and then returns a reference to the objectListManager.
+Sets the object list to empty and then returns a reference to the wing.object_list.
 
 
 =head3 fetch_options(options)
@@ -1056,7 +1056,7 @@ A function to be executed if the object is sucessfully created. It is passed a l
 
 =head3 update(index, options)
 
-Updates the object's properties in the database with the object's properties in C<wing.object>, and then returns a promise from the HTTP request. See C<update()> in C<objectManager> for details.
+Updates the object's properties in the database with the object's properties in C<wing.object>, and then returns a promise from the HTTP request. See C<update()> in C<wing.object> for details.
 
 =over
 
@@ -1066,13 +1066,13 @@ The index number of the object in the C<objects> list.
 
 =item options
 
-See C<update()> in C<objectManager> for details.
+See C<update()> in C<wing.object> for details.
 
 =back
 
 =head3 save(index, property)
 
-Updates the value of C<property> in the database with the value of C<property> in objectManager. See C<save()> in C<objectManager> for details.
+Updates the value of C<property> in the database with the value of C<property> in wing.object. See C<save()> in C<wing.object> for details.
 
 =over
 
@@ -1082,13 +1082,13 @@ The index number of the object in the C<objects> list.
 
 =item options
 
-See C<save()> in C<objectManager> for details.
+See C<save()> in C<wing.object> for details.
 
 =back
 
 =head3 partial_update(index, properties, options)
 
-Updates a specific set of properties in the database and objectManager specified by C<properties>. See C<partial_update()> in C<objectManager> for details.
+Updates a specific set of properties in the database and wing.object specified by C<properties>. See C<partial_update()> in C<wing.object> for details.
 
 =over
 
@@ -1098,13 +1098,13 @@ The index number of the object in the C<objects> list.
 
 =item options
 
-See C<partial_update()> in C<objectManager> for details.
+See C<partial_update()> in C<wing.object> for details.
 
 =back
 
 =head3 delete(index, options)
 
-Deletes the object from the database and objectListManager. See C<delete()> in C<objectManager> for details.
+Deletes the object from the database and wing.object_list. See C<delete()> in C<wing.object> for details.
 
 =over
 
@@ -1114,7 +1114,7 @@ The index number of the object in the C<objects> list.
 
 =item options
 
-See C<delete_update()> in C<objectManager> for details.
+See C<delete_update()> in C<wing.object> for details.
 
 =back
 
