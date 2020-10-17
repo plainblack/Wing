@@ -116,9 +116,10 @@ register generate_read => sub {
 };
 
 register generate_options => sub {
-    my ($wing_object_type) = @_;
+    my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/_options' => sub {
+        my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         return site_db()->resultset($wing_object_type)->new({})->field_options(
             include_relationships   => params->{_include_relationships},
             include_options         => params->{_include_options},
@@ -142,7 +143,8 @@ register generate_relationship => sub {
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id/'.$relationship_name => sub {
         my $current_user = eval{get_user_by_session_id(permissions => $options{permissions})};
-        my $object = fetch_object($wing_object_type);
+        my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
+        my $object = fetch_object($db_class_name);
         my $data = $object->$relationship_name();
         if (exists $options{queryable} || exists $options{fulltextquery} || exists $options{trigramquery}) {
             my @query;
@@ -212,7 +214,8 @@ register generate_relationship => sub {
 
 register generate_all_relationships => sub {
     my ($wing_object_type, %options) = @_;
-    foreach my $name (@{site_db()->resultset($wing_object_type)->new({})->relationship_accessors}) {
+    my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
+    foreach my $name (@{site_db()->resultset($db_class_name)->new({})->relationship_accessors}) {
         my %rel_options;
         if (exists $options{named_options}) {
             if (exists $options{named_options}{$name}) {
@@ -221,6 +224,9 @@ register generate_all_relationships => sub {
         }
         if (exists $options{permissions}) {
             $rel_options{permissions} = $options{permissions};
+        }
+        if (exists $options{db_class_name}) {
+            $rel_options{db_class_name} = $options{db_class_name};
         }
         generate_relationship($wing_object_type, $name, %rel_options);
     }

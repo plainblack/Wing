@@ -5,7 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2020-10-17
- * Added db_class_name option to generate_read, generate_create, generate_delete, and generate_update in Wing::Rest for API migration tasks.
+ * Added db_class_name option to generate_options, generate_relationship, generate_all_relationships, generate_read, generate_create, generate_delete, and generate_update in Wing::Rest for API migration tasks.
 
 2020-10-16
  * Updated on_create, on_delete, and on_update to each return a reference to the object as their second parameter in wing.vue.js.
