@@ -579,15 +579,27 @@ sub verify_posted_params {
     }
 }
 
-=head2 duplicate()
+=head2 duplicate([handler])
 
 Duplicates this object with a new id. Can be extended to duplicate auxillary data.
+
+=over
+
+=item handler
+
+Optional. A subroutine reference that will be passed the original object and the copy so that the duplicate can be manipulated before any copying of data begins.
+
+=back
 
 =cut
 
 sub duplicate {
-    my ($self) = @_;
-    return $self->result_source->schema->resultset(ref $self)->new({});
+    my ($self, $handler) = @_;
+    my $copy = $self->result_source->schema->resultset(ref $self)->new({});
+    if (defined $handler && ref $handler eq 'CODE') {
+	$handler->($self, $copy);
+    }
+    return $copy;
 }
 
 =head2 check_privilege_method( method, current_user )

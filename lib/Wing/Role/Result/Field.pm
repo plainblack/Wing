@@ -499,8 +499,8 @@ sub wing_field {
 
         # duplicate fields
         $class->meta->add_around_method_modifier(duplicate => sub {
-            my ($orig, $self) = @_;
-            my $dup = $orig->($self);
+            my ($orig, $self, @params) = @_;
+            my $dup = $orig->($self, @params);
             if ((exists $options->{skip_duplicate} && $options->{skip_duplicate}) || (exists $options->{dbic}{is_auto_increment} && $options->{dbic}{is_auto_increment})) {
                 # do nothing
             }
