@@ -554,7 +554,7 @@ const wing = {
               typeof options !== "undefined" &&
               typeof options.on_success !== "undefined"
             ) {
-              options.on_success(object);
+              options.on_success(object, self);
             }
             if (typeof behavior.on_delete !== "undefined") {
               behavior.on_delete(object, self);
@@ -629,7 +629,7 @@ const wing = {
         create_api: self.create_api,
         on_create: behavior.on_create,
         on_update: behavior.on_update,
-        on_delete: function (properties, self) {
+        on_delete: function (properties) {
           const myself = this;
           self.paging.total_items--;
           if ("on_delete" in behavior) {

@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-10-18
+ * Fixed wing.vue.js wing.object.on_delete bug introduced on 2020-10-16.
+
 2020-10-17
  * Added db_class_name option to generate_options, generate_relationship, generate_all_relationships, generate_read, generate_create, generate_delete, and generate_update in Wing::Rest for API migration tasks.
  * Added custom handler to duplicate method in Result so that you can manipulate the copy before data is copied into it.
