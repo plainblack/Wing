@@ -305,8 +305,8 @@ const wing = {
     set_fetch_api(new_uri) {
       this.fetch_api = new_uri;
       if (
-        typeof self.properties !== "undefined" &&
-        typeof self.properties._relationships !== "undefined"
+        typeof this.properties !== "undefined" &&
+        typeof this.properties._relationships !== "undefined"
       ) {
         this.properties._relationships.self = new_uri;
       }
