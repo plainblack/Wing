@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-10-19
+ * Fixed a bug where wing.vue.js wing.object.save() wouldn't save if the value was 0.
+
 2020-10-18
  * Fixed wing.vue.js wing.object.on_delete bug introduced on 2020-10-16.
 

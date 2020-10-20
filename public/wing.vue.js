@@ -425,7 +425,7 @@ const wing = {
     _save: function (property, value) {
       const self = this;
       const update = {};
-      update[property] = value || self.properties[property];
+      update[property] = typeof value !== 'undefined' ? value : self.properties[property];
       return self._partial_update(update);
     },
 
