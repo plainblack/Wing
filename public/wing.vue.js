@@ -1587,6 +1587,13 @@ Vue.component("date-time", {
                   <b-form-timepicker v-model="time" @input="handle" locale="en"></b-form-timepicker>
                   </b-input-group>
               </span>`,
+  watch : {
+      value(new_value, old_value) {
+          var date = moment(new_value);
+          this.date = date.format("YYYY-MM-DD");
+          this.time = date.format("HH:mm:ss");
+      },
+  },
   props: {
     value: { required: 1 },
     id: {
