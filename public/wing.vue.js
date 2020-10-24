@@ -1651,7 +1651,8 @@ Vue.component('percent-from-decimal', {
 Vue.component("markdown-editor", {
   template: `<div class="row">
           <div class="col-lg mb-3">
-              <v-md-editor v-model="object.properties[property]" :toolbar="toolbar" :ref="id" :id="id" @change="fix_first()" @save="save()" :left-toolbar="left_toolbar" :right-toolbar="right_toolbar" mode="edit" height="90vh"></v-md-editor>
+              <button class="btn btn-primary btn-block" @click="save()"><i class="fab fa-rev"></i> Save &amp; Preview</button>
+              <v-md-editor v-model="object.properties[property]" :toolbar="toolbar" :ref="id" :id="id" :left-toolbar="left_toolbar" :right-toolbar="right_toolbar" mode="edit" height="90vh"></v-md-editor>
               <slot name="default"></slot>
           </div>
           <div class="col-lg mb-3" v-if="rendered">
@@ -1676,8 +1677,8 @@ Vue.component("markdown-editor", {
     return {
       first: true,
       left_toolbar:
-        "save | undo redo | h bold italic strikethrough quote | ul ol table hr | link | help fullscreen",
-      right_toolbar: "",
+        "undo redo | h bold italic strikethrough quote | ul ol table hr | link",
+      right_toolbar: "help fullscreen",
       toolbar: {
         help: {
           title: "Formatting Help",
