@@ -91,7 +91,7 @@ sub BUILD {
     }
     foreach my $col ($self->result_source->columns) {
         my $default = $self->result_source->column_info($col)->{default_value};
-        $self->$col($default) if (defined $default && !defined $self->$col());
+        $self->set_column($col => $default) if (defined $default && !defined $self->$col());
     }
     return $self;
 }

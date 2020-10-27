@@ -454,18 +454,18 @@ sub wing_field {
                 my ($self, $value) = @_;
                 my $options = $self->$field_options_method;
                 if (scalar(@_) > 1 && defined $options) {
-		    if (ref $value eq 'ARRAY') {
-			foreach my $element (@{$value}) {
-                    	    unless (any {$_ eq $element} @$options) {
-                        	ouch 442, $field.' must contain only: '.join(', ', @{$options}). " and not ".$value, $field;
-                    	    }
-			}
-		    }
-  		    else {
-                    	unless (any {$_ eq $value} @$options) {
-                        	ouch 442, $field.' must be one of: '.join(', ', @{$options}). " and not ".$value, $field;
-                    	}
-		    }
+                    if (ref $value eq 'ARRAY') {
+                        foreach my $element (@{$value}) {
+                            unless (any {$_ eq $element} @$options) {
+                                ouch 442, $field.' must contain only: '.join(', ', @{$options}). " and not ".$value, $field;
+                            }
+                        }
+                    }
+                    else {
+                        unless (any {$_ eq $value} @$options) {
+                            ouch 442, $field.' must be one of: '.join(', ', @{$options}). " and not ".$value, $field;
+                        }
+                    }
                 }
             });
         }
