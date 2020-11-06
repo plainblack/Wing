@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-11-06
+ * Changed the save and preview button on the markdown editor to make it easier to see and easier to use.
+
 2020-10-27
  * Default value in Wing::DB::Result is now set by set_column() rather than calling the column_name() accessor, for both performance and so that dynamically generated options validation doesn't get called prematurely when the object has no data.
 

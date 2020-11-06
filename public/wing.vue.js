@@ -1651,8 +1651,9 @@ Vue.component('percent-from-decimal', {
 Vue.component("markdown-editor", {
   template: `<div class="row">
           <div class="col-lg mb-3">
-              <button class="btn btn-primary btn-block" @click="save()"><i class="fab fa-rev"></i> Save &amp; Preview</button>
+              <button class="btn btn-success" @click="save()"><i class="fab fa-rev"></i> Save &amp; Preview</button>
               <v-md-editor v-model="object.properties[property]" :toolbar="toolbar" :ref="id" :id="id" :left-toolbar="left_toolbar" :right-toolbar="right_toolbar" mode="edit" height="90vh"></v-md-editor>
+              <button class="btn btn-success" @click="save()"><i class="fab fa-rev"></i> Save &amp; Preview</button>
               <slot name="default"></slot>
           </div>
           <div class="col-lg mb-3" v-if="rendered">
