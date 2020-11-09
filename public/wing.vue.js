@@ -1484,7 +1484,7 @@ Vue.component("comments", {
         <div class="table-responsive">
           <table class="table table-striped">
               <tr v-for="comment in comments.objects">
-                  <td>
+                  <td style="overflow-wrap: break-word; word-wrap: break-word;hyphens: auto;">
                       <textarea class="form-control" v-if="comment.stash('edit')" rows="5" v-model="comment.properties.comment" v-autosave="comment" title="Comment"></textarea>
                       <div v-if="!comment.stash('edit')" style="white-space: pre-wrap;">{{comment.properties.comment|truncate(comment.stash('comment_length')||200)}}</div>
                       <button class="btn btn-secondary btn-sm mt-3" v-if="comment.stash('comment_length') < 1000000 && comment.properties.comment.length > 200" @click="comment.stash('comment_length',1000000)">Read More</button>

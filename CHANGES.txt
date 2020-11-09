@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-11-09
+ * Removed "Last Login" from profile template since that is hidden info.
+ * Made long URLs in comments wrap so they don't make weird scroll bars.
+
 2020-11-06
  * Changed the save and preview button on the markdown editor to make it easier to see and easier to use.
 
