@@ -17,10 +17,6 @@
             <th>Member Since</th>
             <td>[% date.format(profile_user.date_created,'%F') %]</td>
         </tr>
-        <tr>
-            <th>Last Login</th>
-            <td>[% date.format(profile_user.last_login,'%F') %]</td>
-        </tr>
     </table>
 </div>
 
