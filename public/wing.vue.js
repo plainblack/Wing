@@ -1521,7 +1521,7 @@ Vue.component("comments", {
                       <button class="btn btn-danger btn-sm" @click="comment.delete()" v-show="comment.properties.user_id == current_user_id || is_admin == 1"><i class="fas fa-trash-alt"></i> Delete</button>
                   </td>
               </tr>
-              <tr>
+              <tr v-if="current_user_id">
                   <td>
                       <textarea class="form-control" rows="5" v-model="comments.new.comment" title="New Comment"></textarea>
                   </td>
@@ -1529,6 +1529,11 @@ Vue.component("comments", {
                       <slot name="above-add-comment"></slot>
                       <button class="btn btn-success" @click="comments.create()"><i class="fas fa-plus"></i> Add Comment</button>
                   </td>
+              </tr>
+              <tr v-else>
+                <td colspan="2">                    
+                  You must <a :href="'/account?redirect_after='+window.location.href">login or create an account</a> to create a new comment.
+                </td>
               </tr>
           </table>
       </div>

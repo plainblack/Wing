@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2020-11-11
  * Handle warnings even when properties are directly injected into a wing object in wing.vue.js.
+ * Fix: wing.vue.js displays the Add a Comment form, even if the user isn't logged in. #32
 
 2020-11-09
  * Removed "Last Login" from profile template since that is hidden info.
