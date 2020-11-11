@@ -30,14 +30,7 @@ axios.interceptors.response.use(
       response.headers["content-type"] === "application/json; charset=utf-8" &&
       "_warnings" in response.data.result
     ) {
-      for (var warning in response.data.result._warnings) {
-        document.dispatchEvent(
-          new CustomEvent("wing_warn", {
-            message: response.data.result._warnings[warning].message,
-          })
-        );
-        wing.warn(response.data.result._warnings[warning].message);
-      }
+      _wing.dispatch_warnings(response.data.result._warnings)
     }
     return response;
   },
@@ -101,6 +94,30 @@ document.body.appendChild(throbber);
 var toastdiv = document.createElement("div");
 toastdiv.id = "wingtoast";
 document.body.appendChild(toastdiv);
+
+/*
+ * Wing preprocessor functions
+ */
+
+const _wing = {
+  process_object_behavior_properties(properties) {
+    if (typeof properties !== 'undefined' && typeof properties._warnings !== 'undefined') {
+      this.dispatch_warnings(properties._warnings);
+    }
+    return properties;
+  },
+
+  dispatch_warnings(list) {
+    for (var warning in list) {
+      document.dispatchEvent(
+        new CustomEvent("wing_warn", {
+          message: list[warning].message,
+        })
+      );
+      wing.warn(list[warning].message);
+    }
+  },
+};
 
 /*
  * Wing Factories, Services, and Utilities
@@ -284,7 +301,7 @@ const wing = {
   },
 
   object: (behavior) => ({
-    properties: behavior.properties || {},
+    properties: _wing.process_object_behavior_properties(behavior.properties) || {},
     params: _.defaultsDeep({}, behavior.params, { _include_relationships: 1 }),
     create_api: behavior.create_api,
     fetch_api: behavior.fetch_api,
