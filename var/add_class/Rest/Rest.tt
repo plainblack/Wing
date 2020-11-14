@@ -18,7 +18,7 @@ get '/api/[% lower_class %]' => sub {
         ## CHOOSE ONE OF THE FOLLOWING:
 
         # SIMPLE SUBSTRING SEARCH
-        $where->{'me.name'} => { like => '%'.$query.'%' },
+        $where->{'me.name'} = { like => '%'.$query.'%' },
 
         # FULLTEXT SEARCH
         $where->{-or} = [
