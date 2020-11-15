@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-11-15
+ * Emit change event for wing-select and wing-select-new components in wing.vue.js.
+
 2020-11-11
  * Handle warnings even when properties are directly injected into a wing object in wing.vue.js.
  * Fix: wing.vue.js displays the Add a Comment form, even if the user isn't logged in. #32

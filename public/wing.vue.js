@@ -1389,7 +1389,7 @@ Vue.component("wing-option-label", {
  */
 
 Vue.component("wing-select", {
-  template: `<select @change="object.save(property)" class="form-control custom-select" v-model="object.properties[property]">
+  template: `<select @change="object.save(property);$emit('change')" class="form-control custom-select" v-model="object.properties[property]" >
     <option v-for="option in options()" :value="option">{{_option(option)}}</option>
   </select>`,
   props: ["object", "property"],
@@ -1411,7 +1411,7 @@ Vue.component("wing-select", {
  */
 
 Vue.component("wing-select-new", {
-  template: `<select class="form-control custom-select" v-model="list.new[property]">
+  template: `<select @change="$emit('change')" class="form-control custom-select" v-model="list.new[property]">
     <option v-for="option in options()" :value="option">{{_option(option)}}</option>
   </select>`,
   props: ["list", "property"],
