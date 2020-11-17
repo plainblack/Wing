@@ -24,7 +24,7 @@
         <b-table hover striped stacked="md" :items="[%[ lower_class ]%]s.objects" :fields="fields">
             <template v-slot:cell(properties.name)="data"><a :href="data.item.properties.view_uri">{{data.item.properties.name}}</a></template>
             [%[ IF postable_params.size ]%][%[ FOREACH field IN postable_params ]%][%[ NEXT IF field == 'user_id' ]%][%[ IF field_options.exists(field) ]%]<template v-slot:cell(properties.[%[ field ]%])="data"><wing-option-label :list="{[%[ lower_class ]%]s" :object="data.item" property="[%[ field ]%]"></wing-option-label></template>
-            [%[ ELSIF field.match('date') ]%]<template v-slot:cell(properties.[%[ field ]%])="data">{{data.item.properties.[%[ field ]%]|moment}}</a></template>
+            [%[ ELSIF field.match('date') ]%]<template v-slot:cell(properties.[%[ field ]%])="data">{{data.item.properties.[%[ field ]%]|moment}}</template>
             [%[ END ]%][%[ END ]%][%[ END ]%]
             [% IF current_user %]
                 <template v-slot:cell(manage)="data">

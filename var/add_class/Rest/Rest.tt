@@ -33,7 +33,7 @@ get '/api/[% lower_class %]' => sub {
     }
     ### add in other fields to search on
     # my $is_cool = param('is_cool');
-    # unless (defined $is_cool and $is_cool ne '') {
+    # if (defined $is_cool and $is_cool ne '') {
     #     $where->{'me.is_cool'} = $is_cool;
     # }
     my $[% lower_class %]s = site_db()->resultset('[% class_name %]')->search($where, $options);

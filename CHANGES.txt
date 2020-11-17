@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2020-11-15
  * Emit change event for wing-select and wing-select-new components in wing.vue.js.
+ * Some bug fixes in wing class --add and --template templates.
 
 2020-11-11
  * Handle warnings even when properties are directly injected into a wing object in wing.vue.js.
