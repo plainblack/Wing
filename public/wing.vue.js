@@ -1215,6 +1215,89 @@ const wing = {
         });
     }
   },
+
+  date2luxon(input, timezone) {
+    timezone ||= 'utc';
+    if (typeof luxon === "undefined") {
+      wing.error("Luxon not installed");
+      return input;
+    } else {
+      if (Array.isArray(input) && typeof input[0] === "string") {
+        // date + input pattern
+        return luxon.DateTime.fromFormat(input[0], input[1],{zone : timezone});
+      } else if (typeof input === "string" && input.length == 19) {
+        // mysql datetime
+        return luxon.DateTime.fromSQL(input,{zone : timezone});
+      } else if (typeof input === "string" && input.length == 10) {
+        // mysql date
+        return luxon.DateTime.fromSQL(input,{zone : timezone});
+      } else if (input instanceof luxon.DateTime) {
+        return input;
+      } else if (typeof input === "number" && input > 1000000000000) {
+        // milliseconds since epoch
+        return luxon.DateTime.fromMillis(input,{zone : timezone});
+      } else if (typeof input === "number") {
+        // seconds since epoch
+        return luxon.DateTime.fromSeconds(input,{zone : timezone});
+      } else {
+        // must be a normal JS date
+        return luxon.DateTime.fromJSDate(input);
+      }
+    }
+  },
+  
+  format_date(input, format, timezone) {
+      format ||= 'LLLL d yyyy';
+      timezone ||= 'local';
+      var dt = wing.date2luxon(input);
+      if (typeof timezone !== 'undefined') {
+          dt = dt.setZone(timezone);
+      }
+      return dt.toFormat(format);
+  },
+
+  format_timeago(input) {
+      var duration = luxon.DateTime.utc().toSeconds() - wing.date2luxon(input).toSeconds();
+      console.log(duration);
+      var abs_dur = Math.abs(duration);
+      var message;
+      if (abs_dur < 60) {
+          message = Math.round(abs_dur);
+          message += message == 1 ? ' second' : ' seconds';
+      }
+      else if (abs_dur < 3600) {
+          message = Math.round(abs_dur / 60);
+          message += message == 1 ? ' minute' : ' minutes';
+      }
+      else if (abs_dur < 86400) {
+          message = Math.round(abs_dur / 3600);
+          message += message == 1 ? ' hour' : ' hours';
+      }
+      else if (abs_dur < 604800) {
+          message = Math.round(abs_dur / 86400);
+          message += message == 1 ? ' day' : ' days';
+      }
+      else if (abs_dur < 2419200) {
+          message = Math.round(abs_dur / 604800);
+          message += message == 1 ? ' week' : ' weeks';
+      }
+      else if (abs_dur < 31536000) {
+          message = Math.round(abs_dur / 2419200);
+          message += message == 1 ? ' month' : ' months';
+      }
+      else {
+          message = Math.round(abs_dur / 31536000);
+          message += message == 1 ? ' year' : ' years';
+      }
+      if (duration < 0) {
+          message += ' from now';
+      }
+      else {
+          message += ' ago';
+      }
+      return message;
+  },
+
 };
 
 /*
@@ -1598,8 +1681,72 @@ Vue.component("toggle", {
   },
 });
 
+
 /*
- * date time form control
+ * luxon based date time control
+ */
+
+Vue.component("luxon-date-time", {
+  template: `<span :id="id">
+                  <b-input-group :append="zone_name">
+                  <b-form-datepicker v-model="date" @input="handle"></b-form-datepicker>
+                  <b-form-timepicker v-model="time" @input="handle" locale="en"></b-form-timepicker>
+                  </b-input-group>
+              </span>`,
+  watch : {
+      value(new_value, old_value) {
+            var dt = this.determine_local_date(new_value);
+            this.date = this.format_date(dt);
+            this.time = this.format_time(dt);
+      },
+  },
+  props: {
+    value: { required: 1 },
+    id: {
+      default: function () {
+        return wing.generate_id();
+      },
+    },
+  },
+  data() {
+        var dt = this.determine_local_date(this.value);
+        return {
+            date: this.format_date(dt),
+            time: this.format_time(dt),
+            zone_name : luxon.DateTime.local().zoneName,
+        };
+  },
+  methods: {
+    handle(e) {
+        var output;
+        if (this.date == null) {
+            output = null;
+        }
+        else {
+            var time = this.time == null ? '00:00:00' : this.time;
+            var dt = this.determine_utc_date(this.date + " " + time);
+            var output = this.format_date(dt)+' '+this.format_time(dt);
+        }
+        this.$emit("input", output);
+        this.$emit("change", output);
+    },
+    determine_local_date(date_string) {
+        return date_string ? wing.date2luxon(date_string).setZone('local') : null;
+    },
+    determine_utc_date(date_string) {
+        return wing.date2luxon(date_string,'local').setZone('utc');
+    },
+    format_date(dt) {
+        return dt == null ? null : dt.toFormat("yyyy-LL-dd");
+    },
+    format_time(dt) {
+        return dt == null ? null : dt.toFormat("HH:mm:ss");
+    },
+  },
+});
+
+/*
+ * moment based date time form control
  */
 
 Vue.component("date-time", {

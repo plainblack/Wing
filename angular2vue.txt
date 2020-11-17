@@ -44,16 +44,15 @@ like this:
 
 ### DATE FILTERS ###
 
-Vue doesn't have any built-in datetime filters. wing.vue.js has 2 new filters
+Vue doesn't have any built-in datetime filters. wing.vue.js has 2 new functions 
 that replace the old angular datetime filters from wing.angular.js. However,
 you need to this library to use them:
 
- * Moment - https://momentjs.com
- * Add imezone support to Moment - https://momentjs.com/timezone/
+ * Luxon - https://moment.github.io/luxon/
 
-The 'timeago' filter from wing.angular.js is now in wing.vue.js. The 'date'
-filter from Angular, and the 'datetime' filter from wing.angular.js have been
-replaced by the 'moment' filter in wing.vue.js.
+The 'timeago' filter from wing.angular.js is now in wing.vue.js as wing.format_timeago().
+The 'date' filter from Angular, and the 'datetime' filter from wing.angular.js have been
+replaced by wing.format_date() in wing.vue.js.
 
 
 ### CONVERSION == REWRITE ###
