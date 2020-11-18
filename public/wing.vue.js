@@ -1217,7 +1217,9 @@ const wing = {
   },
 
   date2luxon(input, timezone) {
-    timezone ||= 'utc';
+    if (!timezone) {
+      timezone = 'utc';
+    }
     if (typeof luxon === "undefined") {
       wing.error("Luxon not installed");
       return input;
@@ -1247,8 +1249,12 @@ const wing = {
   },
   
   format_date(input, format, timezone) {
-      format ||= 'LLLL d yyyy';
-      timezone ||= 'local';
+      if (!format) {
+        format = 'LLLL d yyyy';
+      }
+      if (!timezone) {
+        timezone = 'local';
+      }
       var dt = wing.date2luxon(input);
       if (typeof timezone !== 'undefined') {
           dt = dt.setZone(timezone);

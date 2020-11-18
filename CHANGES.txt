@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-11-18
+ * Older browsers don't support the ||= operator, so removing it from wing.vue.js.
+
 2020-11-17
  * Added format_date(), format_timeago(), date2luxon() in wing.vue.js.
  * Depricated the datetime and timeago filters in wing.vue.js.
