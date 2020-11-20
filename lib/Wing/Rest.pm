@@ -208,6 +208,22 @@ register generate_relationship => sub {
             }
             $data = $data->search(\%where);
         }
+        if (exists $options{ranged}) {
+	    my @query = ();
+	    foreach my $name (@{$options{ranged}}) {
+		my $key = $name =~ m/\./ ? $name : 'me.'.$name;
+		my $start = param('_start_'.$name);	
+		if (defined $start && $start ne '') {
+		    push @query, {$key => { '>=' => $start }};
+		}
+		my $end = param('_end_'.$name);	
+		if (defined $end && $end ne '') {
+		    push @query, {$key => { '<=' => $end }};
+		}
+            }
+	    my %where = ( -and => \@query );
+            $data = $data->search(\%where);
+	}
         return format_list($data, current_user => $current_user);
     };
 };
