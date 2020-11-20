@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-11-19
+ * Expose ip_address field to describe() method which can be useful to lock some requests to specific IP addresses.
+
 2020-11-18
  * Older browsers don't support the ||= operator, so removing it from wing.vue.js.
  * Enabled decade buttons on the luxon date time picker.

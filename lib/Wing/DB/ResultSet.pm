@@ -181,6 +181,7 @@ sub format_list {
                 include_options         => $options{include_options},
                 tracer                  => $options{tracer},
                 current_user            => $user,
+                ip_address              => $options{ip_address},
             );
             $max_items_this_page--;
             last if ($max_items_this_page < 1);

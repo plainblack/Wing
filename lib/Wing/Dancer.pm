@@ -222,6 +222,7 @@ register format_list => sub {
         object_options          => $options{object_options},
         tracer                  => get_tracer(),
         current_user            => $options{current_user} || eval{ get_user_by_session_id() } || undef,
+	ip_address 		=> request->env->{HTTP_X_REAL_IP} || request->remote_address,
     );
 };
 
@@ -308,6 +309,7 @@ register describe => sub {
         include_related_objects => $options{include_related_objects} || $include_related_objects,
         current_user            => $current_user,
         tracer                  => $options{tracer} || get_tracer() || undef,  ##workaround for empty array
+	ip_address 		=> request->env->{HTTP_X_REAL_IP} || request->remote_address,
     );
 };
 
