@@ -97,9 +97,9 @@ new Vue({
         }),
     },
     mounted() {
-        const vm = this;
-        vm.[%[ lower_class ]%]s._search();
-        vm.[%[ lower_class ]%]s.fetch_options();
+        const self = this;
+        self.[%[ lower_class ]%]s._search();
+        self.[%[ lower_class ]%]s.fetch_options();
     },
 });
 
