@@ -1250,7 +1250,7 @@ const wing = {
   
   format_date(input, format, timezone) {
       if (!format) {
-        format = 'LLLL d yyyy';
+        format = 'LLLL d, yyyy';
       }
       if (!timezone) {
         timezone = 'local';
