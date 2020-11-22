@@ -1695,7 +1695,7 @@ Vue.component("toggle", {
 Vue.component("luxon-date-time", {
   template: `<span :id="id">
                   <b-input-group :append="zone_name">
-                  <b-form-datepicker v-model="date" @input="handle" show-decade-nav></b-form-datepicker>
+                  <b-form-datepicker v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
                   <b-form-timepicker v-model="time" @input="handle" locale="en"></b-form-timepicker>
                   </b-input-group>
               </span>`,
@@ -1708,6 +1708,11 @@ Vue.component("luxon-date-time", {
   },
   props: {
     value: { required: 1 },
+    dateDisabledFn : {
+      default : function() { 
+        return function() { return false };
+      },
+    },
     id: {
       default: function () {
         return wing.generate_id();

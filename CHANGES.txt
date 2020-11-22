@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-11-21
+ * luxon-date-time component in wing.vue.js now accepts date-disabled-fn property to disable specific dates.
+ * wing.format_date() in wing.vue.js now correctly places a comma after the day.
+
 2020-11-20
  * Wing::Rest::generate_relationship() now has a new option in named_options called ranged. This allows you to specify _start_name_of_field and _end_name_of_field in your query params, which will search >= name_of_field and <= name_of_field on that relationship.
 
