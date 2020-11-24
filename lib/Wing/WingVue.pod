@@ -1488,7 +1488,13 @@ A timezone string like C<America/Chicago> to convert the date to. Wing datetime 
 =back
 
 
-=head2 wing.format_date(wing_date_string, format_string, timezone)
+=head2 wing.format_date(date_input, options)
+
+An alias for C<wing.format_datetime()> but has a default format of C<LLLL d, yyyy>.
+
+
+
+=head2 wing.format_datetime(date_input, options)
 
 Requires Luxon.
 
@@ -1496,22 +1502,34 @@ Formats a date string into something more human friendly.
 
 =over
 
-=item wing_date_string
+=item date_input
 
-A wing date string in the format of C<2020-11-17 01:14:32>.
+A wing date string in the format of C<2020-11-17 01:14:32>. Will take any input that C<date2luxon> accepts.
 
-=item format_string
+=item options
 
-A format string parsable by Luxon. Defaults to C<LLLL d yyyy> (aka November 17, 2020).
+=over
 
-=item timezone
+=item format
 
-A timezone parsable by Luxon. Defaults to C<local>
+A format string parsable by Luxon. Defaults to C<LLLL d, yyyy h:mm a> (aka November 17, 2020 7:06 AM).
+
+=item in_timezone
+
+A timezone parsable by Luxon that represents the timezone of the C<date_input>. Defaults to C<utc>
+
+=back
+
+=item out_timezone
+
+A timezone parsable by Luxon that represents the timezone you'd like to see represented in the output. Defaults to C<local>
+
+=back
 
 =back
 
 
-=head2 wing.format_timeago(wing_date_string)
+=head2 wing.format_timeago(date_input)
 
 Requires Luxon.
 
@@ -1519,9 +1537,9 @@ Formats a wing date string into something like C<5 minutes ago>.
 
 =over
 
-=item wing_date_string
+=item date_input
 
-A wing date string in the format of C<2020-11-17 01:14:32>.
+A wing date string in the format of C<2020-11-17 01:14:32>. Will take any input that C<date2luxon> accepts.
 
 =back
 

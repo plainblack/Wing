@@ -1248,18 +1248,34 @@ const wing = {
     }
   },
   
-  format_date(input, format, timezone) {
-      if (!format) {
-        format = 'LLLL d, yyyy';
+  format_datetime(input, options) {
+      if (typeof options === 'undefined') {
+        options = {};
       }
-      if (!timezone) {
-        timezone = 'local';
+      if (!options.format) {
+        options.format = 'LLLL d, yyyy h:mm a';
       }
-      var dt = wing.date2luxon(input);
+      if (!options.out_timezone) {
+        options.out_timezone = 'local';
+      }
+      if (!options.in_timezone) {
+        options.in_timezone = 'utc';
+      }
+      var dt = wing.date2luxon(input, options.in_timezone);
       if (typeof timezone !== 'undefined') {
-          dt = dt.setZone(timezone);
+          dt = dt.setZone(options.out_timezone);
       }
-      return dt.toFormat(format);
+      return dt.toFormat(options.format);
+  },
+
+  format_date(input, options) {
+      if (typeof options === 'undefined') {
+        options = {};
+      }
+      if (!options.format) {
+        options.format = 'LLLL d, yyyy';
+      }
+      return wing.format_datetime(input, options);
   },
 
   format_timeago(input) {
