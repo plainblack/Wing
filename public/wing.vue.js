@@ -361,7 +361,7 @@ const wing = {
           }
         })
         .catch(function (error) {
-          console.dir(error);
+          //console.dir(error);
           const data = error.response.data;
           if (
             typeof options !== "undefined" &&
