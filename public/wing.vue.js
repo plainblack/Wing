@@ -1262,7 +1262,7 @@ const wing = {
         options.in_timezone = 'utc';
       }
       var dt = wing.date2luxon(input, options.in_timezone);
-      if (typeof timezone !== 'undefined') {
+      if (typeof options.out_timezone !== 'undefined') {
           dt = dt.setZone(options.out_timezone);
       }
       return dt.toFormat(options.format);
