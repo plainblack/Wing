@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-12-05
+ * Added wing.luxon2wing() date converter in wing.vue.js.
+
 2020-12-04
  * Fix timezone formatting bug in wing.vue.js format_datetime().
 

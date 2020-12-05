@@ -1247,6 +1247,11 @@ const wing = {
       }
     }
   },
+
+  luxon2wing(dt) {
+    dt.setZone('utc');
+    return dt.toFormat('yyyy-LL-dd HH:mm:ss');
+  },
   
   format_datetime(input, options) {
       if (typeof options === 'undefined') {
