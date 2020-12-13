@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2020-12-12
+ * Updated default captcha field to be more clear for dullards.
+ * Removed captchas that were too challenging for mere mortals.
+
 2020-12-05
  * Added wing.luxon2wing() date converter in wing.vue.js.
 

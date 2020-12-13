@@ -33,19 +33,28 @@
           <input class="form-control" type="password" name="password2" id="password2">
           <span class="form-text text-muted">(Required)</span>
      </div>
-    [% IF captcha.riddle %]
-      <div class="form-group">
-          <label for="_captcha_answer">Fill in the blank</label><br>
-          <input type="hidden" name="_captcha_key" value="[% captcha.key %]">
-            
-            <div class="input-group">
-              <div class="input-group-prepend">
-                    <span class="input-group-text">[% captcha.riddle %]</span>
-              </div>
-              <input class="form-control" type="text" name="_captcha_answer" id="_captcha_answer">
-          </div>
-          <span class="form-text text-muted">(Required)</span>
-      </div>
+     [% IF captcha.riddle %]
+        <div class="form-group">
+            <label for="_captcha_answer">Fill in the blank</label><br>
+            <input type="hidden" name="_captcha_key" value="[% captcha.key %]">
+            [% riddle_parts = captcha.riddle.split('&#95;') %]
+            <div style="max-width: 300px;">
+                <div class="input-group">
+                    [% IF riddle_parts.0 %]
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">[% riddle_parts.0 %]</span>
+                        </div>
+                    [% END %]
+                    <input class="form-control" type="text" name="_captcha_answer" id="_captcha_answer">
+                    [% IF riddle_parts.1 %]
+                        <div class="input-group-append">
+                            <span class="input-group-text">[% riddle_parts.1 %]</span>
+                        </div>
+                    [% END %]
+                </div>
+            </div>
+            <span class="form-text text-muted">(Required)</span>
+        </div>
      [% END %]
      <div class="form-group">
           <input class="btn btn-primary" type="submit" value="Create Account">

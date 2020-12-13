@@ -59,6 +59,9 @@ sub build_riddles {
 	    "12/4=_"      => "3",
 	);
 
+	# 5+5=_
+	# 5-5=_
+	# 5x5=_
 	for my $a (1..9) {
 	    for my $b (1..9) {
 		$riddles{$a.'+'.$b.'=_'} = $a + $b;
@@ -66,45 +69,8 @@ sub build_riddles {
 		$riddles{$a.'x'.$b.'=_'} = $a * $b;
 	    }
 	}
-	for my $a ('a'..'c') {
-	   for (1..4) {
-	       my $string = $a++;
-	       $string .= $a++;
-	       my $answer = $a++;
-	       $answer .= $a++;
-	       $string .= '_';
-	       $string .= $a++;
-	       $string .= $a++;
-	       $riddles{$string} = $answer;
-	   }
-	}    
 
-	for my $a ('a'..'c') {
-	    for (1..4) {
-		my $string = $a++;
-		$string .= uc($a++);
-		my $answer = $a++;
-		$answer .= uc($a++);
-		$string .= '_';
-		$string .= $a++;
-		$string .= uc($a++);
-		$riddles{$string} = $answer;
-	   }
-	}    
-
-	for my $a ('a'..'c') {
-	    for (1..4) {
-		my $string = $a++;
-		$string .= uc($a++);
-		my $answer = $a++;
-		$answer .= uc($a++);
-		$string .= '_';
-		$string .= $a++;
-		$string .= uc($a++);
-		$riddles{$string} = $answer;
-	    }
-	}
-
+	# 1,2_4,5
 	for my $a ('1'..'2') {
 	    for (1..2) {
 		my $string = $a++;
@@ -120,6 +86,8 @@ sub build_riddles {
 		$riddles{$string} = $answer;
 	    }
 	}
+
+	# abc_ghi
 	for my $a ('a'..'i') {
 	    for (1..2) {
 		my $string = $a++;
