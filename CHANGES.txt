@@ -4,6 +4,12 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2021-01-05
+ * Added bin/util/nginx_ip_count.pl for seeing which IP's are hitting the server the most given a specific tail from the nginx log.
+
+  USAGE:   tail -10000 /var/log/nginx/access.log|bin/util/nginx_ip_count.pl
+
+
 2020-12-12
  * Updated default captcha field to be more clear for dullards.
  * Removed captchas that were too challenging for mere mortals.
