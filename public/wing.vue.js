@@ -1739,6 +1739,9 @@ Vue.component("luxon-date-time", {
         return wing.generate_id();
       },
     },
+    default_time : {
+      default : '00:00:00',
+    },
   },
   data() {
         var dt = this.determine_local_date(this.value);
@@ -1755,7 +1758,7 @@ Vue.component("luxon-date-time", {
             output = null;
         }
         else {
-            var time = this.time == null ? '00:00:00' : this.time;
+            var time = this.time == null ? this.default_time : this.time;
             var dt = this.determine_utc_date(this.date + " " + time);
             var output = this.format_date(dt)+' '+this.format_time(dt);
         }
