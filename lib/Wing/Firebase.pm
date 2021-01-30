@@ -29,8 +29,8 @@ sub object_status {
     if (ref($payload) eq 'HASH' && exists $payload->{message}) {
         $payload->{message} = demoroniser_utf8($payload->{message});
     }
-    utf8::upgrade($payload->{message});
-    utf8::encode($payload->{message});
+    utf8::upgrade($payload->{message}) if exists $payload->{message};
+    utf8::encode($payload->{message}) if exists $payload->{message};
     return $self->put($directory, $payload, @_);
 }
 
