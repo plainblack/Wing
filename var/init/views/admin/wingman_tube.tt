@@ -141,7 +141,7 @@ new Vue({
     methods : {
         peek : _.debounce(function(type) { // some browsers fire events before updating the model, this gets around that
             const self = this;
-            axios.get('/api/wingman/jobs/' + type)
+            axios.get('/api/wingman/tubes/[% tube_name %]/jobs/' + type)
             .then(function(response) {
                 window.location = '/admin/wingman/jobs/' + response.data.result.id;
             });
