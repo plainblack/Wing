@@ -144,7 +144,6 @@ const wing = {
   scroll_to(el) {
     var elbox = el.getBoundingClientRect();
     var bodybox = document.body.getBoundingClientRect();
-    console.dir([elbox, bodybox]);
     window.scroll(elbox.left - bodybox.left, elbox.top - bodybox.top);
   },
 
@@ -1285,7 +1284,6 @@ const wing = {
 
   format_timeago(input) {
       var duration = luxon.DateTime.utc().toSeconds() - wing.date2luxon(input).toSeconds();
-      console.log(duration);
       var abs_dur = Math.abs(duration);
       var message;
       if (abs_dur < 60) {
