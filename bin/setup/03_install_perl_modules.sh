@@ -76,4 +76,5 @@ Crypt::JWT \
 Firebase \
 Template::Plugin::JSON::Escape \
 Data::Structure::Util \
-Text::Demoroniser
+Text::Demoroniser \
+Crypt::Mac::HMAC
