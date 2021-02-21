@@ -52,7 +52,6 @@ sub execute {
     if (@tubes_to_watch) {
         push @command, '--watch', join(',', @tubes_to_watch);
     }
-    warn(@command);
     system(@command);
 }
 
