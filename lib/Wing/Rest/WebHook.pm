@@ -19,7 +19,7 @@ my $extra = sub {
 };
 generate_create('WebHook', permissions => ['edit_my_webhooks'], extra_processing => $extra);
 generate_read('WebHook', permissions => ['edit_my_webhooks']);
-generate_update('WebHook', permissions => ['edit_my_webhooks']);
+generate_update('WebHook', permissions => ['edit_my_webhooks'], extra_processing => $extra);
 generate_delete('WebHook', permissions => ['edit_my_webhooks']);
 generate_all_relationships('WebHook');
 
