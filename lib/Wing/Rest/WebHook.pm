@@ -3,7 +3,6 @@ package Wing::Rest::WebHook;
 use Wing::Perl;
 use Dancer;
 use Wing::Rest;
-use JSON qw(from_json);
 
 post '/api/webhook/:id/test' => sub {
     my $user = get_user_by_session_id();
