@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2021-03-11
+ * Added wrap option to luxon-date-time.
+
 2021-02-20
  * Added a web hooks subsystem.
 
