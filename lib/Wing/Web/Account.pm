@@ -362,7 +362,7 @@ get '/sso' => sub {
             return redirect '/sso/authorize?sso_id='.$sso->id;
         }
     }
-    template display_login({sso_id => $sso->id});
+    return display_login({sso_id => $sso->id});
 };
 
 get '/sso/authorize' => sub {
