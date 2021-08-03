@@ -41,10 +41,10 @@ sub wing_child {
         };
         if (exists $options->{view}) {
             if ($options->{view} eq 'admin') {
-                $describe->() if $describe_options{include_admin};
+                $describe->() if $describe_options{include_admin} || $self->check_privilege_method($options->{check_privilege}, $describe_options{current_user});
             }
             elsif ($options->{view} eq 'private') {
-                $describe->() if $describe_options{include_private};
+                $describe->() if $describe_options{include_private} || $self->check_privilege_method($options->{check_privilege}, $describe_options{current_user});
             }
             elsif ($options->{view} eq 'public') {
                 $describe->(); 

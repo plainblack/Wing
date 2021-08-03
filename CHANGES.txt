@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2021-08-03
+ * Extend check_privileges into child relationship URLs
+
 2021-05-24
  * Fix double templating of login when using SSO from offsite.
 
