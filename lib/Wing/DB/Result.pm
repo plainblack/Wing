@@ -541,7 +541,7 @@ sub verify_posted_params {
             };
 
             if (any {$_ eq $param} @$required_params && $params->{$param} eq '') {
-                ouch(441, $param.' is required.', $param) unless $params->{$param};
+                ouch(441, $param.' is required.', $param) unless $params->{$param} && $params->{$param} ne '';
             }
 
             # admins can save whatever they want
