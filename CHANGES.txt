@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2021-09-22
+ * Added Wing::Role::Result::EveryUserControlled.
+
 2021-09-06
  * Don't reject 0 in fields out of hand.  To limit numeric quantities in fields use the range property of any field.
 
