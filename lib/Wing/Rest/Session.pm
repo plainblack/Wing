@@ -57,6 +57,10 @@ post '/api/session' => sub {
     # validate password
     if ($user->is_password_valid(params->{password})) {
         my $session = $user->start_session({ api_key_id => params->{api_key_id}, ip_address => request->env->{HTTP_X_REAL_IP} || request->remote_address });
+    	set_cookie session_id   => $session->id,
+        	expires     => '+5y',
+                http_only   => 0,
+                path        => '/api';
         return describe($session, current_user => $user);
     }
     else {
