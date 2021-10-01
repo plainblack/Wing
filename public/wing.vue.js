@@ -540,6 +540,11 @@ const wing = {
       return promise;
     },
 
+    delete_object(options) {
+      // alias to avoid problems with prettier
+      return this.delete(options);
+    },
+
     delete: function (options) {
       const self = this;
       const object = self.properties;

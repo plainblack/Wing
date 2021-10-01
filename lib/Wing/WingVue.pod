@@ -707,6 +707,10 @@ If this is C<true> then the user will not be asked to confirm the delete.
 
 =back
 
+=head3 delete_object()
+
+An alias for C<delete()>.
+
 =head3 stash(name, [value])
 
 If you need to create some temporary data in an object just for the life of the page, then this is how you can do it. It returns the value stored in C<name>. By default every value will be C<null>.
