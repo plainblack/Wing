@@ -501,6 +501,9 @@ sub verify_creation_params {
         my $value = $params->{$param} || $self->$param;
         ouch(441, $param.' is required.', $param) unless defined $value && $value ne '';
     }
+    if (exists $params->{_use_this_id} && $params->{_use_this_id}) { # allow setting specific ids
+        $self->id($params->{_use_this_id});
+    }
 }
 
 =head2 verify_posted_params(params, current_user, tracer)

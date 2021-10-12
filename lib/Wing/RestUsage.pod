@@ -48,6 +48,8 @@ Create an object:
    }
  }
 
+C<Note:> If you would like to create an object with a specific id pass the id with the parameter of C<_use_this_id>.
+
 Read an object:
 
  curl http://wing.example.com/article/xxx

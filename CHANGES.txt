@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2021-10-12
  * Removed id change from 10-9
+ * Replaced it with _use_this_id as a rest parameter for creating objects with a specific id.
 
 2021-10-09
  * An id can now be specified when creating an object via Rest.
