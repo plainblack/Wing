@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2021-10-24
+ * A more promise friendly version of the _all method in wing.vue.js.
+
 2021-10-12
  * Removed id change from 10-9
  * Replaced it with _use_this_id as a rest parameter for creating objects with a specific id.

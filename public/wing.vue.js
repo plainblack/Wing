@@ -696,7 +696,10 @@ const wing = {
         console.error("wing.object_list list_api is empty");
       }
       let pagination = {
-        _page_number: self.paging.page_number || 1,
+        _page_number:
+          typeof options !== "undefined" && options.page_number
+            ? options.page_number
+            : self.paging.page_number || 1,
         _items_per_page: self.paging.items_per_page || 10,
       };
       if (
@@ -755,63 +758,43 @@ const wing = {
       return this._all(options, page_number);
     }, 200),
 
-    _all: function (options, page_number) {
-      const self = this;
-      if (!self.list_api) {
-        console.error("wing.object_list list_api is empty");
+    _all(options, iterations) {
+      let self = this;
+      if (!iterations) {
+        iterations = 1;
       }
-      let params = _.extend(
-        {},
-        {
-          _page_number: page_number || 1,
-          _items_per_page: 10,
-        },
-        self.params,
-        self.search_params
-      );
-      if (
-        typeof options !== "undefined" &&
-        typeof options.params !== "undefined"
-      ) {
-        params = _.extend({}, params, options.params);
+      if (typeof options === "undefined") {
+        options = {};
       }
-      const promise = axios({
-        method: "get",
-        url: wing.format_base_uri(self.list_api),
-        params: params,
-        withCredentials:
-          behavior.with_credentials != null ? behavior.with_credentials : true,
-      });
-      promise
-        .then(function (response) {
-          const data = response.data;
-          for (var index in data.result.items) {
-            self.append(data.result.items[index], options);
-          }
-          if (
-            typeof options !== "undefined" &&
-            typeof options.on_success !== "undefined"
-          ) {
-            options.on_success();
-          }
-          if (typeof behavior.on_success !== "undefined") {
-            behavior.on_success();
-          }
-          if (data.result.paging.page_number < data.result.paging.total_pages) {
-            return self._all(options, data.result.paging.next_page_number);
-          } else {
+      return new Promise((resolve, reject) =>
+        self
+          ._search({
+            accumulate: true,
+            page_number: iterations,
+            on_success: options.on_success,
+          })
+          .then(() => {
             if (
-              typeof options !== "undefined" &&
-              typeof options.on_all_done !== "undefined"
+              parseInt(self.paging.page_number) <
+              parseInt(self.paging.total_pages)
             ) {
+              if (iterations < 99) {
+                self
+                  ._all(options, iterations + 1)
+                  .then(resolve)
+                  .catch(reject);
+              } else {
+                wing.error(
+                  "infinite loop detected in _all() for " + self.list_api
+                );
+              }
+            } else if (typeof options.on_all_done !== "undefined") {
               options.on_all_done();
+              resolve();
             }
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-      return promise;
+          })
+          .catch(reject)
+      );
     },
 
     reset: function () {
