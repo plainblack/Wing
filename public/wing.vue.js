@@ -772,6 +772,7 @@ const wing = {
             accumulate: true,
             page_number: iterations,
             on_success: options.on_success,
+            on_each: options.on_each,
           })
           .then(() => {
             if (
