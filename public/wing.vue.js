@@ -773,6 +773,8 @@ const wing = {
             page_number: iterations,
             on_success: options.on_success,
             on_each: options.on_each,
+            params: options.params,
+            prepend_item: options.prepend_item,
           })
           .then(() => {
             if (
