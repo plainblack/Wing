@@ -791,8 +791,10 @@ const wing = {
                   "infinite loop detected in _all() for " + self.list_api
                 );
               }
-            } else if (typeof options.on_all_done !== "undefined") {
-              options.on_all_done();
+            } else {
+              if (typeof options.on_all_done !== "undefined") {
+                  options.on_all_done();
+              }
               resolve();
             }
           })

@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2021-10-26
+ * Fix issue with _all promise resolution with variable page and data being returned.
+
 2021-10-25
  * Pass through on_each from the _all method to the _search method in wing.vue.js.
 
