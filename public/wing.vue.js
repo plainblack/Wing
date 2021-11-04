@@ -264,7 +264,7 @@ const wing = {
    * Manages a single wing database record via Ajax.
    */
 
-  format_post_data(params) {
+  format_post_data(params, options) {
     var form = new FormData();
     _.forEach(params, function (value, key) {
       //console.log('--'+key+'--');
@@ -278,7 +278,13 @@ const wing = {
           // handle null
           //console.log(key+' is null');
           // skip it
-        } else if (Array.isArray(value) && typeof value[0] == "object") {
+        } else if (
+          Array.isArray(value) &&
+          (typeof value[0] == "object" ||
+            (options &&
+              options.format_json &&
+              options.format_json.includes(key)))
+        ) {
           // handle an array of objects as JSON
           //console.log(key+' is an array of objects');
           form.append(key, JSON.stringify(value));
@@ -308,6 +314,7 @@ const wing = {
     params: _.defaultsDeep({}, behavior.params, { _include_relationships: 1 }),
     create_api: behavior.create_api,
     fetch_api: behavior.fetch_api,
+    post_formatting_options: behavior.post_formatting_options || {},
     _stash: {},
 
     stash(name, value) {
@@ -394,7 +401,8 @@ const wing = {
         console.error("wing.object create_api is empty");
       }
       const params = wing.format_post_data(
-        _.extend({}, self.params, properties)
+        _.extend({}, self.params, properties),
+        self.post_formatting_options
       );
       const promise = axios({
         method: "post",
@@ -461,7 +469,10 @@ const wing = {
           behavior.with_credentials != null ? behavior.with_credentials : true,
       };
       if (config.method == "put" || config.method == "post") {
-        config["data"] = wing.format_post_data(params);
+        config["data"] = wing.format_post_data(
+          params,
+          self.post_formatting_options
+        );
       } else {
         config["params"] = params;
       }
@@ -501,7 +512,8 @@ const wing = {
     _partial_update: function (properties, options) {
       const self = this;
       const params = wing.format_post_data(
-        _.extend({}, self.params, properties)
+        _.extend({}, self.params, properties),
+        self.post_formatting_options
       );
       const promise = axios({
         method: "put",
@@ -663,6 +675,7 @@ const wing = {
           }
           self.remove(properties.id);
         },
+        post_formatting_options: behavior.post_formatting_options,
       });
     },
 
@@ -793,7 +806,7 @@ const wing = {
               }
             } else {
               if (typeof options.on_all_done !== "undefined") {
-                  options.on_all_done();
+                options.on_all_done();
               }
               resolve();
             }

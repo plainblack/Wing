@@ -427,6 +427,29 @@ Required An object containing the options returned from wing when you C<_include
 
 =back
 
+=head2 wing.format_post_data() 
+
+This method is almost never used by you, but is used by C<wing.object()> rest calls to format post data. It handles formatting JSON like things as JSON and other things like normal form post data.
+
+=over
+
+=item params
+
+An object containing name value pairs to post. 
+
+=item options
+
+=over
+
+=item format_json
+
+An array of field names that will be treated like JSON no matter what. This is primarily useful if you have an array that you're trying to send to the server as empty, which is normally just ignored.
+
+=back
+
+=back
+
+
 =head2 wing.object()
 
 Creates an instance of a Wing object, aka a row in the database.
@@ -482,6 +505,10 @@ A list of behavior changing options for the Wing Rest API.
  {
    "_include_related_objects" : ['photo']
  }
+
+=item post_formatting_options
+
+Options to pass to C<wing.format_post_data()>.
 
 =item on_fetch
 
@@ -807,6 +834,10 @@ Required if you want to create objects. The URI to post to to create an object o
 =item new_defaults
 
 There is an object called C<new> who's entire purpose is to be filled by form element's v-models when you add a new object to this list. This property allows you to set the defaults for that C<new> object.
+
+=item post_formatting_options
+
+Options to pass to C<wing.format_post_data()>.
 
 =item options_api
 

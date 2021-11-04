@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2021-11-04
+ * Added the ability to pass options to wing.format_post_data, and an option in wing.object called post_formatting_options to pass through.
+
 2021-10-26
  * Fix issue with _all promise resolution with variable page and data being returned.
 
