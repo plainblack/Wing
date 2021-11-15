@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2021-11-15
+ * In wing.vue.js wing.base_uri is no longer applied via wing.format_base_uri if the uri supplied starts with http.
+
 2021-11-14
  * Added REST endpoint /api/user/whoami which returns info about who the currently logged in user is if any.
 

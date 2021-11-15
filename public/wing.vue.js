@@ -167,6 +167,9 @@ const wing = {
   base_uri: "",
 
   format_base_uri: function (uri_suffix) {
+    if (/^http/.test(uri_suffix)) {
+      return uri_suffix;
+    }
     return wing.base_uri + uri_suffix;
   },
 
