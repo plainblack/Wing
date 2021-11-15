@@ -679,6 +679,7 @@ const wing = {
           self.remove(properties.id);
         },
         post_formatting_options: behavior.post_formatting_options,
+        with_credentials: behavior.with_credentials,
       });
     },
 
