@@ -1196,7 +1196,7 @@ const wing = {
       return null;
     } else {
       const promise = axios
-        .get("/api/user/" + user_id + "/firebase-jwt")
+        .get(wing.format_base_uri("/api/user/" + user_id + "/firebase-jwt"))
         .then(function (response) {
           const config = response.data.result;
           firebase.initializeApp({
