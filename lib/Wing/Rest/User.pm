@@ -16,6 +16,11 @@ get '/api/user' => sub {
     return format_list($users, current_user => $user);
 };
 
+get '/api/user/whoami' => sub {
+    my $user = get_user_by_session_id();
+    return describe($user, current_user => $user);
+};
+
 get '/api/user-not-me' => sub {
     my $user = get_user_by_session_id();
     my $users = site_db()->resultset('User')->search({ -or => {
