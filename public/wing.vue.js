@@ -72,7 +72,9 @@ axios.interceptors.response.use(
       }
     }
     document.dispatchEvent(new CustomEvent("wing_error", { message: message }));
-    wing.error(message);
+    if (!wing.suppress_default_axios_errors) {
+      wing.error(message);
+    }
     return Promise.reject(error);
   }
 );
@@ -127,6 +129,12 @@ const _wing = {
  */
 
 const wing = {
+  /*
+   * suppress default axios errors
+   */
+
+  suppress_default_axios_errors: false,
+
   /*
    * get a cookie by name
    */

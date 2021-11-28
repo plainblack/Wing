@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2021-11-28
+ * Added wing.suppress_default_axios_errors.
+
 2021-11-15
  * In wing.vue.js wing.base_uri is no longer applied via wing.format_base_uri if the uri supplied starts with http.
  * In wing.vue.js fixed a problem where wing.object_list wasn't passing along with_credentials when creating new objects.
