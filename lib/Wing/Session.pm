@@ -132,7 +132,7 @@ sub check_permissions {
 sub extend {
     my $self = shift;
     if ($self->password_hash ne $self->user->password) {
-        Wing->log->debug("SESSION: Password hashes do not match, ending session");
+        Wing->log->debug("SESSION: Password hashes do not match, ending session for user id:". $self->user->id);
         Wing->log->debug("SESSION: Password hash sample: ".substr($self->password_hash,0,5));
         Wing->log->debug("SESSION: Password user sample: ".substr($self->user->password,0,5));
         $self->end;
