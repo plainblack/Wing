@@ -92,6 +92,7 @@ Wing->log->debug($object_url. ' a '.$name);
         my $object = site_db()->resultset($db_class_name)->new({});
 Wing->log->debug($object_url. ' b '.$name);
         my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
+Wing->log->debug($object_url. ' user '.ref($current_user));
 Wing->log->debug($object_url. ' c '.$name);
         my $params = expanded_params($current_user);
 Wing->log->debug($object_url. ' d '.$name);
