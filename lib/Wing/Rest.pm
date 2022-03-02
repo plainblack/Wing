@@ -100,6 +100,8 @@ Wing->log->debug($object_url. ' e '.$name);
             $params->{identity} = $wing_object_type;  
         }
 Wing->log->debug($object_url. ' f '.$name);
+use Data::Dumper;
+Wing->log->debug($name.' '.Dumper($params));
         $object->verify_creation_params($params, $current_user);
 Wing->log->debug($object_url. ' g '.$name);
         $object->verify_posted_params($params, $current_user, get_tracer());
