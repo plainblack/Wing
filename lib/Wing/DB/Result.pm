@@ -498,10 +498,11 @@ A reference to the current user object.
 sub verify_creation_params {
     my ($self, $params, $current_user) = @_;
     foreach my $param (@{$self->required_params}) {
-if ($param eq 'game_id') {
-    Wing->log->debug(' got game id');
-}
         my $value = exists $params->{$param} ? $params->{$param} : $self->$param;
+if ($param eq 'game_id') {
+    Wing->log->debug('got game id: '.$params->{$param});
+    $self->game_id($params->{$param});
+}
         ouch(441, $param.' is required.', $param) unless defined $value && $value ne '';
     }
     if (exists $params->{_use_this_id} && $params->{_use_this_id}) { # allow setting specific ids
