@@ -577,6 +577,7 @@ sub verify_posted_params {
             }
 
             # everything failed
+Wing->log->debug('bailing on '.$params->{name}.' for '.$param);
             ouch 450, $cant_edit, $param;
         }
     }
