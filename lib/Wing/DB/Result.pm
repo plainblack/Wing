@@ -530,6 +530,9 @@ See L<Wing::Rest> C<get_tracer()>
 
 sub verify_posted_params {
     my ($self, $params, $current_user, $tracer) = @_;
+if ($self->can('name')) {
+Wing->log->debug($self->name.' got here');
+}
     my $is_admin = defined $current_user && $current_user->is_admin;
     my $can_edit = eval { $is_admin || $self->can_edit($current_user, $tracer) };
     my $cant_edit = $@;
