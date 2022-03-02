@@ -85,7 +85,7 @@ register generate_create => sub {
     my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     post '/api/'.$object_url => sub {
-my $name = params('name');
+my $name = param('name');
 Wing->log->debug($object_url. ' starting '.$name);
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
 Wing->log->debug($object_url. ' a '.$name);
