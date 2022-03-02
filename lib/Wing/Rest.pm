@@ -105,6 +105,9 @@ Wing->log->debug($name.' '.Dumper($params));
         $object->verify_creation_params($params, $current_user);
 if ($object->can('game_id')) {
 Wing->log->debug($object_url. ' game_id '.$object->game_id.'  '.$name);
+  if ($name eq 'InventionDeck' && !$object->game_id) {
+    $object->game_id($params->{game_id});
+ }
 }
 Wing->log->debug($object_url. ' g '.$name);
         $object->verify_posted_params($params, $current_user, get_tracer());
