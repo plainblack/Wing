@@ -577,6 +577,7 @@ sub verify_posted_params {
             }
 
             # everything failed
+Wing->log->debug('holy crap something bad happened');
             ouch 450, $cant_edit, $param;
         }
     }
