@@ -103,6 +103,9 @@ Wing->log->debug($object_url. ' f '.$name);
 use Data::Dumper;
 Wing->log->debug($name.' '.Dumper($params));
         $object->verify_creation_params($params, $current_user);
+if ($object->can('user_id')) {
+Wing->log->debug($object_url. ' user_id '.$object->user_id.'  '.$name);
+}
 Wing->log->debug($object_url. ' g '.$name);
         $object->verify_posted_params($params, $current_user, get_tracer());
 Wing->log->debug($object_url. ' h '.$name);

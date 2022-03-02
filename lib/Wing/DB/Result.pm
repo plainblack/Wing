@@ -530,77 +530,53 @@ See L<Wing::Rest> C<get_tracer()>
 
 sub verify_posted_params {
     my ($self, $params, $current_user, $tracer) = @_;
-Wing->log->debug('g1 '.$params->{name});
     my $is_admin = defined $current_user && $current_user->is_admin;
-Wing->log->debug('g2 '.$params->{name});
     my $can_edit = eval { $is_admin || $self->can_edit($current_user, $tracer) };
-Wing->log->debug('g3 '.$params->{name});
     my $cant_edit = $@;
-Wing->log->debug('g4 '.$params->{name});
     my $required_params = $self->required_params;
-Wing->log->debug('g5 '.$params->{name});
     my $privileged_params = $self->privileged_params;
-Wing->log->debug('g6 '.$params->{name});
     my $admin_postable_params = $self->admin_postable_params;
-Wing->log->debug('g7 '.$params->{name});
     my @postable_params = $self->get_postable_params_by_priority;
-Wing->log->debug('g8 '.$params->{name});
     PARAM: foreach my $param (@postable_params) {
-Wing->log->debug('g9 '.$params->{name}.' '.$param);
         if (exists $params->{$param}) {
-Wing->log->debug('g10 '.$params->{name}.' '.$param);
             my $saveit = sub {
                 $self->$param($params->{$param});
             };
 
-Wing->log->debug('g11 '.$params->{name}.' '.$param);
             if (any {$_ eq $param} @$required_params && $params->{$param} eq '') {
-Wing->log->debug('g12 '.$params->{name}.' '.$param);
                 ouch(441, $param.' is required.', $param) unless $params->{$param} && $params->{$param} ne '';
             }
-Wing->log->debug('g13 '.$params->{name}.' '.$param);
 
             # admins can save whatever they want
             if ($is_admin) {
-Wing->log->debug('g14 '.$params->{name}.' '.$param);
                 $saveit->();
                 next PARAM;
             }
 
-Wing->log->debug('g15 '.$params->{name}.' '.$param);
             # skip admin postable params unless they are a privileged param
             my $is_admin_postable = any {$_ eq $param} @{$admin_postable_params};
-Wing->log->debug('g16 '.$params->{name}.' '.$param);
             if ($is_admin_postable) {
-Wing->log->debug('g17 '.$params->{name}.' '.$param);
                 next PARAM unless exists $privileged_params->{$param};
             }
 
-Wing->log->debug('g18 '.$params->{name}.' '.$param);
             # if it's a privileged param and it can pass the privilege check, save it
             if (exists $privileged_params->{$param}) {
-Wing->log->debug('g19 '.$params->{name}.' '.$param);
                 if ($self->check_privilege_method($privileged_params->{$param}, $current_user)) {
-Wing->log->debug('g20 '.$params->{name}.' '.$param);
                     $saveit->();
                     next PARAM;
                 }
                 elsif ($is_admin_postable) { # if we weren't allowed to edit and it was admin postable we need to skip it
-Wing->log->debug('g21 '.$params->{name}.' '.$param);
                     next PARAM;
                 }
             }
 
-Wing->log->debug('g22 '.$params->{name}.' '.$param);
             # if we are allowed to edit it then save it
             if ($can_edit) {
-Wing->log->debug('g23 '.$params->{name}.' '.$param);
                 $saveit->();
                 next PARAM;
             }
 
             # everything failed
-Wing->log->debug('g24 bailing on '.$params->{name}.' for '.$param);
             ouch 450, $cant_edit, $param;
         }
     }
