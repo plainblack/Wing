@@ -85,31 +85,32 @@ register generate_create => sub {
     my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     post '/api/'.$object_url => sub {
-Wing->log->debug($object_url. ' starting');
+my $name = params('name');
+Wing->log->debug($object_url. ' starting '.$name);
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
-Wing->log->debug($object_url. ' a');
+Wing->log->debug($object_url. ' a '.$name);
         my $object = site_db()->resultset($db_class_name)->new({});
-Wing->log->debug($object_url. ' b');
+Wing->log->debug($object_url. ' b '.$name);
         my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
-Wing->log->debug($object_url. ' c');
+Wing->log->debug($object_url. ' c '.$name);
         my $params = expanded_params($current_user);
-Wing->log->debug($object_url. ' d');
+Wing->log->debug($object_url. ' d '.$name);
         if ($db_class_name ne $wing_object_type) { # provides an identity for migrating old APIs in case that is needed
-Wing->log->debug($object_url. ' e');
+Wing->log->debug($object_url. ' e '.$name);
             $params->{identity} = $wing_object_type;  
         }
-Wing->log->debug($object_url. ' f');
+Wing->log->debug($object_url. ' f '.$name);
         $object->verify_creation_params($params, $current_user);
-Wing->log->debug($object_url. ' g');
+Wing->log->debug($object_url. ' g '.$name);
         $object->verify_posted_params($params, $current_user, get_tracer());
-Wing->log->debug($object_url. ' h');
+Wing->log->debug($object_url. ' h '.$name);
         if (defined $options{extra_processing}) {
-Wing->log->debug($object_url. ' i');
+Wing->log->debug($object_url. ' i '.$name);
             $options{extra_processing}->($object, $current_user);
         }
-Wing->log->debug($object_url. ' j');
+Wing->log->debug($object_url. ' j '.$name);
         $object->insert;
-Wing->log->debug($object_url. ' ending');
+Wing->log->debug($object_url. ' ending '.$name);
         return describe($object, current_user => $current_user);
     };
 };
