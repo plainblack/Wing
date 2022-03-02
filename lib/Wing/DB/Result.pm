@@ -499,10 +499,6 @@ sub verify_creation_params {
     my ($self, $params, $current_user) = @_;
     foreach my $param (@{$self->required_params}) {
         my $value = exists $params->{$param} ? $params->{$param} : $self->$param;
-if ($param eq 'game_id') {
-    Wing->log->debug('got game id: '.$params->{$param});
-    $self->game_id($params->{$param});
-}
         ouch(441, $param.' is required.', $param) unless defined $value && $value ne '';
     }
     if (exists $params->{_use_this_id} && $params->{_use_this_id}) { # allow setting specific ids
@@ -534,9 +530,6 @@ See L<Wing::Rest> C<get_tracer()>
 
 sub verify_posted_params {
     my ($self, $params, $current_user, $tracer) = @_;
-if ($self->can('name')) {
-Wing->log->debug($self->name.' got here');
-}
     my $is_admin = defined $current_user && $current_user->is_admin;
     my $can_edit = eval { $is_admin || $self->can_edit($current_user, $tracer) };
     my $cant_edit = $@;
@@ -584,7 +577,6 @@ Wing->log->debug($self->name.' got here');
             }
 
             # everything failed
-Wing->log->debug('holy crap something bad happened');
             ouch 450, $cant_edit, $param;
         }
     }
