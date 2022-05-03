@@ -1055,11 +1055,17 @@ const wing = {
           return this.build_dom(message);
         } else if (typeof message == "string" && message.charAt(0) == "[") {
           // looks like json
-          return this.build_dom(JSON.parse(message));
-        } else {
-          // just a string
-          return message;
+          try {
+              let message_obj = JSON.parse(message);
+              return this.build_dom(message_obj);
+          }
+          catch {
+              console.log("Discarding unreadable message from Firebase: ",message);
+              message = 'Unreadable message';
+          }
         }
+        // just a string
+        return message;
       },
       success(message, options) {
         options = this.format_options(options);
@@ -1231,7 +1237,7 @@ const wing = {
                   snapshot.ref.remove();
                 }, 1000);
               } else {
-                console.dir(message);
+                //console.dir(message);
               }
             });
         });
