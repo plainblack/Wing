@@ -532,7 +532,10 @@ sub verify_posted_params {
     my ($self, $params, $current_user, $tracer) = @_;
     my $is_admin = defined $current_user && $current_user->is_admin;
     my $can_edit = eval { $is_admin || $self->can_edit($current_user, $tracer) };
-    my $cant_edit = $@;
+    my $cant_edit = '';
+    if (hug) {
+        $cant_edit = $@->message;
+    }
     my $required_params = $self->required_params;
     my $privileged_params = $self->privileged_params;
     my $admin_postable_params = $self->admin_postable_params;
