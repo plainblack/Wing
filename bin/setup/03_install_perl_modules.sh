@@ -77,4 +77,5 @@ Firebase \
 Template::Plugin::JSON::Escape \
 Data::Structure::Util \
 Text::Demoroniser \
-Crypt::Mac::HMAC
+Crypt::Mac::HMAC \
+AWS::SNS::Verify
