@@ -55,7 +55,11 @@ sub wing_parent_field {
                 my $out = $orig->($self, %describe_options);
                 my @parent_ids;
                 my %parent_options;
-                my $parents = $self->result_source->schema->resultset($options->{related_class})->search(undef,{order_by => 'name'});
+		my $where = undef;
+		if ($options->{generate_options_by_name_where}) {
+			$where = $options->{generate_options_by_name_where};
+		}
+                my $parents = $self->result_source->schema->resultset($options->{related_class})->search($where,{order_by => 'name'});
                 while (my $parent = $parents->next) {
                     push @parent_ids, $parent->id;
                     $parent_options{$parent->id} = $parent->name;
@@ -180,6 +184,10 @@ Scalar. Optional. The field to be created in this class to store the relationshi
 =item generate_options_by_name
 
 Boolean. Optional. Defaults to C<0>. If set to C<1> this will add an enumerated options list to the object description when C<include_options> is specified. The options will be C<id> / C<name> pairs. 
+
+=item generate_options_by_name_where
+
+Hash containing a DBIx::Class where clause. Only used if C<generate_options_by_name> is enabled. Used to filter the list to a subset.
 
 =item skip_ref_check
 

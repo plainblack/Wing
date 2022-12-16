@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2022-12-16
+ * Added generate_options_by_name_where option to Wing::Role::Result::Parent.
+
 2022-05-04
  * Fix permission errors that happen when trying to Ouch an object in the message field.
 
