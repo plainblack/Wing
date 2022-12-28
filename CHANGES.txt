@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2022-12-27
+ * Added X-WING-SKIP-RESULT-WRAPPER header check in Wing::Rest.
+
 2022-12-16
  * Added generate_options_by_name_where option to Wing::Role::Result::Parent.
  * Added a switch to have new comment box at the top instead of the bottom.

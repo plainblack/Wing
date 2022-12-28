@@ -258,7 +258,9 @@ hook before => sub {
 hook before_serializer => sub {
     my $response = shift;
     my $content  = $response->{content};
-    $response->{content} = { result => $content, };
+    unless ($response->header('X-WING-SKIP-RESULT-WRAPPER')) {
+    	$response->{content} = { result => $content };
+    }
     return $response;
 };
 
