@@ -143,6 +143,13 @@ register generate_relationship => sub {
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id/'.$relationship_name => sub {
         my $current_user = eval{get_user_by_session_id(permissions => $options{permissions})};
+	if (exists $options{verify_user}) {
+		unless (defined $current_user) {
+			ouch 401, 'User required for access.';
+		}
+		my $method = $options{verify_user};
+		$current_user->$method();
+	}
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         my $object = fetch_object($db_class_name);
         my $data = $object->$relationship_name();
@@ -411,9 +418,17 @@ A hash reference.
 
 See L<Wing::Role::Result::APIKeyPermission>.
 
+=item verify_user
+
+The name of a method to call on a L<Wing::Role::Result::User> object to verify that a user exists. See also L<Wing::Role::Result::PrivilegeControlled>.
+
+ generate_relationship('Vehicle', 'vehicles', { verify_user => 'verify_is_driver' });
+
 =item queryable
 
 An array reference of field names that be queried via wildcard search.
+
+ generate_relationship('Vehicle', 'vehicles', { queryable => ['name','manufacturer'] });
 
 =item qualifiers
 
@@ -424,6 +439,8 @@ You can also do other comparison types such as >, >=, <, <=, or <> by prepending
  ?start_date=>=2016-01-07 15:30:00
 
 The first equal sign is the assignment operator and will be processed out. The reminader reads where C<start_date> is greater than or equal to C<2016-01-07 15:30:00>.
+
+ generate_relationship('Vehicle', 'vehicles', { qualifiers => ['model_year','preowned'] });
 
 =back
 
