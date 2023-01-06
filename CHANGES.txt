@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2023-01-06
  * Added verify_user option to generate_relationship() in Wing::Rest.
+ * Fixed a bug where generating field options from a parent list would cause an error.
 
 2022-12-27
  * Added X-WING-SKIP-RESULT-WRAPPER header check in Wing::Rest.

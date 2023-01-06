@@ -59,7 +59,7 @@ sub wing_parent_field {
 		if ($options->{generate_options_by_name_where}) {
 			$where = $options->{generate_options_by_name_where};
 		}
-                my $parents = $self->result_source->schema->resultset($options->{related_class})->search($where,{order_by => 'name'});
+                my $parents = Wing->db->resultset($options->{related_class})->search($where,{order_by => 'name'});
                 while (my $parent = $parents->next) {
                     push @parent_ids, $parent->id;
                     $parent_options{$parent->id} = $parent->name;
