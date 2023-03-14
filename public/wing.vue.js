@@ -806,7 +806,7 @@ const wing = {
               parseInt(self.paging.page_number) <
               parseInt(self.paging.total_pages)
             ) {
-              if (iterations < 99) {
+              if (iterations < 199) {
                 self
                   ._all(options, iterations + 1)
                   .then(resolve)
