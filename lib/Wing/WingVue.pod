@@ -1008,7 +1008,8 @@ The exact same C<search> method, but without a debounce of 200ms.
 
 =head3 all(options)
 
-Similar to C<search()> except that it fetches the complete list of objects, not just one page of them, and then returns a promise from the HTTP request.
+Similar to C<search()> except that it fetches the complete list of objects, not just one page of them, and then returns a promise from the HTTP request.  C<all()> is limited
+to fetching 199 pages to prevent infinite loops from occurring.
 
 =over
 
