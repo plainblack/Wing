@@ -231,7 +231,12 @@ register generate_relationship => sub {
 	    my %where = ( -and => \@query );
             $data = $data->search(\%where);
 	}
-        return format_list($data, current_user => $current_user);
+        if ($data->isa('DBIx::Class::ResultSet')) {
+            return format_list($data, current_user => $current_user);
+        }
+        else {
+            return describe($data, current_user => $current_user);
+        }
     };
 };
 
