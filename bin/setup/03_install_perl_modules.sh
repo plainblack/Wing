@@ -2,6 +2,10 @@
 cpanm List::MoreUtils \
 Test::Trap \
 DBIx::Class \
+Sub::Name \
+Sub::Identify \
+DateTime \
+Params::Validate \
 Moose \
 MooseX::NonMoose \
 DBIx::Class::InflateColumn::DateTime \
@@ -14,6 +18,7 @@ Digest::SHA \
 Email::MIME::Kit \
 Email::Sender::Simple \
 Crypt::Eksblowfish \
+XML::Parser \
 Dancer \
 DateTime::Format::MySQL \
 Config::IniFiles \
@@ -25,6 +30,7 @@ XML::Hash::LX \
 Digest::HMAC_SHA1 \
 Tie::IxHash \
 Server::Starter \
+WWW::Form::UrlEncoded \
 Starman \
 Pod::Simple::HTML \
 XML::Simple \

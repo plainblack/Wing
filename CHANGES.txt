@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2024-04-29
+ * Modernize the install to latest Perl and fix a bunch of perl prereq problems.
+
 2023-03-14
  * Increase iteration limit in wing.vue.js _all() to 199 from 99.
 

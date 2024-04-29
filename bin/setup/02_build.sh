@@ -3,7 +3,7 @@ mkdir -p /data/apps
 # import into the environment
 . /data/Wing/bin/dataapps.sh
 
-cd perl-5.26.2
+cd perl-5.38.2
 ./Configure -Dprefix=/data/apps -des
 make
 make install
