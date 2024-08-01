@@ -137,6 +137,7 @@ sub format_list {
     # ordering
     if (exists $options{order_by} && $options{order_by}) {
         my $order_by = $options{order_by};
+        my $has_id = 0;
         if (ref $order_by ne 'ARRAY') {
             $order_by = [$order_by];
         }
@@ -145,6 +146,10 @@ sub format_list {
             unless ($order_by->[$i] =~ m/^[a-z0-9\.\_]+$/i) { # disregard poorly formatted requests
                 delete $order_by->[$i];
                 next;
+            }
+
+            if ($order_by->[$i] eq 'id' || $order_by->[$i] eq 'me.id' ) {
+                $has_id = 1;
             }
 
             if ($order_by->[$i] !~ m/\./) {
@@ -157,6 +162,9 @@ sub format_list {
                     }
                 }
             }
+        }
+        if (! $has_id) {
+            push @{ $order_by }, 'me.id';
         }
         $extra->{order_by} = $order_by;
     }
