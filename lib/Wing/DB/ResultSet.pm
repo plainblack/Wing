@@ -215,5 +215,18 @@ sub format_list {
 }
 
 
+sub delete_all_chunkily {
+    my $self = shift;
+    my @ids = $self->search({})->get_column('id')->all();
+    my $guard = $self->result_source->schema->txn_scope_guard;
+    ID: foreach my $id (@ids) {
+        my $obj = $self->find($id);
+        next ID unless $obj;
+        $obj->delete();
+    }
+    $guard->commit();
+    return 1;
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable(inline_constructor => 0);
