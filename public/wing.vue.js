@@ -277,7 +277,7 @@ const wing = {
 
   format_post_data(params, options) {
     var form = new FormData();
-    for( const [key, value] of Object.entries(params)) {
+    for( const [key, value] of Object.entries(params) ) {
       //console.log('--'+key+'--');
       //console.dir(value)
       if (typeof value == "object") {
@@ -313,7 +313,7 @@ const wing = {
         //console.log(key+' is an normal value');
         form.append(key, value);
       }
-    });
+    }
     return form;
   },
 
