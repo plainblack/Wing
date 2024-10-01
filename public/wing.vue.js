@@ -277,7 +277,7 @@ const wing = {
 
   format_post_data(params, options) {
     var form = new FormData();
-    _.forEach(params, function (value, key) {
+    for( const [key, value] of Object.entries(params)) {
       //console.log('--'+key+'--');
       //console.dir(value)
       if (typeof value == "object") {
@@ -302,9 +302,7 @@ const wing = {
         } else if (Array.isArray(value)) {
           // handle an array of values as individual key value pairs
           //console.log(key+' is an array of key value pairs');
-          _.forEach(value, function (element) {
-            form.append(key, element);
-          });
+          value.forEach( (element) => form.append(key, element) );
         } else {
           // just a normal object hash
           //console.log(key+' is an object hash');
