@@ -3,6 +3,7 @@ package Wing::DB::ResultSet;
 use Moose;
 extends 'DBIx::Class::ResultSet';
 use POSIX qw/ceil/;
+use Wing::Util qw/is_in/;
 no warnings 'experimental::smartmatch';
 
 sub BUILDARGS { $_[2] }
@@ -157,7 +158,7 @@ sub format_list {
             }
             elsif ($order_by->[$i] =~ m/^(.*)\./) {
                 if ($1 ne 'me') {
-                    unless ($1 ~~ $prefetch) {
+                    unless (is_in($1, $prefetch)) {
                         push @{$prefetch}, $1;
                     }
                 }

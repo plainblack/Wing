@@ -3,6 +3,7 @@ package Wing::Role::Result::Comment;
 use Moose::Role;
 use Wing::Perl;
 use Ouch;
+use Wing::Util qw/is_in/;
 
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::UserControlled';
@@ -32,7 +33,7 @@ around describe => sub {
     my ($orig, $self, %options) = @_;
     my $out = $orig->($self, %options);
     if (exists $options{current_user} && defined $options{current_user} && $self->likes) {
-        if ($options{current_user}->id ~~ $self->likes) {
+        if (is_in($options{current_user}->id, $self->likes || [])) {
             $out->{i_like} = 1;
         }
     }
@@ -48,7 +49,7 @@ sub comment_relationship_id {
 sub like {
     my ($self, $user_id) = @_;
     my $likes = $self->likes || [];
-    return if $user_id ~~ $likes;
+    return if is_in($user_id, $likes);
     push @{$likes}, $user_id;
     $self->likes($likes);
     $self->like_count(scalar @{$likes});

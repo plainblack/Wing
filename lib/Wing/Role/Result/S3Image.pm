@@ -8,6 +8,7 @@ use Image::ExifTool;
 use Net::Amazon::S3;
 use DateTime::Format::HTTP;
 use File::Temp qw(tempfile);
+use Wing::Util qw/is_in/;
 
 with 'Wing::Role::Result::Field';
 
@@ -117,7 +118,7 @@ sub verify_image {
         $meta->{$key} = $value;
     }
     $self->metadata($meta);
-    unless ($meta->{FileType} ~~ ['JPEG','PNG']) {
+    unless (is_in($meta->{FileType}, ['JPEG','PNG'])) {
         ouch 442, 'File must be a .jpg or .png.';
     }
 }

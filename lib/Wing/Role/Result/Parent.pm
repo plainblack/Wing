@@ -3,6 +3,7 @@ package Wing::Role::Result::Parent;
 use Wing::Perl;
 use Ouch;
 use Moose::Role;
+use Wing::Util qw/is_in/;
 with 'Wing::Role::Result::Field';
 no warnings 'experimental::smartmatch';
 
@@ -10,7 +11,7 @@ sub wing_parent_field {
     my ($wing_object_class, $field, $options) = @_;
     my $id = $options->{related_id} || $field.'_id';
     my %dbic = ( data_type => 'char', size => 36, is_nullable => 1 );
-    if ($options->{edit} ~~ [qw(required unique)]) {
+    if (is_in($options->{edit}, [qw(required unique)])) {
         $dbic{is_nullable} = 0;
     }
     
@@ -78,7 +79,7 @@ sub wing_parent_relationship {
 
     # create relationship
     my @relationship = ($field, $options->{related_class}, $id);
-    unless ($options->{edit} ~~ [qw(required unique)]) {
+    unless (is_in($options->{edit}, [qw(required unique)])) {
         push @relationship, { on_delete => 'set null', join_type => 'left' };
     }
     $class->meta->add_after_method_modifier(wing_apply_relationships => sub {
@@ -100,7 +101,7 @@ sub wing_parent_relationship {
         my $out = $orig->($self, %describe_options);
         my $describe = sub {
             if (exists $describe_options{include_related_objects}) {
-                if ((ref $describe_options{include_related_objects} eq 'ARRAY' && $field ~~ $describe_options{include_related_objects}) || (ref $describe_options{include_related_objects} ne 'ARRAY' && $describe_options{include_related_objects})) {
+                if ((ref $describe_options{include_related_objects} eq 'ARRAY' && is_in($field, $describe_options{include_related_objects} || [])) || (ref $describe_options{include_related_objects} ne 'ARRAY' && $describe_options{include_related_objects})) {
                     if ($self->$id) {
 			if (!defined($self->$field)) {
 				ouch 440, $field.' ('.$self->$id.') does not exist for '.$self->wing_object_name.' ('.$self->id.').';

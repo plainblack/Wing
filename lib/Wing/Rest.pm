@@ -6,7 +6,7 @@ use Ouch;
 use Dancer ':syntax';
 use Dancer::Plugin;
 no warnings 'experimental::smartmatch';
-use Wing::Util qw(trigram_match_against);
+use Wing::Util qw(trigram_match_against is_in);
 
 
 set serializer => 'JSON';
@@ -168,7 +168,7 @@ register generate_relationship => sub {
             if (defined $query && $query ne '') {
                 foreach my $name (@{$options{queryable}}) {
                     if ($name =~ m/(\w+)\.\w+/) { # skip a joined query if there is no prefetch on that query, needed when you have queriable params in a joined table like 'user.real_name'.
-                        next unless $1 ~~ $prefetch;
+                        next unless is_in($1, $prefetch);
                     }
                     my $key = $name =~ m/\./ ? $name : 'me.'.$name;
                     push @query, $key => { like => '%'.$query.'%' };
@@ -177,7 +177,7 @@ register generate_relationship => sub {
                     my @keys = ();
                     foreach my $name (@{$options{fulltextquery}}) {
                         if ($name =~ m/(\w+)\.\w+/) { # skip a joined query if there is no prefetch on that query, needed when you have queriable params in a joined table like 'user.real_name'.
-                            next unless $1 ~~ $prefetch;
+                            next unless is_in($1, $prefetch);
                         }
                         my $key = $name =~ m/\./ ? $name : 'me.'.$name;
 		                push @keys, $key;
