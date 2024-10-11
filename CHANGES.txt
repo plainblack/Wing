@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2024-10-11
+ * Remove smartmatch
+
 2024-08-20
  * Smaller memory footprint delete_all method, delete_all_chunkily
 
