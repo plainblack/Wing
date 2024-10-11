@@ -6,6 +6,7 @@ use Data::GUID;
 use URI::Escape;
 use Ouch;
 use JSON;
+use Wing::Util qw/is_in/;
 
 sub key {
     my $self = shift;
@@ -122,7 +123,7 @@ sub check_permissions {
     ouch(450, 'Insufficient permissions.',$permissions) unless $self->has_api_key_id; # can't have permissions if they didn't assign an API key
     my $existing = $self->get_permissions;
     foreach my $permission (@{$permissions}) {
-        unless ($permission ~~ $existing) {
+        unless (is_in($permission, $existing || [])) {
             ouch(450, 'Insufficient permissions.',$permissions);
         }
     }
