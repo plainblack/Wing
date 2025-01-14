@@ -1746,7 +1746,18 @@ Vue.component("toggle", {
  */
 
 Vue.component("luxon-date-time", {
-  template: `<span :id="id">
+  template: `<span v-if="allow_manual_entry" :id="id">
+                <span v-if="wrap">
+                    <b-form-datepicker v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
+                    <b-form-input v-model="time" type="text" placeholder="HH:mm:ss"></b-form-input><b-form-timepicker v-model="time" @input="handle" locale="en" button-only right></b-form-timepicker>
+                    <div class="input-group-text">{{zone_name}}</div>
+                </span>
+                <b-input-group v-else :append="zone_name">
+                      <b-form-datepicker v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
+                      <b-form-input sm="auto" type="text" v-model="time" placeholder="HH:mm:ss"></b-form-input><b-input-group-append><b-form-timepicker v-model="time" @input="handle" locale="en" button-only right></b-form-timepicker></b-input-group-append>
+                </b-input-group>
+            </span>
+            <span v-else :id="id">
                 <span v-if="wrap">
                     <b-form-datepicker v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
                     <b-form-timepicker v-model="time" @input="handle" locale="en"></b-form-timepicker>
@@ -1782,6 +1793,9 @@ Vue.component("luxon-date-time", {
       default: "00:00:00",
     },
     wrap: {
+      default: false,
+    },
+    allow_manual_entry: {
       default: false,
     },
   },
