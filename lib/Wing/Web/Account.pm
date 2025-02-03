@@ -397,6 +397,18 @@ get '/sso/success' => sub {
     };
 };
 
+post '/account/facebook/delete' => sub {
+    my $fbid = param('id');
+    my $user = Wing->db->resultset('User')->search({facebook_uid => $fbid},{rows=>1})->single;
+    content_type 'application/json';
+    my $out = { confirmation_code => $fbid, url => 'https://'.Wing->config->get('sitename').'/account' };
+    if ($user) {
+        $user->facebook_uid(undef);
+        $user->update;
+    }
+    return to_json($out);    
+};
+
 get '/account/facebook' => sub {
     if (params->{sso_id}) {
         set_cookie sso_id  => params->{sso_id};
