@@ -1051,19 +1051,32 @@ const wing = {
         if (Array.isArray(message)) {
           // an array of objects to make into a tree
           return this.build_dom(message);
-        } else if (typeof message == "string" && message.charAt(0) == "[") {
-          // looks like json
-          try {
-              let message_obj = JSON.parse(message);
-              return this.build_dom(message_obj);
+        }
+        else {
+          if (typeof message == "string") {
+              // Is it JSON?
+              try {
+                  let message_obj = JSON.parse(message);
+                  if (Array.isArray(message_obj)) {
+                      return this.build_dom(message_obj);
+                  }
+                  else {
+                      console.log("Discarding unreadable message from Firebase: ",message);
+                      message = 'Unreadable message';
+                  }
+              }
+              catch {
+                  //Just a string
+                  return message;
+              }
           }
-          catch {
+          else {
               console.log("Discarding unreadable message from Firebase: ",message);
               message = 'Unreadable message';
           }
+          // just a string
+          return message;
         }
-        // just a string
-        return message;
       },
       success(message, options) {
         options = this.format_options(options);

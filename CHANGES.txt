@@ -6,6 +6,7 @@ with respect to new features and compatibility changes.
 
 2025-02-03
  * Added route for Facebook data deletion at /account/facebook/delete per https://developers.facebook.com/docs/development/create-an-app/app-dashboard/data-deletion-callback/
+ * Fix formatted message parsing where the message resembles but isn't JSON.
 
 2024-01-14
  * Allow manual time entry in the luxon time picker
