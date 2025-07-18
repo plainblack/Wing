@@ -94,6 +94,22 @@ has user => (
     default     => sub {
         my $self = shift;
         return undef unless $self->has_user_id;
+        
+        # Check if we have cached user data first
+        my $session_data = Wing->cache->get($self->key);
+        if (defined $session_data && ref $session_data eq 'HASH' && 
+            exists $session_data->{user_data} && defined $session_data->{user_data}) {
+            # Recreate user object from cached data
+            eval {
+                my $user = Wing::DB::Result::User->user_from_json($self->db, $session_data->{user_data});
+                if ($user && !$user->permanently_deactivated) {
+                    $user->current_session($self);
+                    return $user;
+                }
+            };
+        }
+        
+        # Fall back to database lookup
         my $user = $self->db->resultset('User')->find($self->user_id);
         if (defined $user && ! $user->permanently_deactivated) {
             $user->current_session($self);
@@ -132,6 +148,34 @@ sub check_permissions {
 
 sub extend {
     my $self = shift;
+    
+    # Check if user data has changed
+    my $user_changed_key = 'user-changed-' . $self->user_id;
+    if (Wing->cache->get($user_changed_key)) {
+        # User data has changed, need to refresh
+        my $user = $self->db->resultset('User')->find($self->user_id);
+        
+        if (!defined $user || $user->permanently_deactivated) {
+            # User no longer exists or is deactivated
+            $self->end;
+        }
+        
+        # Check if password has changed
+        elsif ($self->password_hash ne $user->password) {
+            Wing->log->debug("SESSION: Password changed for user id:". $self->user_id . ", ending session");
+            $self->end;
+        }
+        
+        # Password hasn't changed, update the cached user data
+        else {
+            $user->current_session($self);
+            $self->user($user);
+            $self->clear_user; # Clear the cached user attribute so it will reload
+        }
+        # Remove the user-changed marker
+        Wing->cache->remove($user_changed_key);
+    }
+    
     if ($self->password_hash ne $self->user->password) {
         Wing->log->debug("SESSION: Password hashes do not match, ending session for user id:". $self->user->id);
         Wing->log->debug("SESSION: Password hash sample: ".substr($self->password_hash,0,5));
@@ -150,6 +194,7 @@ sub extend {
             api_key_id  => $self->api_key_id,
             ip_address  => $self->ip_address,
             session_id  => $self->id,
+            user_data   => $self->user->user_to_json,
         },
         60 * 60 * 24 * 7,
     );

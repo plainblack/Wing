@@ -605,6 +605,12 @@ sub generate_password_reset_code {
     return $code;
 }
 
+after update => sub {
+    my $self = shift;
+    # Mark that this user has changed so sessions can update their cached data
+    Wing->cache->set('user-changed-'.$self->id, 1, 60 * 60 * 24 * 7); # cache for 7 days
+};
+
 before delete => sub {
     my $self = shift;
     $self->apikeypermissions->delete_all;
@@ -629,6 +635,33 @@ sub determine_avatar_uri {
     else {
         return '//www.gravatar.com/avatar/'.md5_hex($self->email).'?s=300';
     }
+}
+
+sub user_to_json {
+    my $self = shift;
+    my $data = {};
+    
+    foreach my $column ($self->result_source->columns) {
+        my $value = $self->$column;
+        if (defined $value && ref($value) eq 'DateTime') {
+            $data->{$column} = Wing->to_mysql($value);
+        }
+        else {
+            $data->{$column} = $value;
+        }
+    }
+    
+    return $data;
+}
+
+sub user_from_json {
+    my ($class, $db, $data) = @_;
+    
+    # Create a new user object with the data
+    my $user = $db->resultset('User')->new($data);
+    $user->in_storage(1);
+    
+    return $user;
 }
 
 1;
