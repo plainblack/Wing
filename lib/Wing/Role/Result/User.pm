@@ -627,7 +627,7 @@ sub determine_avatar_uri {
         return '//graph.facebook.com/'.$self->facebook_uid.'/picture';
     }
     else {
-        return '//www.gravatar.com/avatar/'.md5_hex($self->email).'?s=300';
+        return '//www.gravatar.com/avatar/'.(eval{md5_hex($self->email)}||'broken').'?s=300';
     }
 }
 
