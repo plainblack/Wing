@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2025-08-19
+ * Now caching user data in sessions to prevent hits to the database on every single page view.
+   NOTE: We recommend big data such as mediumtext fields and json fields be moved out of your user table to keep the session cache size small.
+
 2025-08-17
  * Fix for listing users when someone has an unparsable character (by md5 standards) in their email address.
 
