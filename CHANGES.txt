@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2025-08-17
+ * Fix for listing users when someone has an unparsable character (by md5 standards) in their email address.
+
 2025-02-03
  * Added route for Facebook data deletion at /account/facebook/delete per https://developers.facebook.com/docs/development/create-an-app/app-dashboard/data-deletion-callback/
  * Fix formatted message parsing where the message resembles but isn't JSON.
