@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2026-04-23
+ * Add check_privilege permission checks on Parent objects.
+
 2025-08-19
  * Now caching user data in sessions to prevent hits to the database on every single page view.
    NOTE: We recommend big data such as mediumtext fields and json fields be moved out of your user table to keep the session cache size small.
