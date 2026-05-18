@@ -72,12 +72,10 @@ sub run {
 	if ($job->stats->time_left < 30) { # request more time if we have less than 30 seconds remaining to run
             $job->touch;
         }
-        my %params = %{$args->{params}};
-        $params{me} = $user->describe(include_private => 1);
 	eval { 
-		Wing->send_templated_email(
+		$user->send_templated_email(
 		    $args->{template},
-		    \%params,
+		    $args->{params},
 		);
 	};
 	if ($@) {
