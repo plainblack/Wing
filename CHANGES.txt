@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2026-07-20
+ * Let Aloglia users have a different key for Admin operations (writes) and searches.
+
 2026-05-18
  * The email all users plug-in for Wingman was not using the user-level send_templated_email Function, which meant that it wasn't respecting the no email preference 
 
