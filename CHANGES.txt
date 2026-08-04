@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2026-08-04
+ * Fix copy_to_clipboard() to work inside and outside bootstrap modals.
+
 2026-07-20
  * Let Aloglia users have a different key for Admin operations (writes) and searches.
 
