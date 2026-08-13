@@ -45,14 +45,10 @@ has url_index => (
     default => 0,
 );
 
-has base_url => (
-    is      => 'ro',
-    lazy    => 1,
-    default => sub {
-        my $self = shift;
-        return $self->url_options->[$self->url_index];
-    },
-);
+sub base_url {
+    my $self = shift;
+    return $self->url_options->[$self->url_index];
+}
 
 has headers => (
     is      => 'ro',
