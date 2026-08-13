@@ -105,7 +105,7 @@ sub make_request {
     my $response = $ua->request($request);
     if (! $response->is_success) {
 	my $url_option_count = scalar(@{$self->url_options});
-	if ($retry_count >= $url_option_count) {
+	if ($retry_count + 1 >= $url_option_count) {
 		Wing->log->error("ALGOLIA FAILURE");
 		Wing->log->debug("Request: ". $request->as_string);
 		Wing->log->debug("Response: ". $response->as_string);
