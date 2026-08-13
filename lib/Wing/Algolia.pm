@@ -112,6 +112,7 @@ sub make_request {
 		die "Error updating search index\n";
         }
         else {
+		Wing->log->debug("Response: ". $response->as_string);
 		Wing->log->info('Retrying algolia write with new host.');
 		$self->url_index($self->url_index+1);
 		if ($self->url_index >= $url_option_count) {
