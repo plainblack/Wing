@@ -101,7 +101,7 @@ sub make_request {
     }
     my $request = $method->(join('/', 'https://'.$self->application_id.$self->base_url, 1, @{$url_parts}), %{$self->headers}, %encoded_data);
     #say $request->as_string;
-    my $ua = LWP::UserAgent->new(timeout => 10);
+    my $ua = LWP::UserAgent->new(timeout => 15);
     my $response = $ua->request($request);
     if (! $response->is_success) {
 	my $url_option_count = scalar(@{$self->url_options});
