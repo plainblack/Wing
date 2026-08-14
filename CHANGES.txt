@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2026-08-14
+ * Fix a bug with host rotation when doing Algolia writes.
+
 2026-08-13
  * Add additional Algolia logging, and increase the timeout to 15s from 10s.
 
