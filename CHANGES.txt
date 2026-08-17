@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2026-08-17
+ * Preserve absolute session expirations and authentication metadata when legacy requests extend a session, and reject revoked TGC Floor badge logins.
+
 2026-08-14
  * Fix a bug with host rotation when doing Algolia writes.
  * Fix a bug with retry counts and wrapping back to the original host.  Fixes #35

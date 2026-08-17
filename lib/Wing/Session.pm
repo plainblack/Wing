@@ -50,6 +50,10 @@ sub BUILD {
         $self->ip_address($session_data->{ip_address});
         $self->sso($session_data->{sso});
         $self->api_key_id($session_data->{api_key_id});
+        $self->auth_source($session_data->{auth_source}) if exists $session_data->{auth_source};
+        $self->floor_login_id($session_data->{floor_login_id}) if exists $session_data->{floor_login_id};
+        $self->absolute_expires_at($session_data->{absolute_expires_at}) if exists $session_data->{absolute_expires_at};
+        $self->reject_inactive_floor_login unless $self->floor_login_is_active;
     }
 }
 
@@ -72,9 +76,25 @@ has sso => (
     default     => 0,
 );
 
+has auth_source => (
+    is          => 'rw',
+    predicate   => 'has_auth_source',
+);
+
+has floor_login_id => (
+    is          => 'rw',
+    predicate   => 'has_floor_login_id',
+);
+
+has absolute_expires_at => (
+    is          => 'rw',
+    predicate   => 'has_absolute_expires_at',
+);
+
 has user_id => (
     is          => 'rw',
     predicate   => 'has_user_id',
+    clearer     => 'clear_user_id',
     trigger     => sub {
         my $self = shift;
         $self->clear_user;
@@ -146,8 +166,44 @@ sub check_permissions {
     return 1;
 }
 
+sub floor_login_is_active {
+    my $self = shift;
+    return 1 unless $self->has_auth_source && $self->auth_source eq 'floor_badge';
+    return 0 unless $self->has_user_id && $self->has_floor_login_id;
+    return 0 if $self->has_absolute_expires_at && $self->absolute_expires_at <= time;
+
+    my $active = Wing->cache->get('floor-active-login-' . $self->user_id);
+    return defined $active
+        && ref $active eq 'HASH'
+        && defined $active->{floorLoginId}
+        && $active->{floorLoginId} eq $self->floor_login_id;
+}
+
+sub reject_inactive_floor_login {
+    my $self = shift;
+    Wing->cache->remove($self->key);
+    $self->clear_user;
+    $self->clear_user_id;
+    return;
+}
+
 sub extend {
     my $self = shift;
+
+    unless ($self->floor_login_is_active) {
+        $self->reject_inactive_floor_login;
+        return;
+    }
+
+    my $ttl = 60 * 60 * 24 * 7;
+    if ($self->has_absolute_expires_at) {
+        my $remaining = int($self->absolute_expires_at - time);
+        if ($remaining <= 0) {
+            $self->end;
+            return;
+        }
+        $ttl = $remaining if $remaining < $ttl;
+    }
     
     # Check if user data has changed
     my $user_changed_key = 'user-changed-' . $self->user_id;
@@ -184,9 +240,7 @@ sub extend {
         return;
     }
     $self->extended( $self->extended + 1 );
-    Wing->cache->set(
-        $self->key,
-        {
+    my $session_data = {
             password_hash    => $self->password_hash, # this hash is stored here so that if the user changes their password we can log out all existing sessions
             user_id     => $self->user_id,
             extended    => $self->extended,
@@ -195,9 +249,11 @@ sub extend {
             ip_address  => $self->ip_address,
             session_id  => $self->id,
             user_data   => $self->user->user_to_json,
-        },
-        60 * 60 * 24 * 7,
-    );
+    };
+    $session_data->{auth_source} = $self->auth_source if $self->has_auth_source;
+    $session_data->{floor_login_id} = $self->floor_login_id if $self->has_floor_login_id;
+    $session_data->{absolute_expires_at} = $self->absolute_expires_at if $self->has_absolute_expires_at;
+    Wing->cache->set($self->key, $session_data, $ttl);
     return $self;
 }
 
@@ -224,6 +280,9 @@ sub start {
     $self->sso($options->{sso});
     $self->ip_address($options->{ip_address});
     $self->api_key_id($options->{api_key_id});
+    $self->auth_source($options->{auth_source}) if exists $options->{auth_source};
+    $self->floor_login_id($options->{floor_login_id}) if exists $options->{floor_login_id};
+    $self->absolute_expires_at($options->{absolute_expires_at}) if exists $options->{absolute_expires_at};
     return $self->extend;
 }
 
