@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2026-08-20
+ * Remove the unused "public_key" object parameter, and rename admin_key to write_key to be clear what field we're taking from the config file.
+
 2026-08-17
  * Preserve absolute session expirations and authentication metadata when legacy requests extend a session, and reject revoked TGC Floor badge logins.
 

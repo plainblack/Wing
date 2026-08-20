@@ -20,7 +20,7 @@ has application_id => (
     required=> 1,
 );
 
-has admin_key => (
+has write_key => (
     is      => 'ro',
     required=> 1,
 );
@@ -52,7 +52,7 @@ has headers => (
         my $self = shift;
         return {
             'X-Algolia-Application-Id' => $self->application_id,
-            'X-Algolia-API-Key' => $self->admin_key,
+            'X-Algolia-API-Key' => $self->write_key,
         };
     }
 );
