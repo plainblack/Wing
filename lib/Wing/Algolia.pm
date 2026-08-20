@@ -25,11 +25,6 @@ has admin_key => (
     required=> 1,
 );
 
-has public_key => (
-    is      => 'ro',
-    required=> 1,
-);
-
 has url_options => (
     is      => 'ro',
     default => sub { [
