@@ -437,13 +437,23 @@ sub is_chat_staff {
 
 sub has_secondary_auth_token {
     my $self = shift;
-    return Wing->cache->get('2factor-verified-'.$self->id);
+    my $key = $self->secondary_auth_cache_key('verified');
+    return 0 unless defined $key;
+    return Wing->cache->get($key);
+}
+
+sub secondary_auth_cache_key {
+    my ($self, $state) = @_;
+    return undef unless $self->has_current_session;
+    return join('-', '2factor', $state, $self->id, $self->current_session->id);
 }
 
 sub email_secondary_auth_verification {
     my ($self, $redirect) = @_;
     my $verify = random_string('ssssssss');
-    Wing->cache->set('2factor-verify-'.$self->id, $verify, 60 * 30);
+    my $key = $self->secondary_auth_cache_key('verify');
+    ouch 428, 'We could not verify this login session. Log out, log back in, and try again.' unless defined $key;
+    Wing->cache->set($key, $verify, 60 * 30);
     eval {
         $self->send_templated_email('secondary_auth', { token => $verify, redirect => $redirect });
     };
@@ -454,7 +464,9 @@ sub email_secondary_auth_verification {
 
 sub verify_secondary_auth {
     my ($self, $token) = @_;
-    if (defined $token && $token ne "" && $token eq Wing->cache->get('2factor-verify-'.$self->id)) {
+    my $key = $self->secondary_auth_cache_key('verify');
+    my $expected = defined $key ? Wing->cache->get($key) : undef;
+    if (defined $expected && defined $token && $token ne "" && $token eq $expected) {
         return $self->mark_secondary_auth_verified;
     }
     return 0;
@@ -462,7 +474,9 @@ sub verify_secondary_auth {
 
 sub mark_secondary_auth_verified {
     my $self = shift;
-    return Wing->cache->set('2factor-verified-'.$self->id, 1, 60 * 60 * 24);
+    my $key = $self->secondary_auth_cache_key('verified');
+    return 0 unless defined $key;
+    return Wing->cache->set($key, 1, 60 * 60 * 24);
 }
 
 sub start_session {
