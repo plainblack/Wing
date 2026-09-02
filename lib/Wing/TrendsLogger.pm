@@ -37,11 +37,11 @@ sub log_trend_hourly {
     my $trends_hourly = Wing->db->resultset('TrendsLogHourly');
     my $row = $trends_hourly->search({hour => $dtf->format_datetime($hour), name => $name},{rows=>1})->single;
     if (defined $row) {
-        Wing->log->info("Updating $name record for hour $hour with value $value");
+        Wing->log->debug("Updating $name record for hour $hour with value $value");
         $row->update({name => $name, value => $value, hour => $hour});
     }
     else {
-        Wing->log->info("Creating $name record for hour $hour with value $value");
+        Wing->log->debug("Creating $name record for hour $hour with value $value");
         $row = $trends_hourly->new({name => $name, value => $value, hour => $hour})->insert;
     }
 }
@@ -55,11 +55,11 @@ sub log_trend_daily {
     my $trends_daily = Wing->db->resultset('TrendsLogDaily');
     my $row = $trends_daily->search({day => $dtf->format_datetime($day), name => $name},{rows=>1})->single;
     if (defined $row) {
-        Wing->log->info("Updating $name record for day $day with value $value");
+        Wing->log->debug("Updating $name record for day $day with value $value");
         $row->update({name => $name, value => $value, day => $day});
     }
     else {
-        Wing->log->info("Creating $name record for day $day with value $value");
+        Wing->log->debug("Creating $name record for day $day with value $value");
         $row = $trends_daily->new({name => $name, value => $value, day => $day})->insert;
     }
 }
@@ -74,11 +74,11 @@ sub log_trend_monthly {
     my $trends_monthly = Wing->db->resultset('TrendsLogMonthly');
     my $row = $trends_monthly->search({month => $dtf->format_datetime($month), name => $name},{rows=>1})->single;
     if (defined $row) {
-        Wing->log->info("Updating $name record for month $month with value $value");
+        Wing->log->debug("Updating $name record for month $month with value $value");
         $row->update({name => $name, value => $value, month => $month});
     }
     else {
-        Wing->log->info("Creating $name record for month $month with value $value");
+        Wing->log->debug("Creating $name record for month $month with value $value");
         $row = $trends_monthly->new({name => $name, value => $value, month => $month})->insert;
     }
 }
@@ -94,11 +94,11 @@ sub log_trend_yearly {
     my $trends_yearly = Wing->db->resultset('TrendsLogYearly');
     my $row = $trends_yearly->search({year => $dtf->format_datetime($year), name => $name},{rows=>1})->single;
     if (defined $row) {
-        Wing->log->info("Updating $name record for year $year with value $value");
+        Wing->log->debug("Updating $name record for year $year with value $value");
         $row->update({name => $name, value => $value, year => $year});
     }
     else {
-        Wing->log->info("Creating $name record for year $year with value $value");
+        Wing->log->debug("Creating $name record for year $year with value $value");
         $row = $trends_yearly->new({name => $name, value => $value, year => $year})->insert;
     }
 }
