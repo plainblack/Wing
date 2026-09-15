@@ -7,6 +7,7 @@ use Data::OpenGraph;
 use LWP::UserAgent;
 use Wing::Markdown;
 use URI::Find::Delimited;
+use HTML::Entities qw(encode_entities_numeric);
 
 sub neutralize_html {
     my ($content, $allowed) = @_;
@@ -146,6 +147,7 @@ sub format_link {
             $title = pQuery($response->decoded_content)->find('title')->html();
         }
         format_html(\$title);
+        $title = encode_entities_numeric($title, qr/[\x{10000}-\x{10FFFF}]/);
         if ($uri->host eq Wing->config->get('sitename')) {
             return sprintf '<a href="%s">%s</a>', $uri->as_string, $title || $uri->as_string;
         }
