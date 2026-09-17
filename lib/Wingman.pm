@@ -111,7 +111,9 @@ has beanstalk => (
     is      => 'ro',
     lazy    => 1,
     default => sub { 
-        my $beanstalk = Beanstalk::Client->new(Wing->config->get('wingman/beanstalkd'));
+        my $settings = Wing->config->get('wingman/beanstalkd');
+        _assert_wingman_tube($settings->{default_tube});
+        my $beanstalk = Beanstalk::Client->new($settings);
         $beanstalk->encoder(sub { encode_json(\@_) });    
         $beanstalk->decoder(sub { @{decode_json(shift)} });
         return $beanstalk;
@@ -120,9 +122,55 @@ has beanstalk => (
     handles => [qw(error use delete release bury touch watch watch_only disconnect kick kick_job stats_job stats_tube stats list_tubes list_tube_used list_tubes_watched pause_tube)],
 );
 
+# Jobber owns jobber.* tubes on the shared broker. Check ownership before
+# decoding jobs or issuing mutations, including ID-based administrative calls.
+sub _assert_wingman_tube {
+    my ($tube) = @_;
+    ouch 403, 'This tube belongs to Jobber. Use tgc core jobber to manage its jobs.'
+        if defined $tube && $tube =~ /^jobber\./;
+}
+
+around list_tubes => sub {
+    my ($original, $self, @args) = @_;
+    return grep { !defined($_) || !/^jobber\./ } $self->$original(@args);
+};
+
+around [qw(use watch pause_tube stats_tube)] => sub {
+    my ($original, $self, @args) = @_;
+    _assert_wingman_tube($args[0]);
+    return $self->$original(@args);
+};
+
+around watch_only => sub {
+    my ($original, $self, @tubes) = @_;
+    _assert_wingman_tube($_) for @tubes;
+    return $self->$original(@tubes);
+};
+
+around stats_job => sub {
+    my ($original, $self, @args) = @_;
+    my $stats = $self->$original(@args);
+    _assert_wingman_tube($stats->tube) if defined $stats;
+    return $stats;
+};
+
+around [qw(peek kick_job delete release bury touch)] => sub {
+    my ($original, $self, $id, @args) = @_;
+    return undef unless defined $self->stats_job($id);
+    return $self->$original($id, @args);
+};
+
+around kick => sub {
+    my ($original, $self, @args) = @_;
+    _assert_wingman_tube($self->list_tube_used);
+    return $self->$original(@args);
+};
+
 =head2 Pass Through Methods
 
-The following is a list of methods that are direct pass-through's to L<Beanstalk::Client>.
+The following methods delegate to L<Beanstalk::Client>. Tube enumeration excludes
+C<jobber.*>, and tube/job operations reject Jobber-owned work before any mutation
+or decoding. Use Core's Jobber commands to manage those jobs.
 
 =over
 
@@ -185,6 +233,7 @@ sub _instantiate_job {
     unless (defined $beanstalk_job) {
         ouch 440, 'Job not found.';
     }
+    _assert_wingman_tube($beanstalk_job->stats->tube);
     my ($plugin_name, $args) = $beanstalk_job->args;
     $self->log_info($beanstalk_job, 'Instantiating job');
     my $plugin = eval {$self->plugins->get_plugin($plugin_name)};
