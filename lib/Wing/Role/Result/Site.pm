@@ -4,6 +4,7 @@ use Wing::Perl;
 use Ouch;
 use Moose::Role;
 use DBIx::Class::DeploymentHandler;
+use Wing::DB::Deployment;
 
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::Shortname';
@@ -113,7 +114,7 @@ sub create_database {
     my $dh = DBIx::Class::DeploymentHandler->new( {
         schema              => $db,
         databases           => [qw/ MySQL /],
-        sql_translator_args => { add_drop_table => 0 },
+        sql_translator_args => Wing::DB::Deployment::sql_translator_args($db),
         script_directory    => $app_dir."/dbicdh",
         force_overwrite     => 0,
     });

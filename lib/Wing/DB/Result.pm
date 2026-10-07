@@ -6,6 +6,7 @@ use Ouch;
 use List::MoreUtils qw(any);
 use Moose;
 use MooseX::NonMoose;
+use Wing::DB::Deployment;
 extends 'DBIx::Class::Core';
 
 =head1 NAME
@@ -276,6 +277,10 @@ sub touch {
 
 Is wrapped by roles like L<Wing::Role::Result::Field> to add special table indexes and other SQL deployment oddities.
 
+MySQL 8.0.13 and newer targets emit text and blob literal defaults as expressions.
+The DBIx::Class column defaults remain unchanged so new Wing objects retain
+their original default values.
+
 =cut
 
 sub sqlt_deploy_hook {
@@ -284,6 +289,8 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'idx_date_updated', fields => ['date_updated']);
     $sqlt_table->extra(mysql_collate => 'utf8_unicode_ci');
     $sqlt_table->extra(mysql_charset => 'utf8');
+
+    Wing::DB::Deployment::normalize_table_defaults($sqlt_table);
 }
 
 =head2 public_params()

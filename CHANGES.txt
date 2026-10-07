@@ -4,6 +4,10 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2026-10-07
+ * Generate compatible text/blob expression defaults for fresh MySQL 8.0.13 and newer installs while preserving column definitions, object defaults, and older MySQL targets. Fixes #41.
+ * Stop requiring the unused Facebook::Graph module; existing Facebook integration and schema remain unchanged.
+
 2026-09-16
  * Protect Jobber-owned tubes and job IDs from Wingman recovery, workers, and administrative operations on the shared Beanstalkd broker.
 

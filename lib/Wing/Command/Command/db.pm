@@ -4,6 +4,7 @@ use Wing;
 use Wing::Perl;
 use Wing::Command -command;
 use DBIx::Class::DeploymentHandler;
+use Wing::DB::Deployment;
 use FindBin;
 
 $|=1; # autoflush
@@ -94,7 +95,7 @@ sub execute {
         my $dh_opts = {
             schema              => $schema,
             databases           => [qw/ MySQL /],
-            sql_translator_args => { add_drop_table => 0 },
+            sql_translator_args => Wing::DB::Deployment::sql_translator_args($schema),
             script_directory    => $app."/dbicdh",
             force_overwrite     => $opt->{force},
         };
@@ -123,7 +124,7 @@ sub execute {
                 my $dh = DBIx::Class::DeploymentHandler->new( {
                     schema              => $schema,
                     databases           => [qw/ MySQL /],
-                    sql_translator_args => { add_drop_table => 0 },
+                    sql_translator_args => Wing::DB::Deployment::sql_translator_args($schema),
                     script_directory    => $app."/dbicdh",
                     force_overwrite     => 0,
                 });
@@ -156,7 +157,7 @@ sub execute {
                 my $dh = DBIx::Class::DeploymentHandler->new( {
                     schema              => $schema,
                     databases           => [qw/ MySQL /],
-                    sql_translator_args => { add_drop_table => 0 },
+                    sql_translator_args => Wing::DB::Deployment::sql_translator_args($schema),
                     script_directory    => $app."/dbicdh",
                     force_overwrite     => 0,
                 });
@@ -204,7 +205,7 @@ sub execute {
                 my $dh = DBIx::Class::DeploymentHandler->new( {
                     schema              => $schema,
                     databases           => [qw/ MySQL /],
-                    sql_translator_args => { add_drop_table => 0 },
+                    sql_translator_args => Wing::DB::Deployment::sql_translator_args($schema),
                     script_directory    => $app."/dbicdh",
                     force_overwrite     => 0,
                 });
