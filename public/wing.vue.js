@@ -1958,7 +1958,7 @@ Vue.component("markdown-editor", {
           setTimeout(function () {
             // reset the cursor where it was
             self.$refs[self.id].codemirrorInstance.scrollIntoView({
-              line: cursor.line + 5,
+              line: Math.min(cursor.line + 5, self.$refs[self.id].codemirrorInstance.lastLine()),
             });
             self.$refs[self.id].codemirrorInstance.setOption("readOnly", false);
             self.$refs[self.id].codemirrorInstance.setCursor(cursor);

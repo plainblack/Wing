@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2026-10-20
+ * Keep Markdown Save & Preview scrolling within the current document so saving near its end restores editing and the cursor (#48).
+
 2026-09-16
  * Protect Jobber-owned tubes and job IDs from Wingman recovery, workers, and administrative operations on the shared Beanstalkd broker.
 
