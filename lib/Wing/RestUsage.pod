@@ -115,6 +115,14 @@ the privileges necessary to access your private information.
 
 See Also: L<Session>
 
+Changes to your own account made with the site's default browser API-key
+session, or a session without an API key, require secondary email verification.
+Until verified, these updates return error code C<450> with data
+C<secondary_authentication>. Open your
+account settings and follow the verification email before retrying. Sessions
+using independently owned API keys or SSO grants retain their existing
+permissions and do not require browser verification.
+
 
 =head2 Consistency
 

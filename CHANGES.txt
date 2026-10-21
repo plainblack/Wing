@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2026-10-21
+ * Require secondary verification before browser sessions change their own account through REST, preserving independent API-key and SSO clients (#49).
+
 2026-10-20
  * Keep Markdown Save & Preview scrolling within the current document so saving near its end restores editing and the cursor (#48).
 

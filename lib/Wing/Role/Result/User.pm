@@ -556,6 +556,16 @@ around can_edit => sub {
 
 before verify_posted_params => sub {
     my ($self, $params, $current_user) = @_;
+    if (defined $current_user && defined $self->id && $self->id eq $current_user->id && $current_user->has_current_session) {
+        my $session = $current_user->current_session;
+        my $browser_key = Wing->config->get('default_api_key');
+        my $session_key = $session->api_key_id;
+        if (!$session->sso
+            && (!defined $session_key || (defined $browser_key && $session_key eq $browser_key))
+            && !$current_user->has_secondary_auth_token) {
+            ouch 450, 'Secondary authentication required. Open your account settings and follow the verification email before saving changes.', 'secondary_authentication';
+        }
+    }
     if (defined $current_user && $current_user->is_admin && $params->{md5_password} && $params->{password}) {
         $self->password($params->{password});
         $self->password_type('md5');
