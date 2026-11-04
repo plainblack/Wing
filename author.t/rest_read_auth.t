@@ -23,7 +23,7 @@ my $key = $user->apikeys->create({name => 'read-key'});
 my $denied = $user->start_session({sso => 1, api_key_id => $key->id});
 generate_relationship('ProtectedUser', 'apikeys', db_class_name => 'User', permissions => ['view_my_account']);
 generate_relationship('GuardedUser', 'apikeys', db_class_name => 'User', permissions => ['view_my_account'], verify_user => 'verify_is_admin');
-generate_read('ProtectedUser', db_class_name => 'User', permissions => ['view_my_account']);
+generate_crud('ProtectedUser', db_class_name => 'User', permissions => ['view_my_account']);
 get '/anonymous-description' => sub { return describe($user, current_user => undef) };
 Wing->db->source($_)->resultset_class('Wing::DB::ResultSet') for qw(User APIKey);
 get '/anonymous-list' => sub {
@@ -36,7 +36,7 @@ my $allowed = $user->start_session({sso => 1, api_key_id => $allowed_key->id});
 my $expired = $user->start_session({sso => 1, api_key_id => $allowed_key->id});
 Wing->cache->expire($expired->key);
 for my $spec (['EmptyUser', []], ['UndefinedUser', undef]) {
-    generate_read($spec->[0], db_class_name => 'User', permissions => $spec->[1]);
+    generate_crud($spec->[0], db_class_name => 'User', permissions => $spec->[1]);
 }
 generate_read('PublicUser', db_class_name => 'User');
 generate_read('ProtectedKey', db_class_name => 'APIKey', permissions => ['view_my_account']);

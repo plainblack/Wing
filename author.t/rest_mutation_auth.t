@@ -43,10 +43,7 @@ for my $spec (['ProtectedUser', [permissions => ['edit_my_account']]],
               ['AnonymousUser', []]) {
     my ($type, $options) = @$spec;
     my @options = (db_class_name => 'User', @$options, extra_processing => sub { $calls{extra_processing}++ });
-    generate_create($type, @options);
-    generate_update($type, @options);
-    generate_delete($type, @options);
-    generate_read($type, db_class_name => 'User');
+    generate_crud($type, @options);
 }
 my @methods = qw(verify_creation_params verify_posted_params can_edit can_delete insert update delete);
 my %original = map { $_ => TestWing::DB::Result::User->can($_) } @methods;

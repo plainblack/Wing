@@ -237,3 +237,12 @@ changed; those are tracked separately.
 Checked against installed Dancer 1.3522 Plugin/Handler POD and Plack::Test 1.0054
 POD. The HTTP tests exercise the actual serializers and result roles without
 mocking authentication, database, cache or field visibility.
+
+## Combined CRUD options
+
+`author.t/rest_crud_options.t` sends HTTP requests through the actual Dancer
+PSGI app with the runner's disposable database and cache. It checks aliased
+metadata and persisted CRUD, mutation callbacks, denied SSO permission errors,
+and the built-in APIKey caller. The mutation and read authorization matrices
+also exercise `generate_crud`, covering present empty/undefined permissions,
+optional omission, public-only denied reads and authorized private visibility.
