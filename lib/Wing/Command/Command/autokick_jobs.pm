@@ -25,6 +25,12 @@ sub execute {
     my ($self, $opt, $args) = @_;
     Wing->log->info('Kicking stuck wingman jobs.');
 
+    my $excluded = Wing->config->get('wingman/autokick_excluded_tubes');
+    die "wingman/autokick_excluded_tubes must be an array of non-empty tube names.\n"
+        if defined $excluded && (ref $excluded ne 'ARRAY'
+            || grep { !defined $_ || ref $_ || !length $_ } @$excluded);
+    my %excluded = map { $_ => 1 } @{defined $excluded ? $excluded : []};
+
     my $wingman = Wingman->new();
     my @tubes = $wingman->list_tubes;
 
@@ -52,6 +58,7 @@ sub execute {
                 next JOB;
             }
             else {
+                next TUBE if $excluded{$tube};
                 $wingman->kick_job($job->id);
                 Wing->log->info("Kicking job ".$job->id." in $tube");
             }
@@ -78,7 +85,23 @@ wing autokick_jobs - Kick jobs that are in Wingman
 =head1 DESCRIPTION
 
 Using this command you can automatically kick Wingman jobs in a beanstalkd tube.  If jobs were kicked more than once, or have been in the tube for longer
-than 12 hours, then an email will be sent to the address in the Wing config file, wing_admin_email.
+than 12 hours, then an email will be sent to the address in the Wing config file, C<wing_admin>.
+
+To retain buried jobs for manual recovery, set C<wingman/autokick_excluded_tubes>
+in the Wing JSON configuration to an array of exact tube names:
+
+ "wingman": {
+     "autokick_excluded_tubes": ["stitcher.orders"]
+ }
+
+Merge this setting into the existing C<wingman> object. Omit it or use an empty
+array to keep automatic recovery for every visible Wingman tube. Each entry must
+be a non-empty tube name. Invalid configuration stops the command before any
+queue changes. Excluded tubes are still checked for stuck and old buried jobs
+and can still trigger the administrator email. Monitoring observes the buried
+head as before; it does not enumerate every retained job. This setting affects
+only C<autokick_jobs>; explicit manual recovery commands remain available.
+Foreign Jobber tubes remain outside Wingman's scope.
 
 =head1 OPTIONS
 

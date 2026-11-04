@@ -11,20 +11,25 @@ use JSON::XS qw(encode_json decode_json);
 BEGIN {
     package SharedBrokerConfig;
     our $server;
+    our $excluded_tubes;
     sub get {
         my ($self, $key) = @_;
+        return 'admin@example.test' if $key eq 'wing_admin';
+        return $excluded_tubes if $key eq 'wingman/autokick_excluded_tubes';
         return { server => $server, default_tube => 'legacy.test' } if $key eq 'wingman/beanstalkd';
         return 'legacy.test' if $key eq 'wingman/beanstalkd/default_tube';
         return { 'Wingman::Plugin::TriggerWebHook' => { phase => 'TriggerWebHook' } } if $key eq 'wingman/plugins';
         die "Unexpected configuration read: $key";
     }
     package SharedBrokerLog;
-    sub info { }
+    our @messages;
+    sub info { push @messages, $_[1] }
     sub error { }
     package Wing;
     sub config { bless {}, 'SharedBrokerConfig' }
     sub log { bless {}, 'SharedBrokerLog' }
-    sub send_templated_email { die 'Autokick must not send an alert for Jobber jobs' }
+    our @alerts;
+    sub send_templated_email { shift; push @alerts, [@_] }
     $INC{'Wing.pm'} = __FILE__;
 }
 use Wingman;
@@ -76,7 +81,31 @@ ok $legacy, 'legacy producer still works';
 my $reserved = $wingman->reserve(0);
 is $reserved->id, $legacy->id, 'legacy worker reserves its own job';
 $reserved->bury;
+my $manual = $wingman->put('TriggerWebHook', {}, { tube => 'manual.retained' });
+$wingman->watch_only('manual.retained');
+$wingman->reserve(0)->bury;
+$wingman->watch_only('legacy.test');
+$SharedBrokerConfig::excluded_tubes = ['manual.retained'];
 Wing::Command::Command::autokick_jobs->execute({}, []);
+is $raw->stats_job($manual->id)->state, 'buried', 'excluded manual job remains buried';
+is $raw->stats_job($manual->id)->kicks, 0, 'excluded manual job is never kicked';
+is scalar @Wing::alerts, 0, 'fresh excluded and foreign jobs do not trigger stuck alerts';
+Wing::Command::Command::autokick_jobs->execute({}, []);
+is $raw->stats_job($manual->id)->kicks, 0, 'repeated autokick still leaves manual recovery to operators';
+$wingman->watch_only('manual.retained');
+for (1..2) {
+    $raw->kick_job($manual->id);
+    $wingman->reserve(0)->bury;
+}
+$wingman->watch_only('legacy.test');
+Wing::Command::Command::autokick_jobs->execute({}, []);
+is $raw->stats_job($manual->id)->state, 'buried', 'excluded stuck job stays buried';
+is_deeply $Wing::alerts[-1], ['stuck_wingman_job', {
+    email => 'admin@example.test', subject => 'Stuck Wingman jobs',
+}], 'excluded stuck job still sends the administrator alert';
+ok scalar(grep { /Stuck job .* in manual\.retained/ } @SharedBrokerLog::messages),
+    'excluded stuck job remains visible in monitoring logs';
+$wingman->delete($manual->id);
 is $raw->stats_job($id)->state, 'buried', 'actual autokick leaves Jobber buried';
 is $raw->stats_job($legacy->id)->state, 'ready', 'actual autokick still retries legacy jobs';
 $wingman->reserve(0)->bury;
@@ -84,6 +113,47 @@ Wing::Command::Command::kick->execute({}, []);
 is $raw->stats_job($id)->state, 'buried', 'actual bulk kick leaves Jobber buried';
 is $raw->stats_job($legacy->id)->state, 'ready', 'bulk kick still retries legacy jobs';
 ok $wingman->delete($legacy->id), 'legacy job can still be deleted';
+
+my $old = $wingman->put('TriggerWebHook', {}, { tube => 'manual.retained' });
+$wingman->watch_only('manual.retained');
+$wingman->reserve(0)->bury;
+{
+    # Model elapsed broker time without waiting twelve hours in the test.
+    no warnings qw(redefine once);
+    local *Beanstalk::Stats::age = sub { 12*60*60 + 1 };
+    local @Wing::alerts;
+    local @SharedBrokerLog::messages;
+    Wing::Command::Command::autokick_jobs->execute({}, []);
+    is scalar @Wing::alerts, 1, 'excluded old job still sends an administrator alert';
+    ok scalar(grep { /Old job .* in manual\.retained/ } @SharedBrokerLog::messages),
+        'excluded old job remains visible in monitoring logs';
+}
+is $raw->stats_job($old->id)->state, 'buried', 'excluded old job stays buried';
+is $raw->stats_job($old->id)->kicks, 0, 'excluded old job is never kicked';
+$wingman->delete($old->id);
+$wingman->watch_only('legacy.test');
+
+for my $configuration (undef, []) {
+    local $SharedBrokerConfig::excluded_tubes = $configuration;
+    my $automatic = $wingman->put('TriggerWebHook', {});
+    $wingman->reserve(0)->bury;
+    Wing::Command::Command::autokick_jobs->execute({}, []);
+    is $raw->stats_job($automatic->id)->state, 'ready', 'omitted or empty exclusions preserve automatic recovery';
+    $wingman->delete($automatic->id);
+}
+
+my $untouched = $wingman->put('TriggerWebHook', {});
+$wingman->reserve(0)->bury;
+for my $invalid ('manual.retained', {}, [''], [undef], [[]]) {
+    local $SharedBrokerConfig::excluded_tubes = $invalid;
+    my $ok = eval { Wing::Command::Command::autokick_jobs->execute({}, []); 1 };
+    ok !$ok, 'malformed autokick exclusion configuration is rejected';
+    like "$@", qr/wingman\/autokick_excluded_tubes must be an array of non-empty tube names/,
+        'configuration error explains how to fix the exclusion list';
+    is $raw->stats_job($untouched->id)->state, 'buried', 'invalid policy stops before retrying any jobs';
+}
+
+$wingman->delete($untouched->id);
 
 # A direct lower-level client is trusted, but Wingman must not decode or execute its Jobber job.
 my $native = $raw->peek($id);
