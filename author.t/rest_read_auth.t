@@ -11,9 +11,11 @@ use HTTP::Request::Common qw(GET);
 use JSON qw(decode_json);
 
 set show_errors => 0;
+my $original_tenants = Wing->config->get('tenants');
 Wing->config->delete('tenants');
 require Wing::Rest::User;
 require Wing::Rest::Session;
+Wing->config->set('tenants', $original_tenants) if defined $original_tenants;
 my $user = Wing->db->resultset('User')->new({username => 'read-owner', email => 'read-owner@example.invalid'});
 $user->encrypt_and_set_password('read-password');
 $user->insert;
@@ -46,9 +48,17 @@ get '/implicit-list' => sub {
     my $users = Wing->db->resultset('User')->search({id => $user->id});
     return format_list($users);
 };
+my $limited_user = Wing->db->resultset('User')->create({username => 'read-limited'});
+my $limited = $limited_user->start_session({sso => 0});
+Wing->cache->set('rpc_count_'.$_.$limited_user->id, 1000) for 0..59;
 my $app = Dancer::Handler->get_handler->psgi_app;
 test_psgi $app, sub {
     my $request = shift;
+    for my $path ('/api/user/'.$user->id, '/api/protecteduser/'.$user->id.'/apikeys', '/api/protectedkey/'.$key->id.'/user') {
+        my $response = $request->(GET 'http://localhost'.$path, Cookie => 'session_id='.$limited->id);
+        is $response->code, 452, 'generated read propagates rate limit';
+        is decode_json($response->content)->{error}{message}, 'Slow down! You are only allowed to make (30) requests per minute to the server.', 'original rate limit message';
+    }
     my $res = $request->(GET 'http://localhost/api/protecteduser/'.$user->id, Cookie => 'session_id='.$denied->id);
     is $res->code, 200, 'owning SSO user without permission receives public profile';
     my $data = decode_json($res->content);
@@ -143,4 +153,5 @@ test_psgi $app, sub {
     }
     unlike $res->content, qr/read-owner\@example\.invalid/, 'private email is absent';
 };
+is_deeply(Wing->config->get('tenants'), $original_tenants, 'test preserves original tenant configuration');
 done_testing;

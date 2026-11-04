@@ -113,6 +113,7 @@ register generate_read => sub {
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id' => sub {
         my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}) };
+        die $@ if $@ && !kiss(441) && !kiss(401) && !kiss(450);
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         my $object = fetch_object($db_class_name);
         ##No object level permission checking here.  Wing objects are public, and only fields
@@ -149,6 +150,7 @@ register generate_relationship => sub {
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id/'.$relationship_name => sub {
         my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}) };
+        die $@ if $@ && !kiss(441) && !kiss(401) && !kiss(450);
 	if (exists $options{verify_user}) {
 		unless (defined $current_user) {
 			ouch 401, 'User required for access.';
