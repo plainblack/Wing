@@ -3,19 +3,30 @@ use lib '/data/Wing/author.t/lib', '/data/Wing/lib';
 use Test::More;
 use URI;
 use Wing::Perl;
+use Test::TCP;
+use HTTP::Server::PSGI;
 
 use_ok 'Wing::ContentFilter';
 
 my $image_uri = URI->new('https://cf.geekdo-static.com/images/geekdo/bgg_cornerlogo.png');
 is Wing::ContentFilter::format_image($image_uri), '<img src="https://cf.geekdo-static.com/images/geekdo/bgg_cornerlogo.png" alt="bgg_cornerlogo.png" class="img-responsive">', 'format_image';
 
-my $find_link_in_text = 'foo https://www.thegamecrafter.com/help bar';
+my $server = Test::TCP->new(code => sub {
+    my $port = shift;
+    HTTP::Server::PSGI->new(host => '127.0.0.1', port => $port)->run(sub {
+        return [200, ['Content-Type' => 'text/html'],
+            ['<html><head><meta property="og:title" content="Linked page"></head><body></body></html>']];
+    });
+});
+my $link = 'http://127.0.0.1:'.$server->port.'/help';
+my $find_link_in_text = "foo $link bar";
 Wing::ContentFilter::find_and_format_uris(\$find_link_in_text, {links => 1});
-is $find_link_in_text, 'foo <a href="https://www.thegamecrafter.com/help" target="_new" title="Links to external site: www.thegamecrafter.com">The Game Crafter <small><span class="glyphicon glyphicon-new-window"></span></a></small> bar', 'can find links embedded in text';
+is $find_link_in_text, 'foo <a href="'.$link.'" target="_new" title="Links to external site: 127.0.0.1">Linked page <small><span class="glyphicon glyphicon-new-window"></span></a></small> bar', 'can find links embedded in text';
+undef $server;
 
 my $just_a_url = 'https://www.youtube.com/watch?v=YKmj6LI5pfs';
 Wing::ContentFilter::find_and_format_uris(\$just_a_url, {youtube => 1});
-is $just_a_url, '<div class="embed-responsive embed-responsive-4by3"><iframe class="youtube_video embed-responsive-item" src="https://www.youtube.com/embed/YKmj6LI5pfs?rel=0" frameborder="0" allowfullscreen></iframe></div>', 'just a url';
+is $just_a_url, '<div class="embed-responsive embed-responsive-16by9"><iframe class="youtube_video embed-responsive-item" src="https://www.youtube.com/embed/YKmj6LI5pfs?rel=0" allowfullscreen></iframe></div>', 'just a url';
 
 my $text = 'This is <b>bold</b> &
 This is <i>italic</i>.';
@@ -50,20 +61,24 @@ Wing::ContentFilter::format_html(\$strike);
 is $strike, '<s>strike</s> or <s> strike </s><br>or <s>strike</s>, foo, but not ~~str<br>ike~~.', 'can format strike';
 
 my $heading = 'foo
-= heading 1
-==heading2
- ===heading 3 is good
-==== head 4
-foo = head none
+# heading 1
+##heading2
+ ###heading 3 is good
+#### head 4
+foo # head none
 too
-=====head5
-====== head6
+#####head5
+###### head6
 bar';
 my $heading2 = $heading;
 Wing::ContentFilter::format_html(\$heading, {headings => [1,2,3,4,5,6]});
-is $heading, 'foo<h1>heading 1</h1><h2>heading2</h2><h3>heading 3 is good</h3><h4>head 4</h4>foo = head none<br>too<h5>head5</h5><h6>head6</h6>bar', 'can format headings';
+is $heading, 'foo<h1>heading 1</h1><h2>heading2</h2><h3>heading 3 is good</h3><h4>head 4</h4>foo # head none<br>too<h5>head5</h5><h6>head6</h6>bar', 'can format headings';
 Wing::ContentFilter::format_html(\$heading2);
-is $heading2, 'foo<br>= heading 1<h2>heading2</h2><h3>heading 3 is good</h3><h4>head 4</h4>foo = head none<br>too<h5>head5</h5><h6>head6</h6>bar', 'by default only allow level 2 headings';
+is $heading2, 'foo<br># heading 1<h2>heading2</h2><h3>heading 3 is good</h3><h4>head 4</h4>foo # head none<br>too<h5>head5</h5><h6>head6</h6>bar', 'by default allow levels 2 through 6';
+
+my $equals = '= literal text';
+Wing::ContentFilter::format_html(\$equals, {headings => [1,2,3,4,5,6]});
+is $equals, '= literal text', 'equals signs remain literal text';
 
 my $list = 'foo
 bar
