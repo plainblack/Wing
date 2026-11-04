@@ -296,3 +296,12 @@ cache entries are removed. Active sessions are still renewed. `Wing::Session::en
 clears the in-memory user, so no caller can use an ended session for the rest of
 the request. `author.t/web_ended_session.t` checks that Wing::Web's `get_session`
 also returns no session once it has ended.
+
+## Missing session user
+
+`author.t/rest_missing_user.t` deletes the user behind a cached site or SSO
+session, with and without the `user-changed-<id>` marker, and sends a generated
+mutation through the actual Dancer PSGI app with the runner's isolated MySQL and
+cache. Each returns the 401 login error instead of a 500 and removes the session's
+cache entry. `extend` and SSO `check_permissions` end a session whose user no
+longer resolves, so Wing::Web's `get_session` returns no session either.
