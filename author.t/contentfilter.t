@@ -113,6 +113,22 @@ my $with_markdown = '##heading';
 Wing::ContentFilter::format_html(\$with_markdown, {with_markdown => 1});
 is $with_markdown, '##heading', 'markdown mode bypasses the HTML heading formatter';
 
+my $empty_quote = ">\nnext line";
+Wing::ContentFilter::format_html(\$empty_quote);
+is $empty_quote, '<blockquote></blockquote><br>next line', 'an empty quote does not consume the following line';
+
+my $spaced_rule = "foo\n\n---\n\nbar";
+Wing::ContentFilter::format_html(\$spaced_rule);
+is $spaced_rule, 'foo<br><br><hr><br><br>bar', 'horizontal rules preserve adjacent blank lines';
+
+for my $invalid_level (0, 7) {
+    my $invalid_heading = "foo\n#######heading";
+    my $ok = eval { Wing::ContentFilter::format_html(\$invalid_heading, {headings => [$invalid_level]}); 1 };
+    my $error = $@;
+    ok !$ok, "invalid heading level $invalid_level is rejected";
+    like $error, qr/Allowed headings must contain only integers from 1 through 6/, 'heading configuration error explains the valid levels';
+}
+
 my $equals = '= literal text';
 Wing::ContentFilter::format_html(\$equals, {headings => [1,2,3,4,5,6]});
 is $equals, '= literal text', 'equals signs remain literal text';
