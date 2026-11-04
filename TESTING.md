@@ -323,3 +323,7 @@ Authorized SSO owners and ordinary site sessions keep private fields.
 requires `edit_my_account`: SSO sessions without it get 450 and no token, even with
 `view_my_account`. Anonymous clients get 441; authorized SSO owners and site sessions
 receive the signed JWT, which the test checks against a key it generates.
+The `query` search on `GET /api/user` and `GET /api/user-not-me` matches username and
+real name for everyone, and email only for admins, so other sessions cannot find which
+account owns an email or probe email prefixes. Applications that grant other users
+private-field visibility by extending `can_edit` do not get email search from it.

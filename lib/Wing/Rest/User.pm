@@ -14,13 +14,16 @@ sub session_user_and_viewer {
     return ($user, undef);
 }
 
+# Only admins may see other users' email (can_view), so only they may search it.
+sub user_search {
+    my $viewer = shift;
+    my $like = { like => (params->{query} || '').'%' };
+    return { -or => { username => $like, real_name => $like, (defined $viewer && $viewer->is_admin ? (email => $like) : ()) } };
+}
+
 get '/api/user' => sub {
     my (undef, $viewer) = session_user_and_viewer();
-    my $users = site_db()->resultset('User')->search({ -or => {
-        username    => { like => (params->{query} || '').'%'},
-        email       => { like => (params->{query} || '').'%'},
-        real_name   => { like => (params->{query} || '').'%'},
-    }}, {order_by => 'username'});
+    my $users = site_db()->resultset('User')->search(user_search($viewer), {order_by => 'username'});
     return format_list($users, current_user => $viewer);
 };
 
@@ -31,11 +34,7 @@ get '/api/user/whoami' => sub {
 
 get '/api/user-not-me' => sub {
     my ($user, $viewer) = session_user_and_viewer();
-    my $users = site_db()->resultset('User')->search({ -or => {
-        username    => { like => (params->{query} || '').'%'},
-        email       => { like => (params->{query} || '').'%'},
-        real_name   => { like => (params->{query} || '').'%'},
-    }, id => { '<>' => $user->id }, }, {order_by => 'username'});
+    my $users = site_db()->resultset('User')->search({ %{user_search($viewer)}, id => { '<>' => $user->id } }, {order_by => 'username'});
     return format_list($users, current_user => $viewer);
 };
 

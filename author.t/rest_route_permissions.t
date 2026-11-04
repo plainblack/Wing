@@ -87,6 +87,21 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
     unlike $others{denied}->content, $private, 'user-not-me hides private fields without view_my_account';
     like $others{site}->content, $private, 'user-not-me shows private fields to a privileged site session';
 
+    my $target = Wing->db->resultset('User')->create({username => 'route-target', email => 'hidden-target@example.invalid'});
+    my $admin = Wing->db->resultset('User')->create({username => 'route-admin', email => 'route-admin@example.invalid', admin => 1});
+    my $admin_session = $admin->start_session({sso => 0})->id;
+    my $found = sub {
+        my ($path, $session_id) = @_;
+        return [map { $_->{id} } @{decode_json($request->(GET 'http://localhost'.$path, Cookie => 'session_id='.$session_id)->content)->{result}{items}}];
+    };
+    for my $route (qw(user user-not-me)) {
+        for my $name (qw(denied site)) {
+            is_deeply $found->("/api/$route?query=hidden-target", $session{$name}), [], "$route does not match another user's email for a non-admin $name session";
+        }
+        is_deeply $found->("/api/$route?query=hidden-target", $admin_session), [$target->id], "$route matches email for an admin";
+        is_deeply $found->("/api/$route?query=route-target", $session{site}), [$target->id], "$route still matches username for a non-admin";
+    }
+
     my $rsa = Crypt::PK::RSA->new;
     $rsa->generate_key(256);
     my $original_firebase = Wing->config->get('firebase');
