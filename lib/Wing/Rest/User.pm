@@ -7,8 +7,8 @@ use Wing::Rest;
 
 # SSO sessions without view_my_account see only public fields, as generated reads do.
 sub session_user_and_viewer {
-    my $session = get_session();
-    my $user = get_user_by_session_id(session_id => $session);
+    my $user = get_user_by_session_id();
+    my $session = $user->current_session;
     return ($user, $user) if eval { $session->check_permissions(['view_my_account']) };
     die $@ unless kiss(450);
     return ($user, undef);
