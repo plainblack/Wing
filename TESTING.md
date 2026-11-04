@@ -285,3 +285,14 @@ including the actual-destination list check, then deliver that application
 normally. Adopt email routing and exclusions in the staged order documented in
 `Wingman::Role::EmailRecovery`; this form fix does not move existing jobs or
 repair unsafe exclusions. No consumer application is changed here.
+
+## Ended session authentication
+
+`author.t/rest_ended_session.t` sends generated mutations through the actual
+Dancer PSGI app with the runner's isolated MySQL and cache. Sessions past their
+absolute expiry, after a password change, or with a revoked floor badge return
+the existing 401 login error before model verification or mutation, and their
+cache entries are removed. Active sessions are still renewed. `Wing::Session::end`
+clears the in-memory user, so no caller can use an ended session for the rest of
+the request. `author.t/web_ended_session.t` checks that Wing::Web's `get_session`
+also returns no session once it has ended.
