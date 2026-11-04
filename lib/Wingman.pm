@@ -278,7 +278,22 @@ A hash reference of queuing options.
 
 =item tube
 
-The name of the tube you want to insert this job into. If not specified, it will be inserted into the tube specified as C<default_tube> in the config file.
+An explicit destination takes precedence. Without a defined C<tube>, phases
+registered for C<Wingman::Plugin::SendTemplatedEmail> and
+C<Wingman::Plugin::EmailAllAdmins> use C<wingman/email_tube> when configured.
+This includes L<Wing/send_templated_email> and admin fan-out children. Other
+plugins continue to use C<wingman/beanstalkd/default_tube>. Routing matches the
+registered plugin's phase, including renamed phases. Admin children are new
+publications and use the installation email tube independently of the parent's
+explicit destination.
+
+An absent or JSON null C<email_tube> deliberately retains legacy default-tube
+routing. A configured value must be a valid Beanstalk name of 1-200 ASCII
+characters, cannot start with a hyphen, and cannot belong to C<jobber.*>.
+Invalid settings reject email publication before any broker operation, even
+with an explicit destination. They never fall back to the default tube.
+
+See L<Wingman::Role::EmailRecovery> for exclusions, workers and adoption.
 
 =item priority
 
@@ -298,10 +313,34 @@ The "Time To Run". An integer number of seconds to allow a worker to run this jo
 
 =cut
 
+=head2 email_tube
+
+Return the validated installation email tube, or undef for legacy routing.
+Default daemon workers watch this tube as well as the default tube. Explicit
+worker watch lists replace that list and must include every required email tube.
+
+=cut
+
+sub email_tube {
+    my $tube = Wing->config->get('wingman/email_tube');
+    return undef unless defined $tube;
+    die "wingman/email_tube must be a Beanstalk tube name (1-200 ASCII characters, no leading hyphen), outside jobber.*.\n"
+        if ref $tube || $tube !~ /\A[A-Za-z0-9+\/;.\$_()][A-Za-z0-9+\/;.\$_()-]{0,199}\z/ || $tube =~ /^jobber\./;
+    return $tube;
+}
+
 sub put {
     my ($self, $job_type, $args, $options) = @_;
     $args = {} unless defined $args; # must be a hashref
     $options = {} unless defined $options; # must be a hashref
+    my $plugins = Wing->config->get('wingman/plugins');
+    for my $class ('Wingman::Plugin::SendTemplatedEmail', 'Wingman::Plugin::EmailAllAdmins') {
+        next unless $plugins->{$class} && $plugins->{$class}{phase} eq $job_type;
+        my $email_tube = $self->email_tube;
+        $options = { %$options, tube => $email_tube }
+            if !defined $options->{tube} && defined $email_tube;
+        last;
+    }
     my $default_tube = Wing->config->get('wingman/beanstalkd/default_tube');
     if (is_in($job_type, $self->job_types)) {
         if (exists $options->{tube} && defined $options->{tube} && $options->{tube} ne $default_tube) {

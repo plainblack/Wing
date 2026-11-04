@@ -26,7 +26,7 @@ sub opt_spec {
       [ 'delay=i', 'number of seconds to wait before adding the job to the waiting queue, default: '.($config->{delay} || 0 ), { default => $config->{delay} || 0 } ],
       [ 'priority=i', 'the relative importance of this job, lower is more important, default: '.($config->{priority} || 2000), { default => $config->{priority} || 2000 } ],
       [ 'ttr=i', 'number of seconds this job has to run, default: '.($config->{ttr} || 60), { default => $config->{ttr} || 60 } ],
-      [ 'tube=s', 'tube to put this job in, default: '.($config->{default_tube} || 'wingman'), { default => $config->{default_tube} || 'wingman' } ],
+      [ 'tube=s', 'explicit destination tube; otherwise use the phase default' ],
     );
 }
 

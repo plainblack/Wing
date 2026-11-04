@@ -330,7 +330,9 @@ B<NOTE:> To use this feature you must have a C<wingman> section in your config f
 
 =head4 wingman_job_options
 
-Hash reference. See L<Wingman/put> for details.
+Hash reference. See L<Wingman/put> for details. An explicit C<tube> wins over
+C<wingman/email_tube>; otherwise queued email uses that installation setting.
+See L<Wingman::Role::EmailRecovery> for worker configuration and adoption.
 
 B<NOTE:> C<ttr> defaults to 60. C<priority> defaults to 1500.
 
