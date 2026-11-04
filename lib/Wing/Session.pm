@@ -51,6 +51,7 @@ sub BUILD {
         $self->sso($session_data->{sso});
         $self->api_key_id($session_data->{api_key_id});
         $self->user_change_seen($session_data->{user_change_seen});
+        $self->user_data($session_data->{user_data});
         $self->auth_source($session_data->{auth_source}) if exists $session_data->{auth_source};
         $self->floor_login_id($session_data->{floor_login_id}) if exists $session_data->{floor_login_id};
         $self->absolute_expires_at($session_data->{absolute_expires_at}) if exists $session_data->{absolute_expires_at};
@@ -69,6 +70,11 @@ has api_key_id => (
 );
 
 has user_change_seen => (
+    is          => 'rw',
+);
+
+# Read with user_change_seen from the same cache entry, so the two always come from one write.
+has user_data => (
     is          => 'rw',
 );
 
@@ -120,11 +126,10 @@ has user => (
         my $self = shift;
         return undef unless $self->has_user_id;
         my $change = Wing->cache->get('user-changed-' . $self->user_id);
-        my $session_data = Wing->cache->get($self->key);
         my $user;
-        if ($self->user_change_is_seen($change) && ref $session_data eq 'HASH' && $session_data->{user_data}) {
+        if ($self->user_change_is_seen($change) && ref $self->user_data eq 'HASH') {
             my $source = $self->db->source('User');
-            $user = $source->result_class->inflate_result($source, $session_data->{user_data});
+            $user = $source->result_class->inflate_result($source, $self->user_data);
         }
         else {
             $user = $self->db->resultset('User')->find($self->user_id);

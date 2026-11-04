@@ -615,13 +615,25 @@ sub generate_password_reset_code {
     return $code;
 }
 
-after qw(update delete) => sub {
+sub mark_changed {
     my $self = shift;
     # A new value per change lets each session notice it once; sessions never trust a change that may be uncommitted.
     my $uncommitted = $self->result_source->storage->dbh_do(sub { ! $_[1]->{AutoCommit} });
     # Never expires, because a session may outlive any fixed TTL and an absent marker forces database reads.
     Wing->cache->set('user-changed-'.$self->id, ($uncommitted ? 'uncommitted-' : '').Data::GUID->new->as_string, 'never');
+}
+
+# A no-op update takes no row lock, so its marker could replace an open transaction's uncommitted one.
+around update => sub {
+    my ($orig, $self, $columns) = @_;
+    $self->set_inflated_columns($columns) if $columns;
+    my $changed = $self->is_changed;
+    my $result = $self->$orig;
+    $self->mark_changed if $changed;
+    return $result;
 };
+
+after delete => sub { $_[0]->mark_changed };
 
 before delete => sub {
     my $self = shift;

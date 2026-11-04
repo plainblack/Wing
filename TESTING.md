@@ -336,9 +336,13 @@ DBIx::Class's debug callback. A repeat request reads its user from the session's
 cached `user_data` with no `users` query. A password change, deactivation or
 deletion still ends every session of the user, a missing `user-changed-<id>`
 marker reloads from the database, and a password change held uncommitted on a
-second connection ends the sessions once committed.
+second connection ends the sessions once committed, even after a no-op update
+of the same user. A session uses the `user_data` it read together with its
+`user_change_seen`, so an older session write landing later is not trusted.
 
-User `update` and `delete` write the marker with no expiry. Inside a transaction
+User `update` calls that change a column, and `delete`, write the marker with no
+expiry. A user with no marker is read from the database on every request until
+its next change or login. Inside a transaction
 the marker is prefixed `uncommitted-`, and sessions read that user from the
 database on every request until the next committed change, because Wing cannot
 tell when the transaction commits. User changes made outside DBIx::Class row
