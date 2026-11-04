@@ -31,7 +31,7 @@ get '/login' => sub {
 };
 
 get '/account/verify/secondary/auth' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     if ($user->verify_secondary_auth(param('token'))) {
         return redirect param('redirect') || '/';
     }
@@ -39,7 +39,7 @@ get '/account/verify/secondary/auth' => sub {
 };
 
 post '/account/deactivate' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -136,7 +136,7 @@ any '/logout' => sub {
 };
 
 get '/account/apikeys' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -146,7 +146,7 @@ get '/account/apikeys' => sub {
 };
 
 get '/account/apikeys/:id' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -161,7 +161,7 @@ get '/account/apikeys/:id' => sub {
 
 ### Kept for Backward Compatibility
 post '/account/apikey' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -185,7 +185,7 @@ post '/account/apikey' => sub {
 
 ### Kept for Backward Compatibility
 del '/account/apikey/:id' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -198,7 +198,7 @@ del '/account/apikey/:id' => sub {
 
 ### Kept for Backward Compatibility
 post '/account/apikey/:id' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -219,7 +219,7 @@ post '/account/apikey/:id' => sub {
 };
 
 get '/account' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -234,7 +234,7 @@ post '/account' => sub {
         content_type 'text/plain';
         return $origin_error;
     }
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -352,7 +352,8 @@ post '/account/reset-password-code' => sub {
 };
 
 get '/sso' => sub {
-    my $user = eval{ get_user_by_session_id() };
+    my $session = get_session(site_session => 1);
+    my $user = defined $session ? $session->user : undef;
     unless (params->{api_key_id}) {
         ouch 441, 'api_key_id is required.', 'api_key_id';
     }
@@ -391,7 +392,7 @@ get '/sso' => sub {
 };
 
 get '/sso/authorize' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     if ($user->permanently_deactivated) {
         ouch 442, 'Account permanently deactivated';
     }
@@ -406,7 +407,7 @@ get '/sso/authorize' => sub {
 };
 
 post '/sso/authorize' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     if ($user->permanently_deactivated) {
         ouch 442, 'Account permanently deactivated';
     }
@@ -416,7 +417,7 @@ post '/sso/authorize' => sub {
 };
 
 get '/sso/success' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(site_session => 1);
     template 'account/ssosuccess', {
         current_user            => $user,
     };
@@ -449,6 +450,8 @@ get '/account/facebook' => sub {
 };
 
 get '/account/facebook/postback' => sub {
+    my $session = get_session(site_session => 1);
+    my $user = defined $session ? $session->user : undef;
     my $fb = facebook();
     my $token_ref = $fb->get_user_token_by_code(param('code'));
     $fb->set_access_token($token_ref->{access_token});
@@ -458,8 +461,6 @@ get '/account/facebook/postback' => sub {
         ouch 401, 'Could not authenticate your Facebook account.';
     }
 
-    ##This only gets hit if the user is logged in, and the user is never sent to this URL unless they're logged out
-    my $user = eval { get_user_by_session_id() };
     if (defined $user) {
         if ($user->permanently_deactivated) {
             ouch 442, 'Account permanently deactivated';

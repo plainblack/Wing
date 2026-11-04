@@ -50,6 +50,17 @@ pass on the same isolated server with default strict SQL mode. The existing
 
 No production deployment procedure is documented for Wing.
 
+## First-party account access
+
+`author.t/web_account_permissions.t` exercises real Dancer HTTP requests against
+the isolated database and cache. Account settings, API key management, secondary
+verification and SSO consent require a site session. SSO sessions, including
+admin sessions and sessions with `edit_my_account`, cannot use these pages to
+mint site sessions or grant application permissions. The test covers cookie and
+parameter credentials, invalid-session reauthentication, Facebook linking with
+the external OAuth boundary controlled, anonymous login entry, and site-session key
+management and consent. REST routes retain their existing permission scopes.
+
 ## Date/time browser regression
 
 `author.t/luxon_date_time_test.py` mounts the actual `public/wing.vue.js` component
