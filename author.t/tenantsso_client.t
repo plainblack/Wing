@@ -47,6 +47,10 @@ my $heywood = $site_db->resultset('User')->new({
 $heywood->encrypt_and_set_password('Dumas');
 $heywood->insert;
 
+my $brooks = $site_db->resultset('User')->new({username => 'brooks', email => 'brooks@shawshank.jail'});
+my $second_local = eval { $brooks->insert; 1 };
+ok $second_local, 'a tenant can store multiple local accounts with no master user';
+
 my $guid = Data::GUID->guid_string;
 Wing->config->set('tenants/sso_key', $guid);
 
@@ -123,6 +127,26 @@ is $mech->status, 302, 'local tenant user login redirects after authentication';
 is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'one cookie set for login';
 $heywood = $heywood->get_from_storage;
 ok !$heywood->master_user_id, 'master_user_id still blank after local user login';
+
+$mech->cookie_jar(HTTP::CookieJar::LWP->new());
+$mech->post('http://localhost.localdomain/account/create', {
+    username => 'tommy', email => 'tommy@shawshank.jail', real_name => 'Tommy',
+    password1 => 'rockAndRollah', password2 => 'rockAndRollah',
+});
+is $mech->status, 302, 'tenant account creation succeeds without a master user ID';
+is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'new local account receives a login cookie';
+
+my $duplicate = $site_db->resultset('User')->new({
+    username => 'duplicate-owner', email => 'duplicate@shawshank.jail', master_user_id => $andy->id,
+});
+eval { $duplicate->insert };
+my $duplicate_error = $@;
+is eval { $duplicate_error->code }, 443, 'two tenant accounts cannot link to the same master user';
+
+my $unlinked = $site_db->resultset('User')->find($tenant_red->id);
+my $unlink_ok = eval { $unlinked->master_user_id(undef); $unlinked->update; 1 };
+ok $unlink_ok, 'internal account synchronization can clear a master-user link';
+ok !$site_db->resultset('User')->find($tenant_red->id)->master_user_id, 'cleared master-user link is persisted';
 
 done_testing();
 
