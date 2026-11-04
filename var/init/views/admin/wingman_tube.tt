@@ -1,6 +1,8 @@
 [% page_title = "Tube ${tube_name}" %]
 [% INCLUDE admin/header_include.tt %]
-<div id="app">
+<div id="app"
+    data-email-admin-phase="[% config.plugins.item('Wingman::Plugin::EmailAllAdmins').phase | html %]"
+    data-email-template-phase="[% config.plugins.item('Wingman::Plugin::SendTemplatedEmail').phase | html %]">
 
     <h2>Jobs</h2>
     <div class="table-responsive">
@@ -155,9 +157,15 @@ new Vue({
         },
         add_job : function() {
             const self = this;
-            axios.post('/api/wingman/jobs', self.new_job)
+            const job = Object.assign({}, self.new_job);
+            if (job.phase && [self.$el.dataset.emailAdminPhase, self.$el.dataset.emailTemplatePhase].includes(job.phase)) {
+                delete job.tube;
+            }
+            axios.post('/api/wingman/jobs', job)
             .then(function(response) {
-                self.jobs.push(response.data.result);
+                if (response.data.result.tube === self.new_job.tube) {
+                    self.jobs.push(response.data.result);
+                }
                 wing.success('Job added.');
             });
         },

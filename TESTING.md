@@ -247,3 +247,41 @@ undefined callbacks, permission-aware metadata context and rate limits,
 and the built-in APIKey caller including view-only owner reads. The mutation and read authorization matrices
 also exercise `generate_crud`, covering present empty/undefined permissions,
 optional omission, public-only denied reads and authorized private visibility.
+
+## Admin job email routing
+
+`author.t/admin_email_routing.t` requires installed Node and Playwright 1.62.1
+with Chromium (set `NODE_PATH` to its installed `node_modules` directory when
+needed), plus the Perl runner prerequisites, Test::TCP and HTTP::Server::PSGI.
+It loads the shipped admin template through the actual web route with a real
+admin session, clicks Add Job in Chromium, submits to the actual REST PSGI app,
+and inspects native broker job statistics. Wing ships separate web and REST
+apps; the browser transport routes `/api` to the isolated REST listener while
+preserving the public Host. The pinned CDN assets in the shipped header require
+network access. Missing prerequisites fail the test, rather than skipping it.
+No worker runs and no outbound mail is sent. Policy related verification and
+merge slices include this test. Run it with:
+
+```
+python3 -B bin/agent-tests.py author.t/admin_email_routing.t
+```
+
+Set `ADMIN_EMAIL_ARTIFACTS` to an absolute directory to retain desktop (1440px)
+and phone (390px) screenshots in both browser color schemes. Bootstrap 4 has no
+automatic dark theme, so the same CSS applies in both appearances.
+
+The form omits the explicit destination for phases registered to
+`Wingman::Plugin::EmailAllAdmins` and `Wingman::Plugin::SendTemplatedEmail`,
+including configured aliases. Wing's existing routing selects `wingman/email_tube`;
+absent or null retains the legacy default destination. Other phases retain the
+viewed tube. The list displays a newly submitted job only when its actual broker
+tube matches the viewed tube. Shared API and publication behavior still honors
+explicit caller destinations.
+
+Existing applications copy `var/init/views/admin/wingman_tube.tt` at generation
+time. Upgrading Wing alone does not replace those copies. Apply the two phase
+data attributes and the updated `add_job` method to each application's template,
+including the actual-destination list check, then deliver that application
+normally. Adopt email routing and exclusions in the staged order documented in
+`Wingman::Role::EmailRecovery`; this form fix does not move existing jobs or
+repair unsafe exclusions. No consumer application is changed here.
