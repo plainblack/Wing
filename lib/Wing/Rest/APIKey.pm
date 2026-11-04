@@ -5,7 +5,7 @@ use Dancer;
 use Wing::Rest;
 
 generate_options('APIKey');
-generate_read('APIKey');
+generate_read('APIKey', permissions => ['view_my_account']);
 generate_update('APIKey', permissions => ['edit_my_account']);
 generate_delete('APIKey', permissions => ['edit_my_account']);
 generate_create('APIKey', permissions => ['edit_my_account']);
