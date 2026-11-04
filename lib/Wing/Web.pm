@@ -25,13 +25,8 @@ register get_session => sub {
     return undef unless $session_id;
     return $session_id if (ref $session_id eq 'Wing::Session');
     my $session = Wing::Session->new(id => $session_id, db => site_db());
-    if ($session->user_id) {
-        $session->extend;
-        return $session;
-    }
-    else {
-        return undef;
-    }
+    return $session if $session->user_id && $session->extend;
+    return undef;
 };
 
 register get_user_by_session_id => sub {
