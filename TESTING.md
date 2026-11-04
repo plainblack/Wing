@@ -66,7 +66,8 @@ python3 -B bin/agent-tests.py author.t/luxon_date_time_test.py
 
 The test checks rendered label geometry at 390px and 1440px in both browser
 appearances, manual and picker modes, and both `wrap` settings. It also edits
-real date/time controls and checks UTC values and both public events. Bootstrap
+real date/time controls and checks UTC values and both public events, including
+immediate manual typing. It also checks joined borders and a 240px parent. Bootstrap
 4 has no automatic dark theme, so the two appearance settings use the same CSS.
 Set `WING_UI_ARTIFACTS` to an absolute directory to retain screenshots outside
 the source tree. The existing policy includes this Python author test in

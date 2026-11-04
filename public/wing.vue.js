@@ -1745,15 +1745,16 @@ Vue.component("luxon-date-time", {
   template: `<span v-if="allow_manual_entry" :id="id">
                 <span v-if="wrap">
                     <b-form-datepicker v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
-                    <b-form-input v-model="time" type="text" placeholder="HH:mm:ss"></b-form-input><b-form-timepicker v-model="time" @input="handle" locale="en" button-only right></b-form-timepicker>
+                    <b-form-input @input="handle" v-model="time" type="text" placeholder="HH:mm:ss"></b-form-input><b-form-timepicker v-model="time" @input="handle" locale="en" button-only right></b-form-timepicker>
                     <div class="input-group-text">{{zone_name}}</div>
                 </span>
-                <b-input-group v-else :append="zone_name">
-                      <b-form-datepicker style="flex: 1 0 auto; width: auto" v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
-                      <b-input-group style="flex: 1 0 10em; width: auto">
-                          <b-form-input type="text" v-model="time" placeholder="HH:mm:ss"></b-form-input><b-input-group-append><b-form-timepicker v-model="time" @input="handle" locale="en" button-only right></b-form-timepicker></b-input-group-append>
+                <div v-else class="d-flex flex-wrap" style="gap: .25rem">
+                      <b-form-datepicker style="flex: 1 0 auto; width: auto; max-width: 100%" v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
+                      <b-input-group style="flex: 1 0 10em; width: auto; max-width: 100%">
+                          <b-form-input @input="handle" type="text" v-model="time" placeholder="HH:mm:ss"></b-form-input><b-input-group-append><b-form-timepicker v-model="time" @input="handle" locale="en" button-only right></b-form-timepicker></b-input-group-append>
                       </b-input-group>
-                </b-input-group>
+                    <div class="input-group-text">{{zone_name}}</div>
+                </div>
             </span>
             <span v-else :id="id">
                 <span v-if="wrap">
@@ -1761,10 +1762,11 @@ Vue.component("luxon-date-time", {
                     <b-form-timepicker v-model="time" @input="handle" locale="en"></b-form-timepicker>
                     <div class="input-group-text">{{zone_name}}</div>
                 </span>
-                <b-input-group v-else :append="zone_name">
-                      <b-form-datepicker style="flex: 1 0 auto; width: auto" v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
-                      <b-form-timepicker style="flex: 1 0 auto; width: auto" v-model="time" @input="handle" locale="en"></b-form-timepicker>
-                </b-input-group>
+                <div v-else class="d-flex flex-wrap" style="gap: .25rem">
+                      <b-form-datepicker style="flex: 1 0 auto; width: auto; max-width: 100%" v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
+                      <b-form-timepicker style="flex: 1 0 auto; width: auto; max-width: 100%" v-model="time" @input="handle" locale="en"></b-form-timepicker>
+                    <div class="input-group-text">{{zone_name}}</div>
+                </div>
             </span>`,
   watch: {
     value(new_value, old_value) {

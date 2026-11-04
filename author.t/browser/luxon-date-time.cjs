@@ -62,8 +62,25 @@ const assets = process.argv[2];
         }
         assert.equal(await page.locator('#subject').getByText('America/Chicago', { exact: true }).count(), 1);
       }
+      if (manual && !wrap) {
+        await page.setViewportSize({ width: 1440, height: 700 });
+        assert(await page.locator('#subject').evaluate(el => {
+          const date = el.querySelector('.b-form-datepicker').getBoundingClientRect();
+          const input = el.querySelector('input[type=text]');
+          return parseFloat(getComputedStyle(input).borderTopLeftRadius) === 0 || input.getBoundingClientRect().left > date.right;
+        }), 'Rounded manual input must not collide with the adjacent date border');
+      }
+      await page.locator('#app').evaluate(el => { el.style.width = '240px'; });
+      assert(await page.locator('#app').evaluate(el => el.scrollWidth <= el.clientWidth),
+        'Date/time controls must also fit a narrow parent');
+      await page.locator('#app').evaluate(el => { el.style.width = ''; });
       await page.setViewportSize({ width: 390, height: 700 });
-      if (manual) await page.locator('#subject input[type=text]').fill('09:10:11');
+      if (manual) {
+        await page.locator('#subject input[type=text]').fill('09:10:11');
+        await page.evaluate(() => Vue.nextTick());
+        assert.deepEqual(await page.evaluate(() => [app.value, app.inputs.at(-1), app.changes.at(-1)]),
+          ['2026-07-15 14:10:11', '2026-07-15 14:10:11', '2026-07-15 14:10:11'], 'Typing manual time must update the parent and emit both events');
+      }
       await page.locator('#subject .b-form-datepicker button').first().click();
       await page.getByRole('button', { name: 'Thursday, July 16, 2026', exact: true }).click();
       const expected = manual ? '2026-07-16 14:10:11' : '2026-07-16 18:34:56';
