@@ -81,8 +81,30 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
         302, 'admin site session can edit a user password';
     is $request->(POST 'http://localhost/login', Content => [login => $target->username, password => 'site-updated'])->code,
         302, 'admin password edit persists';
-    my $become = $request->(POST 'http://localhost/admin/user/'.$target->id.'/become', Cookie => $cookie);
-    is $become->code, 302, 'admin site session can impersonate a user';
-    like $become->header('Set-Cookie') || '', qr/session_id=/, 'admin site impersonation issues a session';
+    set behind_proxy => 0;
+    for my $case (
+        ['direct peer', undef, '127.0.0.1'],
+        ['empty header', '', '127.0.0.1'],
+        ['all empty entries', " , \t, ", '127.0.0.1'],
+        ['single address', '198.51.100.7', '198.51.100.7'],
+        ['multiple hops', '203.0.113.4, 198.51.100.7', '198.51.100.7'],
+        ['whitespace and trailing empty entries', " \t203.0.113.4 , 198.51.100.7\t, , ", '198.51.100.7'],
+        ['spoofed first address before trusted final address', '192.0.2.9, 203.0.113.33', '203.0.113.33'],
+    ) {
+        my ($name, $header, $expected) = @$case;
+        my $admin_session = $admin->start_session({sso => 0});
+        my $http = POST 'http://localhost/admin/user/'.$target->id.'/become', Cookie => 'session_id='.$admin_session->id;
+        $http->header('X-Real-IP' => $header) if defined $header;
+        my $become = $request->($http);
+        is $become->code, 302, "$name: admin site session can impersonate a user";
+        my ($session_id) = ($become->header('Set-Cookie') || '') =~ /session_id=([^;]+)/;
+        ok $session_id, "$name: impersonation issues a session";
+        my $impersonation = Wing::Session->new(id => $session_id, db => Wing->db);
+        is $impersonation->user_id, $target->id, "$name: new session belongs to the target user";
+        is $impersonation->ip_address, $expected, "$name: session records one normalized client address";
+        is(Wing->db->resultset('User')->find($target->id)->last_ip, $expected,
+            "$name: target's stored last_ip uses that same address");
+    }
+
 });
 done_testing;
