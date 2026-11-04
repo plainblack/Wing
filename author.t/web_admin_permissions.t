@@ -81,6 +81,16 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
         302, 'admin site session can edit a user password';
     is $request->(POST 'http://localhost/login', Content => [login => $target->username, password => 'site-updated'])->code,
         302, 'admin password edit persists';
+    my $deactivated = Wing->db->resultset('User')->create({username => 'deactivated-target',
+        email => 'deactivated-target@example.invalid', permanently_deactivated => 1});
+    my $retained_admin = $admin->start_session({sso => 0});
+    my $failed = $request->(POST 'http://localhost/admin/user/'.$deactivated->id.'/become',
+        Cookie => 'session_id='.$retained_admin->id);
+    is $failed->code, 442, 'a deactivated target cannot be impersonated';
+    unlike $failed->header('Set-Cookie') || '', qr/session_id=/, 'failed impersonation issues no replacement session';
+    is $request->(GET 'http://localhost/admin/users', Cookie => 'session_id='.$retained_admin->id)->code,
+        200, 'failed impersonation preserves the administrator login';
+
     set behind_proxy => 0;
     for my $case (
         ['direct peer', undef, '127.0.0.1'],
@@ -99,6 +109,8 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
         is $become->code, 302, "$name: admin site session can impersonate a user";
         my ($session_id) = ($become->header('Set-Cookie') || '') =~ /session_id=([^;]+)/;
         ok $session_id, "$name: impersonation issues a session";
+        is $request->(GET 'http://localhost/admin/users', Cookie => 'session_id='.$admin_session->id)->code,
+            401, "$name: successful impersonation ends the previous administrator session";
         my $impersonation = Wing::Session->new(id => $session_id, db => Wing->db);
         is $impersonation->user_id, $target->id, "$name: new session belongs to the target user";
         is $impersonation->ip_address, $expected, "$name: session records one normalized client address";
