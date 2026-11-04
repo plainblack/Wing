@@ -11,7 +11,7 @@ BEGIN {
     sub get {
         return {
             application_id => 'test-application',
-            admin_key      => 'test-admin-key',
+            write_key      => 'test-write-key',
             public_key     => 'test-public-key',
         };
     }
@@ -43,6 +43,8 @@ my $request_count = 0;
     local *LWP::UserAgent::new = sub { return bless {}, 'TestAlgoliaUserAgent'; };
     local *TestAlgoliaUserAgent::request = sub {
         my ($self, $request) = @_;
+        is $request->header('X-Algolia-API-Key'), 'test-write-key',
+            'writes use the configured write key';
         push @requested_hosts, $request->uri->host;
         $request_count++;
         return HTTP::Response->new($request_count == 1 ? 500 : 200);
