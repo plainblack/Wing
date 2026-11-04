@@ -28,6 +28,7 @@ sub make_session {
         absolute_expires_at => time + 4 * 60 * 60, %options});
 }
 generate_crud('EndedUser', db_class_name => 'User', permissions => ['edit_my_account']);
+generate_crud('DeniedUser', db_class_name => 'User', permissions => ['ended_unheld_permission']);
 my $helper_input;
 get '/helper-input-probe' => sub {
     my $user = eval { get_user_by_session_id(session_id => $helper_input) };
@@ -48,14 +49,14 @@ my $app = Dancer::Handler->get_handler->psgi_app;
 test_psgi $app, sub {
     my $request = shift;
     my $put = sub {
-        my ($user, $session) = @_;
+        my ($user, $session, $type) = @_;
         %calls = ();
-        return $request->(PUT 'http://localhost/api/endeduser/'.$user->id,
+        return $request->(PUT 'http://localhost/api/'.($type // 'endeduser').'/'.$user->id,
             Cookie => 'session_id='.$session->id, Content => [real_name => 'Ended session write']);
     };
     my $refused = sub {
-        my ($user, $session, $name) = @_;
-        my $res = $put->($user, $session);
+        my ($user, $session, $name, $type) = @_;
+        my $res = $put->($user, $session, $type);
         is $res->code, 401, "$name session is refused";
         is decode_json($res->content)->{error}{message}, 'You must log in to do that.', "$name returns the login error";
         is_deeply \%calls, {}, "$name stops before model verification or mutation";
@@ -79,14 +80,34 @@ test_psgi $app, sub {
         $refused->($user, $session, "password-changed sso=$sso");
     }
 
+    my $user = make_user('ended-denied-expired');
+    my $session = make_session($user, sso => 1);
+    my $data = Wing->cache->get($session->key);
+    $data->{absolute_expires_at} = time - 60;
+    Wing->cache->set($session->key, $data);
+    $refused->($user, $session, 'absolute-expired without the permission', 'denieduser');
+
+    $user = make_user('ended-denied-password');
+    $session = make_session($user, sso => 1);
+    $user->encrypt_and_set_password('changed-password');
+    $user->update;
+    $refused->($user, $session, 'password-changed without the permission', 'denieduser');
+
+    $user = make_user('active-denied');
+    $session = make_session($user, sso => 1);
+    my $before = Wing->cache->get($session->key)->{extended};
+    my $denied = $put->($user, $session, 'denieduser');
+    is $denied->code, 450, 'active session without the permission is denied';
+    is(Wing->cache->get($session->key)->{extended}, $before, 'denied request does not renew the session');
+
     my $badge_user = make_user('ended-badge');
     Wing->cache->set('floor-active-login-'.$badge_user->id, {floorLoginId => 'floor-1'});
     my $badge = make_session($badge_user, auth_source => 'floor_badge', floor_login_id => 'floor-1');
     Wing->cache->remove('floor-active-login-'.$badge_user->id);
     $refused->($badge_user, $badge, 'revoked floor badge');
 
-    my $user = make_user('ended-renewed');
-    my $session = make_session($user);
+    $user = make_user('ended-renewed');
+    $session = make_session($user);
     my $extended = Wing->cache->get($session->key)->{extended};
     my $res = $put->($user, $session);
     is $res->code, 200, 'active session is authorized' or diag $res->content;
@@ -115,5 +136,12 @@ ok !$loaded->has_user_id, 'ended session clears its user id';
 ok !defined $loaded->user, 'ended session resolves no user';
 $session->end;
 ok !$session->has_user_id && !defined $session->user, 'end clears an already resolved user';
+
+my $shared = make_user('ended-shared');
+my @sessions = map { make_session($shared) } 1, 2;
+$shared->permanently_deactivated(1);
+$shared->update;
+ok !defined Wing::Session->new(id => $sessions[0]->id, db => Wing->db)->extend, 'first session of a deactivated user ends';
+ok !defined Wing::Session->new(id => $sessions[1]->id, db => Wing->db)->extend, 'second session of a deactivated user also ends';
 
 done_testing;

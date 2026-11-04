@@ -50,6 +50,7 @@ sub BUILD {
         $self->ip_address($session_data->{ip_address});
         $self->sso($session_data->{sso});
         $self->api_key_id($session_data->{api_key_id});
+        $self->user_change_seen($session_data->{user_change_seen});
         $self->auth_source($session_data->{auth_source}) if exists $session_data->{auth_source};
         $self->floor_login_id($session_data->{floor_login_id}) if exists $session_data->{floor_login_id};
         $self->absolute_expires_at($session_data->{absolute_expires_at}) if exists $session_data->{absolute_expires_at};
@@ -64,6 +65,10 @@ has extended => (
 
 has api_key_id => (
     predicate   => 'has_api_key_id',
+    is          => 'rw',
+);
+
+has user_change_seen => (
     is          => 'rw',
 );
 
@@ -182,10 +187,42 @@ sub floor_login_is_active {
         && $active->{floorLoginId} eq $self->floor_login_id;
 }
 
+# Ends the session and returns false when it has expired, its user is gone or its password changed.
+sub is_valid {
+    my $self = shift;
+    if (!$self->floor_login_is_active
+        || ($self->has_absolute_expires_at && int($self->absolute_expires_at - time) <= 0)) {
+        $self->end;
+        return 0;
+    }
+
+    # Each session compares the per-user change marker to the last one it saw, so every session refreshes.
+    my $change = Wing->cache->get('user-changed-' . $self->user_id);
+    if (defined $change && $change ne ($self->user_change_seen // '')) {
+        my $user = $self->db->resultset('User')->find($self->user_id);
+        $user->current_session($self) if defined $user;
+        $self->user($user);
+        $self->user_change_seen($change);
+    }
+
+    if (!defined $self->user) {
+        $self->end;
+        return 0;
+    }
+    if ($self->password_hash ne $self->user->password) {
+        Wing->log->debug("SESSION: Password hashes do not match, ending session for user id:". $self->user->id);
+        Wing->log->debug("SESSION: Password hash sample: ".substr($self->password_hash,0,5));
+        Wing->log->debug("SESSION: Password user sample: ".substr($self->user->password,0,5));
+        $self->end;
+        return 0;
+    }
+    return 1;
+}
+
 sub extend {
     my $self = shift;
-
-    unless ($self->floor_login_is_active) {
+    return unless $self->is_valid;
+    if ($self->user->permanently_deactivated) {
         $self->end;
         return;
     }
@@ -193,52 +230,7 @@ sub extend {
     my $ttl = 60 * 60 * 24 * 7;
     if ($self->has_absolute_expires_at) {
         my $remaining = int($self->absolute_expires_at - time);
-        if ($remaining <= 0) {
-            $self->end;
-            return;
-        }
         $ttl = $remaining if $remaining < $ttl;
-    }
-    
-    # Check if user data has changed
-    my $user_changed_key = 'user-changed-' . $self->user_id;
-    if (Wing->cache->get($user_changed_key)) {
-        # User data has changed, need to refresh
-        my $user = $self->db->resultset('User')->find($self->user_id);
-        # Remove the user-changed marker
-        Wing->cache->remove($user_changed_key);
-        
-        if (!defined $user || $user->permanently_deactivated) {
-            # User no longer exists or is deactivated
-            $self->end;
-            return;
-        }
-        
-        # Check if password has changed
-        elsif ($self->password_hash ne $user->password) {
-            Wing->log->debug("SESSION: Password changed for user id:". $self->user_id . ", ending session");
-            $self->end;
-            return;
-        }
-        
-        # Password hasn't changed, update the cached user data
-        else {
-            $user->current_session($self);
-            $self->user($user);
-            $self->clear_user; # Clear the cached user attribute so it will reload
-        }
-    }
-
-    if (!defined $self->user) {
-        $self->end;
-        return;
-    }
-    if ($self->password_hash ne $self->user->password) {
-        Wing->log->debug("SESSION: Password hashes do not match, ending session for user id:". $self->user->id);
-        Wing->log->debug("SESSION: Password hash sample: ".substr($self->password_hash,0,5));
-        Wing->log->debug("SESSION: Password user sample: ".substr($self->user->password,0,5));
-        $self->end;
-        return;
     }
     $self->extended( $self->extended + 1 );
     my $session_data = {
@@ -249,6 +241,7 @@ sub extend {
             api_key_id  => $self->api_key_id,
             ip_address  => $self->ip_address,
             session_id  => $self->id,
+            user_change_seen => $self->user_change_seen,
             user_data   => $self->user->user_to_json,
     };
     $session_data->{auth_source} = $self->auth_source if $self->has_auth_source;
