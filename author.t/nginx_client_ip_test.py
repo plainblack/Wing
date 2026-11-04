@@ -1,6 +1,7 @@
 """Exercise the generated ingress header against an owned HTTP upstream."""
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+import json
 import re
 import shutil
 import socket
@@ -16,11 +17,12 @@ class ClientAddress(unittest.TestCase):
         nginx = shutil.which('nginx')
         self.assertIsNotNone(nginx, 'Install nginx and put it on PATH to test the ingress template.')
         template = (Path(__file__).resolve().parents[1] / 'var/init/etc/nginx.conf').read_text()
-        directive = re.search(r'proxy_set_header\s+X-Real-IP\s+[^;]+;', template).group()
+        directive = '\n'.join(re.findall(r'proxy_set_header\s+[^;]+;', template))
 
         class Upstream(BaseHTTPRequestHandler):
             def do_GET(self):
-                body = self.headers.get('X-Real-IP', '').encode()
+                body = json.dumps({name: self.headers.get(name, '') for name in
+                    ('X-Real-IP', 'X-Forwarded-Proto', 'X-Forwarded-Host')}).encode()
                 self.send_response(200)
                 self.send_header('Content-Length', str(len(body)))
                 self.end_headers()
@@ -69,8 +71,13 @@ class ClientAddress(unittest.TestCase):
                             request = Request(f'http://127.0.0.1:{address}/')
                             if supplied is not None:
                                 request.add_header('X-Forwarded-For', supplied)
+                                request.add_header('X-Forwarded-Proto', 'https')
+                                request.add_header('X-Forwarded-Host', 'evil.example')
                             with urlopen(request, timeout=30) as response:
-                                self.assertEqual(response.read().decode(), expected)
+                                headers = json.loads(response.read())
+                                self.assertEqual(headers['X-Real-IP'], expected)
+                                self.assertEqual(headers['X-Forwarded-Proto'], 'http')
+                                self.assertEqual(headers['X-Forwarded-Host'], f'127.0.0.1:{address}')
                     finally:
                         process.terminate()
                         try:

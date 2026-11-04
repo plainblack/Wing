@@ -115,7 +115,13 @@ JavaScript access, and now use `SameSite=Lax`. `Secure` follows Dancer 1.3522's
 `request->secure`. Forwarded protocol and host are trusted only when Dancer's
 `behind_proxy` is enabled. Enable it only behind an ingress that overwrites
 forwarded headers and prevents direct application access. No proxy setting is
-enabled by this change.
+enabled by this change. The shipped `var/init/config.yml` already enables
+`behind_proxy`; its generated nginx now overwrites `X-Forwarded-Proto` with
+nginx's observed scheme and `X-Forwarded-Host` with the request authority,
+including its port. If TLS terminates at an earlier load balancer, explicitly
+configure the trusted ingress chain to establish the external scheme and host;
+nginx's own scheme is HTTP in that topology. Existing deployed configs are not
+modified automatically.
 
 `Wing::RequestSecurity::same_origin_error(request)` is the shared validation
 seam for REST callers. It returns undef or an actionable error string, without
