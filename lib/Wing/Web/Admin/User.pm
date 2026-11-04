@@ -72,8 +72,9 @@ post '/admin/user/:id' => sub {
 post '/admin/user/:id/become' => sub {
     my $current_user = get_admin_by_session_id();
     my $object = fetch_object('User');
-    $current_user->current_session->end;
-    my $session = $object->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => request->remote_address });
+    my $previous_session = $current_user->current_session;
+    my $session = $object->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => client_ip() });
+    $previous_session->end;
     $object->mark_secondary_auth_verified;
     set_cookie session_id => $session->id,
         Wing::RequestSecurity::session_cookie_options(request, '/');
