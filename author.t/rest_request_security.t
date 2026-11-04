@@ -88,50 +88,57 @@ test_psgi $app, sub {
             is $cache_calls, $cache_before, 'credential refusal precedes cache';
         }
     }
-    Wing->config->set('rest/allow_cookieless_cross_origin_writes', 1);
-    my $cross = $request->(POST 'http://localhost/api/custom', Origin => 'http://evil.example',
-        Content => [session_id => $session->id]);
-    is $cross->code, 200, 'opt-in allows cross-origin explicit-session authentication without cookies';
-    is decode_json($cross->content)->{result}{user_id}, $user->id, 'normal authentication identifies developer';
-    my $login = $request->(POST 'http://localhost/api/session', Origin => 'http://evil.example',
-        Content => [username => $user->username, password => 'origin-password', api_key_id => $key->id]);
-    is $login->code, 200, 'opt-in permits cookieless cross-origin developer login';
-    ok !$login->header('Set-Cookie'), 'cross-origin form login cannot install an attacker session cookie';
-    my $login_id = decode_json($login->content)->{result}{id};
-    ok $login_id, 'cross-origin login returns explicit session token';
-    my $authenticated = $request->(POST 'http://localhost/api/custom', Origin => 'http://evil.example',
-        Content => [session_id => $login_id]);
-    is $authenticated->code, 200, 'returned session token works through normal authentication';
-    for my $headers ([Origin => 'http://evil.example'], [Origin => 'null'],
-        [Origin => '::::'], ['Sec-Fetch-Site' => 'cross-site']) {
-        my $anonymous = $request->(POST 'http://localhost/api/custom', @$headers);
-        is $anonymous->code, 441, 'cookieless request without token reaches normal authentication';
-        for my $ambient ('session_id='.$session->id, 'cart_id=guest-cart',
-            'session_id=; cart_id=guest-cart', 'application_credential=present', '') {
-            for my $route (['POST', '/api/session'], ['POST', '/api/custom'],
-                ['PUT', '/api/user/'.$user->id], ['DELETE', '/api/session/'.$session->id]) {
-                my ($sql_before, $cache_before, $runs_before) = ($queries, $cache_calls, $custom_runs);
-                my $res = $request->(HTTP::Request->new($route->[0], 'http://localhost'.$route->[1],
-                    [@$headers, Cookie => $ambient, 'Content-Type' => 'application/x-www-form-urlencoded'],
-                    'session_id='.$session->id.'&username=origin-developer&password=origin-password&api_key_id='.$key->id));
-                is $res->code, 403, 'opt-in still refuses every Cookie header even with an explicit token';
-                is $queries, $sql_before, 'cookie refusal precedes SQL';
-                is $cache_calls, $cache_before, 'cookie refusal precedes cache';
-                is $custom_runs, $runs_before, 'cookie refusal precedes route execution';
-                ok !$res->header('Set-Cookie'), 'cookie refusal issues no cookie';
-            }
-        }
-        my $res = $request->(POST 'http://localhost/api/session', @$headers,
+    my $previous_rest = encode_json(Wing->config->get('rest'));
+    my $opt_in_ok = eval {
+        Wing->config->set('rest/allow_cookieless_cross_origin_writes', 1);
+        my $cross = $request->(POST 'http://localhost/api/custom', Origin => 'http://evil.example',
+            Content => [session_id => $session->id]);
+        is $cross->code, 200, 'opt-in allows cross-origin explicit-session authentication without cookies';
+        is decode_json($cross->content)->{result}{user_id}, $user->id, 'normal authentication identifies developer';
+        my $login = $request->(POST 'http://localhost/api/session', Origin => 'http://evil.example',
             Content => [username => $user->username, password => 'origin-password', api_key_id => $key->id]);
-        is $res->code, 200, 'opt-in cookieless login accepts origin refusal variants';
-        ok !$res->header('Set-Cookie'), 'origin refusal variants cannot install login cookie';
-    }
-    my $logout = $request->(DELETE 'http://localhost/api/session/'.$login_id, Origin => 'http://evil.example');
-    is $logout->code, 200, 'cookieless cross-origin logout uses explicit path credential';
-    my $ended = $request->(POST 'http://localhost/api/custom', Origin => 'http://evil.example',
-        Content => [session_id => $login_id]);
-    is $ended->code, 401, 'logged-out token no longer authenticates';
-    Wing->config->set('rest/allow_cookieless_cross_origin_writes', 0);
+        is $login->code, 200, 'opt-in permits cookieless cross-origin developer login';
+        ok !$login->header('Set-Cookie'), 'cross-origin form login cannot install an attacker session cookie';
+        my $login_id = decode_json($login->content)->{result}{id};
+        ok $login_id, 'cross-origin login returns explicit session token';
+        my $authenticated = $request->(POST 'http://localhost/api/custom', Origin => 'http://evil.example',
+            Content => [session_id => $login_id]);
+        is $authenticated->code, 200, 'returned session token works through normal authentication';
+        for my $headers ([Origin => 'http://evil.example'], [Origin => 'null'],
+            [Origin => '::::'], ['Sec-Fetch-Site' => 'cross-site']) {
+            my $anonymous = $request->(POST 'http://localhost/api/custom', @$headers);
+            is $anonymous->code, 441, 'cookieless request without token reaches normal authentication';
+            for my $ambient ('session_id='.$session->id, 'cart_id=guest-cart',
+                'session_id=; cart_id=guest-cart', 'application_credential=present', '') {
+                for my $route (['POST', '/api/session'], ['POST', '/api/custom'],
+                    ['PUT', '/api/user/'.$user->id], ['DELETE', '/api/session/'.$session->id]) {
+                    my ($sql_before, $cache_before, $runs_before) = ($queries, $cache_calls, $custom_runs);
+                    my $res = $request->(HTTP::Request->new($route->[0], 'http://localhost'.$route->[1],
+                        [@$headers, Cookie => $ambient, 'Content-Type' => 'application/x-www-form-urlencoded'],
+                        'session_id='.$session->id.'&username=origin-developer&password=origin-password&api_key_id='.$key->id));
+                    is $res->code, 403, 'opt-in still refuses every Cookie header even with an explicit token';
+                    is $queries, $sql_before, 'cookie refusal precedes SQL';
+                    is $cache_calls, $cache_before, 'cookie refusal precedes cache';
+                    is $custom_runs, $runs_before, 'cookie refusal precedes route execution';
+                    ok !$res->header('Set-Cookie'), 'cookie refusal issues no cookie';
+                }
+            }
+            my $res = $request->(POST 'http://localhost/api/session', @$headers,
+                Content => [username => $user->username, password => 'origin-password', api_key_id => $key->id]);
+            is $res->code, 200, 'opt-in cookieless login accepts origin refusal variants';
+            ok !$res->header('Set-Cookie'), 'origin refusal variants cannot install login cookie';
+        }
+        my $logout = $request->(DELETE 'http://localhost/api/session/'.$login_id, Origin => 'http://evil.example');
+        is $logout->code, 200, 'cookieless cross-origin logout uses explicit path credential';
+        my $ended = $request->(POST 'http://localhost/api/custom', Origin => 'http://evil.example',
+            Content => [session_id => $login_id]);
+        is $ended->code, 401, 'logged-out token no longer authenticates';
+        1;
+    };
+    my $opt_in_error = $@;
+    my $rest = decode_json($previous_rest);
+    defined $rest ? Wing->config->set('rest', $rest) : Wing->config->delete('rest');
+    die $opt_in_error unless $opt_in_ok;
     for my $method (qw(GET HEAD OPTIONS)) {
         my $res = $request->(HTTP::Request->new($method, 'http://localhost/api/custom',
             [Cookie => $cookie, Origin => 'null', 'Sec-Fetch-Site' => 'cross-site']));
