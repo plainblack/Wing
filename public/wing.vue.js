@@ -1749,8 +1749,10 @@ Vue.component("luxon-date-time", {
                     <div class="input-group-text">{{zone_name}}</div>
                 </span>
                 <b-input-group v-else :append="zone_name">
-                      <b-form-datepicker v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
-                      <b-form-input sm="auto" type="text" v-model="time" placeholder="HH:mm:ss"></b-form-input><b-input-group-append><b-form-timepicker v-model="time" @input="handle" locale="en" button-only right></b-form-timepicker></b-input-group-append>
+                      <b-form-datepicker style="flex: 1 0 auto; width: auto" v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
+                      <b-input-group style="flex: 1 0 10em; width: auto">
+                          <b-form-input type="text" v-model="time" placeholder="HH:mm:ss"></b-form-input><b-input-group-append><b-form-timepicker v-model="time" @input="handle" locale="en" button-only right></b-form-timepicker></b-input-group-append>
+                      </b-input-group>
                 </b-input-group>
             </span>
             <span v-else :id="id">
@@ -1760,8 +1762,8 @@ Vue.component("luxon-date-time", {
                     <div class="input-group-text">{{zone_name}}</div>
                 </span>
                 <b-input-group v-else :append="zone_name">
-                      <b-form-datepicker v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
-                      <b-form-timepicker v-model="time" @input="handle" locale="en"></b-form-timepicker>
+                      <b-form-datepicker style="flex: 1 0 auto; width: auto" v-model="date" :date-disabled-fn="dateDisabledFn" @input="handle" show-decade-nav></b-form-datepicker>
+                      <b-form-timepicker style="flex: 1 0 auto; width: auto" v-model="time" @input="handle" locale="en"></b-form-timepicker>
                 </b-input-group>
             </span>`,
   watch: {

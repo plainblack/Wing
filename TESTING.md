@@ -49,3 +49,25 @@ pass on the same isolated server with default strict SQL mode. The existing
 15-assertion `loaddb.t` test also passes after version-storage initialization.
 
 No production deployment procedure is documented for Wing.
+
+## Date/time browser regression
+
+`author.t/luxon_date_time_test.py` mounts the actual `public/wing.vue.js` component
+in installed Playwright Chromium using the generated UI's pinned Vue 2.6.7,
+Bootstrap 4.5.2, Bootstrap-Vue 2.16.0 and Luxon 1.25.0 assets. It requires network
+access to download those assets from jsDelivr, Node, and an existing Playwright
+runtime with its Chromium browser installed. If Playwright is outside Node's
+module search path, set `NODE_PATH` to the installed runtime's `node_modules`
+directory. No application server, database, cache or broker is used.
+
+```
+python3 -B bin/agent-tests.py author.t/luxon_date_time_test.py
+```
+
+The test checks rendered label geometry at 390px and 1440px in both browser
+appearances, manual and picker modes, and both `wrap` settings. It also edits
+real date/time controls and checks UTC values and both public events. Bootstrap
+4 has no automatic dark theme, so the two appearance settings use the same CSS.
+Set `WING_UI_ARTIFACTS` to an absolute directory to retain screenshots outside
+the source tree. The existing policy includes this Python author test in
+related verification and merge slices.
