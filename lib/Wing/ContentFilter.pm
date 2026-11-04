@@ -42,11 +42,11 @@ sub format_html {
     }
     ${$content} =~ s/\_{2}(.*?)\_{2}/<em>$1<\/em>/g;                    # italicize stuff marked with __
     ${$content} =~ s/\~{2}(.*?)\~{2}/<s>$1<\/s>/g;                      # strike through stuff makred with ~~
-    ${$content} =~ s/^\s*\&gt;\s*(.*)$/<blockquote>$1<\/blockquote>/gm; # block quote with >
+    ${$content} =~ s/^\h*\&gt;\h*(.*)$/<blockquote>$1<\/blockquote>/gm; # block quote with >
     ${$content} =~ s/\{\{(.*?)\}\}/<a name="$1"><\/a>/g;                # in page target
     unless ($allowed->{with_markdown}) {
-        ${$content} =~ s/^\s*(\-{3,})\s*$/<hr>/gm;                          # --- creates a horizontal rule
-        my @headings = (6,5,4,3,2);                                                 # each = at the start of a line creates H1 through H6 tags
+        ${$content} =~ s/^\h*(\-{3,})\h*$/<hr>/gm;                          # --- creates a horizontal rule
+        my @headings = (6,5,4,3,2); # H1 requires explicit opt-in.
         if (exists $allowed->{headings}) {
            if (ref $allowed->{headings} eq 'ARRAY') {
                @headings = reverse sort @{$allowed->{headings}};
@@ -55,8 +55,10 @@ sub format_html {
                warn "Allowed headings should be an array ref of numbers 1 through 6.";
            }
        }
+       die "Allowed headings must contain only integers from 1 through 6.\n"
+           if grep { !defined($_) || ref($_) || !/\A[1-6]\z/ } @headings;
        foreach my $i (@headings) {
-           ${$content} =~ s/^\s*\#{\Q$i\E}\s*(.*)$/<h$i>$1<\/h$i>/gm;
+           ${$content} =~ s/^\h*\#{\Q$i\E}(?!#)\h*(.*)$/<h$i>$1<\/h$i>/gm;
        }
        ${$content} =~ s{((?:(\n\s*[+-]))(?s:.+?)(?:\z|\n(?!(\s*[+-]))))}{  # convert lines starting with - or + into bulleted lists
                my $list = "<ul>".$1."</ul>";
