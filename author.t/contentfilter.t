@@ -76,6 +76,43 @@ is $heading, 'foo<h1>heading 1</h1><h2>heading2</h2><h3>heading 3 is good</h3><h
 Wing::ContentFilter::format_html(\$heading2);
 is $heading2, 'foo<br># heading 1<h2>heading2</h2><h3>heading 3 is good</h3><h4>head 4</h4>foo # head none<br>too<h5>head5</h5><h6>head6</h6>bar', 'by default allow levels 2 through 6';
 
+my $only_h2 = "##heading\n###heading";
+Wing::ContentFilter::format_html(\$only_h2, {headings => [2]});
+is $only_h2, '<h2>heading</h2>###heading', 'a selective heading list accepts only exact hash counts';
+
+my $selective = "##two\n###three\n####four\n#####five";
+Wing::ContentFilter::format_html(\$selective, {headings => [2,4]});
+is $selective, '<h2>two</h2>###three<h4>four</h4>#####five', 'multiple selected levels leave other hash runs literal';
+
+my $too_many_hashes = "#######seven\n########eight";
+Wing::ContentFilter::format_html(\$too_many_hashes);
+is $too_many_hashes, '#######seven<br>########eight', 'more than six hashes are not default headings';
+
+my $h1_default = '#1 priority';
+Wing::ContentFilter::format_html(\$h1_default);
+is $h1_default, '#1 priority', 'H1 requires explicit opt-in even without a space';
+my $h1_allowed = '#1 priority';
+Wing::ContentFilter::format_html(\$h1_allowed, {headings => [1]});
+is $h1_allowed, '<h1>1 priority</h1>', 'explicit H1 preserves no-space heading syntax';
+
+my $indented = " \t## \theading";
+Wing::ContentFilter::format_html(\$indented);
+is $indented, '<h2>heading</h2>', 'heading indentation and spacing accept horizontal whitespace';
+
+for my $case (
+    ["##\nbody", '<h2></h2>body'],
+    ["## \n\nbody", '<h2></h2>body'],
+    ["##\n###heading", '<h2></h2><h3>heading</h3>'],
+) {
+    my ($input, $expected) = @$case;
+    Wing::ContentFilter::format_html(\$input);
+    is $input, $expected, 'an empty heading does not consume following lines';
+}
+
+my $with_markdown = '##heading';
+Wing::ContentFilter::format_html(\$with_markdown, {with_markdown => 1});
+is $with_markdown, '##heading', 'markdown mode bypasses the HTML heading formatter';
+
 my $equals = '= literal text';
 Wing::ContentFilter::format_html(\$equals, {headings => [1,2,3,4,5,6]});
 is $equals, '= literal text', 'equals signs remain literal text';

@@ -46,7 +46,7 @@ sub format_html {
     ${$content} =~ s/\{\{(.*?)\}\}/<a name="$1"><\/a>/g;                # in page target
     unless ($allowed->{with_markdown}) {
         ${$content} =~ s/^\s*(\-{3,})\s*$/<hr>/gm;                          # --- creates a horizontal rule
-        my @headings = (6,5,4,3,2);                                                 # each = at the start of a line creates H1 through H6 tags
+        my @headings = (6,5,4,3,2); # H1 requires explicit opt-in.
         if (exists $allowed->{headings}) {
            if (ref $allowed->{headings} eq 'ARRAY') {
                @headings = reverse sort @{$allowed->{headings}};
@@ -56,7 +56,7 @@ sub format_html {
            }
        }
        foreach my $i (@headings) {
-           ${$content} =~ s/^\s*\#{\Q$i\E}\s*(.*)$/<h$i>$1<\/h$i>/gm;
+           ${$content} =~ s/^\h*\#{\Q$i\E}(?!#)\h*(.*)$/<h$i>$1<\/h$i>/gm;
        }
        ${$content} =~ s{((?:(\n\s*[+-]))(?s:.+?)(?:\z|\n(?!(\s*[+-]))))}{  # convert lines starting with - or + into bulleted lists
                my $list = "<ul>".$1."</ul>";
