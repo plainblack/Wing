@@ -1,0 +1,10 @@
+{
+  "main": "master",
+  "verify": [
+    { "name": "related-tests", "run": "python3 -B bin/agent-tests.py {tests}", "related": true }
+  ],
+  "tests": ["author.t/*.t", "author.t/*_test.py"],
+  "untested": ["**/*.md", "*.txt", "author.t/TESTME"],
+  "slice": { "count": 8, "run": "python3 -B bin/agent-tests.py --slice {slice}" },
+  "merge": { "push": "origin" }
+}
