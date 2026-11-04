@@ -17,6 +17,28 @@ set server_tokens   => 0;
 
 =head1 SUBROUTINES
 
+=head2 client_ip()
+
+Returns the final nonempty, trimmed C<X-Real-IP> entry, or C<remote_address>
+when the header contains no address. Registered as a Dancer keyword in both
+L<Wing::Rest> and L<Wing::Web>.
+
+This assumes a trusted ingress overwrites C<X-Real-IP> with a forwarding chain
+whose final address was appended by the trusted proxy from its observed peer.
+Earlier entries may be client supplied. Applications must restrict direct access
+and configure that proxy chain; this helper does not authenticate headers.
+
+=cut
+
+register client_ip => sub {
+    my $header = request->env->{HTTP_X_REAL_IP};
+    for my $address (reverse split /,/, defined $header ? $header : '') {
+        $address =~ s/^\s+|\s+$//g;
+        return $address if length $address;
+    }
+    return request->remote_address;
+};
+
 =head2 find_tenant_site()
 
 When Wing is running in multi-tenant mode, this subroutine can be used to look up a site record. See L<Wing::Role::Result::Site> for details.  If a site record is found, it will set the Dancer variable C<is_tenant>.
@@ -222,7 +244,7 @@ register format_list => sub {
         object_options          => $options{object_options},
         tracer                  => get_tracer(),
         current_user            => $options{current_user} || eval{ get_user_by_session_id() } || undef,
-	ip_address 		=> request->env->{HTTP_X_REAL_IP} || request->remote_address,
+	ip_address 		=> client_ip(),
     );
 };
 
@@ -309,7 +331,7 @@ register describe => sub {
         include_related_objects => $options{include_related_objects} || $include_related_objects,
         current_user            => $current_user,
         tracer                  => $options{tracer} || get_tracer() || undef,  ##workaround for empty array
-	ip_address 		=> request->env->{HTTP_X_REAL_IP} || request->remote_address,
+	ip_address 		=> client_ip(),
     );
 };
 
@@ -340,7 +362,7 @@ Registered as a Dancer keyword.
 register expanded_params => sub {
     my %params = params;
     $params{tracer} = get_tracer();
-    $params{ipaddress} = request->env->{HTTP_X_REAL_IP} || request->remote_address;
+    $params{ipaddress} = client_ip();
     $params{useragent} = request->user_agent;
     return \%params
 };
@@ -369,7 +391,7 @@ register track_user => sub {
 
 register login => sub {
     my ($user) = @_;
-    my $session = $user->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => request->env->{HTTP_X_REAL_IP} || request->remote_address });
+    my $session = $user->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => client_ip() });
     set_cookie session_id   => $session->id,
                 expires     => '+5y',
                 http_only   => 0,
