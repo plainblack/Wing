@@ -86,3 +86,18 @@ Before running the email plugins, configure their actual tube names in
 confirm burial before irreversible delivery and require manual reconciliation
 after failure or a worker crash. See `Wingman::Role::EmailRecovery` for recovery
 instructions and the limits of this policy.
+
+## Client address propagation
+
+`author.t/client_ip.t` and `author.t/web_client_ip.t` exercise real Dancer
+requests, an IP-gated description with a real result set, expanded parameters,
+and login/SSO persistence in the runner's disposable database and cache.
+`author.t/nginx_client_ip_test.py` additionally requires nginx on PATH and uses
+an owned loopback nginx process and HTTP upstream to check the generated
+template's header directive against spoofed forwarding entries and no header.
+It stops both services before returning.
+
+The generated template appends nginx's observed peer. Behind a load balancer
+this is the balancer address. Existing deployments must configure their trusted
+ingress chain explicitly if they need the client beyond it; never copy an
+unrestricted client-supplied forwarding header into X-Real-IP.

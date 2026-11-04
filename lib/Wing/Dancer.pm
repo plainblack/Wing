@@ -27,6 +27,10 @@ This assumes a trusted ingress overwrites C<X-Real-IP> with a forwarding chain
 whose final address was appended by the trusted proxy from its observed peer.
 Earlier entries may be client supplied. Applications must restrict direct access
 and configure that proxy chain; this helper does not authenticate headers.
+The generated nginx template appends its observed peer, so an upstream load
+balancer becomes that final address. Deployments needing the client beyond that
+balancer must configure their trusted ingress to establish that address safely;
+copying an unrestricted incoming forwarding header is unsafe.
 
 =cut
 
