@@ -57,10 +57,8 @@ post '/api/session' => sub {
     # validate password
     if ($user->is_password_valid(params->{password})) {
         my $session = $user->start_session({ api_key_id => params->{api_key_id}, ip_address => client_ip() });
-    	set_cookie session_id   => $session->id,
-        	expires     => '+5y',
-                http_only   => 0,
-                path        => '/api';
+        set_cookie session_id => $session->id,
+        Wing::RequestSecurity::session_cookie_options(request, '/api');
         return describe($session, current_user => $user);
     }
     else {

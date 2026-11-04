@@ -10,6 +10,7 @@ use Wing::Client;
 use Facebook::OpenGraph;
 use String::Random qw(random_string);
 use Wing::Captcha;
+use Wing::RequestSecurity;
 
 require Wing::Dancer;
 
@@ -55,6 +56,12 @@ post '/account/deactivate' => sub {
 };
 
 post '/login' => sub {
+    my $origin_error = Wing::RequestSecurity::same_origin_error(request);
+    if (defined $origin_error) {
+        status 403;
+        content_type 'text/plain';
+        return $origin_error;
+    }
     return display_login({ error_message => 'You must specify a username or email address.'}) unless params->{login};
     return display_login({ error_message => 'You must specify a password.'}) unless params->{password};
     my $username = params->{login};
@@ -221,6 +228,12 @@ get '/account' => sub {
 };
 
 post '/account' => sub {
+    my $origin_error = Wing::RequestSecurity::same_origin_error(request);
+    if (defined $origin_error) {
+        status 403;
+        content_type 'text/plain';
+        return $origin_error;
+    }
     my $user = get_user_by_session_id();
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
@@ -249,6 +262,12 @@ post '/account' => sub {
 };
 
 post '/account/create' => sub {
+    my $origin_error = Wing::RequestSecurity::same_origin_error(request);
+    if (defined $origin_error) {
+        status 403;
+        content_type 'text/plain';
+        return $origin_error;
+    }
     my %params = params;
     my $user = site_db()->resultset('User')->new({});
     eval {
@@ -305,6 +324,12 @@ get '/account/reset-password-code' => sub {
 };
 
 post '/account/reset-password-code' => sub {
+    my $origin_error = Wing::RequestSecurity::same_origin_error(request);
+    if (defined $origin_error) {
+        status 403;
+        content_type 'text/plain';
+        return $origin_error;
+    }
     return template 'account/reset-password-code', {error_message => 'You must supply a reset code.'} unless params->{code};
     return template 'account/reset-password-code', {error_message => 'You must supply a new password.'} unless params->{password1};
     if (params->{password1} ne params->{password2}) {
