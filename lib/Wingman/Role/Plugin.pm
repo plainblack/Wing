@@ -24,7 +24,7 @@ You must have these methods in your plugins for them to function.
 
 =head2 run ( job, args )
 
-This method is where you put your code. You can give it a return value if you want, but Wingman will disregard the return value.
+This method is where you put your code. Return an explicit C<wingman_outcome> hash as documented in L<Wingman::Job/run> to report completion, retention or failure. Other return values retain legacy completion logging. The plugin owns queue acknowledgements and must confirm its retention policy when redelivery would be unsafe.
 
 =over
 

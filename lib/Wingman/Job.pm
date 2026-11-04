@@ -82,7 +82,7 @@ has job_args => (
 
 Executes this job. Normally you'd want to let the C<run> method in L<Wingman> do this. But this is useful for testing, or running one off commmands.
 
-Will L<Ouch> if the plugin fails for any reason.
+Will L<Ouch> if the plugin throws an exception.
 
 Returns the output of the plugin unchanged. Legacy returns without C<wingman_outcome>
 keep their existing completion behavior. Plugins that check queue acknowledgements
@@ -103,8 +103,12 @@ The plugin intentionally retained the job under its own recovery policy.
 The queue outcome failed or is uncertain. Include a human-readable C<message>
 explaining the failure and operator recovery instruction. The framework logs an
 error with the job ID, returns the result, and does not delete, bury, release or
-retry the job. Catch acknowledgement exceptions inside the plugin and return this
-outcome when ordinary exception burial would violate its recovery policy.
+retry the job itself. This is a logging outcome, not a retention acknowledgement.
+A reserved job can become ready again when the worker disconnects or its TTR
+expires. The plugin must establish and confirm its own terminal or retention
+policy before returning if redelivery would be unsafe. Catch acknowledgement
+exceptions inside the plugin and return this outcome when ordinary exception
+burial would violate its recovery policy.
 
 =back
 
@@ -135,7 +139,8 @@ sub run {
                     ? (defined $out->{message} && !ref($out->{message}) && length $out->{message}
                         ? $out->{message} : 'A failed outcome requires a nonempty message with operator recovery instructions.')
                     : 'Invalid wingman_outcome; use complete, retained or failed.';
-                $self->log_error($self, 'Job '.$self->id.' failed: '.$message);
+                $self->log_error($self, 'Job '.$self->id.' failed: '.$message
+                    .' Confirm the plugin terminal or retention acknowledgement; otherwise the broker may redeliver on worker disconnect or TTR expiry.');
                 return $out;
             }
         }

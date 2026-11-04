@@ -66,6 +66,24 @@ is $out->{wingman_outcome}, 'failed', 'caught dependency exception remains a fai
 is $client->stats_job($id)->state, 'reserved', 'framework leaves uncertain job reserved without retry or burial';
 ok !grep($_ eq 'Job complete.', @info), 'dependency exception is not announced as completion';
 like join(' ', @errors), qr/Broker connection lost.*Reconcile delivery/s, 'dependency failure keeps recovery instruction';
+like join(' ', @errors), qr/confirm.*retention.*broker may redeliver/i,
+    'uncertain acknowledgement warns that plugin must confirm its retention policy';
+$client->disconnect;
+$client = Beanstalk::Client->new({ server => "127.0.0.1:$port", default_tube => 'wing.outcomes' });
+is $client->reserve(5)->id, $id, 'broker redelivers unretained failure after worker disconnect';
+$client->delete($id);
+
+($out, $id) = run_job(sub {
+    my ($job) = @_;
+    $job->bury or die 'Could not confirm plugin retention';
+    local *Beanstalk::Client::delete = sub { die "Broker connection lost\n" };
+    eval { $job->delete };
+    return { wingman_outcome => 'failed', message => 'Delete uncertain; reconcile buried job before retrying.' };
+});
+$client->disconnect;
+$client = Beanstalk::Client->new({ server => "127.0.0.1:$port", default_tube => 'wing.outcomes' });
+is $client->stats_job($id)->state, 'buried', 'plugin-confirmed failure retention survives worker disconnect';
+ok !grep($_ eq 'Job complete.', @info), 'retained failed acknowledgement is not completion';
 $client->delete($id);
 
 ($out, $id) = run_job(sub {
