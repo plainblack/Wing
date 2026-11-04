@@ -21,9 +21,9 @@ Beanstalkd process. The runner verifies MySQL's datadir, socket and networking
 setting before creating the test database, and checks the broker's reported PID
 against the process it started. It uses the current TestWing schema's
 supported DBIx::Class `deploy` method, then DeploymentHandler's
-`install_version_storage` and `add_database_version` methods. It does not apply
-the historical version-5 application migration or alter SQL modes, generated
-SQL, or installed dependencies.
+`install_version_storage` and `add_database_version` methods. This bootstrap does
+not apply the historical version-5 install or alter SQL modes, generated SQL,
+or installed dependencies.
 
 Application WING configuration and Perl injection variables are excluded from
 the Perl test environment; installed Perl library paths are preserved. Configuration
@@ -68,10 +68,13 @@ Node. If it is installed outside this checkout, export `NODE_PATH` to the
 absolute directory containing `playwright`, as described below, before invoking
 the runner or `agent-policy`. The runner preserves `PERL5LIB` and `NODE_PATH`.
 
-## Historical install failure
+## Generated TestWing installs
 
-Ticket #57 tracks the historical schema installation issue separately from
-these client prerequisites.
+Ticket #57 is covered by `author.t/master_install.t`, which runs the actual
+`wing db --install --force` command in an additional disposable database. The
+test refuses to create it unless the server matches the runner's private socket,
+datadir and networking-disabled identity. It verifies version storage, native
+strict mode, matching user/API-key collations and actual foreign-key rejection.
 
 The tenant SSO client test provisions a real Acquisitions tenant through
 `Wing::Role::Result::Site::create_database`. Its version-2 fixture was generated
@@ -81,11 +84,23 @@ The version-1 fixture is preserved. This does not apply a migration to any
 application database. The test checks the login redirect itself, before the
 account page's separate secondary-verification flow.
 
-The historical TestWing version-5 install SQL also fails on MySQL 8.4.7 because
-the `api_key.user_id` and `users.id` foreign-key columns have incompatible
-collations. Current TestWing schema deployment and the nine `user.t` assertions
-pass on the same isolated server with default strict SQL mode. The existing
-15-assertion `loaddb.t` test also passes after version-storage initialization.
+TestWing master schema version 6 was generated from the current model using
+DeploymentHandler's documented `prepare_install`, `prepare_upgrade` (5 to 6)
+and `prepare_downgrade` (6 to 5), with the same arguments as `wing db --prep`.
+Versions 1 through 5 remain unchanged. The version-5 users table lacks the
+explicit UTF-8 table collation present on its foreign-key references, so that
+historical install fails against MySQL 8.4's native database defaults. Version 6
+supplies consistent metadata and includes the current User fields and indexes.
+MySQL requires matching collations on character foreign-key columns:
+https://dev.mysql.com/doc/refman/8.4/en/create-table-foreign-keys.html.
+
+The regression also installs the unchanged version 5 into a separate database
+with the historical UTF-8 default, then exercises the generated upgrade,
+downgrade and repeat upgrade, retaining existing company data. This compatibility
+fixture does not change server settings, disable constraints or rewrite SQL.
+The generated downgrade removes the five User columns added in version 6 and
+therefore discards their data. It runs only on this disposable fixture. No
+application database or TGC migration is applied.
 
 No production deployment procedure is documented for Wing.
 
