@@ -327,3 +327,21 @@ The `query` search on `GET /api/user` and `GET /api/user-not-me` matches usernam
 real name for everyone, and email only for admins, so other sessions cannot find which
 account owns an email or probe email prefixes. Applications that grant other users
 private-field visibility by extending `can_edit` do not get email search from it.
+
+## Session user cache
+
+`author.t/session_user_cache.t` sends real requests through the Dancer PSGI app
+with the runner's isolated MySQL and cache, and counts `users` queries through
+DBIx::Class's debug callback. A repeat request reads its user from the session's
+cached `user_data` with no `users` query. A password change, deactivation or
+deletion still ends every session of the user, a missing `user-changed-<id>`
+marker reloads from the database, and a password change held uncommitted on a
+second connection ends the sessions once committed.
+
+User `update` and `delete` write the marker with no expiry. Inside a transaction
+the marker is prefixed `uncommitted-`, and sessions read that user from the
+database on every request until the next committed change, because Wing cannot
+tell when the transaction commits. User changes made outside DBIx::Class row
+`update` or `delete` (resultset `update`, raw SQL, another application) write no
+marker; after such a change, remove `user-changed-<id>` from the cache so sessions
+reload the user.

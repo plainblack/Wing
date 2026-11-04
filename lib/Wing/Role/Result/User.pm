@@ -615,10 +615,12 @@ sub generate_password_reset_code {
     return $code;
 }
 
-after update => sub {
+after qw(update delete) => sub {
     my $self = shift;
-    # A new value per change lets each session notice it once, without consuming it for the others.
-    Wing->cache->set('user-changed-'.$self->id, Data::GUID->new->as_string, 60 * 60 * 24 * 7); # cache for 7 days
+    # A new value per change lets each session notice it once; sessions never trust a change that may be uncommitted.
+    my $uncommitted = $self->result_source->storage->dbh_do(sub { ! $_[1]->{AutoCommit} });
+    # Never expires, because a session may outlive any fixed TTL and an absent marker forces database reads.
+    Wing->cache->set('user-changed-'.$self->id, ($uncommitted ? 'uncommitted-' : '').Data::GUID->new->as_string, 'never');
 };
 
 before delete => sub {
@@ -645,33 +647,6 @@ sub determine_avatar_uri {
     else {
         return '//www.gravatar.com/avatar/'.(eval{md5_hex($self->email)}||'broken').'?s=300';
     }
-}
-
-sub user_to_json {
-    my $self = shift;
-    my $data = {};
-    
-    foreach my $column ($self->result_source->columns) {
-        my $value = $self->$column;
-        if (defined $value && ref($value) eq 'DateTime') {
-            $data->{$column} = Wing->to_mysql($value);
-        }
-        else {
-            $data->{$column} = $value;
-        }
-    }
-    
-    return $data;
-}
-
-sub user_from_json {
-    my ($class, $db, $data) = @_;
-    
-    # Create a new user object with the data
-    my $user = $db->resultset('User')->new($data);
-    $user->in_storage(1);
-    
-    return $user;
 }
 
 1;

@@ -119,29 +119,29 @@ has user => (
     default     => sub {
         my $self = shift;
         return undef unless $self->has_user_id;
-        
-        # Check if we have cached user data first
+        my $change = Wing->cache->get('user-changed-' . $self->user_id);
         my $session_data = Wing->cache->get($self->key);
-        if (defined $session_data && ref $session_data eq 'HASH' && 
-            exists $session_data->{user_data} && defined $session_data->{user_data}) {
-            # Recreate user object from cached data
-            eval {
-                my $user = Wing::DB::Result::User->user_from_json($self->db, $session_data->{user_data});
-                if ($user && !$user->permanently_deactivated) {
-                    $user->current_session($self);
-                    return $user;
-                }
-            };
+        my $user;
+        if ($self->user_change_is_seen($change) && ref $session_data eq 'HASH' && $session_data->{user_data}) {
+            my $source = $self->db->source('User');
+            $user = $source->result_class->inflate_result($source, $session_data->{user_data});
         }
-        
-        # Fall back to database lookup
-        my $user = $self->db->resultset('User')->find($self->user_id);
+        else {
+            $user = $self->db->resultset('User')->find($self->user_id);
+            $self->user_change_seen($change);
+        }
         if (defined $user && ! $user->permanently_deactivated) {
             $user->current_session($self);
         }
         return $user;
     },
 );
+
+# The cached user is current only while the marker is the committed one this session read before its last reload.
+sub user_change_is_seen {
+    my ($self, $change) = @_;
+    return defined $change && $change !~ /^uncommitted-/ && $change eq ($self->user_change_seen // '');
+}
 
 sub get_permissions {
     my $self = shift;
@@ -197,13 +197,7 @@ sub is_valid {
     }
 
     # Each session compares the per-user change marker to the last one it saw, so every session refreshes.
-    my $change = Wing->cache->get('user-changed-' . $self->user_id);
-    if (defined $change && $change ne ($self->user_change_seen // '')) {
-        my $user = $self->db->resultset('User')->find($self->user_id);
-        $user->current_session($self) if defined $user;
-        $self->user($user);
-        $self->user_change_seen($change);
-    }
+    $self->clear_user unless $self->user_change_is_seen(Wing->cache->get('user-changed-' . $self->user_id));
 
     if (!defined $self->user) {
         $self->end;
@@ -242,7 +236,7 @@ sub extend {
             ip_address  => $self->ip_address,
             session_id  => $self->id,
             user_change_seen => $self->user_change_seen,
-            user_data   => $self->user->user_to_json,
+            user_data   => { $self->user->get_columns },
     };
     $session_data->{auth_source} = $self->auth_source if $self->has_auth_source;
     $session_data->{floor_login_id} = $self->floor_login_id if $self->has_floor_login_id;
