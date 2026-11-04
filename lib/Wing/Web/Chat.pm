@@ -7,7 +7,7 @@ use Wing;
 use Wing::Web;
 
 get '/chat' => sub {
-    my $user = get_user_by_session_id();
+    my $user = get_user_by_session_id(permissions => ['edit_my_account']);
     my $firebase_config = Wing->config->get('firebase');
     template 'chat', {
         firebase    => {

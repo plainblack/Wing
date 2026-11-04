@@ -323,6 +323,11 @@ Authorized SSO owners and ordinary site sessions keep private fields.
 requires `edit_my_account`: SSO sessions without it get 450 and no token, even with
 `view_my_account`. Anonymous clients get 441; authorized SSO owners and site sessions
 receive the signed JWT, which the test checks against a key it generates.
+`author.t/web_chat_permissions.t` checks the same rule for the web `GET /chat` page,
+which renders the same credential: Wing::Web's `get_user_by_session_id` and `get_session`
+now accept `permissions` like Wing::Rest's, so SSO sessions without `edit_my_account` get
+450 (cookie or `session_id` parameter), anonymous visitors 401, and authorized SSO and
+site sessions the page with a JWT signed by a test key held only in memory.
 The `query` search on `GET /api/user` and `GET /api/user-not-me` matches username and
 real name for everyone, and email only for admins, so other sessions cannot find which
 account owns an email or probe email prefixes. Applications that grant other users
