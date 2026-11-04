@@ -86,6 +86,27 @@ for my $explicit (0, 1) {
     $publisher->disconnect;
 }
 
+{
+    my $publisher = Wingman->new;
+    eval { $publisher->put('SendTemplatedEmail', {invalid => bless({}, 'UnencodableMail')}) };
+    like "$@", qr/encountered object/, 'email publication fails at actual JSON encoder';
+    my $normal = $publisher->put('howdy', {});
+    is $normal->stats->tube, 'wingman_test', 'failed email cannot divert later ordinary jobs';
+    $normal->delete;
+    $publisher->disconnect;
+}
+{
+    local $settings->{beanstalkd}{default_tube};
+    my $result = test_app('Wing::Command' => ['do', 'howdy', '{}']);
+    is $result->error, undef, 'legacy CLI works without configured default tube';
+    my $observer = Beanstalk::Client->new($settings->{beanstalkd});
+    $observer->use('wingman');
+    my $queued = $observer->peek_ready;
+    ok $queued, 'non-email CLI preserves legacy wingman destination without configured default';
+    $queued->delete if $queued;
+    $observer->disconnect;
+}
+
 # Execute the real daemon program once without forking; control only its lifecycle.
 use Daemon::Control;
 use Parallel::ForkManager;

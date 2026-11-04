@@ -329,27 +329,39 @@ sub email_tube {
     return $tube;
 }
 
+=head2 email_tube_for_phase ( phase )
+
+Return the installation email destination for an email phase, or undef.
+
+=cut
+
+sub email_tube_for_phase {
+    my ($self, $job_type) = @_;
+    my $plugins = Wing->config->get('wingman/plugins');
+    for my $class ('Wingman::Plugin::SendTemplatedEmail', 'Wingman::Plugin::EmailAllAdmins') {
+        return $self->email_tube if $plugins->{$class} && $plugins->{$class}{phase} eq $job_type;
+    }
+    return undef;
+}
+
 sub put {
     my ($self, $job_type, $args, $options) = @_;
     $args = {} unless defined $args; # must be a hashref
     $options = {} unless defined $options; # must be a hashref
-    my $plugins = Wing->config->get('wingman/plugins');
-    for my $class ('Wingman::Plugin::SendTemplatedEmail', 'Wingman::Plugin::EmailAllAdmins') {
-        next unless $plugins->{$class} && $plugins->{$class}{phase} eq $job_type;
-        my $email_tube = $self->email_tube;
-        $options = { %$options, tube => $email_tube }
-            if !defined $options->{tube} && defined $email_tube;
-        last;
-    }
+    my $email_tube = $self->email_tube_for_phase($job_type);
+    $options = { %$options, tube => $email_tube }
+        if !defined $options->{tube} && defined $email_tube;
     my $default_tube = Wing->config->get('wingman/beanstalkd/default_tube');
     if (is_in($job_type, $self->job_types)) {
         if (exists $options->{tube} && defined $options->{tube} && $options->{tube} ne $default_tube) {
             $self->use($options->{tube});
         }
-        my $beanstalk_job = $self->beanstalk->put($options, $job_type, $args);
+        my $beanstalk_job = eval { $self->beanstalk->put($options, $job_type, $args) };
+        my $error = $@;
         if (exists $options->{tube} && defined $options->{tube} && $options->{tube} ne $default_tube) {
             $self->use($default_tube);
         }
+        die $error if $error;
         $self->log_info($beanstalk_job, 'Created job');
         return $self->_instantiate_job($beanstalk_job);
     }

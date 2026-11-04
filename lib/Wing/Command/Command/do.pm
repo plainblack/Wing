@@ -46,7 +46,13 @@ sub execute {
     else {
         undef $job_args;
     }
-    Wingman->new->put($phase, $job_args, $opt);
+    my $wingman = Wingman->new;
+    unless (defined $opt->{tube}) {
+        my $email_tube = $wingman->email_tube_for_phase($phase);
+        $opt->{tube} = defined $email_tube ? $email_tube
+            : (Wing->config->get('wingman/beanstalkd/default_tube') || 'wingman');
+    }
+    $wingman->put($phase, $job_args, $opt);
     say "OK";
 }
 
