@@ -75,10 +75,8 @@ post '/admin/user/:id/become' => sub {
     $current_user->current_session->end;
     my $session = $object->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => request->remote_address });
     $object->mark_secondary_auth_verified;
-    set_cookie session_id   => $session->id,
-                expires     => '+5y',
-                http_only   => 0,
-                path        => '/';
+    set_cookie session_id => $session->id,
+        Wing::RequestSecurity::session_cookie_options(request, '/');
     return redirect '/';
 };
 

@@ -12,6 +12,7 @@ These subroutines get included into L<Wing::Rest> and L<Wing::Web>. These subs a
 
 use Wing;
 use Data::GUID;
+use Wing::RequestSecurity;
 
 set server_tokens   => 0;
 
@@ -397,9 +398,7 @@ register login => sub {
     my ($user) = @_;
     my $session = $user->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => client_ip() });
     set_cookie session_id   => $session->id,
-                expires     => '+5y',
-                http_only   => 0,
-                path        => '/';
+                Wing::RequestSecurity::session_cookie_options(request, '/');
     if (params->{sso_id}) {
         my $cookie = cookies->{sso_id};
         my $sso_id = $cookie->value if defined $cookie;

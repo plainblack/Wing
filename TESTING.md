@@ -101,3 +101,31 @@ The generated template appends nginx's observed peer. Behind a load balancer
 this is the balancer address. Existing deployments must configure their trusted
 ingress chain explicitly if they need the client beyond it; never copy an
 unrestricted client-supplied forwarding header into X-Real-IP.
+
+## Web session request security
+
+`author.t/web_session_security.t` and `author.t/rest_session_cookie.t` send real
+HTTP requests through Wing's Dancer PSGI app using the runner's isolated MySQL
+and cache. They cover origin refusals before SQL or password-reset cache lookup,
+successful login/create/reset/SSO, admin impersonation, and all Wing session
+cookie writers on HTTP, native HTTPS and forwarded HTTPS.
+
+Session cookies retain their five-year expiry, root or `/api` path, and
+JavaScript access, and now use `SameSite=Lax`. `Secure` follows Dancer 1.3522's
+`request->secure`. Forwarded protocol and host are trusted only when Dancer's
+`behind_proxy` is enabled. Enable it only behind an ingress that overwrites
+forwarded headers and prevents direct application access. No proxy setting is
+enabled by this change.
+
+`Wing::RequestSecurity::same_origin_error(request)` is the shared validation
+seam for REST callers. It returns undef or an actionable error string, without
+accessing sessions, SQL or cache. Callers must send their own 403 response before
+lookup or mutation and outside authentication eval blocks. This change protects
+web POST `/login`, `/account/create`, `/account/reset-password-code`, and the
+session-renewing `/account`; REST mutation enforcement is ticket #55. External
+Facebook GET callbacks retain their existing flow.
+
+The implementation was checked against installed Dancer 1.3522 Cookie, Request
+and Config POD and Cookie/Request source, installed URI POD, and RFC 6454
+(https://www.rfc-editor.org/rfc/rfc6454), including scheme and effective port
+comparison, null origins and strict serialized-origin syntax.
