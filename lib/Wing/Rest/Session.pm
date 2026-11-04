@@ -26,7 +26,7 @@ post '/api/session/sso/:id' => sub {
     }
     $sso->delete;
     ouch(440, 'No user associated with SSO token.') unless $sso->user_id;
-    return describe($sso->user->start_session({ip_address => request->env->{HTTP_X_REAL_IP} || request->remote_address, api_key_id => $sso->api_key_id, sso => 1}));
+    return describe($sso->user->start_session({ip_address => client_ip(), api_key_id => $sso->api_key_id, sso => 1}));
 };
 
 get '/api/session/:id' => sub {
@@ -56,7 +56,7 @@ post '/api/session' => sub {
 
     # validate password
     if ($user->is_password_valid(params->{password})) {
-        my $session = $user->start_session({ api_key_id => params->{api_key_id}, ip_address => request->env->{HTTP_X_REAL_IP} || request->remote_address });
+        my $session = $user->start_session({ api_key_id => params->{api_key_id}, ip_address => client_ip() });
     	set_cookie session_id   => $session->id,
         	expires     => '+5y',
                 http_only   => 0,
