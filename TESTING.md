@@ -306,3 +306,14 @@ mutation through the actual Dancer PSGI app with the runner's isolated MySQL and
 cache. Each returns the 401 login error instead of a 500 and removes the session's
 cache entry. `extend` and SSO `check_permissions` end a session whose user no
 longer resolves, so Wing::Web's `get_session` returns no session either.
+
+## Account route permissions
+
+`author.t/rest_route_permissions.t` sends real HTTP requests through the actual
+built-in User and APIKey routes with the runner's isolated MySQL and cache. The
+User relationship routes (`apikeys`, `apikeypermissions`) and `GET /api/apikey/:id`
+declare `view_my_account`, with the generated-read rule: anonymous clients and SSO
+sessions without the permission get public fields only. `GET /api/user/whoami` and
+`GET /api/user` still require a session (441 without one) and still identify an SSO
+user lacking the permission, but describe results publicly for that session.
+Authorized SSO owners and ordinary site sessions keep private fields.
