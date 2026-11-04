@@ -89,6 +89,7 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
 
     my $rsa = Crypt::PK::RSA->new;
     $rsa->generate_key(256);
+    my $original_firebase = Wing->config->get('firebase');
     Wing->config->set('firebase', {id => 'route-firebase', database => 'route-db', api_key => 'route-api-key', service_email => 'route@example.invalid', admin_key => $rsa->export_key_pem('private')});
     my $jwt_path = '/api/user/'.$user->id.'/firebase-jwt';
     is $get->($jwt_path)->code, 441, 'firebase-jwt requires a session';
@@ -104,6 +105,8 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
         is $result->{api_key}, 'route-api-key', "firebase-jwt returns the Firebase config to the $name owner";
         is decode_jwt(token => $result->{jwt}, key => \$rsa->export_key_pem('public'))->{uid}, $user->id, "firebase-jwt signs a token for the $name owner";
     }
+    # Config::JSON writes set() to the config file, so put the real block back.
+    defined $original_firebase ? Wing->config->set('firebase', $original_firebase) : Wing->config->delete('firebase');
 });
 
 done_testing;
