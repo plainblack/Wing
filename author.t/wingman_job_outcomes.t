@@ -114,5 +114,47 @@ for my $legacy (undef, 0, 'legacy output', { answer => 42 }) {
 ($out, $id) = run_job(sub { return { wingman_outcome => 'failed' } });
 like join(' ', @errors), qr/failed outcome requires.*message/i, 'malformed failure tells plugin author what to fix';
 $client->delete($id);
+
+subtest 'plugin-owned delayed retries are independent of buried heads' => sub {
+    my $head = $client->put({data => '{}'});
+    $client->reserve(0)->bury;
+    my $retry = $client->put({data => '{}'});
+    my $effects = 0;
+    my $plugin = OutcomePlugin->new(sub {
+        my ($job) = @_;
+        my $stats = $job->stats;
+        if ($stats->reserves > 2) {
+            my $deleted = $job->delete;
+            return {wingman_outcome => $deleted ? 'complete' : 'failed', message => 'Inspect exhausted retry deletion.'};
+        }
+        $effects++;
+        my $released = $job->release({delay => 3600, priority => $stats->pri});
+        return {wingman_outcome => 'failed', message => 'Inspect the queue before retrying the unacknowledged release.'} unless $released;
+        return 0;
+    });
+    my $run = sub {
+        my $reserved = $client->reserve(0);
+        is $reserved->id, $retry->id, 'worker receives the original retry job';
+        return Wingman::Job->new(beanstalk_job => $reserved, wingman_plugin => $plugin, job_args => {})->run;
+    };
+    is $run->(), 0, 'legacy false result does not undo a plugin-confirmed delayed release';
+    is $client->stats_job($retry->id)->state, 'delayed', 'identified temporary failure waits in delayed state';
+    is $client->stats_job($retry->id)->delay, 3600, 'broker records the explicit positive retry delay';
+    is $client->stats_job($head->id)->state, 'buried', 'terminal head is not moved to schedule the retry';
+    $client->disconnect;
+    $client = Beanstalk::Client->new({server => "127.0.0.1:$port", default_tube => 'wing.outcomes'});
+    is $client->stats_job($retry->id)->state, 'delayed', 'confirmed delay survives worker disconnect';
+    $client->kick_job($retry->id) or die 'Cannot explicitly advance the test retry';
+    my $crashed = $client->reserve(0);
+    is $crashed->id, $retry->id, 'second reservation belongs to the same job';
+    $client->disconnect;
+    $client = Beanstalk::Client->new({server => "127.0.0.1:$port", default_tube => 'wing.outcomes'});
+    $run->();
+    is $effects, 1, 'persistent preflight limit prevents effects after a crashed reservation consumes the budget';
+    ok !defined $client->stats_job($retry->id), 'plugin confirms terminal deletion after exhaustion';
+    is $client->stats_job($head->id)->state, 'buried', 'terminal head remains retained after retry exhaustion';
+    is $client->stats_job($head->id)->kicks, 0, 'retry workflow never kicks the retained head';
+    $client->delete($head->id);
+};
 $client->disconnect;
 done_testing;

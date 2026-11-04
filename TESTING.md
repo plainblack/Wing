@@ -104,6 +104,54 @@ application database or TGC migration is applied.
 
 No production deployment procedure is documented for Wing.
 
+## Plugin-owned retries and monitor-only recovery command
+
+`wing autokick_jobs` retains its historical command name but now monitors only.
+It reports buried counts and available head metadata without decoding jobs,
+loading plugins or changing their states. Ordinary tubes with buried work request
+inspection; excluded email/manual tubes retain the single-fresh-head quiet period,
+old/stuck head thresholds and hidden-backlog alerts. Jobber remains outside Wing.
+
+Plugins retry only identified temporary failures through a checked positive-delay
+release of the same job. Their persistent reservation count supplies the attempt
+budget, checked before effects; they own exhaustion, terminal acknowledgements
+and operator reporting. Existing plugin releases, legacy returns and explicit
+failed/retained outcomes keep their contracts. Unknown exceptions do not become
+automatic retries. No new outcome, configuration default or job envelope is added.
+The former cron rule of two kicks within twelve hours is retired; twelve hours
+remains an old-head monitoring threshold. Existing plugin-specific limits remain.
+
+Adopt this change in this order during an explicitly authorized release:
+
+1. Stop automatic-kick cron execution on every recovery host before depending on
+   terminal burial. Installing new workers alone does not stop old autokickers.
+2. Deliver the monitor-only command to all recovery hosts. Review the relevant
+   plugins' explicit release limits and acknowledgement/partial-progress behavior.
+3. Restart relevant workers with the reviewed code, then resume monitoring cron.
+   Existing `[phase,args]` messages and worker-owned acknowledgements are compatible;
+   exceptions buried by an older worker now need manual inspection.
+4. Inspect existing buried backlogs by known job ID and logged business IDs.
+   Reconcile possible external effects and classify each failure before selective
+   recovery. A previously fresh buried job behind a retained head is not migrated
+   or automatically recovered. Existing job-ID kick/delete controls remain manual
+   overrides; never bulk-kick an excluded/email tube.
+5. A rollback must not restore an automatic-kick binary or cron while relying on
+   terminal/manual burial. Keep monitoring stopped if that guarantee cannot hold.
+
+No queue migration or live service operation is part of these repository checks.
+This change does not provide exactly-once effects or a universal crash retry cap:
+disconnects and TTR expiry can redeliver unacknowledged work, and limits remain at
+their plugin owner. Persistent broker configuration controls durability. Existing
+applications copy email templates and must update their copies through their own
+release if they adopt revised alert instructions.
+
+`wingman_shared_broker.t` checks read-only monitoring, native count/head behavior,
+malformed/uninstalled plugins, manual/email policy and Jobber isolation.
+`wingman_job_outcomes.t` exercises the real job runner with a plugin-owned delayed
+release beside a buried head, same-ID persistence across worker disconnects and
+preflight exhaustion after a lost reservation. The delay is advanced explicitly
+for the next assertion; these tests do not sleep or depend on machine speed.
+
 ## First-party account access
 
 `author.t/web_account_permissions.t` exercises real Dancer HTTP requests against
