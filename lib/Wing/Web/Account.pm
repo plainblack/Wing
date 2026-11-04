@@ -141,8 +141,11 @@ get '/account/apikeys' => sub {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
     }
-    my $api_keys = $user->apikeys;
-    template 'account/apikeys', {current_user => $user, apikeys => format_list($api_keys, current_user => $user) };
+    my $account = describe($user, current_user => $user, include_relationships => 1);
+    template 'account/apikeys', {
+        current_user => $user,
+        apikeys_uri => $account->{_relationships}{apikeys},
+    };
 };
 
 get '/account/apikeys/:id' => sub {
@@ -224,7 +227,10 @@ get '/account' => sub {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
     }
-    template 'account/index', { current_user => $user, };
+    template 'account/index', {
+        current_user => $user,
+        account => describe($user, current_user => $user, include_options => 1, include_relationships => 1),
+    };
 };
 
 post '/account' => sub {

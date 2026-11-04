@@ -100,6 +100,26 @@ parameter credentials, invalid-session reauthentication, Facebook linking with
 the external OAuth boundary controlled, anonymous login entry, and site-session key
 management and consent. REST routes retain their existing permission scopes.
 
+`author.t/web_admin_permissions.t` covers all shipped admin web routes with
+admin SSO cookies/parameters, successful admin site sessions, ordinary users,
+missing/invalid/expired sessions and refused password/impersonation effects.
+`get_admin_by_session_id` always requires a site session, including when callers
+pass other session options. Trends and Wingman pages use this same helper.
+
+`author.t/account_pages.t` renders the shipped account templates and runs Chromium
+against isolated loopback web and REST apps. It verifies populated account fields,
+a saved edit after reload, and the owner's actual API keys and links. It requires
+the existing Node/Playwright, Test::TCP and HTTP::Server::PSGI prerequisites described
+below. Set `ACCOUNT_PAGE_ARTIFACTS` to retain 1440px and 390px screenshots in both
+browser appearances; Bootstrap 4 uses the same CSS in both.
+
+Existing applications copy the account templates at generation time. They must
+adopt `account.json` for settings properties and `apikeys_uri` for the key-list
+endpoint when upgrading to this version. The current user remains a row object
+for existing header/template methods. Wing does not replace consumers' copied
+views. TGC adoption is tracked separately at
+https://github.com/plainblack/TGC/issues/4284.
+
 ## Date/time browser regression
 
 `author.t/luxon_date_time_test.py` mounts the actual `public/wing.vue.js` component

@@ -50,7 +50,7 @@ register get_user_by_session_id => sub {
 
 
 register get_admin_by_session_id => sub {
-    my $user = get_user_by_session_id(@_);
+    my $user = get_user_by_session_id(@_, site_session => 1);
     if (defined $user) {
         if ($user->is_admin) {
             return $user;

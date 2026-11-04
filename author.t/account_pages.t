@@ -1,0 +1,54 @@
+use strict;
+use warnings;
+use Test::More import => ['!pass'];
+use Dancer ':syntax';
+use Wing;
+use Wing::Web;
+use Wing::DB::ResultSet;
+use Wing::Web::Account;
+use Plack::Test;
+use Dancer::Handler;
+use HTTP::Request::Common;
+use FindBin;
+use File::Temp qw(tempdir);
+use JSON qw(encode_json);
+use Test::TCP;
+use HTTP::Server::PSGI;
+set show_errors => 0;
+set logger => 'null';
+set public => $ENV{WING_HOME}.'/public';
+set views => $ENV{WING_HOME}.'/var/init/views';
+set engines => {template_toolkit => {start_tag => '[%', end_tag => '%]'}};
+set template => 'template_toolkit';
+Wing->db->source($_)->resultset_class('Wing::DB::ResultSet') for qw(User APIKey APIKeyPermission);
+my $user = Wing->db->resultset('User')->create({username => 'account-render', email => 'account-render@example.invalid', real_name => 'Account Owner'});
+$user->mark_secondary_auth_verified;
+my $key = $user->apikeys->create({name => 'rendered-key'});
+my $session = $user->start_session({sso => 0});
+test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
+    my $request = shift;
+    my $response = $request->(GET 'http://localhost/account', Cookie => 'session_id='.$session->id);
+    is $response->code, 200, 'shipped account settings render for a verified site session';
+    like $response->content, qr/Account Settings/, 'account settings template rendered';
+    my $keys = $request->(GET 'http://localhost/account/apikeys', Cookie => 'session_id='.$session->id);
+    is $keys->code, 200, 'shipped API key list renders for a verified site session';
+    like $keys->content, qr{list_api : '/api/user/} , 'key list uses the current user relationship endpoint';
+});
+my $directory = tempdir(CLEANUP => 1);
+open my $input, '>', "$directory/input.json" or die $!;
+print $input encode_json({session => $session->id, user_id => $user->id, key_id => $key->id});
+close $input;
+my $api = Test::TCP->new(code => sub {
+    my $port = shift;
+    exec $^X, "$FindBin::Bin/browser/account-api.pl", $port;
+    die "Could not start isolated REST app: $!";
+});
+my $web = Test::TCP->new(code => sub {
+    my $port = shift;
+    HTTP::Server::PSGI->new(host => '127.0.0.1', port => $port)->run(Dancer::Handler->get_handler->psgi_app);
+});
+is system('node', "$FindBin::Bin/browser/account-pages.cjs", $web->port, $api->port, $directory), 0,
+    'real account pages mount, edit and list keys in Chromium';
+undef $web;
+undef $api;
+done_testing;

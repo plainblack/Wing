@@ -60,7 +60,7 @@
                 params : {
                     _items_per_page : 100,
                 },
-                list_api : '[% current_user._relationships.apikeys %]',
+                list_api : '[% apikeys_uri %]',
                 on_create (properties) {
                     window.location.href = properties.edit_uri;
                 },
