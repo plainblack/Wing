@@ -56,6 +56,7 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
                 ['POST', '/account/apikey'], ['POST', '/account/apikey/'.$key->id],
                 ['DELETE', '/account/apikey/'.$key->id], ['POST', '/account/deactivate'],
                 ['GET', '/account/verify/secondary/auth'],
+                ['GET', '/account/facebook/postback?code=test-code'],
                 ['GET', '/sso?api_key_id='.$key->id.'&postback_uri=native&permission=edit_my_account'],
                 ['GET', '/sso/authorize?sso_id='.$authorization->id],
                 ['POST', '/sso/authorize?sso_id='.$authorization->id],
@@ -79,6 +80,47 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
     }
     is $request->(GET 'http://localhost/sso?api_key_id='.$key->id.'&postback_uri=native&permission=edit_my_account')->code,
         200, 'anonymous application authorization displays login';
+    {
+        local Wing->config->config->{facebook} = {app_id => 'test-app', secret => 'test-secret', postback => 'http://localhost/account/facebook/postback'};
+        # Facebook is the external boundary; sessions, routing and account changes remain real.
+        no warnings 'redefine';
+        my $oauth_requests = 0;
+        local *Facebook::OpenGraph::get_user_token_by_code = sub { $oauth_requests++; return {access_token => 'test-oauth-token'} };
+        local *Facebook::OpenGraph::fetch = sub { return {id => '123456789', name => 'External User'} };
+        my $callback = $request->(GET 'http://localhost/account/facebook/postback?code=test-code',
+            Cookie => 'session_id='.$sso_session->id);
+        is $callback->code, 450, 'Facebook account linking refuses SSO credentials';
+        unlike $callback->header('Set-Cookie') || '', qr/session_id=/, 'Facebook callback cannot mint a site session from SSO';
+        is $oauth_requests, 0, 'SSO callback is refused before external OAuth requests';
+        my $site_callback = $request->(GET 'http://localhost/account/facebook/postback?code=test-code',
+            Cookie => 'session_id='.$user->start_session({sso => 0})->id);
+        is $site_callback->code, 302, 'site session can link a Facebook account';
+        like $site_callback->header('Set-Cookie') || '', qr/session_id=/, 'site Facebook callback retains login';
+    }
+    for my $reason (qw(expired password floor)) {
+        my $invalid_user = Wing->db->resultset('User')->new({username => 'invalid-'.$reason, email => 'invalid-'.$reason.'@example.invalid'});
+        $invalid_user->encrypt_and_set_password('initial-password');
+        $invalid_user->insert;
+        my $invalid = $invalid_user->start_session({sso => 1, api_key_id => $key->id});
+        if ($reason ne 'password') {
+            my $data = Wing->cache->get($invalid->key);
+            if ($reason eq 'expired') {
+                $data->{absolute_expires_at} = 1;
+            } else {
+                $data->{auth_source} = 'floor_badge';
+                $data->{floor_login_id} = 'inactive-floor-login';
+            }
+            Wing->cache->set($invalid->key, $data);
+        }
+        if ($reason eq 'password') {
+            $invalid_user->encrypt_and_set_password('replacement-password');
+            $invalid_user->update;
+        }
+        is $request->(GET 'http://localhost/account', Cookie => 'session_id='.$invalid->id)->code,
+            401, "$reason SSO session is logged out before checking the credential type";
+        is $request->(GET 'http://localhost/sso?api_key_id='.$key->id.'&postback_uri=native&permission=edit_my_account',
+            Cookie => 'session_id='.$invalid->id)->code, 200, "$reason SSO session can reauthenticate";
+    }
     my $site = $user->start_session({sso => 0});
     my $cookie = 'session_id='.$site->id;
     is $request->(POST 'http://localhost/account/apikey', Cookie => $cookie, Content => [name => 'site-created-key'])->code,

@@ -450,6 +450,8 @@ get '/account/facebook' => sub {
 };
 
 get '/account/facebook/postback' => sub {
+    my $session = get_session(site_session => 1);
+    my $user = defined $session ? $session->user : undef;
     my $fb = facebook();
     my $token_ref = $fb->get_user_token_by_code(param('code'));
     $fb->set_access_token($token_ref->{access_token});
@@ -459,8 +461,6 @@ get '/account/facebook/postback' => sub {
         ouch 401, 'Could not authenticate your Facebook account.';
     }
 
-    ##This only gets hit if the user is logged in, and the user is never sent to this URL unless they're logged out
-    my $user = eval { get_user_by_session_id() };
     if (defined $user) {
         if ($user->permanently_deactivated) {
             ouch 442, 'Account permanently deactivated';

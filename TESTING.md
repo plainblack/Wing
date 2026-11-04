@@ -57,7 +57,8 @@ the isolated database and cache. Account settings, API key management, secondary
 verification and SSO consent require a site session. SSO sessions, including
 admin sessions and sessions with `edit_my_account`, cannot use these pages to
 mint site sessions or grant application permissions. The test covers cookie and
-parameter credentials, anonymous login entry, and successful site-session key
+parameter credentials, invalid-session reauthentication, Facebook linking with
+the external OAuth boundary controlled, anonymous login entry, and site-session key
 management and consent. REST routes retain their existing permission scopes.
 
 ## Date/time browser regression
