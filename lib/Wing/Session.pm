@@ -153,7 +153,10 @@ sub check_permissions {
     my ($self, $permissions) = @_;
     return 1 unless $self->sso; # always has permissions if this isn't a single-sign-on session
     return 1 if (!defined $permissions || ref $permissions ne 'ARRAY' || !scalar(@{$permissions})); # has permissions if they aren't asking for any
-    ouch(401, 'You must log in to access that.',$permissions) unless $self->has_user_id; # can't have permissions if they haven't logged in
+    unless (defined $self->user) { # can't have permissions if they haven't logged in or their user is gone
+        $self->end;
+        ouch(401, 'You must log in to access that.',$permissions);
+    }
     return 1 if $self->user->is_admin; # always has permissions if they're an admin
     ouch(450, 'Account permanently deactivated') if $self->user->permanently_deactivated; # Active users only
     ouch(450, 'Insufficient permissions.',$permissions) unless $self->has_api_key_id; # can't have permissions if they didn't assign an API key
@@ -225,7 +228,11 @@ sub extend {
             $self->clear_user; # Clear the cached user attribute so it will reload
         }
     }
-    
+
+    if (!defined $self->user) {
+        $self->end;
+        return;
+    }
     if ($self->password_hash ne $self->user->password) {
         Wing->log->debug("SESSION: Password hashes do not match, ending session for user id:". $self->user->id);
         Wing->log->debug("SESSION: Password hash sample: ".substr($self->password_hash,0,5));
