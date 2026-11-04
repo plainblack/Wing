@@ -25,7 +25,8 @@ register get_session => sub {
     }
     return $session_id if (ref $session_id eq 'Wing::Session');
     my $session = Wing::Session->new( id => $session_id, db => site_db() );
-    if ($session->user_id) {
+    # Ended sessions get 401 before the permission check, which must still precede renewal.
+    if ($session->user_id && $session->is_valid) {
         $session->check_permissions($options{permissions});
         return $session if $session->extend;
     }

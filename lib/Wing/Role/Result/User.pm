@@ -617,8 +617,8 @@ sub generate_password_reset_code {
 
 after update => sub {
     my $self = shift;
-    # Mark that this user has changed so sessions can update their cached data
-    Wing->cache->set('user-changed-'.$self->id, 1, 60 * 60 * 24 * 7); # cache for 7 days
+    # A new value per change lets each session notice it once, without consuming it for the others.
+    Wing->cache->set('user-changed-'.$self->id, Data::GUID->new->as_string, 60 * 60 * 24 * 7); # cache for 7 days
 };
 
 before delete => sub {
