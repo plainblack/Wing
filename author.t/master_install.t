@@ -33,14 +33,20 @@ sub wing_db {
     my $status;
     {
         local $ENV{WING_CONFIG} = "$directory/install.json";
-        open local *STDOUT, '>', "$directory/install.log" or die $!;
-        open local *STDERR, '>&', \*STDOUT or die $!;
+        open my $saved_stdout, '>&', \*STDOUT or die $!;
+        open my $saved_stderr, '>&', \*STDERR or die $!;
+        open STDOUT, '>', "$directory/install.log" or die $!;
+        open STDERR, '>&', \*STDOUT or die $!;
         $status = system($^X, "$FindBin::Bin/../bin/wing", 'db', @options);
+        open STDOUT, '>&', $saved_stdout or die $!;
+        open STDERR, '>&', $saved_stderr or die $!;
     }
+    open my $output, '<', "$directory/install.log" or die $!;
+    my $command_output = do { local $/; <$output> };
+    like $command_output, qr/Current code version 6/, "wing db @options output is captured for diagnostics";
     is $status, 0, "documented wing db @options succeeds";
     if ($status) {
-        open my $output, '<', "$directory/install.log" or die $!;
-        diag do { local $/; <$output> };
+        diag $command_output;
         BAIL_OUT('The migration command failed; dependent database checks cannot run.');
     }
 }
