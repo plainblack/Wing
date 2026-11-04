@@ -30,13 +30,13 @@ get '/api/user/whoami' => sub {
 };
 
 get '/api/user-not-me' => sub {
-    my $user = get_user_by_session_id();
+    my ($user, $viewer) = session_user_and_viewer();
     my $users = site_db()->resultset('User')->search({ -or => {
         username    => { like => (params->{query} || '').'%'},
         email       => { like => (params->{query} || '').'%'},
         real_name   => { like => (params->{query} || '').'%'},
     }, id => { '<>' => $user->id }, }, {order_by => 'username'});
-    return format_list($users, current_user => $user);
+    return format_list($users, current_user => $viewer);
 };
 
 my $extra = sub {

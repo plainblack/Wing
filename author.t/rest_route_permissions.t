@@ -27,6 +27,21 @@ my %session = (
     allowed => $user->start_session({sso => 1, api_key_id => $allowed_key->id})->id,
     site    => $user->start_session({sso => 0})->id,
 );
+# Applications grant non-admin privileges by extending can_edit.
+my $meta = TestWing::DB::Result::User->meta;
+$meta->make_mutable;
+$meta->add_around_method_modifier(can_edit => sub {
+    my ($orig, $self, $viewer) = @_;
+    return 1 if defined $viewer && $viewer->username eq 'route-manager';
+    return $orig->($self, $viewer);
+});
+$meta->make_immutable(inline_constructor => 0);
+my $manager = Wing->db->resultset('User')->create({username => 'route-manager'});
+my $manager_key = $manager->apikeys->create({name => 'route-manager-key'});
+my %manager_session = (
+    denied => $manager->start_session({sso => 1, api_key_id => $manager_key->id})->id,
+    site   => $manager->start_session({sso => 0})->id,
+);
 my $private = qr/"(?:email|private_key|reason|permission)"\s*:/;
 my @owned = ('/api/user/'.$user->id.'/apikeys', '/api/user/'.$user->id.'/apikeypermissions', '/api/apikey/'.$denied_key->id);
 my @self = ('/api/user/whoami', '/api/user?query=route-owner');
@@ -57,6 +72,11 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
         }
     }
     is decode_json($get->('/api/user/whoami', 'denied')->content)->{result}{id}, $user->id, 'whoami identifies the denied SSO user';
+    my %others = map { $_ => $request->(GET 'http://localhost/api/user-not-me?query=route-owner', Cookie => 'session_id='.$manager_session{$_}) } keys %manager_session;
+    is $others{denied}->code, 200, 'user-not-me succeeds for a privileged SSO user without view_my_account';
+    is decode_json($others{denied}->content)->{result}{items}[0]{id}, $user->id, 'user-not-me lists the other user';
+    unlike $others{denied}->content, $private, 'user-not-me hides private fields without view_my_account';
+    like $others{site}->content, $private, 'user-not-me shows private fields to a privileged site session';
 });
 
 done_testing;
