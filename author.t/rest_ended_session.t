@@ -100,6 +100,19 @@ test_psgi $app, sub {
     is $denied->code, 450, 'active session without the permission is denied';
     is(Wing->cache->get($session->key)->{extended}, $before, 'denied request does not renew the session');
 
+    for my $admin (0, 1) {
+        $user = make_user("deactivated-$admin");
+        $user->admin($admin);
+        $user->update;
+        $session = make_session($user, sso => 1);
+        $user->permanently_deactivated(1);
+        $user->update;
+        my $res = $put->($user, $session);
+        is $res->code, 450, "deactivated admin=$admin session is refused";
+        is decode_json($res->content)->{error}{message}, 'Account permanently deactivated', "deactivated admin=$admin returns the deactivation error";
+        is(Wing->cache->get($session->key)->{extended}, 1, "deactivated admin=$admin session is not renewed");
+    }
+
     my $badge_user = make_user('ended-badge');
     Wing->cache->set('floor-active-login-'.$badge_user->id, {floorLoginId => 'floor-1'});
     my $badge = make_session($badge_user, auth_source => 'floor_badge', floor_login_id => 'floor-1');
