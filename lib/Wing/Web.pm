@@ -26,6 +26,8 @@ register get_session => sub {
     # Reload a passed session from the cache so ending it elsewhere is seen.
     $session_id = $session_id->id if ref $session_id eq 'Wing::Session';
     my $session = Wing::Session->new(id => $session_id, db => site_db());
+    ouch(450, 'Log in with a site session to access account settings or authorize applications.')
+        if $options{site_session} && $session->sso;
     # check_permissions throws 450 for an SSO session lacking them, and must precede renewal.
     return $session if $session->user_id && $session->is_valid && $session->check_permissions($options{permissions}) && $session->extend;
     return undef;
