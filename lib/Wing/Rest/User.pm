@@ -53,7 +53,7 @@ generate_all_relationships('User', permissions => ['view_my_account']);
 
 get '/api/user/:id/firebase-jwt' => sub {
     my $user = fetch_object('User');
-    my $current_user = get_user_by_session_id();
+    my $current_user = get_user_by_session_id(permissions => ['edit_my_account']);
     $user->can_edit($current_user);
     my $firebase_config = Wing->config->get('firebase');
     return {
