@@ -195,3 +195,18 @@ absent or null retains legacy default-tube routing.
 The routing implementation uses installed Beanstalk::Client/Job 1.07 POD and
 Beanstalkd 1.13's official protocol (tube syntax, `use`, `watch`, and burial):
 https://github.com/beanstalkd/beanstalkd/blob/v1.13/doc/protocol.txt.
+
+## Generated mutation authorization
+
+`author.t/rest_mutation_auth.t` sends HTTP requests through the real Dancer
+PSGI app with isolated MySQL, FastMmap cache and real SSO sessions. It checks
+missing, invalid and expired sessions, absent API permission, deactivated users
+and rate limits across generated create/update/delete. Transparent observers
+prove refusal precedes model construction, target lookup, verification, extra
+processing and mutation. Authorized CRUD is verified through HTTP reads.
+Present empty/undefined permissions require authentication; omitted permissions
+retain optional lookup and the existing model authorization rules.
+
+The implementation uses installed Dancer 1.3522 Plugin/Handler POD and source,
+Plack::Test POD and CHI's documented `expire` operation. Expiry is explicit and
+rate-limit buckets are seeded across all minutes, without timing assertions.

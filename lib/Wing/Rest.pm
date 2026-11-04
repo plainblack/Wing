@@ -53,9 +53,11 @@ register generate_delete => sub {
     my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     del '/api/'.$object_url.'/:id'  => sub {
+        my $current_user = exists $options{permissions}
+            ? get_user_by_session_id(permissions => $options{permissions})
+            : eval { get_user_by_session_id() };
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         my $object = fetch_object($db_class_name);
-        my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
         $object->can_delete($current_user, get_tracer());
         if (exists $options{extra_processing}) {
             $options{extra_processing}->($object, $current_user);
@@ -69,7 +71,9 @@ register generate_update => sub {
     my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     put '/api/'.$object_url.'/:id'  => sub {
-        my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
+        my $current_user = exists $options{permissions}
+            ? get_user_by_session_id(permissions => $options{permissions})
+            : eval { get_user_by_session_id() };
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         my $object = fetch_object($db_class_name);
         $object->verify_posted_params(expanded_params($current_user), $current_user, get_tracer());
@@ -85,9 +89,11 @@ register generate_create => sub {
     my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     post '/api/'.$object_url => sub {
+        my $current_user = exists $options{permissions}
+            ? get_user_by_session_id(permissions => $options{permissions})
+            : eval { get_user_by_session_id() };
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         my $object = site_db()->resultset($db_class_name)->new({});
-        my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}); };
         my $params = expanded_params($current_user);
         if ($db_class_name ne $wing_object_type) { # provides an identity for migrating old APIs in case that is needed
             $params->{identity} = $wing_object_type;  
@@ -407,6 +413,13 @@ Does the same thing as C<get_session> except that it returns the User object ass
 =head2 generate_create ( object_type, options )
 
 Generates a web service method accessible via POST that allows you to create an object of this type.
+
+For create, update and delete, supplying C<permissions> requires an authenticated
+user before model verification, object lookup on update/delete, or mutation.
+Authentication and permission errors are returned unchanged. An empty array or
+C<undef> requires authentication without requesting specific API permissions.
+Omitting the option keeps user lookup optional so the model can allow anonymous
+creation or enforce its own policy.
 
  generate_create('User'); # POST /api/user
 
