@@ -33,8 +33,17 @@ def service(args, **kwargs):
         try:
             process.wait(timeout=30)
         except subprocess.TimeoutExpired:
+            pass
+        try:
             os.killpg(process.pid, signal.SIGKILL)
-            process.wait()
+        except ProcessLookupError:
+            pass
+        process.wait()
+        if hasattr(process, 'log_reader'):
+            process.log_reader.join()
+        for stream in (process.stdout, process.stderr):
+            if stream:
+                stream.close()
 
 
 def binary(name):
@@ -42,6 +51,49 @@ def binary(name):
     if not path:
         raise RuntimeError(f'Install {name} and put it on PATH before running Wing checks.')
     return path
+
+
+def test_environment():
+    return {key: value for key, value in os.environ.items()
+            if not key.startswith(('WING_', 'TGC_JOBBER_')) and key not in ('PERL5OPT', 'PERL5DB')}
+
+
+def wait_database(database):
+    event = threading.Event()
+    ready = []
+
+    def drain():
+        for line in database.stdout:
+            if 'ready for connections' in line:
+                ready.append(True)
+                event.set()
+        event.set()
+
+    database.log_reader = threading.Thread(target=drain, daemon=True)
+    database.log_reader.start()
+    if not event.wait(timeout=60) or not ready:
+        raise RuntimeError('Disposable MySQL did not become ready. Check the installed MySQL version.')
+
+
+def wait_queue(queue, port):
+    deadline = time.monotonic() + 30
+    while True:
+        try:
+            with socket.create_connection(('127.0.0.1', port), timeout=1):
+                break
+        except OSError:
+            if queue.poll() is not None or time.monotonic() >= deadline:
+                raise RuntimeError('Disposable Beanstalkd did not become ready.')
+    result = subprocess.run(
+        ['perl', '-MBeanstalk::Client', '-e',
+         'my $s = Beanstalk::Client->new({server => $ARGV[0]})->stats; '
+         'die "Broker is not the private process\\n" unless $s->{pid} == $ARGV[1];',
+         f'127.0.0.1:{port}', str(queue.pid)],
+        env=test_environment(), text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        timeout=30,
+    )
+    if result.returncode:
+        raise RuntimeError('Refusing tests: broker is not the private process. '+result.stdout.strip())
 
 
 def isolated_test(test):
@@ -56,16 +108,7 @@ def isolated_test(test):
                       '--pid-file='+str(scratch / 'mysql.pid'), '--skip-networking',
                       '--mysqlx=OFF', '--console'], stdout=subprocess.PIPE,
                      stderr=subprocess.STDOUT, text=True) as database:
-            timer = threading.Timer(60, database.terminate)
-            timer.start()
-            try:
-                for line in database.stdout:
-                    if 'ready for connections' in line:
-                        break
-                else:
-                    raise RuntimeError('Disposable MySQL did not become ready. Check the installed MySQL version.')
-            finally:
-                timer.cancel()
+            wait_database(database)
             client = [mysql, '--no-defaults', '--socket='+sock, '--user=root', '-N', '-B']
             identity = subprocess.check_output(client + ['-e', 'SELECT @@datadir,@@socket,@@skip_networking'], text=True).strip().split('\t')
             if len(identity) != 3 or Path(identity[0]).resolve() != Path(datadir).resolve() or identity[1:] != [sock, '1']:
@@ -76,14 +119,7 @@ def isolated_test(test):
                 port = listener.getsockname()[1]
             with service([broker, '-l', '127.0.0.1', '-p', str(port)],
                          stdout=subprocess.DEVNULL, stderr=subprocess.PIPE) as queue:
-                deadline = time.monotonic() + 30
-                while True:
-                    try:
-                        with socket.create_connection(('127.0.0.1', port), timeout=1):
-                            break
-                    except OSError:
-                        if queue.poll() is not None or time.monotonic() >= deadline:
-                            raise RuntimeError('Disposable Beanstalkd did not become ready.')
+                wait_queue(queue, port)
                 (scratch / 'log.conf').write_text(
                     'log4perl.logger = ERROR, screen\n'
                     'log4perl.appender.screen = Log::Log4perl::Appender::Screen\n'
@@ -105,13 +141,17 @@ def isolated_test(test):
                                             'TestWing::Wingman::EchoJson': {'phase': 'EchoJson'}}},
                 }
                 (scratch / 'config.json').write_text(json.dumps(config))
-                environment = {key: value for key, value in os.environ.items()
-                               if not key.startswith(('WING_', 'PERL', 'TGC_JOBBER_'))}
+                environment = test_environment()
                 environment.update(WING_HOME=str(ROOT), WING_APP=str(ROOT / 'author.t'),
                                    WING_OWNER=str(ROOT / 'author.t'), WING_CONFIG=str(scratch / 'config.json'),
                                    TGC_JOBBER_BEANSTALKD_BINARY=broker)
                 includes = ['-I'+str(ROOT / path) for path in ('lib', 'author.t/lib', 'author.t', 'author.t/tenant_files/lib')]
-                run(['perl', *includes, '-MWing', '-e', 'Wing->db->deploy;'], env=environment)
+                run(['perl', *includes, '-MWing', '-MDBIx::Class::DeploymentHandler', '-e',
+                     'my $db = Wing->db; $db->deploy; '
+                     'my $dh = DBIx::Class::DeploymentHandler->new({schema => $db, '
+                     'script_directory => "$ENV{WING_APP}/dbicdh"}); '
+                     '$dh->install_version_storage; $dh->add_database_version({version => $db->schema_version});'],
+                    env=environment)
                 with service(['prove', *includes, str(test)], cwd=ROOT / 'author.t', env=environment) as tests:
                     if tests.wait() != 0:
                         raise RuntimeError(f'{test.relative_to(ROOT)} failed in isolated services.')
@@ -124,7 +164,12 @@ def main():
     args = parser.parse_args()
     available = sorted([*ROOT.glob('author.t/*.t'), *ROOT.glob('author.t/*_test.py')])
     if args.slice:
-        index, count = map(int, args.slice.split('/'))
+        if args.tests:
+            parser.error('Choose either --slice or named tests, not both.')
+        try:
+            index, count = map(int, args.slice.split('/'))
+        except ValueError:
+            parser.error('Slice must be k/count with 1 <= k <= count.')
         if not 1 <= index <= count:
             parser.error('Slice must be k/count with 1 <= k <= count.')
         tests = available[index-1::count]
