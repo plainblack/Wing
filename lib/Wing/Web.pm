@@ -32,7 +32,6 @@ register get_session => sub {
 register get_user_by_session_id => sub {
     my $session = get_session(@_);
     if (defined $session) {
-        return $session if (ref $session =~ m/DB::Result::User$/);
         my $user = $session->user;
         if (defined $user) {
             header 'CacheControl', 'no-cache';
