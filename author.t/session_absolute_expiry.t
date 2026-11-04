@@ -39,11 +39,14 @@ use Wing::Session;
     sub password { return 'password-hash' }
     sub permanently_deactivated { return 0 }
     sub current_session { return }
-    sub user_to_json { return { id => 'user-1' } }
+    sub get_columns { return (id => 'user-1') }
 }
 
 {
     package Local::SessionDb;
+
+    sub resultset { return shift }
+    sub find { return Local::SessionUser->new }
 }
 
 my $cache = Local::SessionCache->new;
