@@ -11,7 +11,7 @@ BEGIN {
     sub get {
         return {
             application_id => 'test-application',
-            admin_key      => 'test-admin-key',
+            write_key      => 'test-write-key',
             public_key     => 'test-public-key',
         };
     }
