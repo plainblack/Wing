@@ -32,15 +32,46 @@ The runner terminates its service process groups and removes the temporary data
 on completion or termination. Never run legacy author tests directly against an
 application configuration: some deploy tables or delete users.
 
-## Existing test prerequisites
+## Author-only client prerequisites
 
-Ticket #56 tracks initial setup; #57 tracks these pre-existing failures. The REST
-tests `status.t`, `tenantsso.t` and
-`wingman_rest.t` require `Test::Wing::Client`, which is absent from this checkout
-and the installed Perl libraries. The installed Wing::Client 1.1000 and the
-plainblack/Wing-Client upstream tree do not supply it. Restore the genuine helper
-from its authoritative source, with its dependencies, before claiming those
-tests have run. Do not skip them or substitute a mock client to land this setup.
+The REST tests `status.t`, `tenantsso.t` and `wingman_rest.t` use the genuine
+[`Test::Wing::Client`](https://github.com/perlDreamer/Test-Wing-Client) helper.
+It is a separate project, not part of Wing::Client. Its version 0.0300 source
+has no CPAN release or generated installer, so use the pinned, unmodified
+checkout on Perl's library path. Do not copy it into Wing or replace it with
+a mock client. These dependencies are for author tests, not deployed apps.
+
+With Wing's ordinary Perl dependencies installed, install the additional client
+dependencies and the pinned browser test wrapper with their upstream tests enabled:
+
+```
+cpanm HTTP::Thin HTTP::CookieJar::LWP HTTP::Message::PSGI 'Test::WWW::Mechanize::Dancer@0.0100'
+git clone https://github.com/perlDreamer/Test-Wing-Client.git "$HOME/.cache/wing-author/Test-Wing-Client"
+git -C "$HOME/.cache/wing-author/Test-Wing-Client" checkout --detach 8f3fab07200a57df790228bd1ff16d8d2f046ccf
+export PERL5LIB="$HOME/.cache/wing-author/Test-Wing-Client/lib${PERL5LIB:+:$PERL5LIB}"
+(cd "$HOME/.cache/wing-author/Test-Wing-Client" && prove -Ilib -It/lib t/*.t)
+python3 -B bin/agent-tests.py author.t/status.t author.t/tenantsso.t author.t/wingman_rest.t author.t/tenantsso_client.t
+```
+
+Clone once; on later runs verify `git -C ... rev-parse HEAD` matches that commit
+and `git -C ... status --short` is empty before exporting `PERL5LIB`. The helper's
+28 upstream assertions pass with installed Wing::Client 1.1000 and Dancer 1.3522.
+The official Dancer-wrapper 0.0100 archive is
+`https://cpan.metacpan.org/authors/id/W/WW/WWOLF/Test-WWW-Mechanize-Dancer-0.0100.tar.gz`
+(SHA256 `2a3a00e0b45673df74b18bd140ca2db45eae29f7dda66f8f8c3475c17d64a8d7`).
+Its dependencies include Test::WWW::Mechanize::PSGI and Test::WWW::Mechanize;
+cpanm resolves these and runs their tests. Do not use `--notest` or force a
+failed dependency installation.
+
+The two Chromium tests also need the existing Playwright package visible to
+Node. If it is installed outside this checkout, export `NODE_PATH` to the
+absolute directory containing `playwright`, as described below, before invoking
+the runner or `agent-policy`. The runner preserves `PERL5LIB` and `NODE_PATH`.
+
+## Historical install failure
+
+Ticket #57 tracks the historical schema installation issue separately from
+these client prerequisites.
 
 The historical TestWing version-5 install SQL also fails on MySQL 8.4.7 because
 the `api_key.user_id` and `users.id` foreign-key columns have incompatible
