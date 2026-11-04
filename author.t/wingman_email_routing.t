@@ -11,7 +11,7 @@ use Wing::Command::Command::autokick_jobs;
 
 my $shipped = Config::JSON->new("$FindBin::Bin/../var/init/etc/wing.conf");
 is $shipped->get('wingman/email_tube'), 'wingman.email', 'stock installation dedicates an email tube';
-is_deeply $shipped->get('wingman/autokick_excluded_tubes'), ['wingman.email'], 'stock default jobs keep automatic recovery';
+is_deeply $shipped->get('wingman/autokick_excluded_tubes'), ['wingman.email'], 'stock email jobs keep their manual retention policy';
 
 my $settings = Wing->config->get('wingman');
 local $settings->{plugins} = {
@@ -158,20 +158,27 @@ is $child->stats->tube, 'wingman.email', 'actual fan-out child is routed';
     $config->set('mkits', $original_mkits);
     $config->set('smtp', $original_smtp);
 }
-# Retain an email failure while retrying an unrelated job through actual autokick.
+# Monitoring preserves both email and unrelated terminal work.
 my $email = $sender->put('SendTemplatedEmail', {});
 $sender->watch_only('wingman.email');
 $sender->reserve(0)->bury;
 my $ordinary = $sender->put('howdy', {});
 $sender->watch_only('wingman_test');
 $sender->reserve(0)->bury;
-Wing::Command::Command::autokick_jobs->execute({}, []);
+{
+    my $alerts = 0;
+    no warnings 'redefine';
+    local *Wing::send_templated_email = sub { ++$alerts };
+    Wing::Command::Command::autokick_jobs->execute({}, []);
+    is $alerts, 1, 'monitor requests an operator alert for ordinary terminal work';
+}
 is $email->stats->state, 'buried', 'autokick retains dedicated email job';
 is $email->stats->kicks, 0, 'email never automatically retried';
-is $ordinary->stats->state, 'ready', 'autokick recovers unrelated default job';
-is $ordinary->stats->kicks, 1, 'default job automatically retried';
+is $ordinary->stats->state, 'buried', 'monitor leaves unrelated terminal work for selective recovery';
+is $ordinary->stats->kicks, 0, 'monitor does not retry default-tube jobs';
 $email->delete;
 $ordinary->delete;
+
 {
     no warnings 'redefine';
     local *Daemon::Control::run = sub { $program = $_[0]->program };

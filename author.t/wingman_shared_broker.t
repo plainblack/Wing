@@ -48,12 +48,12 @@ if (!$pid) {
     die "Cannot start test Beanstalkd: $!";
 }
 END { my $status = $?; if ($pid) { kill 'TERM', $pid; waitpid($pid, 0); } $? = $status; }
-my $ready;
-for (1..100) {
-    if (my $socket = IO::Socket::INET->new(PeerAddr => '127.0.0.1', PeerPort => $port)) { close $socket; $ready = 1; last; }
-    select undef, undef, undef, 0.02;
+{
+    local $SIG{ALRM} = sub { die 'Native Beanstalkd did not start' };
+    alarm 15;
+    until (my $socket = IO::Socket::INET->new(PeerAddr => '127.0.0.1', PeerPort => $port)) { }
+    alarm 0;
 }
-BAIL_OUT('Native Beanstalkd did not start') unless $ready;
 my $raw = Beanstalk::Client->new({ server => $SharedBrokerConfig::server, default_tube => 'jobber.core' });
 my $job = $raw->put({ data => '{"version":1,"operation":"core.bury-me.v1","payload":{}}' });
 ok $job, 'created a native Jobber envelope';
@@ -80,7 +80,7 @@ my $legacy = $wingman->put('TriggerWebHook', {});
 ok $legacy, 'legacy producer still works';
 my $reserved = $wingman->reserve(0);
 is $reserved->id, $legacy->id, 'legacy worker reserves its own job';
-$reserved->bury;
+$reserved->delete;
 my $manual = $wingman->put('TriggerWebHook', {}, { tube => 'manual.retained' });
 $wingman->watch_only('manual.retained');
 $wingman->reserve(0)->bury;
@@ -133,8 +133,10 @@ ok scalar(grep { /Stuck job .* in manual\.retained/ } @SharedBrokerLog::messages
     'excluded stuck job remains visible in monitoring logs';
 $wingman->delete($manual->id);
 is $raw->stats_job($id)->state, 'buried', 'actual autokick leaves Jobber buried';
-is $raw->stats_job($legacy->id)->state, 'ready', 'actual autokick still retries legacy jobs';
+$legacy = $wingman->put('TriggerWebHook', {});
 $wingman->reserve(0)->bury;
+Wing::Command::Command::autokick_jobs->execute({}, []);
+is $raw->stats_job($legacy->id)->state, 'buried', 'monitor leaves legacy buried work for selective manual recovery';
 Wing::Command::Command::kick->execute({}, []);
 is $raw->stats_job($id)->state, 'buried', 'actual bulk kick leaves Jobber buried';
 is $raw->stats_job($legacy->id)->state, 'ready', 'bulk kick still retries legacy jobs';
@@ -169,7 +171,7 @@ for my $configuration (undef, []) {
     my $automatic = $wingman->put('TriggerWebHook', {});
     $wingman->reserve(0)->bury;
     Wing::Command::Command::autokick_jobs->execute({}, []);
-    is $raw->stats_job($automatic->id)->state, 'ready', 'omitted or empty exclusions preserve automatic recovery';
+    is $raw->stats_job($automatic->id)->state, 'buried', 'omitted or empty exclusions do not revive terminal work';
     $wingman->delete($automatic->id);
 }
 
@@ -208,6 +210,7 @@ for my $error ('NOT_FOUND', 'INTERNAL_ERROR') {
         return $stats_tube->(@_);
     };
     local @Wing::alerts;
+    local @SharedBrokerLog::messages;
     local $SharedBrokerConfig::excluded_tubes = ['manual.retained'];
     $wingman->use('manual.retained');
     my $ok = eval { Wing::Command::Command::autokick_jobs->execute({}, []); 1 };
@@ -219,11 +222,64 @@ for my $error ('NOT_FOUND', 'INTERNAL_ERROR') {
         like "$@", qr/INTERNAL_ERROR.*Check the broker/, 'statistics failure gives an actionable cause';
     }
     is scalar @Wing::alerts, 1, 'statistics failure does not suppress an earlier stuck-job alert';
-    is $raw->stats_job($later->id)->state, 'ready', 'statistics failure does not skip automatic recovery in later tubes';
+    is $raw->stats_job($later->id)->state, 'buried', 'statistics failure does not mutate later tubes';
+    ok scalar(grep { /Buried backlog in zzz\.automatic/ } @SharedBrokerLog::messages),
+        'statistics failure does not skip monitoring later tubes';
+    $wingman->delete($later->id);
+}
+for my $method (qw(peek_buried stats_job)) {
+    my $later = $wingman->put('TriggerWebHook', {}, {tube => 'zzz.automatic'});
+    $wingman->watch_only('zzz.automatic');
+    $wingman->reserve(0)->bury;
+    my $original = Beanstalk::Client->can($method);
+    no warnings 'redefine';
+    no strict 'refs';
+    local *{"Beanstalk::Client::$method"} = sub {
+        my ($client, $job_id) = @_;
+        if (($method eq 'peek_buried' && $client->list_tube_used eq 'aaa.stuck')
+                || ($method eq 'stats_job' && $job_id == $stuck_first->id)) {
+            $client->error('INTERNAL_ERROR');
+            return undef;
+        }
+        return $original->(@_);
+    };
+    local @Wing::alerts;
+    local @SharedBrokerLog::messages;
+    my $ok = eval { Wing::Command::Command::autokick_jobs->execute({}, []); 1 };
+    ok !$ok, "$method failure makes monitoring fail visibly";
+    like "$@", qr/INTERNAL_ERROR.*Check the broker/, "$method failure names the broker cause and recovery action";
+    is scalar @Wing::alerts, 1, "$method failure preserves the detected administrator alert";
+    ok scalar(grep { /Buried backlog in zzz\.automatic/ } @SharedBrokerLog::messages),
+        "$method failure does not prevent later monitoring";
+    is $raw->stats_job($later->id)->state, 'buried', "$method failure does not revive later jobs";
     $wingman->delete($later->id);
 }
 $wingman->delete($stuck_first->id);
 $wingman->delete($untouched->id);
+
+my $fresh_terminal = $wingman->put('TriggerWebHook', {}, {tube => 'monitor.terminal'});
+$wingman->watch_only('monitor.terminal');
+$wingman->reserve(0)->bury;
+{
+    local @Wing::alerts;
+    Wing::Command::Command::autokick_jobs->execute({}, []);
+    is $raw->stats_job($fresh_terminal->id)->state, 'buried', 'monitor never revives a fresh terminal job';
+    is $raw->stats_job($fresh_terminal->id)->kicks, 0, 'monitor does not increment terminal retry counters';
+    is scalar @Wing::alerts, 1, 'fresh terminal work in an ordinary tube requests operator inspection';
+}
+$wingman->delete($fresh_terminal->id);
+
+for my $payload ('not JSON', '["UninstalledPlugin",{}]') {
+    $raw->use('monitor.unloaded');
+    $raw->watch_only('monitor.unloaded');
+    my $unknown = $raw->put({data => $payload});
+    $raw->reserve(0)->bury;
+    my $ok = eval { Wing::Command::Command::autokick_jobs->execute({}, []); 1 };
+    ok $ok, 'monitor inspects native metadata without decoding or loading the plugin';
+    is $raw->stats_job($unknown->id)->state, 'buried', 'unloaded or malformed work remains retained';
+    is $raw->stats_job($unknown->id)->kicks, 0, 'monitor never kicks unloaded or malformed work';
+    $raw->delete($unknown->id);
+}
 
 for my $format (qw(txt html)) {
     my $path = "$FindBin::Bin/../var/init/var/mkits/stuck_wingman_job.mkit/body.$format";

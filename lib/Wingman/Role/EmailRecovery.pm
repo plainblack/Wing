@@ -48,8 +48,8 @@ Wingman::Role::EmailRecovery - Manual recovery for irreversible email work.
 SendTemplatedEmail and EmailAllAdmins require their actual job tube to be listed
 in C<wingman/autokick_excluded_tubes>. Configure this on every worker and
 C<autokick_jobs> host before running these plugins. An absent or invalid setting
-prevents delivery. Use a dedicated email tube if other work needs automatic
-retry. For new installations the shipped configuration uses:
+prevents delivery. Use a dedicated email tube to distinguish its manual recovery
+and monitoring policy from other work. For new installations the shipped configuration uses:
 
  "wingman": {
      "email_tube": "wingman.email",
@@ -75,8 +75,10 @@ tube's exclusion on every worker and autokick host before publishers use
 C<email_tube>. Then set C<email_tube> consistently on all publishers and workers.
 Keep the old email tube excluded until its existing jobs are drained or manually
 reconciled. Inspect ready, delayed, reserved and buried jobs before removing that
-old exclusion to restore unrelated jobs' retries. Already queued jobs never move,
-and buried email must never be automatically kicked during this transition.
+old exclusion. Already queued jobs never move. All automatic-kick hosts must use
+the monitor-only command before relying on burial for terminal/manual retention;
+old binaries can still revive jobs. Automatic retries use plugin-owned delayed
+release, not buried-job recovery. Buried email must never be automatically kicked.
 No running configuration is changed automatically. Leaving the setting absent
 or null preserves legacy routing and its requirement to exclude the actual tube.
 
