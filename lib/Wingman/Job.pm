@@ -84,7 +84,33 @@ Executes this job. Normally you'd want to let the C<run> method in L<Wingman> do
 
 Will L<Ouch> if the plugin fails for any reason.
 
-Returns the output of the plugin, if any. Note that this is only useful for testing, as the actual L<Wingman> task master doesn't do anything with it.
+Returns the output of the plugin unchanged. Legacy returns without C<wingman_outcome>
+keep their existing completion behavior. Plugins that check queue acknowledgements
+should return a hash with C<wingman_outcome> set to one of:
+
+=over
+
+=item complete
+
+The plugin confirmed its terminal queue acknowledgement.
+
+=item retained
+
+The plugin intentionally retained the job under its own recovery policy.
+
+=item failed
+
+The queue outcome failed or is uncertain. Include a human-readable C<message>
+explaining the failure and operator recovery instruction. The framework logs an
+error with the job ID, returns the result, and does not delete, bury, release or
+retry the job. Catch acknowledgement exceptions inside the plugin and return this
+outcome when ordinary exception burial would violate its recovery policy.
+
+=back
+
+Unknown outcomes are logged as errors. Retained and failed outcomes never log
+C<Job complete.>. The worker remains responsible for choosing and confirming its
+queue operation; this contract does not provide exactly-once external effects.
 
 =cut
 
@@ -98,6 +124,21 @@ sub run {
         ouch 500, $@;
     }
     else {
+        if (ref($out) eq 'HASH' && exists $out->{wingman_outcome}) {
+            my $outcome = $out->{wingman_outcome};
+            if (defined $outcome && $outcome eq 'retained') {
+                $self->log_info($self, 'Job retained.');
+                return $out;
+            }
+            if (!defined $outcome || $outcome ne 'complete') {
+                my $message = defined $outcome && $outcome eq 'failed'
+                    ? (defined $out->{message} && !ref($out->{message}) && length $out->{message}
+                        ? $out->{message} : 'A failed outcome requires a nonempty message with operator recovery instructions.')
+                    : 'Invalid wingman_outcome; use complete, retained or failed.';
+                $self->log_error($self, 'Job '.$self->id.' failed: '.$message);
+                return $out;
+            }
+        }
         $self->log_info($self, 'Job complete.');
         return $out;
     }
