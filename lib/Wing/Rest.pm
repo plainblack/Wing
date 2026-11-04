@@ -112,7 +112,9 @@ register generate_read => sub {
     my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id' => sub {
-        my $current_user = eval{ get_user_by_session_id(permissions => $options{permissions}) };
+        my $current_user = exists $options{permissions}
+            ? get_user_by_session_id(permissions => $options{permissions})
+            : eval { get_user_by_session_id() };
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         my $object = fetch_object($db_class_name);
         ##No object level permission checking here.  Wing objects are public, and only fields
@@ -148,7 +150,9 @@ register generate_relationship => sub {
     my ($wing_object_type, $relationship_name, %options) = @_;
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id/'.$relationship_name => sub {
-        my $current_user = eval{get_user_by_session_id(permissions => $options{permissions})};
+        my $current_user = exists $options{permissions}
+            ? get_user_by_session_id(permissions => $options{permissions})
+            : eval { get_user_by_session_id() };
 	if (exists $options{verify_user}) {
 		unless (defined $current_user) {
 			ouch 401, 'User required for access.';
@@ -426,6 +430,11 @@ creation or enforce its own policy.
 =head2 generate_read ( object_type, options )
 
 Generates a web service method accessible via GET that allows you to fetch data about this object.
+
+Supplying C<permissions> (including an empty array or C<undef>) requires
+authentication and propagates the original error before fetching the object.
+Omitting it retains optional authentication and public anonymous descriptions.
+Generated relationship reads follow the same rule for singleton and list results.
 
  generate_read("User"); # GET /api/user/xxx
 

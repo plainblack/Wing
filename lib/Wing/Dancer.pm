@@ -167,7 +167,8 @@ A hash of formatting options.
 
 =item current_user
 
-A reference to a User object. Will be instanciated via C<get_user_by_session_id> if not specified.
+A reference to a User object. Looked up via C<get_user_by_session_id> only
+when omitted. Explicit C<undef> preserves an anonymous context.
 
 =item page_number
 
@@ -248,7 +249,8 @@ register format_list => sub {
         include_private         => $options{include_private},
         object_options          => $options{object_options},
         tracer                  => get_tracer(),
-        current_user            => $options{current_user} || eval{ get_user_by_session_id() } || undef,
+        current_user            => exists $options{current_user}
+            ? $options{current_user} : scalar eval { get_user_by_session_id() },
 	ip_address 		=> client_ip(),
     );
 };
@@ -270,7 +272,8 @@ The object you wish to describe.
 
 =item current_user
 
-Optional. If specified we won't bother trying to figure out who the current user is.
+Optional. Looked up only when omitted. Explicit C<undef> preserves an anonymous
+context even when the request carries a session.
 
 =item include_admin
 
@@ -313,7 +316,8 @@ register describe => sub {
         my ($package, $file, $line) = caller;
         ouch 440, 'No object to describe in '.$package.' line '.$line.'.';
     }
-    my $current_user = $options{current_user} || eval { get_user_by_session_id() };
+    my $current_user = exists $options{current_user}
+        ? $options{current_user} : eval { get_user_by_session_id() };
     my $include = param('_include');
     if (defined $include) {
         if (ref $include ne 'ARRAY') {
