@@ -73,6 +73,14 @@ the runner or `agent-policy`. The runner preserves `PERL5LIB` and `NODE_PATH`.
 Ticket #57 tracks the historical schema installation issue separately from
 these client prerequisites.
 
+The tenant SSO client test provisions a real Acquisitions tenant through
+`Wing::Role::Result::Site::create_database`. Its version-2 fixture was generated
+from the current tenant model using DeploymentHandler's `prepare_install`,
+`prepare_upgrade` (1 to 2) and `prepare_downgrade` (2 to 1), matching `wing db --prep`.
+The version-1 fixture is preserved. This does not apply a migration to any
+application database. The test checks the login redirect itself, before the
+account page's separate secondary-verification flow.
+
 The historical TestWing version-5 install SQL also fails on MySQL 8.4.7 because
 the `api_key.user_id` and `users.id` foreign-key columns have incompatible
 collations. Current TestWing schema deployment and the nine `user.t` assertions

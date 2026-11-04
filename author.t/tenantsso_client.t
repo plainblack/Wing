@@ -35,6 +35,8 @@ $prison->user($andy);
 $prison->insert;  ##also builds the tenant db for us
 
 my $site_db = Wing->tenant_db('localhost');
+is $site_db->resultset('User')->search({master_user_id => $andy->id})->single->username,
+    $andy->username, 'fresh tenant provisioning copies its owner using the current User fields';
 
 my $heywood = $site_db->resultset('User')->new({
     username    => 'heywood',
@@ -44,6 +46,10 @@ my $heywood = $site_db->resultset('User')->new({
 });
 $heywood->encrypt_and_set_password('Dumas');
 $heywood->insert;
+
+my $brooks = $site_db->resultset('User')->new({username => 'brooks', email => 'brooks@shawshank.jail'});
+my $second_local = eval { $brooks->insert; 1 };
+ok $second_local, 'a tenant can store multiple local accounts with no master user';
 
 my $guid = Data::GUID->guid_string;
 Wing->config->set('tenants/sso_key', $guid);
@@ -69,6 +75,7 @@ use Test::WWW::Mechanize::Dancer;
 my $mech = Test::WWW::Mechanize::Dancer->new(
     appdir => '/data/Wing/author.t/tenant_files',
 )->mech;
+$mech->max_redirect(0);
 $mech->cookie_jar(HTTP::CookieJar::LWP->new());
 
 note "User with no accounts on any server";
@@ -85,7 +92,9 @@ note "User with an owner account";
 my $reds = $site_db->resultset('User')->search({ username => 'red', })->count;
 is $reds, 0, 'No red users';
 
-$mech->post_ok('http://localhost.localdomain/login', { login => 'red', password => 'Sonny', });
+$mech->post('http://localhost.localdomain/login', { login => 'red', password => 'Sonny', });
+is $mech->status, 302, 'remote user login redirects after authentication';
+is $mech->response->header('Location'), 'http://localhost.localdomain/account', 'remote user is sent to account verification';
 $reds = $site_db->resultset('User')->search({ username => 'red', })->count;
 is $reds, 1, 'red account created via tenantsso';
 is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'one cookie set for login';
@@ -94,7 +103,8 @@ is $tenant_red->master_user_id, $red->id, 'master_user_id set for red after SSO'
 
 note "Site owner with an owner account";
 $mech->cookie_jar(HTTP::CookieJar::LWP->new());
-$mech->post_ok('http://localhost.localdomain/login', { login => 'andy', password => 'Saywatanayo', });
+$mech->post('http://localhost.localdomain/login', { login => 'andy', password => 'Saywatanayo', });
+is $mech->status, 302, 'site owner login redirects after authentication';
 is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'one cookie set for login';
 my $local_andy = $site_db->resultset('User')->search({ username => 'andy', })->single;
 ok $local_andy->is_admin, 'local copy is still an admin';
@@ -104,17 +114,39 @@ $mech->cookie_jar(HTTP::CookieJar::LWP->new());
 $andy->email('randall_stephens@zihuatanejo.mx');
 $andy->update;
 isnt $local_andy->email, $andy->email, 'email changed for andy on owner site';
-$mech->post_ok('http://localhost.localdomain/login', { login => 'andy', password => 'Saywatanayo', });
+$mech->post('http://localhost.localdomain/login', { login => 'andy', password => 'Saywatanayo', });
+is $mech->status, 302, 'site owner login redirects after syncing changed data';
 is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'one cookie set for login';
 $local_andy = $local_andy->get_from_storage;
 is $local_andy->email, $andy->email, 'email updated locally';
 
 note "Tenant user logs into to tenant site";
 $mech->cookie_jar(HTTP::CookieJar::LWP->new());
-$mech->post_ok('http://localhost.localdomain/login', { login => 'heywood', password => 'Dumas', });
+$mech->post('http://localhost.localdomain/login', { login => 'heywood', password => 'Dumas', });
+is $mech->status, 302, 'local tenant user login redirects after authentication';
 is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'one cookie set for login';
 $heywood = $heywood->get_from_storage;
 ok !$heywood->master_user_id, 'master_user_id still blank after local user login';
+
+$mech->cookie_jar(HTTP::CookieJar::LWP->new());
+$mech->post('http://localhost.localdomain/account/create', {
+    username => 'tommy', email => 'tommy@shawshank.jail', real_name => 'Tommy',
+    password1 => 'rockAndRollah', password2 => 'rockAndRollah',
+});
+is $mech->status, 302, 'tenant account creation succeeds without a master user ID';
+is scalar $mech->cookie_jar->cookies_for('http://localhost.localdomain'), 1, 'new local account receives a login cookie';
+
+my $duplicate = $site_db->resultset('User')->new({
+    username => 'duplicate-owner', email => 'duplicate@shawshank.jail', master_user_id => $andy->id,
+});
+eval { $duplicate->insert };
+my $duplicate_error = $@;
+is eval { $duplicate_error->code }, 443, 'two tenant accounts cannot link to the same master user';
+
+my $unlinked = $site_db->resultset('User')->find($tenant_red->id);
+my $unlink_ok = eval { $unlinked->master_user_id(undef); $unlinked->update; 1 };
+ok $unlink_ok, 'internal account synchronization can clear a master-user link';
+ok !$site_db->resultset('User')->find($tenant_red->id)->master_user_id, 'cleared master-user link is persisted';
 
 done_testing();
 

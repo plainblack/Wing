@@ -19,15 +19,22 @@ Wing::Role::Result::UserTenantSSO - Allowing tenant SSO for Wing users
 
 This role extends your User objects to include the fields necessary to make tenant SSO work on the client (tenant) side.
 
+C<master_user_id> is nullable for tenant-local accounts; linked accounts store
+their owner's user ID. Existing applications must generate and apply their own
+schema upgrade to allow NULL before creating tenant-local accounts. Upgrading
+Wing alone does not change an application's existing tables.
+Only internal synchronization sets this link; posted account fields cannot set it.
+
 =cut
 
 before wing_finalize_class => sub {
     my ($class) = @_;
     $class->wing_fields(
         master_user_id          => {
-            dbic    => { data_type => 'varchar', size => 36, is_nullable => 0 },
+            dbic    => { data_type => 'varchar', size => 36, is_nullable => 1 },
             view    => 'private',
-            edit    => 'unique',
+            indexed => 'unique',
+            skip_unique_if_null => 1,
         },
     );
 };
