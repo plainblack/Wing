@@ -53,7 +53,7 @@ sub BUILD {
         $self->auth_source($session_data->{auth_source}) if exists $session_data->{auth_source};
         $self->floor_login_id($session_data->{floor_login_id}) if exists $session_data->{floor_login_id};
         $self->absolute_expires_at($session_data->{absolute_expires_at}) if exists $session_data->{absolute_expires_at};
-        $self->reject_inactive_floor_login unless $self->floor_login_is_active;
+        $self->end unless $self->floor_login_is_active;
     }
 }
 
@@ -179,19 +179,11 @@ sub floor_login_is_active {
         && $active->{floorLoginId} eq $self->floor_login_id;
 }
 
-sub reject_inactive_floor_login {
-    my $self = shift;
-    Wing->cache->remove($self->key);
-    $self->clear_user;
-    $self->clear_user_id;
-    return;
-}
-
 sub extend {
     my $self = shift;
 
     unless ($self->floor_login_is_active) {
-        $self->reject_inactive_floor_login;
+        $self->end;
         return;
     }
 
@@ -210,16 +202,20 @@ sub extend {
     if (Wing->cache->get($user_changed_key)) {
         # User data has changed, need to refresh
         my $user = $self->db->resultset('User')->find($self->user_id);
+        # Remove the user-changed marker
+        Wing->cache->remove($user_changed_key);
         
         if (!defined $user || $user->permanently_deactivated) {
             # User no longer exists or is deactivated
             $self->end;
+            return;
         }
         
         # Check if password has changed
         elsif ($self->password_hash ne $user->password) {
             Wing->log->debug("SESSION: Password changed for user id:". $self->user_id . ", ending session");
             $self->end;
+            return;
         }
         
         # Password hasn't changed, update the cached user data
@@ -228,8 +224,6 @@ sub extend {
             $self->user($user);
             $self->clear_user; # Clear the cached user attribute so it will reload
         }
-        # Remove the user-changed marker
-        Wing->cache->remove($user_changed_key);
     }
     
     if ($self->password_hash ne $self->user->password) {
@@ -268,6 +262,8 @@ sub is_human {
 sub end {
     my $self = shift;
     Wing->cache->remove($self->key);
+    $self->clear_user;
+    $self->clear_user_id;
     return $self;
 }
 

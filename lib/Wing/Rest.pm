@@ -27,12 +27,9 @@ register get_session => sub {
     my $session = Wing::Session->new( id => $session_id, db => site_db() );
     if ($session->user_id) {
         $session->check_permissions($options{permissions});
-        $session->extend;
-        return $session;
+        return $session if $session->extend;
     }
-    else {
-        ouch 401, 'You must log in to do that.', $session_id;
-    }
+    ouch 401, 'You must log in to do that.', $session_id;
 };
 
 register get_user_by_session_id => sub {
