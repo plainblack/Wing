@@ -8,6 +8,12 @@ use Wing::Web;
 
 set show_errors => 0;
 get '/ended-session-probe' => sub { return defined get_session() ? 'live' : 'none' };
+my $helper_input;
+get '/helper-input-probe' => sub {
+    my $user = eval { get_user_by_session_id(session_id => $helper_input) };
+    return defined $user ? 'user '.$user->id : 'error '.(ref $@ eq 'Ouch' ? $@->code : $@);
+};
+sub helper_probe { $helper_input = shift; return dancer_response(GET => '/helper-input-probe')->content }
 sub make_session {
     my ($name) = @_;
     my $user = Wing->db->resultset('User')->new({username => $name, email => $name.'@example.invalid'});
@@ -33,5 +39,10 @@ is probe($changed), 'none', 'web get_session denies a password-changed session';
 
 my ($active_user, $active) = make_session('web-ended-active');
 is probe($active), 'live', 'web get_session returns an active session';
+
+is helper_probe($active), 'user '.$active_user->id, 'a session object resolves its user';
+is helper_probe($active_user), 'error 401', 'a user object is not accepted as a session';
+$active->end;
+is helper_probe($active), 'error 401', 'an ended session object is refused';
 
 done_testing;

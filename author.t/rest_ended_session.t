@@ -7,7 +7,7 @@ use Wing::Rest;
 use Wing::Session;
 use Plack::Test;
 use Dancer::Handler;
-use HTTP::Request::Common qw(PUT);
+use HTTP::Request::Common qw(GET PUT);
 use JSON qw(decode_json);
 
 set show_errors => 0;
@@ -28,6 +28,11 @@ sub make_session {
         absolute_expires_at => time + 4 * 60 * 60, %options});
 }
 generate_crud('EndedUser', db_class_name => 'User', permissions => ['edit_my_account']);
+my $helper_input;
+get '/helper-input-probe' => sub {
+    my $user = eval { get_user_by_session_id(session_id => $helper_input) };
+    return defined $user ? 'user '.$user->id : 'error '.(ref $@ eq 'Ouch' ? $@->code : $@);
+};
 my @methods = qw(verify_posted_params can_edit update);
 my %original = map { $_ => TestWing::DB::Result::User->can($_) } @methods;
 my %calls;
@@ -89,6 +94,14 @@ test_psgi $app, sub {
     is(Wing->cache->get($session->key)->{extended}, $extended + 1, 'active session is renewed');
     $user->discard_changes;
     is $user->real_name, 'Ended session write', 'active session write persists';
+
+    my $probe = sub { $helper_input = shift; return decode_json($request->(GET 'http://localhost/helper-input-probe')->content)->{result} };
+    my $object_user = make_user('ended-object');
+    my $object_session = make_session($object_user);
+    is $probe->($object_session), 'user '.$object_user->id, 'a session object resolves its user';
+    is $probe->($object_user), 'error 401', 'a user object is not accepted as a session';
+    $object_session->end;
+    is $probe->($object_session), 'error 401', 'an ended session object is refused';
 };
 
 my $user = make_user('ended-direct');

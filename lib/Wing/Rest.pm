@@ -34,7 +34,6 @@ register get_session => sub {
 
 register get_user_by_session_id => sub {
     my $session = get_session(@_);
-    return $session if (ref $session =~ m/DB::Result::User$/);
     my $user = $session->user;
     if (defined $user) {
         my $max = Wing->config->get('rpc_limit') || 30;
@@ -43,7 +42,7 @@ register get_user_by_session_id => sub {
         }
         return $user;
     }
-    return undef;
+    ouch 401, 'You must log in to do that.', $session->id;
 };
 
 register generate_delete => sub {

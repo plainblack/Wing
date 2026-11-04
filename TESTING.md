@@ -295,7 +295,8 @@ the existing 401 login error before model verification or mutation, and their
 cache entries are removed. Active sessions are still renewed. `Wing::Session::end`
 clears the in-memory user, so no caller can use an ended session for the rest of
 the request. `author.t/web_ended_session.t` checks that Wing::Web's `get_session`
-also returns no session once it has ended.
+also returns no session once it has ended. Both tests also pass session objects to
+`get_user_by_session_id`: an ended session object or a User object returns 401.
 
 ## Missing session user
 
