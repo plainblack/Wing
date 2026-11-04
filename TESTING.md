@@ -296,7 +296,9 @@ cache entries are removed. Active sessions are still renewed. `Wing::Session::en
 clears the in-memory user, so no caller can use an ended session for the rest of
 the request. `author.t/web_ended_session.t` checks that Wing::Web's `get_session`
 also returns no session once it has ended. Both tests also pass session objects to
-`get_user_by_session_id`: an ended session object or a User object returns 401.
+`get_user_by_session_id`. A passed session object is reloaded by its id and gets the
+same checks, so one ended in this or another instance, after a password change or
+for a deactivated user, or a User object, returns 401, and a missing permission 450.
 
 ## Missing session user
 

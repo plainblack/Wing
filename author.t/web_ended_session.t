@@ -45,4 +45,13 @@ is helper_probe($active_user), 'error 401', 'a user object is not accepted as a 
 $active->end;
 is helper_probe($active), 'error 401', 'an ended session object is refused';
 
+my ($held_user, $held) = make_session('web-ended-held');
+Wing::Session->new(id => $held->id, db => Wing->db)->end;
+is helper_probe($held), 'error 401', 'a held session object ended through another instance is refused';
+
+my ($rekeyed_user, $rekeyed) = make_session('web-ended-object-password');
+$rekeyed_user->encrypt_and_set_password('changed-password');
+$rekeyed_user->update;
+is helper_probe($rekeyed), 'error 401', 'a password-changed session object is refused';
+
 done_testing;

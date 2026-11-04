@@ -29,9 +29,9 @@ sub make_session {
 }
 generate_crud('EndedUser', db_class_name => 'User', permissions => ['edit_my_account']);
 generate_crud('DeniedUser', db_class_name => 'User', permissions => ['ended_unheld_permission']);
-my $helper_input;
+my ($helper_input, $helper_permissions);
 get '/helper-input-probe' => sub {
-    my $user = eval { get_user_by_session_id(session_id => $helper_input) };
+    my $user = eval { get_user_by_session_id(session_id => $helper_input, permissions => $helper_permissions) };
     return defined $user ? 'user '.$user->id : 'error '.(ref $@ eq 'Ouch' ? $@->code : $@);
 };
 my @methods = qw(verify_posted_params can_edit update);
@@ -129,13 +129,27 @@ test_psgi $app, sub {
     $user->discard_changes;
     is $user->real_name, 'Ended session write', 'active session write persists';
 
-    my $probe = sub { $helper_input = shift; return decode_json($request->(GET 'http://localhost/helper-input-probe')->content)->{result} };
+    my $probe = sub { ($helper_input, $helper_permissions) = @_; return decode_json($request->(GET 'http://localhost/helper-input-probe')->content)->{result} };
     my $object_user = make_user('ended-object');
     my $object_session = make_session($object_user);
     is $probe->($object_session), 'user '.$object_user->id, 'a session object resolves its user';
     is $probe->($object_user), 'error 401', 'a user object is not accepted as a session';
     $object_session->end;
     is $probe->($object_session), 'error 401', 'an ended session object is refused';
+
+    my $held_user = make_user('ended-held-object');
+    my $held = make_session($held_user);
+    Wing::Session->new(id => $held->id, db => Wing->db)->end;
+    is $probe->($held), 'error 401', 'a held session object ended through another instance is refused';
+
+    my $denied_user = make_user('denied-object');
+    is $probe->(make_session($denied_user), ['ended_unheld_permission']), 'error 450', 'a session object without the permission is denied';
+
+    my $deactivated_user = make_user('deactivated-object');
+    my $deactivated = make_session($deactivated_user);
+    $deactivated_user->permanently_deactivated(1);
+    $deactivated_user->update;
+    is $probe->($deactivated), 'error 401', 'a session object of a deactivated user is refused';
 };
 
 my $user = make_user('ended-direct');

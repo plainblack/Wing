@@ -72,6 +72,10 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
         }
     }
     is decode_json($get->('/api/user/whoami', 'denied')->content)->{result}{id}, $user->id, 'whoami identifies the denied SSO user';
+    my $renewals = sub { Wing->cache->get('session-'.$session{site})->{extended} };
+    my $before = $renewals->();
+    $get->('/api/user/whoami', 'site');
+    is $renewals->(), $before + 1, 'whoami renews the session once';
     my %others = map { $_ => $request->(GET 'http://localhost/api/user-not-me?query=route-owner', Cookie => 'session_id='.$manager_session{$_}) } keys %manager_session;
     is $others{denied}->code, 200, 'user-not-me succeeds for a privileged SSO user without view_my_account';
     is decode_json($others{denied}->content)->{result}{items}[0]{id}, $user->id, 'user-not-me lists the other user';
