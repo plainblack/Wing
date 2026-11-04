@@ -39,13 +39,20 @@ sub execute {
     ##Also monitor jobs that have been in the tube for a long time.
     my $has_stuck_jobs = 0;
     my %seen_jobs = ();
+    my @monitoring_errors;
 
     TUBE: foreach my $tube (@tubes) {
         Wing->log->info('Looking for stuck wingman jobs in '.$tube);
         if ($excluded{$tube}) {
             my $stats = $wingman->stats_tube($tube);
-            die "Cannot monitor retained tube $tube: " . $wingman->error . ". Check the broker and rerun autokick_jobs.\n"
-                unless defined $stats;
+            unless (defined $stats) {
+                my $error = $wingman->error;
+                next TUBE if defined $error && $error eq 'NOT_FOUND';
+                push @monitoring_errors, "Cannot monitor retained tube $tube"
+                    . (defined $error && length $error ? ": $error" : '')
+                    . ". Check the broker and rerun autokick_jobs.\n";
+                next TUBE;
+            }
             my $buried = $stats->current_jobs_buried;
             if ($buried > 1) {
                 $has_stuck_jobs = 1;
@@ -80,6 +87,7 @@ sub execute {
         Wing->send_templated_email('stuck_wingman_job', { email => Wing->config->get('wing_admin'), subject => 'Wingman jobs need inspection', });
     }
 
+    die join('', @monitoring_errors) if @monitoring_errors;
 }
 
 1;

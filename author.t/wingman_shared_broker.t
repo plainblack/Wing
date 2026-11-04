@@ -184,6 +184,45 @@ for my $invalid ('manual.retained', {}, [''], [undef], [[]]) {
     is $raw->stats_job($untouched->id)->state, 'buried', 'invalid policy stops before retrying any jobs';
 }
 
+my $stuck_first = $wingman->put('TriggerWebHook', {}, { tube => 'aaa.stuck' });
+$wingman->watch_only('aaa.stuck');
+$wingman->reserve(0)->bury;
+for (1..2) {
+    $raw->kick_job($stuck_first->id);
+    $wingman->reserve(0)->bury;
+}
+for my $error ('NOT_FOUND', 'INTERNAL_ERROR') {
+    my $later = $wingman->put('TriggerWebHook', {}, { tube => 'zzz.automatic' });
+    $wingman->watch_only('zzz.automatic');
+    $wingman->reserve(0)->bury;
+    my $stats_tube = Beanstalk::Client->can('stats_tube');
+    my $list_tubes = Beanstalk::Client->can('list_tubes');
+    no warnings 'redefine';
+    local *Beanstalk::Client::list_tubes = sub { sort $list_tubes->(@_) };
+    local *Beanstalk::Client::stats_tube = sub {
+        my ($client, $tube) = @_;
+        if ($tube eq 'manual.retained') {
+            $client->error($error);
+            return undef;
+        }
+        return $stats_tube->(@_);
+    };
+    local @Wing::alerts;
+    local $SharedBrokerConfig::excluded_tubes = ['manual.retained'];
+    $wingman->use('manual.retained');
+    my $ok = eval { Wing::Command::Command::autokick_jobs->execute({}, []); 1 };
+    if ($error eq 'NOT_FOUND') {
+        ok $ok, 'disappeared retained tube does not abort monitoring';
+    }
+    else {
+        ok !$ok, 'broker statistics failure makes the command fail visibly';
+        like "$@", qr/INTERNAL_ERROR.*Check the broker/, 'statistics failure gives an actionable cause';
+    }
+    is scalar @Wing::alerts, 1, 'statistics failure does not suppress an earlier stuck-job alert';
+    is $raw->stats_job($later->id)->state, 'ready', 'statistics failure does not skip automatic recovery in later tubes';
+    $wingman->delete($later->id);
+}
+$wingman->delete($stuck_first->id);
 $wingman->delete($untouched->id);
 
 for my $format (qw(txt html)) {
