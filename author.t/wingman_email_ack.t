@@ -9,6 +9,10 @@ use Wingman::Plugin::SendTemplatedEmail;
 use Wingman::Plugin::EmailAllAdmins;
 use Wing::Command::Command::autokick_jobs;
 
+my $shipped = Config::JSON->new("$FindBin::Bin/../var/init/etc/wing.conf");
+ok scalar(grep { $_ eq $shipped->get('wingman/beanstalkd/default_tube') }
+    @{$shipped->get('wingman/autokick_excluded_tubes')}),
+    'shipped default tube permits email recovery';
 my $worker = Wingman->new;
 my $client = $worker->beanstalk;
 my $tube = $client->list_tube_used;
@@ -52,9 +56,14 @@ is $observer->stats_job($job->id)->state, 'buried', 'actual autokick preserves e
 is $observer->stats_job($job->id)->kicks, 0, 'autokick never retries retained email';
 $observer->delete($job->id);
 $observer->disconnect;
-my @admins = map {
+my @admins;
+END { $_->delete for grep { $_->in_storage } @admins; }
+push @admins, Wing->db->resultset('User')->create({
+    username => 'email_ack_seed', email => 'email_ack_seed@example.invalid', admin => 1 });
+push @admins, map {
     Wing->db->resultset('User')->create({ username => "email_ack_$_", email => "email_ack_$_\@example.invalid", admin => 1 })
 } 1..2;
+my $admin_count = Wing->db->resultset('User')->search({admin => 1})->count;
 my $delete = Beanstalk::Client->can('delete');
 my $bury = Beanstalk::Client->can('bury');
 for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
@@ -102,7 +111,7 @@ for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
             }
             my $preflight_failed = $mode =~ /^(bury_|unexcluded|invalid_exclusion)/;
             is $sends || 0, $preflight_failed ? 0 : $mode eq 'delivery_throw' ? 1
-                : $plugin eq 'EmailAllAdmins' ? 2 : 1, 'only intended irreversible effects occur';
+                : $plugin eq 'EmailAllAdmins' ? $admin_count : 1, 'only intended irreversible effects occur';
             is $boundary_state, 'buried', 'broker retention confirmed before effects' unless $preflight_failed;
             is $out->{wingman_outcome}, $mode eq 'true' ? 'complete' : 'failed', 'explicit queue outcome';
             is scalar(grep { $_ eq 'Job complete.' } @info), $mode eq 'true' ? 1 : 0, 'completion requires true deletion';
@@ -122,7 +131,7 @@ for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
                 $publisher->delete($job->id);
             }
             is scalar @children, $plugin eq 'EmailAllAdmins' && !$preflight_failed
-                ? ($mode eq 'delivery_throw' ? 1 : 2) : 0, 'native child publication count matches fan-out';
+                ? ($mode eq 'delivery_throw' ? 1 : $admin_count) : 0, 'native child publication count matches fan-out';
             for my $child (@children) {
                 is $publisher->stats_job($child->id)->state, 'ready', 'published child remains available once';
                 $publisher->delete($child->id);
