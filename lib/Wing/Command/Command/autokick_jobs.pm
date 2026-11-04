@@ -56,7 +56,7 @@ sub execute {
         }
         # Inspect broker metadata without decoding the payload or loading its plugin.
         my $head;
-        if ($wingman->use($tube)) {
+        if (defined $wingman->use($tube)) {
             $head = $wingman->beanstalk->peek_buried;
         }
         unless (defined $head) {

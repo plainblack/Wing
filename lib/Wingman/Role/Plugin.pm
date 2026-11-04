@@ -39,7 +39,9 @@ this same job with a positive delay. Read persistent C<stats-E<gt>reserves>
 before side effects and enforce the job's documented attempt limit, including
 reservations lost to a crash or timeout. The plugin owns exhaustion handling,
 checked deletion or its documented manual retention, and operator reporting.
-Do not publish a replacement job to reset the attempt counter.
+Existing workflows such as PostWebHook retain their durable database failure
+budget and rescheduling policy. Do not republish merely to reset a retry budget
+or add a second automatic retry layer around an existing owner.
 
 C<autokick_jobs> only monitors buried jobs. Burial means manual inspection;
 unknown exceptions and C<failed>/C<retained> outcomes are not retry requests.

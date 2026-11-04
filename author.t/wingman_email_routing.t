@@ -178,19 +178,7 @@ is $ordinary->stats->state, 'buried', 'monitor leaves unrelated terminal work fo
 is $ordinary->stats->kicks, 0, 'monitor does not retry default-tube jobs';
 $email->delete;
 $ordinary->delete;
-my $cli_job = $sender->put('howdy', {});
-$sender->watch_only('wingman_test');
-$sender->reserve(0)->bury;
-{
-    my $prior_excluded = $settings->{autokick_excluded_tubes};
-    Wing->config->set('wingman/autokick_excluded_tubes', ['wingman.email', 'wingman_test']);
-    is system($^X, "$FindBin::Bin/../bin/wing", 'autokick_jobs'), 0,
-        'actual CLI monitors an isolated retained tube without sending a fresh-head alert';
-    Wing->config->set('wingman/autokick_excluded_tubes', $prior_excluded);
-}
-is $cli_job->stats->state, 'buried', 'actual CLI leaves the native job buried';
-is $cli_job->stats->kicks, 0, 'actual CLI never kicks the native job';
-$cli_job->delete;
+
 {
     no warnings 'redefine';
     local *Daemon::Control::run = sub { $program = $_[0]->program };

@@ -115,11 +115,15 @@ old/stuck head thresholds and hidden-backlog alerts. Jobber remains outside Wing
 Plugins retry only identified temporary failures through a checked positive-delay
 release of the same job. Their persistent reservation count supplies the attempt
 budget, checked before effects; they own exhaustion, terminal acknowledgements
-and operator reporting. Existing plugin releases, legacy returns and explicit
+and operator reporting. PostWebHook retains its durable database failure counter
+and existing rescheduling policy; it is not wrapped in another retry layer.
+Existing plugin releases, legacy returns and explicit
 failed/retained outcomes keep their contracts. Unknown exceptions do not become
 automatic retries. No new outcome, configuration default or job envelope is added.
 The former cron rule of two kicks within twelve hours is retired; twelve hours
 remains an old-head monitoring threshold. Existing plugin-specific limits remain.
+Inspection alerts repeat on each monitoring run until operators resolve the
+buried work; there is no new deduplication or global retry policy.
 
 Adopt this change in this order during an explicitly authorized release:
 
@@ -151,6 +155,9 @@ malformed/uninstalled plugins, manual/email policy and Jobber isolation.
 release beside a buried head, same-ID persistence across worker disconnects and
 preflight exhaustion after a lost reservation. The delay is advanced explicitly
 for the next assertion; these tests do not sleep or depend on machine speed.
+`wingman_monitor_cli.t` invokes the actual CLI with its own broker, temporary
+configuration and in-memory SQLite bootstrap (using the installed DBD::SQLite).
+It neither copies application configuration nor contacts an SMTP service.
 
 ## First-party account access
 
