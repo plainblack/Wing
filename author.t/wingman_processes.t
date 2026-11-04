@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use Test::More;
 use FindBin;
-use Parallel::ForkManager;
 use POSIX ();
 
 # Application and daemon startup are boundaries; process ownership stays real.
@@ -20,6 +19,12 @@ BEGIN {
     sub run { }
     $INC{'Daemon/Control.pm'} = __FILE__;
     package main;
+    our $signal_at_fork;
+    *CORE::GLOBAL::fork = sub {
+        my $pid = CORE::fork();
+        CORE::kill('HUP', $$) if $pid && $signal_at_fork;
+        return $pid;
+    };
     *CORE::GLOBAL::exit = sub { die "script exit\n" };
     our @targets;
     our %allowed;
@@ -30,7 +35,8 @@ BEGIN {
         CORE::kill($signal, grep { $allowed{$_} } @pids);
     };
 }
-our (@targets, %allowed, @children);
+use Parallel::ForkManager;
+our (@targets, %allowed, @children, $signal_at_fork);
 $ENV{WING_HOME} = "$FindBin::Bin/..";
 $ENV{WING_APP} = "$FindBin::Bin/..";
 local @ARGV;
@@ -52,6 +58,7 @@ my ($manager, $completed);
         return $pid;
     };
     eval { $Daemon::Control::config->{program}->() };
+    POSIX::sigprocmask(POSIX::SIG_SETMASK(), POSIX::SigSet->new);
     is $@, "test workers completed\n", 'ran actual parent loop with a real completed worker';
 }
 is_deeply [$manager->running_procs], [], 'ForkManager has harvested completed worker';
@@ -121,6 +128,23 @@ sub worker {
     return ($pid, $events, $control);
 }
 my ($live, $events, $control) = worker(1);
+pipe(my $identity_read, my $identity_write) or die $!;
+my $unregistered = fork();
+die $! unless defined $unregistered;
+if (!$unregistered) {
+    close $identity_read;
+    my $warnings = '';
+    local $SIG{__WARN__} = sub { $warnings .= $_[0] };
+    $SIG{HUP}->();
+    syswrite($identity_write, $warnings ? 'W' : 'C');
+    POSIX::_exit(0);
+}
+close $identity_write;
+my $identity;
+sysread($identity_read, $identity, 1);
+waitpid($unregistered, 0);
+is $identity, 'C', 'a forked process without the Child role does not reap siblings';
+close $identity_read;
 for (1..2) {
     @targets = ();
     $SIG{HUP}->();
@@ -153,10 +177,15 @@ close $reaped_events;
 for my $signal (qw(TERM INT)) {
     my ($pid, $event, $release) = worker(0);
     @targets = ();
-    eval { $SIG{$signal}->() };
+    {
+        no warnings 'redefine';
+        local *Parallel::ForkManager::wait_all_children = sub { die "shutdown must not block\n" };
+        eval { $SIG{$signal}->() };
+    }
     is $@, "script exit\n", "$signal exits the daemon";
     is_deeply \@targets, [$pid], "$signal targets its real owned worker";
-    is_deeply [$manager->running_procs], [], "$signal waits for worker termination";
+    $manager->wait_all_children;
+    is_deeply [$manager->running_procs], [], "$signal worker can be harvested";
     my $byte;
     is sysread($event, $byte, 1), 1, "$signal was delivered before shutdown";
     is $byte, 'T', 'shutdown worker received TERM';
@@ -164,5 +193,45 @@ for my $signal (qw(TERM INT)) {
     close $event;
     @owned = ();
 }
+pipe(my $fork_read, my $fork_write) or die $!;
+my $forked;
+{
+    no warnings 'redefine';
+    local *Parallel::ForkManager::start = sub {
+        $manager = $_[0];
+        if ($forked) {
+            close $fork_write;
+            $manager->wait_all_children;
+            die "fork race complete\n";
+        }
+        local $signal_at_fork = 1;
+        my $pid = $start->(@_);
+        unless ($pid) {
+            $SIG{TERM} = 'DEFAULT';
+            close $fork_write;
+            my $byte;
+            sysread($fork_read, $byte, 1);
+            POSIX::_exit(0);
+        }
+        $forked = $pid;
+        return $pid;
+    };
+    @targets = ();
+    eval { $Daemon::Control::config->{program}->() };
+    POSIX::sigprocmask(POSIX::SIG_SETMASK(), POSIX::SigSet->new);
+    is $@, "fork race complete\n", 'completed signal-during-fork scenario';
+}
+is_deeply \@targets, [$forked], 'signal during fork reaches the newly registered child';
+close $fork_read;
+$manager->set_max_procs(0);
+$start->($manager);
+my $debug_warnings = '';
+@targets = ();
+{
+    local $SIG{__WARN__} = sub { $debug_warnings .= $_[0] };
+    $SIG{HUP}->();
+}
+is $debug_warnings, '', 'non-forking reload never attempts to reap itself';
+is_deeply \@targets, [], 'non-forking reload never signals itself';
 alarm 0;
 done_testing;

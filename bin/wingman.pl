@@ -11,6 +11,7 @@ use Wing::Perl;
 use Daemon::Control;
 use Getopt::Long;
 use Parallel::ForkManager;
+use POSIX qw(SIG_BLOCK SIG_SETMASK SIGINT SIGTERM SIGHUP sigprocmask);
 
 my @tubes;
 my @cli = @ARGV;
@@ -38,14 +39,14 @@ STOP
 $0 = 'wingman';
 
 my $pfm;
+my $manager_pid;
 my $terminate_workers = sub {
-    return unless $pfm && $pfm->is_parent;
+    return unless $pfm && $$ == $manager_pid && $pfm->max_procs;
     $pfm->reap_finished_children;
     kill 15, $pfm->running_procs;
 };
 my $clean_up_and_shut_down = sub {
     $terminate_workers->();
-    $pfm->wait_all_children if $pfm && $pfm->is_parent;
     exit;
 };
 $SIG{'INT'} = $clean_up_and_shut_down;
@@ -64,9 +65,16 @@ my $config = {
  
     program     => sub {
 
+        $manager_pid = $$;
         $pfm = Parallel::ForkManager->new(Wing->config->get('wingman/max_workers'));
+        my $signals = POSIX::SigSet->new(SIGINT, SIGTERM, SIGHUP);
         while (1) {
+            $pfm->wait_for_available_procs if $pfm->max_procs;
+            my $previous = POSIX::SigSet->new;
+            # Defer handlers until the new child is registered in both processes.
+            sigprocmask(SIG_BLOCK, $signals, $previous) or die "Cannot block worker signals: $!";
             my $pid = $pfm->start;
+            sigprocmask(SIG_SETMASK, $previous) or die "Cannot restore worker signals: $!";
             if ($pid != 0) {    # Parent process
                 next;
             }
