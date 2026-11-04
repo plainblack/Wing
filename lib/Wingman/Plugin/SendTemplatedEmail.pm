@@ -2,10 +2,9 @@ package Wingman::Plugin::SendTemplatedEmail;
 
 use Wing::Perl;
 use Wing;
-use Ouch;
 
 use Moose;
-with 'Wingman::Role::Plugin';
+with 'Wingman::Role::Plugin', 'Wingman::Role::EmailRecovery';
 
 =head1 NAME
 
@@ -25,7 +24,8 @@ B<NOTE:> There is a generic mkit template included with wing called C<generic> t
 
 =head2 run ( job, args )
 
-Run this plugin then delete the job.
+Confirm manual retention before delivery, then check deletion. See
+L<Wingman::Role::EmailRecovery> for required tube configuration and recovery.
 
 =over
 
@@ -60,21 +60,11 @@ See L<Wing/send_templated_email> for details.
 
 sub run {
     my ($self, $job, $args) = @_;
-    eval {
-        Wing->send_templated_email(
-            $args->{template},
-            $args->{params},
-            $args->{options},
-        );
-    };
-    if (kiss 442) { ##bad address
-        Wing->log->warn("Could not send templated email to user: $@");
-    }
-    elsif (hug) {
-        Wing->log->error($@);
-    }
-
-    $job->delete;
+    Wing->send_templated_email(
+        $args->{template},
+        $args->{params},
+        $args->{options},
+    );
 }
 
 1;
