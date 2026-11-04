@@ -266,7 +266,10 @@ register generate_all_relationships => sub {
 hook before => sub {
     unless (request->method =~ /\A(?:GET|HEAD|OPTIONS)\z/i) {
         my $error = Wing::RequestSecurity::same_origin_error(request);
-        ouch 403, $error if defined $error;
+        if (defined $error) {
+            ouch 403, $error unless Wing->config->get('rest/allow_cookieless_cross_origin_writes')
+                && !defined request->header('Cookie');
+        }
     }
     Wing->stash->reset();
 };
@@ -334,6 +337,40 @@ Wing::Rest - Dancer plugin to generate Rest from Wing classes.
 =head1 DESCRIPTION
 
 This L<Dancer> plugin generates restful web services from a Wing class definition. It provides a lot of nifty code-generation tools to auto-generate the web services, and also to write your own custom web services.
+
+=head1 CROSS-ORIGIN WRITES
+
+By default every unsafe request (all methods except GET, HEAD and OPTIONS)
+requires the same origin when Origin or cross-site fetch metadata is present.
+Headerless API clients retain their existing behavior.
+
+An installation may set the Wing JSON configuration directive
+C<rest/allow_cookieless_cross_origin_writes> to true (default false):
+
+    "rest": { "allow_cookieless_cross_origin_writes": true }
+
+This lets requests without a Cookie header pass the origin guard and continue
+to normal route authentication, with or without an explicit C<session_id>.
+Any Cookie header, including empty values, retains strict origin enforcement.
+This intentionally covers every application cookie, including C<cart_id>,
+rather than maintaining a list of known credential names. An explicit session
+parameter never exempts a request carrying cookies.
+
+Cross-origin POST C</api/session> returns its session ID in the normal JSON
+response but does not issue a session cookie, preventing login CSRF through
+cross-site form navigation. Same-origin and headerless login still issue the
+existing cookie. Cross-origin clients must retain the returned ID and pass it
+explicitly on subsequent requests, using fetch C<credentials: "omit"> or XHR
+without C<withCredentials>.
+
+This setting grants no permissions and configures no CORS headers. Enable it
+only for an API designed for explicit credentials and uncredentialed CORS.
+Installation owners must ensure their custom routes and middleware do not issue
+ambient credential cookies on cross-origin requests, including requests with
+null/malformed Origin or cross-site fetch metadata. A missing request cookie
+and a CORS policy alone do not prevent a browser from accepting response cookies
+on form navigation. Headerless clients remain trusted as before; configure the
+trusted ingress as described in L<Wing::RequestSecurity>.
 
 =head1 SUBROUTINES
 

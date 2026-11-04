@@ -152,11 +152,24 @@ with instructions to reload and submit from this site. Headerless API clients
 continue to work. Explicit session_id parameters have no exemption, including
 JSON null/false/containers, empty form values, and valid session IDs. This also
 protects POST /api/session before credential lookup or a cookie write. No cookie
-is required to trigger enforcement. Cross-origin browser integrations must submit
-from the API origin; this change adds no CORS allowlist or authentication mode.
+is required to trigger enforcement. By default, cross-origin browser integrations must submit from the API origin.
+Installations can opt into `rest/allow_cookieless_cross_origin_writes` in Wing's
+JSON configuration. Requests with any Cookie header remain refused; requests
+without one reach normal authentication, including explicit session parameters.
+Cross-origin credential login returns a usable token without `Set-Cookie`, even
+for a form navigation. Custom routes must also avoid issuing ambient credential
+cookies cross-origin. See `Wing::Rest` for configuration and the installation
+trust requirements. This adds no CORS allowlist or authentication mode.
 The scheme/host and trusted ingress requirements above apply unchanged.
 
 The request boundary uses the installed Dancer 1.3522 Request, hook, Response
 and halt POD/source and URI canonicalization POD. Dancer's before-hook exceptions
 reach Wing's existing Ouch error handler, which preserves the error envelope
 rather than wrapping a refusal as a result.
+
+The same test also exercises the opt-in with real developer login, explicit
+session authentication and logout. It checks null/malformed origins and fetch
+metadata, session/cart/unknown/empty cookies, and zero SQL/cache/route activity
+on cookie-backed refusals. HTTP response assertions prove cross-origin form
+login cannot install a session cookie; existing cookie and web security tests
+retain coverage of same-origin/headerless cookie writers and web login guards.

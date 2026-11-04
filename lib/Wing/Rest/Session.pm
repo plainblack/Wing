@@ -57,8 +57,11 @@ post '/api/session' => sub {
     # validate password
     if ($user->is_password_valid(params->{password})) {
         my $session = $user->start_session({ api_key_id => params->{api_key_id}, ip_address => client_ip() });
-        set_cookie session_id => $session->id,
-        Wing::RequestSecurity::session_cookie_options(request, '/api');
+        # Cross-origin form navigation can set cookies even without credentialed CORS.
+        unless (Wing::RequestSecurity::same_origin_error(request)) {
+            set_cookie session_id => $session->id,
+                Wing::RequestSecurity::session_cookie_options(request, '/api');
+        }
         return describe($session, current_user => $user);
     }
     else {
