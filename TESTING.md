@@ -319,3 +319,7 @@ sessions without the permission get public fields only. `GET /api/user/whoami` a
 `GET /api/user` and `GET /api/user-not-me` still require a session (441 without one) and still identify an SSO
 user lacking the permission, but describe results publicly for that session.
 Authorized SSO owners and ordinary site sessions keep private fields.
+`GET /api/user/:id/firebase-jwt` issues a write-capable Firebase credential, so it
+requires `edit_my_account`: SSO sessions without it get 450 and no token, even with
+`view_my_account`. Anonymous clients get 441; authorized SSO owners and site sessions
+receive the signed JWT, which the test checks against a key it generates.

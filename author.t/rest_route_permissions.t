@@ -9,6 +9,8 @@ use Plack::Test;
 use Dancer::Handler;
 use HTTP::Request::Common qw(GET);
 use JSON qw(decode_json);
+use Crypt::PK::RSA;
+use Crypt::JWT qw(decode_jwt);
 
 set show_errors => 0;
 my $original_tenants = Wing->config->get('tenants');
@@ -22,9 +24,12 @@ my $user = Wing->db->resultset('User')->create({username => 'route-owner', email
 my $denied_key = $user->apikeys->create({name => 'route-denied-key'});
 my $allowed_key = $user->apikeys->create({name => 'route-allowed-key'});
 Wing->db->resultset('APIKeyPermission')->create({user_id => $user->id, api_key_id => $allowed_key->id, permission => 'view_my_account'});
+my $editor_key = $user->apikeys->create({name => 'route-editor-key'});
+Wing->db->resultset('APIKeyPermission')->create({user_id => $user->id, api_key_id => $editor_key->id, permission => 'edit_my_account'});
 my %session = (
     denied  => $user->start_session({sso => 1, api_key_id => $denied_key->id})->id,
     allowed => $user->start_session({sso => 1, api_key_id => $allowed_key->id})->id,
+    editor  => $user->start_session({sso => 1, api_key_id => $editor_key->id})->id,
     site    => $user->start_session({sso => 0})->id,
 );
 # Applications grant non-admin privileges by extending can_edit.
@@ -81,6 +86,24 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
     is decode_json($others{denied}->content)->{result}{items}[0]{id}, $user->id, 'user-not-me lists the other user';
     unlike $others{denied}->content, $private, 'user-not-me hides private fields without view_my_account';
     like $others{site}->content, $private, 'user-not-me shows private fields to a privileged site session';
+
+    my $rsa = Crypt::PK::RSA->new;
+    $rsa->generate_key(256);
+    Wing->config->set('firebase', {id => 'route-firebase', database => 'route-db', api_key => 'route-api-key', service_email => 'route@example.invalid', admin_key => $rsa->export_key_pem('private')});
+    my $jwt_path = '/api/user/'.$user->id.'/firebase-jwt';
+    is $get->($jwt_path)->code, 441, 'firebase-jwt requires a session';
+    for my $name (qw(denied allowed)) {
+        my $response = $get->($jwt_path, $name);
+        is $response->code, 450, "firebase-jwt refuses the $name SSO owner without edit_my_account";
+        unlike $response->content, qr/route-api-key|"jwt"/, "firebase-jwt issues no credential to the $name SSO owner";
+    }
+    for my $name (qw(editor site)) {
+        my $response = $get->($jwt_path, $name);
+        is $response->code, 200, "firebase-jwt succeeds for the $name owner";
+        my $result = decode_json($response->content)->{result};
+        is $result->{api_key}, 'route-api-key', "firebase-jwt returns the Firebase config to the $name owner";
+        is decode_jwt(token => $result->{jwt}, key => \$rsa->export_key_pem('public'))->{uid}, $user->id, "firebase-jwt signs a token for the $name owner";
+    }
 });
 
 done_testing;
