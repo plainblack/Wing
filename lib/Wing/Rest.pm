@@ -112,9 +112,8 @@ register generate_read => sub {
     my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id' => sub {
-        my $current_user = exists $options{permissions}
-            ? get_user_by_session_id(permissions => $options{permissions})
-            : eval { get_user_by_session_id() };
+        my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}) };
+        die $@ if $@ && !kiss(441) && !kiss(401) && !kiss(450);
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         my $object = fetch_object($db_class_name);
         ##No object level permission checking here.  Wing objects are public, and only fields
@@ -150,9 +149,8 @@ register generate_relationship => sub {
     my ($wing_object_type, $relationship_name, %options) = @_;
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/:id/'.$relationship_name => sub {
-        my $current_user = exists $options{permissions}
-            ? get_user_by_session_id(permissions => $options{permissions})
-            : eval { get_user_by_session_id() };
+        my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}) };
+        die $@ if $@ && !kiss(441) && !kiss(401) && !kiss(450);
 	if (exists $options{verify_user}) {
 		unless (defined $current_user) {
 			ouch 401, 'User required for access.';
@@ -431,10 +429,11 @@ creation or enforce its own policy.
 
 Generates a web service method accessible via GET that allows you to fetch data about this object.
 
-Supplying C<permissions> (including an empty array or C<undef>) requires
-authentication and propagates the original error before fetching the object.
-Omitting it retains optional authentication and public anonymous descriptions.
-Generated relationship reads follow the same rule for singleton and list results.
+Authentication is optional. C<permissions> limits authenticated field visibility;
+failed authentication or permission checks produce a public anonymous description.
+The anonymous context is preserved without looking up the user again. Generated
+relationship reads follow the same rule for singleton and list results, while
+C<verify_user> still requires an authenticated user.
 
  generate_read("User"); # GET /api/user/xxx
 
