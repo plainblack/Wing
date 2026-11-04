@@ -1,3 +1,5 @@
-There are stuck Wingman jobs in your Wing project.
+Wingman jobs need inspection in your Wing project.
 
-https://[% sitenmae %]/admin/wingman
+Run wing autokick_jobs and inspect its logs for tube details before manual recovery.
+
+https://[% sitename %]/admin/wingman

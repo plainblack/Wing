@@ -92,6 +92,32 @@ is $raw->stats_job($manual->id)->kicks, 0, 'excluded manual job is never kicked'
 is scalar @Wing::alerts, 0, 'fresh excluded and foreign jobs do not trigger stuck alerts';
 Wing::Command::Command::autokick_jobs->execute({}, []);
 is $raw->stats_job($manual->id)->kicks, 0, 'repeated autokick still leaves manual recovery to operators';
+my $hidden = $wingman->put('TriggerWebHook', {}, { tube => 'manual.retained' });
+$wingman->watch_only('manual.retained');
+$wingman->reserve(0)->bury;
+{
+    local @Wing::alerts;
+    Wing::Command::Command::autokick_jobs->execute({}, []);
+    is scalar @Wing::alerts, 1, 'multiple fresh retained jobs alert because hidden job details are unknown';
+}
+for (1..2) {
+    $raw->kick_job($hidden->id);
+    $wingman->reserve(0)->bury;
+}
+is $wingman->peek_buried('manual.retained')->id, $manual->id, 'fresh retained job is the buried head';
+{
+    local @Wing::alerts;
+    local @SharedBrokerLog::messages;
+    Wing::Command::Command::autokick_jobs->execute({}, []);
+    is scalar @Wing::alerts, 1, 'hidden retained jobs trigger an administrator alert';
+    ok scalar(grep { /Retained backlog in manual\.retained: 2 buried jobs.*cannot determine.*Inspect.*manual recovery/ }
+        @SharedBrokerLog::messages), 'monitoring reports backlog count, uncertainty and operator action';
+    is $raw->stats_job($manual->id)->state, 'buried', 'monitoring preserves fresh retained head';
+    is $raw->stats_job($manual->id)->kicks, 0, 'monitoring does not kick retained head';
+    is $raw->stats_job($hidden->id)->state, 'buried', 'monitoring preserves hidden stuck job';
+    is $raw->stats_job($hidden->id)->kicks, 2, 'monitoring does not retry hidden stuck job';
+}
+$wingman->delete($hidden->id);
 $wingman->watch_only('manual.retained');
 for (1..2) {
     $raw->kick_job($manual->id);
@@ -101,7 +127,7 @@ $wingman->watch_only('legacy.test');
 Wing::Command::Command::autokick_jobs->execute({}, []);
 is $raw->stats_job($manual->id)->state, 'buried', 'excluded stuck job stays buried';
 is_deeply $Wing::alerts[-1], ['stuck_wingman_job', {
-    email => 'admin@example.test', subject => 'Stuck Wingman jobs',
+    email => 'admin@example.test', subject => 'Wingman jobs need inspection',
 }], 'excluded stuck job still sends the administrator alert';
 ok scalar(grep { /Stuck job .* in manual\.retained/ } @SharedBrokerLog::messages),
     'excluded stuck job remains visible in monitoring logs';
@@ -131,6 +157,11 @@ $wingman->reserve(0)->bury;
 is $raw->stats_job($old->id)->state, 'buried', 'excluded old job stays buried';
 is $raw->stats_job($old->id)->kicks, 0, 'excluded old job is never kicked';
 $wingman->delete($old->id);
+{
+    local @Wing::alerts;
+    Wing::Command::Command::autokick_jobs->execute({}, []);
+    is scalar @Wing::alerts, 0, 'empty excluded tube does not trigger an alert';
+}
 $wingman->watch_only('legacy.test');
 
 for my $configuration (undef, []) {
@@ -154,6 +185,16 @@ for my $invalid ('manual.retained', {}, [''], [undef], [[]]) {
 }
 
 $wingman->delete($untouched->id);
+
+for my $format (qw(txt html)) {
+    my $path = "$FindBin::Bin/../var/init/var/mkits/stuck_wingman_job.mkit/body.$format";
+    open my $body, '<', $path or die "Cannot read email template $path: $!";
+    local $/;
+    my $text = <$body>;
+    like $text, qr/jobs.*need inspection/, 'alert describes inspection without claiming hidden jobs are stuck';
+    like $text, qr/autokick_jobs/, 'alert tells operators where to get backlog details';
+}
+
 
 # A direct lower-level client is trusted, but Wingman must not decode or execute its Jobber job.
 my $native = $raw->peek($id);

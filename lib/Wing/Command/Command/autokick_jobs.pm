@@ -42,6 +42,16 @@ sub execute {
 
     TUBE: foreach my $tube (@tubes) {
         Wing->log->info('Looking for stuck wingman jobs in '.$tube);
+        if ($excluded{$tube}) {
+            my $stats = $wingman->stats_tube($tube);
+            die "Cannot monitor retained tube $tube: " . $wingman->error . ". Check the broker and rerun autokick_jobs.\n"
+                unless defined $stats;
+            my $buried = $stats->current_jobs_buried;
+            if ($buried > 1) {
+                $has_stuck_jobs = 1;
+                Wing->log->info("Retained backlog in $tube: $buried buried jobs; cannot determine ages or retry counts behind the head. Inspect retained jobs for manual recovery.");
+            }
+        }
         JOB: while (my $job = $wingman->peek_buried($tube)) {
             next TUBE unless $job;
             ##If there's only one job, this will loop forever, so keep track of what we've seen
@@ -66,8 +76,8 @@ sub execute {
     }
 
     if ($has_stuck_jobs) {
-        Wing->log->info('Emailing admin about stuck wingman jobs.');
-        Wing->send_templated_email('stuck_wingman_job', { email => Wing->config->get('wing_admin'), subject => 'Stuck Wingman jobs', });
+        Wing->log->info('Emailing admin about Wingman jobs needing inspection.');
+        Wing->send_templated_email('stuck_wingman_job', { email => Wing->config->get('wing_admin'), subject => 'Wingman jobs need inspection', });
     }
 
 }
@@ -98,9 +108,13 @@ Merge this setting into the existing C<wingman> object. Omit it or use an empty
 array to keep automatic recovery for every visible Wingman tube. Each entry must
 be a non-empty tube name. Invalid configuration stops the command before any
 queue changes. Excluded tubes are still checked for stuck and old buried jobs
-and can still trigger the administrator email. For excluded tubes, monitoring observes only the buried head: a fresh retained
-head can hide stuck or old jobs behind it. The command does not enumerate every
-retained job. This setting affects
+and can still trigger the administrator email. If an excluded tube has more than
+one buried job, it also triggers the email and logs the tube's buried-job count
+with a request for manual inspection. Beanstalkd exposes only the buried head,
+so ages and retry counts of jobs behind it are unknown. This backlog alert fires
+even when the head is fresh and the hidden jobs may also be fresh. A single
+fresh retained job does not trigger an alert. No retained jobs are mutated to
+inspect them. This setting affects
 only C<autokick_jobs>; explicit manual recovery commands remain available.
 Foreign Jobber tubes remain outside Wingman's scope.
 
