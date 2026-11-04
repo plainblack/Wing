@@ -23,7 +23,8 @@ register get_session => sub {
     unless (defined $session_id) {
         ouch 441, 'session_id is required', 'session_id';
     }
-    return $session_id if (ref $session_id eq 'Wing::Session');
+    # Reload a passed session from the cache so ending it elsewhere is seen.
+    $session_id = $session_id->id if ref $session_id eq 'Wing::Session';
     my $session = Wing::Session->new( id => $session_id, db => site_db() );
     # Ended sessions get 401 before the permission check, which must still precede renewal.
     if ($session->user_id && $session->is_valid) {
@@ -395,7 +396,7 @@ A hash of options.
 
 =item session_id
 
-You can pass in a session id and it will fetch the session if it exists. You can also pass in a session object here and it will simply return it back to you. If you don't pass in a session id, then it will try to find the session from a form parameter of session_id, and finally by looking for a session_id cookie.
+You can pass in a session id and it will fetch the session if it exists. You can also pass in a session object here; it is reloaded by its id and checked the same way. If you don't pass in a session id, then it will try to find the session from a form parameter of session_id, and finally by looking for a session_id cookie.
 
 =item permissions
 
