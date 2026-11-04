@@ -8,7 +8,7 @@ use Wing::Web;
 use Wingman;
 
 get '/admin/wingman' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $wingman = Wingman->new;
     template 'admin/wingman', {
         stats => $wingman->stats_as_hashref,
@@ -17,7 +17,7 @@ get '/admin/wingman' => sub {
 };
 
 get '/admin/wingman/tubes/:tube' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $tube_name = params->{tube};
     my $wingman = Wingman->new;
     template 'admin/wingman_tube', {
@@ -29,7 +29,7 @@ get '/admin/wingman/tubes/:tube' => sub {
 };
 
 get '/admin/wingman/jobs/:job_id' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $tube_name = params->{tube};
     my $job_id = params->{job_id};
     my $wingman = Wingman->new;

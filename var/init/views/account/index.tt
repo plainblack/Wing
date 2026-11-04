@@ -86,7 +86,7 @@ new Vue({
     el:     '#app',
     data:   {
         user : wing.object({
-            properties : [% current_user.json %],
+            properties : [% account.json %],
             params : {
                 _include_options : 1,
             },
