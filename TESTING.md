@@ -210,3 +210,25 @@ retain optional lookup and the existing model authorization rules.
 The implementation uses installed Dancer 1.3522 Plugin/Handler POD and source,
 Plack::Test POD and CHI's documented `expire` operation. Expiry is explicit and
 rate-limit buckets are seeded across all minutes, without timing assertions.
+
+## Read authorization and description context
+
+`author.t/rest_read_auth.t` exercises actual Dancer PSGI HTTP requests with the
+runner's isolated MySQL, FastMmap cache and real SSO sessions. It reproduces the
+owning user's private email exposure with an API key missing `view_my_account`,
+and covers generated singleton and relationship reads, lists, expansions,
+missing/invalid/cache-expired sessions, authorized owner visibility, explicit
+anonymous contexts and omitted-context lookup.
+
+Generated reads with a present `permissions` option return original authentication
+errors, matching mutation generators, including present empty/undefined options.
+This deliberately chooses the ticket's permission-error contract rather than
+public downgrade. Omitted permissions retain optional lookup. Dancer `describe`
+and `format_list` respect explicit `current_user => undef` as anonymous; only an
+omitted context triggers optional lookup. Expanded parents retain their existing
+public description behavior. No session lifecycle or CRUD option forwarding is
+changed; those are tracked separately.
+
+Checked against installed Dancer 1.3522 Plugin/Handler POD and Plack::Test 1.0054
+POD. The HTTP tests exercise the actual serializers and result roles without
+mocking authentication, database, cache or field visibility.
