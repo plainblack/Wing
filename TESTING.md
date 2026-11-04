@@ -243,6 +243,7 @@ mocking authentication, database, cache or field visibility.
 `author.t/rest_crud_options.t` sends HTTP requests through the actual Dancer
 PSGI app with the runner's disposable database and cache. It checks aliased
 metadata and persisted CRUD, mutation callbacks, denied SSO permission errors,
-and the built-in APIKey caller. The mutation and read authorization matrices
+undefined callbacks, permission-aware metadata context and rate limits,
+and the built-in APIKey caller including view-only owner reads. The mutation and read authorization matrices
 also exercise `generate_crud`, covering present empty/undefined permissions,
 optional omission, public-only denied reads and authorized private visibility.

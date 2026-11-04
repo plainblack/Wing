@@ -59,7 +59,7 @@ register generate_delete => sub {
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         my $object = fetch_object($db_class_name);
         $object->can_delete($current_user, get_tracer());
-        if (exists $options{extra_processing}) {
+        if (defined $options{extra_processing}) {
             $options{extra_processing}->($object, $current_user);
         }
         $object->delete;
@@ -77,7 +77,7 @@ register generate_update => sub {
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         my $object = fetch_object($db_class_name);
         $object->verify_posted_params(expanded_params($current_user), $current_user, get_tracer());
-        if (exists $options{extra_processing}) {
+        if (defined $options{extra_processing}) {
             $options{extra_processing}->($object, $current_user);
         }
         $object->update;
@@ -126,12 +126,14 @@ register generate_options => sub {
     my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
     get '/api/'.$object_url.'/_options' => sub {
+        my $current_user = eval { get_user_by_session_id(permissions => $options{permissions}) };
+        die $@ if $@ && !kiss(441) && !kiss(401) && !kiss(450);
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         return site_db()->resultset($db_class_name)->new({})->field_options(
             include_relationships   => params->{_include_relationships},
             include_options         => params->{_include_options},
             include_related_objects => params->{_include_related_objects},
-            current_user            => eval { get_user_by_session_id() },
+            current_user            => $current_user,
         );
     };
 };
@@ -468,8 +470,8 @@ the mutation generators' callback behavior. C<permissions> requires authenticati
 for mutations when present, including an empty array or C<undef>; omission keeps
 legacy optional lookup. Reads retain public descriptions after authentication or
 permission refusal, with private visibility only for authorized users. Metadata
-retains C<generate_options>' existing optional user lookup without a permission
-check.
+also retains optional authentication, with public context on authentication or
+permission refusal; rate limits and unexpected errors propagate.
 
 =head2 generate_relationship ( object_type, relationship_name, options )
 
