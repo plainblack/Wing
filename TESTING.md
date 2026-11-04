@@ -128,10 +128,35 @@ seam for REST callers. It returns undef or an actionable error string, without
 accessing sessions, SQL or cache. Callers must send their own 403 response before
 lookup or mutation and outside authentication eval blocks. This change protects
 web POST `/login`, `/account/create`, `/account/reset-password-code`, and the
-session-renewing `/account`; REST mutation enforcement is ticket #55. External
+session-renewing `/account`; REST mutation enforcement is described below. External
 Facebook GET callbacks retain their existing flow.
 
 The implementation was checked against installed Dancer 1.3522 Cookie, Request
 and Config POD and Cookie/Request source, installed URI POD, and RFC 6454
 (https://www.rfc-editor.org/rfc/rfc6454), including scheme and effective port
 comparison, null origins and strict serialized-origin syntax.
+
+## REST mutation request security
+
+`author.t/rest_request_security.t` sends real HTTP requests through Dancer's
+PSGI app, using the isolated runner's native database and cache. It exercises
+actual generated User CRUD routes, custom routes and REST credential login.
+SQL tracing and transparent cache observation assert zero lookups or mutations
+on refusal, including login requests with no existing cookie. HTTP reads verify
+successful generated creation, update and deletion.
+
+Wing::Rest checks every unsafe method (all except GET, HEAD and OPTIONS) in its
+before hook, outside generated authentication evals. Cross-site fetch metadata
+and mismatched, null or malformed Origin receive the usual Wing JSON 403 error
+with instructions to reload and submit from this site. Headerless API clients
+continue to work. Explicit session_id parameters have no exemption, including
+JSON null/false/containers, empty form values, and valid session IDs. This also
+protects POST /api/session before credential lookup or a cookie write. No cookie
+is required to trigger enforcement. Cross-origin browser integrations must submit
+from the API origin; this change adds no CORS allowlist or authentication mode.
+The scheme/host and trusted ingress requirements above apply unchanged.
+
+The request boundary uses the installed Dancer 1.3522 Request, hook, Response
+and halt POD/source and URI canonicalization POD. Dancer's before-hook exceptions
+reach Wing's existing Ouch error handler, which preserves the error envelope
+rather than wrapping a refusal as a result.
