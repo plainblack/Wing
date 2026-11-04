@@ -32,11 +32,12 @@ print $fixture encode_json({session => $session->id});
 close $fixture;
 my $publisher = Wingman->new;
 $publisher->use('admin.viewed');
-for my $scenario ('configured', 'aliases', 'legacy-null', 'legacy-absent') {
+for my $scenario ('configured', 'aliases', 'legacy-null', 'legacy-absent', 'missing-plugin') {
     $settings->{plugins}{'Wingman::Plugin::EmailAllAdmins'}{phase} = $scenario eq 'aliases' ? 'AdminMailAlias' : 'EmailAllAdmins';
     $settings->{plugins}{'Wingman::Plugin::SendTemplatedEmail'}{phase} = $scenario eq 'aliases' ? 'MailAlias' : 'SendTemplatedEmail';
     $settings->{email_tube} = $scenario =~ /^legacy/ ? undef : 'wingman.email';
     delete $settings->{email_tube} if $scenario eq 'legacy-absent';
+    delete $settings->{plugins}{'Wingman::Plugin::SendTemplatedEmail'} if $scenario eq 'missing-plugin';
     my $api = Test::TCP->new(code => sub {
         my $port = shift;
         require Wing::Rest::Wingman;
@@ -49,8 +50,8 @@ for my $scenario ('configured', 'aliases', 'legacy-null', 'legacy-absent') {
     });
     my $status = system('node', "$FindBin::Bin/browser/admin-email-routing.cjs", $server->port, $directory, $api->port, $scenario);
     is $status, 0, 'mounted admin submission selects intended email destination';
-    if (-f "$directory/jobs.json") {
-        open my $results, '<', "$directory/jobs.json" or die $!;
+    if (-f "$directory/jobs-$scenario.json") {
+        open my $results, '<', "$directory/jobs-$scenario.json" or die $!;
         my $jobs = decode_json(do { local $/; <$results> });
         for my $job (@$jobs) {
             my $queued = $publisher->beanstalk->peek($job->{id});

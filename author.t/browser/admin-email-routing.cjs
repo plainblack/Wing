@@ -26,6 +26,17 @@ const base = `http://127.0.0.1:${port}`;
     await page.waitForFunction(() => document.querySelector('#app')?.__vue__).catch(error => { throw new Error(errors.join('\n') || error.message); });
     await page.locator('[name=arguments]').fill('{}');
     const jobs = [];
+    if (scenario === 'missing-plugin') {
+      await page.locator('[name=phase]').fill('');
+      const refused = page.waitForResponse(r => r.url() === `${base}/api/wingman/jobs` && r.request().method() === 'POST');
+      await page.getByRole('button', { name: 'Add Job', exact: true }).click();
+      const response = await refused;
+      assert.equal(response.request().postDataJSON().tube, 'admin.viewed', 'blank phase is not a registered email phase');
+      assert.equal(response.status(), 442, 'unregistered phase is refused');
+      assert.equal((await response.json()).error.code, 442);
+      fs.writeFileSync(path.join(directory, `jobs-${scenario}.json`), '[]');
+      return;
+    }
     const emailPhases = scenario === 'aliases' ? ['AdminMailAlias', 'MailAlias'] : ['EmailAllAdmins', 'SendTemplatedEmail'];
     for (const phase of [...emailPhases, 'howdy', emailPhases[0], 'howdy']) {
       await page.locator('[name=phase]').fill(phase);
@@ -39,16 +50,17 @@ const base = `http://127.0.0.1:${port}`;
       const { result } = await response.json();
       const tube = email ? (scenario.startsWith('legacy') ? 'wingman_test' : 'wingman.email') : 'admin.viewed';
       jobs.push({ id: result.id, tube, phase });
-      await page.evaluate(() => Vue.nextTick());
+      await page.locator('#wingajaxprogress .progress').waitFor({ state: 'hidden' });
       assert.equal(await page.locator(`#app a[href='/admin/wingman/jobs/${result.id}']`).count(), email ? 0 : 1,
         'email routed elsewhere must not appear in the viewed tube');
     }
-    fs.writeFileSync(path.join(directory, 'jobs.json'), JSON.stringify(jobs));
+    fs.writeFileSync(path.join(directory, `jobs-${scenario}.json`), JSON.stringify(jobs));
     if (process.env.ADMIN_EMAIL_ARTIFACTS && scenario === 'configured') {
       const loaded = page.waitForResponse(r => r.url() === `${base}/api/wingman/tubes/admin.viewed/jobs`);
       await page.reload();
       await loaded;
       await page.waitForFunction(() => document.querySelector('#app')?.__vue__);
+      await page.locator('#wingajaxprogress .progress').waitFor({ state: 'hidden' });
       fs.mkdirSync(process.env.ADMIN_EMAIL_ARTIFACTS, { recursive: true });
       for (const width of [1440, 390]) for (const colorScheme of ['light', 'dark']) {
         await page.setViewportSize({ width, height: 1000 });

@@ -158,7 +158,7 @@ new Vue({
         add_job : function() {
             const self = this;
             const job = Object.assign({}, self.new_job);
-            if ([self.$el.dataset.emailAdminPhase, self.$el.dataset.emailTemplatePhase].includes(job.phase)) {
+            if (job.phase && [self.$el.dataset.emailAdminPhase, self.$el.dataset.emailTemplatePhase].includes(job.phase)) {
                 delete job.tube;
             }
             axios.post('/api/wingman/jobs', job)
