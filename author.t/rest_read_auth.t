@@ -11,12 +11,16 @@ use HTTP::Request::Common qw(GET);
 use JSON qw(decode_json);
 
 set show_errors => 0;
+Wing->config->delete('tenants');
+require Wing::Rest::User;
+require Wing::Rest::Session;
 my $user = Wing->db->resultset('User')->new({username => 'read-owner', email => 'read-owner@example.invalid'});
 $user->encrypt_and_set_password('read-password');
 $user->insert;
 my $key = $user->apikeys->create({name => 'read-key'});
 my $denied = $user->start_session({sso => 1, api_key_id => $key->id});
 generate_relationship('ProtectedUser', 'apikeys', db_class_name => 'User', permissions => ['view_my_account']);
+generate_relationship('GuardedUser', 'apikeys', db_class_name => 'User', permissions => ['view_my_account'], verify_user => 'verify_is_admin');
 generate_read('ProtectedUser', db_class_name => 'User', permissions => ['view_my_account']);
 get '/anonymous-description' => sub { return describe($user, current_user => undef) };
 Wing->db->source($_)->resultset_class('Wing::DB::ResultSet') for qw(User APIKey);
@@ -46,9 +50,33 @@ my $app = Dancer::Handler->get_handler->psgi_app;
 test_psgi $app, sub {
     my $request = shift;
     my $res = $request->(GET 'http://localhost/api/protecteduser/'.$user->id, Cookie => 'session_id='.$denied->id);
-    is $res->code, 450, 'owning SSO user without permission receives original refusal';
+    is $res->code, 200, 'owning SSO user without permission receives public profile';
     my $data = decode_json($res->content);
-    ok !exists $data->{result}, 'denied permission cannot expose an owner description';
+    is $data->{result}{id}, $user->id, 'public identity remains available';
+    ok !exists $data->{result}{email}, 'denied permission cannot expose owner email';
+    for my $session (undef, $denied->id) {
+        my $response = $request->(GET 'http://localhost/api/user/'.$user->id,
+            (defined $session ? (Cookie => 'session_id='.$session) : ()));
+        is $response->code, 200, 'builtin public profile succeeds without permission';
+        my $profile = decode_json($response->content)->{result};
+        is $profile->{id}, $user->id, 'builtin public profile identity';
+        ok !exists $profile->{email}, 'builtin public profile excludes private email';
+    }
+    my $session_response = $request->(GET 'http://localhost/api/session/'.$denied->id.'?_include_relationships=1', Cookie => 'session_id='.$denied->id);
+    is $session_response->code, 200, 'builtin SSO session read succeeds';
+    my $user_link = decode_json($session_response->content)->{result}{_relationships}{user};
+    is $user_link, '/api/user/'.$user->id, 'SSO session advertises builtin user link';
+    for my $path ($user_link, '/api/user/'.$user->id) {
+        my $response = $request->(GET 'http://localhost'.$path.'?session_id='.$denied->id);
+        is $response->code, 200, 'documented SSO query-token user read succeeds';
+        is decode_json($response->content)->{result}{id}, $user->id, 'SSO user identity';
+        unlike $response->content, qr/"email"\s*:/, 'SSO public read excludes private email';
+    }
+    my $guarded = $request->(GET 'http://localhost/api/guardeduser/'.$user->id.'/apikeys', Cookie => 'session_id='.$denied->id);
+    is $guarded->code, 401, 'verify_user still refuses failed permission context';
+    is decode_json($guarded->content)->{error}{message}, 'User required for access.', 'existing relationship user guard error';
+    my $missing = $request->(GET 'http://localhost/api/user/00000000-0000-0000-0000-000000000000');
+    is $missing->code, 404, 'public read retains missing-object error';
     my $anonymous = $request->(GET 'http://localhost/anonymous-description', Cookie => 'session_id='.$denied->id);
     is $anonymous->code, 200, 'explicit anonymous description succeeds';
     ok !exists decode_json($anonymous->content)->{result}{email}, 'explicit anonymous context cannot reacquire owner email';
@@ -56,25 +84,31 @@ test_psgi $app, sub {
     is $list->code, 200, 'explicit anonymous list succeeds' or diag $list->content;
     ok !exists decode_json($list->content)->{result}{items}[0]{email}, 'explicit anonymous list cannot reacquire owner email';
     my $related = $request->(GET 'http://localhost/api/protecteduser/'.$user->id.'/apikeys', Cookie => 'session_id='.$denied->id);
-    is $related->code, 450, 'generated list preserves permission refusal' or diag $related->content;
-    ok !exists decode_json($related->content)->{result}, 'denied relationship has no result';
-    for my $path ('/api/protecteduser/'.$user->id,
-                  '/api/protecteduser/'.$user->id.'/apikeys',
+    is $related->code, 200, 'generated list retains public read' or diag $related->content;
+    ok !exists decode_json($related->content)->{result}{items}[0]{private_key}, 'denied list excludes private key';
+    for my $path ('/api/protecteduser/'.$user->id.'/apikeys',
                   '/api/protectedkey/'.$key->id.'/user') {
-        for my $case ([undef, 441, 'session_id is required'],
-                      ['00000000-0000-0000-0000-000000000000', 401, 'You must log in to do that.'],
-                      [$expired->id, 401, 'You must log in to do that.'],
-                      [$denied->id, 450, 'Insufficient permissions.']) {
+        for my $session (undef, '00000000-0000-0000-0000-000000000000', $expired->id, $denied->id) {
             my $response = $request->(GET 'http://localhost'.$path.'?_include_related_objects=1&_include_relationships=1',
-                (defined $case->[0] ? (Cookie => 'session_id='.$case->[0]) : ()));
-            is $response->code, $case->[1], 'generated read preserves original auth status';
+                (defined $session ? (Cookie => 'session_id='.$session) : ()));
+            is $response->code, 200, 'generated relationship retains public read';
             my $body = decode_json($response->content);
-            is $body->{error}{message}, $case->[2], 'original authentication message';
-            ok !exists $body->{result}, 'refusal has no expanded or private result';
+            my $result = $body->{result};
+            $result = $result->{items}[0] if exists $result->{items};
+            ok defined $result->{id}, 'public relationship identity remains available';
+            unlike $response->content, qr/"(?:email|private_key)"\s*:/, 'every public relationship and expansion excludes private fields';
         }
     }
+    for my $session (undef, '00000000-0000-0000-0000-000000000000', $expired->id, $denied->id) {
+        my $response = $request->(GET 'http://localhost/api/protecteduser/'.$user->id.'?_include_related_objects=1&_include_relationships=1',
+            (defined $session ? (Cookie => 'session_id='.$session) : ()));
+        is $response->code, 200, 'permissioned singleton retains public reads';
+        my $profile = decode_json($response->content)->{result};
+        is $profile->{id}, $user->id, 'public singleton identity';
+        ok !exists $profile->{email} && !exists $profile->{_relationships}{apikeys}, 'public singleton excludes private fields and links';
+    }
     for my $type (qw(emptyuser undefineduser)) {
-        is $request->(GET 'http://localhost/api/'.$type.'/'.$user->id)->code, 441, 'present permissions require auth';
+        is $request->(GET 'http://localhost/api/'.$type.'/'.$user->id)->code, 200, 'empty permissions retain anonymous public read';
         my $response = $request->(GET 'http://localhost/api/'.$type.'/'.$user->id, Cookie => 'session_id='.$denied->id);
         is decode_json($response->content)->{result}{email}, 'read-owner@example.invalid', 'empty permissions retain owner visibility';
     }
@@ -87,7 +121,7 @@ test_psgi $app, sub {
         ok !exists $result->{email}, 'anonymous response excludes private email';
         ok !exists $result->{_relationships}{apikeys}, 'anonymous response excludes private relationship';
     }
-    for my $path ('/api/protecteduser/'.$user->id, '/api/publicuser/'.$user->id, '/implicit-description', '/implicit-list', '/api/protectedkey/'.$key->id.'/user') {
+    for my $path ('/api/user/'.$user->id, '/api/protecteduser/'.$user->id, '/api/publicuser/'.$user->id, '/implicit-description', '/implicit-list', '/api/protectedkey/'.$key->id.'/user') {
         my $response = $request->(GET 'http://localhost'.$path, Cookie => 'session_id='.$allowed->id);
         is $response->code, 200, 'authorized owner read succeeds';
         my $result = decode_json($response->content)->{result};
@@ -104,7 +138,8 @@ test_psgi $app, sub {
         is $response->code, 200, 'anonymous generated relationship succeeds';
         my $result = decode_json($response->content)->{result};
         $result = $result->{items}[0] if exists $result->{items};
-        ok !exists $result->{email} && !exists $result->{private_key}, 'anonymous relationship excludes private fields';
+        ok defined $result->{id}, 'anonymous relationship has public identity';
+        unlike $response->content, qr/"(?:email|private_key)"\s*:/, 'anonymous relationship and expansions exclude private fields';
     }
     unlike $res->content, qr/read-owner\@example\.invalid/, 'private email is absent';
 };

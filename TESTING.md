@@ -220,10 +220,14 @@ and covers generated singleton and relationship reads, lists, expansions,
 missing/invalid/cache-expired sessions, authorized owner visibility, explicit
 anonymous contexts and omitted-context lookup.
 
-Generated reads with a present `permissions` option return original authentication
-errors, matching mutation generators, including present empty/undefined options.
-This deliberately chooses the ticket's permission-error contract rather than
-public downgrade. Omitted permissions retain optional lookup. Dancer `describe`
+Generated singleton and relationship reads retain optional authentication. Failed
+authentication or permission checks return public fields with an explicit anonymous
+context; authorized owners retain private visibility. Empty/undefined permissions
+also retain anonymous public reads. Relationship `verify_user` continues to require
+a user. Mutation generators with present permissions remain strict. The tests load
+the actual built-in User routes in single-tenant mode and exercise anonymous and
+denied SSO public profiles, the documented query-token SSO read and session user
+relationship links. Omitted permissions retain optional lookup. Dancer `describe`
 and `format_list` respect explicit `current_user => undef` as anonymous; only an
 omitted context triggers optional lookup. Expanded parents retain their existing
 public description behavior. No session lifecycle or CRUD option forwarding is
