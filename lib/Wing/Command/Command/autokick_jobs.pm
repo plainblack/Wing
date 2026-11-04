@@ -98,8 +98,9 @@ Merge this setting into the existing C<wingman> object. Omit it or use an empty
 array to keep automatic recovery for every visible Wingman tube. Each entry must
 be a non-empty tube name. Invalid configuration stops the command before any
 queue changes. Excluded tubes are still checked for stuck and old buried jobs
-and can still trigger the administrator email. Monitoring observes the buried
-head as before; it does not enumerate every retained job. This setting affects
+and can still trigger the administrator email. For excluded tubes, monitoring observes only the buried head: a fresh retained
+head can hide stuck or old jobs behind it. The command does not enumerate every
+retained job. This setting affects
 only C<autokick_jobs>; explicit manual recovery commands remain available.
 Foreign Jobber tubes remain outside Wingman's scope.
 
