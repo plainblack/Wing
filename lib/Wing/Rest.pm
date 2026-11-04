@@ -264,6 +264,10 @@ register generate_all_relationships => sub {
 
 # not sure this is entirely necessary, but just want to make sure it is absolutely per request
 hook before => sub {
+    unless (request->method =~ /\A(?:GET|HEAD|OPTIONS)\z/i) {
+        my $error = Wing::RequestSecurity::same_origin_error(request);
+        ouch 403, $error if defined $error;
+    }
     Wing->stash->reset();
 };
 
