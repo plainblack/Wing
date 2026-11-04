@@ -30,7 +30,7 @@ if ($help) {
 
     --debug-path=/tmp/wingman.log       Pipe STDOUT and STDERR to that file.
 
-    --watch-only=foo,bar                Watch some new tubes instead of the default one.
+    --watch-only=foo,bar                Replace the default and configured email tube watch list.
 
 STOP
     exit;
@@ -79,7 +79,10 @@ my $config = {
                 next;
             }
             my $wingman = Wingman->new;
-            $wingman->watch_only(scalar @tubes ? @tubes : Wing->config->get('wingman/beanstalkd/default_tube'));
+            my $email_tube = $wingman->email_tube;
+            $wingman->watch_only(scalar @tubes ? @tubes
+                : (Wing->config->get('wingman/beanstalkd/default_tube'),
+                    defined $email_tube ? ($email_tube) : ()));
             $wingman->reserve->run;
             $pfm->finish;
         }

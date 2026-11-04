@@ -49,7 +49,36 @@ SendTemplatedEmail and EmailAllAdmins require their actual job tube to be listed
 in C<wingman/autokick_excluded_tubes>. Configure this on every worker and
 C<autokick_jobs> host before running these plugins. An absent or invalid setting
 prevents delivery. Use a dedicated email tube if other work needs automatic
-retry; pass C<wingman_job_options> when publishing background email.
+retry. For new installations the shipped configuration uses:
+
+ "wingman": {
+     "email_tube": "wingman.email",
+     "autokick_excluded_tubes": ["wingman.email"]
+ }
+
+Merge these keys into the existing Wing JSON configuration. Keep the existing
+C<beanstalkd/default_tube> for unrelated work. L<Wingman/put> documents routing
+precedence. C<wingman_job_options =E<gt> { tube =E<gt> "custom.mail" }> still
+selects an explicit destination; exclude and watch that actual tube too.
+Synchronous email and other plugins retain their existing behavior.
+
+Default C<wingman.pl> workers now watch both the default and configured email
+tubes. Explicit lists replace the defaults: use
+C<wing wingman --restart --watch=wingman,wingman.email> or
+C<wingman.pl restart --watch-only=wingman,wingman.email> for the shipped names.
+Include any host-specific or other required tubes as well. Every email tube
+must have a worker with its email plugins loaded.
+
+For existing installations, first deploy the routing-aware worker code and
+restart workers with both the old and new tubes watched. Configure the new
+tube's exclusion on every worker and autokick host before publishers use
+C<email_tube>. Then set C<email_tube> consistently on all publishers and workers.
+Keep the old email tube excluded until its existing jobs are drained or manually
+reconciled. Inspect ready, delayed, reserved and buried jobs before removing that
+old exclusion to restore unrelated jobs' retries. Already queued jobs never move,
+and buried email must never be automatically kicked during this transition.
+No running configuration is changed automatically. Leaving the setting absent
+or null preserves legacy routing and its requirement to exclude the actual tube.
 
 The plugin confirms burial before SMTP or child publication and checks final
 deletion. A failed or throwing deletion returns C<failed>, never acknowledged

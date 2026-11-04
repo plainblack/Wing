@@ -173,3 +173,25 @@ metadata, session/cart/unknown/empty cookies, and zero SQL/cache/route activity
 on cookie-backed refusals. HTTP response assertions prove cross-origin form
 login cannot install a session cookie; existing cookie and web security tests
 retain coverage of same-origin/headerless cookie writers and web login guards.
+
+## Dedicated email routing
+
+`author.t/wingman_email_routing.t` uses the native isolated broker, real
+`Wingman->put`, Wing helper, CLI, daemon worker loop, email plugins and admin
+fan-out. Only daemon lifecycle and SMTP acceptance are controlled. It checks
+legacy unset/null behavior, configured and explicit destinations, invalid
+configuration before broker effects, shipped defaults, and actual autokick
+retention of email alongside recovery of unrelated default-tube work. No
+outbound email is sent. `wingman_email_ack.t` retains the acknowledgement,
+reconciliation and disconnect regression matrix.
+
+New installations set `wingman/email_tube` to `wingman.email` and exclude only
+that tube. Default workers watch it automatically; explicit watch lists must
+include it. Follow the staged adoption steps in `Wingman::Role::EmailRecovery`
+before changing an existing installation or removing its old exclusions. No
+existing jobs are moved. The routing setting is optional for compatibility;
+absent or null retains legacy default-tube routing.
+
+The routing implementation uses installed Beanstalk::Client/Job 1.07 POD and
+Beanstalkd 1.13's official protocol (tube syntax, `use`, `watch`, and burial):
+https://github.com/beanstalkd/beanstalkd/blob/v1.13/doc/protocol.txt.
