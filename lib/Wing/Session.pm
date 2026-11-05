@@ -189,7 +189,8 @@ sub floor_login_is_active {
     return defined $active
         && ref $active eq 'HASH'
         && defined $active->{floorLoginId}
-        && $active->{floorLoginId} eq $self->floor_login_id;
+        && $active->{floorLoginId} eq $self->floor_login_id
+        && !defined Wing->cache->get('floor-revoked-login-' . $self->floor_login_id);
 }
 
 # Ends the session and returns false when it has expired, its user is gone or its password changed.

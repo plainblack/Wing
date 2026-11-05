@@ -118,4 +118,57 @@ $cache->set(
     ok(!$cache->get('session-floor-session'), 'removes the revoked badge session');
 }
 
+{
+    no warnings qw(redefine once);
+    local *Wing::cache = sub { return $cache };
+
+    $cache->set(
+        'floor-active-login-user-1',
+        { floorLoginId => 'floor-login-old', sessionIds => [] },
+        4 * 60 * 60,
+    );
+    my $live = Wing::Session->new(
+        id => 'tombstoned-session',
+        db => bless({}, 'Local::SessionDb'),
+    );
+    $live->start($user, {
+        sso => 0,
+        ip_address => '127.0.0.1',
+        auth_source => 'floor_badge',
+        floor_login_id => 'floor-login-old',
+        absolute_expires_at => time + 4 * 60 * 60,
+    });
+    my $password = Wing::Session->new(
+        id => 'password-session',
+        db => bless({}, 'Local::SessionDb'),
+    );
+    $password->start($user, { sso => 0, ip_address => '127.0.0.1' });
+
+    $cache->set('floor-revoked-login-floor-login-old', { revoked => 1 }, 4 * 60 * 60);
+
+    ok(!$live->is_valid, 'rejects an in-memory badge session whose Floor login has a revocation tombstone');
+
+    $cache->set('session-tombstoned-session', {
+        session_id => 'tombstoned-session',
+        user_id => 'user-1',
+        password_hash => 'password-hash',
+        auth_source => 'floor_badge',
+        floor_login_id => 'floor-login-old',
+        absolute_expires_at => time + 4 * 60 * 60,
+    }, 4 * 60 * 60);
+    my $cached = Wing::Session->new(
+        id => 'tombstoned-session',
+        db => bless({}, 'Local::SessionDb'),
+    );
+    ok(!$cached->has_user_id, 'rejects a cached badge session whose Floor login has a revocation tombstone');
+    ok(!$cache->get('session-tombstoned-session'), 'removes the tombstoned badge session');
+    ok($cache->get('floor-active-login-user-1'), 'leaves the shared active Floor login marker in place');
+
+    my $reloaded_password = Wing::Session->new(
+        id => 'password-session',
+        db => bless({}, 'Local::SessionDb'),
+    );
+    ok($reloaded_password->is_valid, 'keeps password sessions valid while a Floor login tombstone exists');
+}
+
 done_testing;
