@@ -4,6 +4,9 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2026-11-05
+ * Reject TGC Floor badge sessions whose originating login has a floor-revoked-login tombstone, leaving newer Floor logins and password sessions active (#87).
+
 2026-10-21
  * Require secondary verification before browser sessions change their own account through REST, preserving independent API-key and SSO clients (#49).
 
