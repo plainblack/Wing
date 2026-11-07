@@ -80,7 +80,7 @@ sub write_config {
     close $file;
 }
 
-delete @ENV{grep { /^(WING_|TGC_JOBBER_)/ } keys %ENV};
+delete @ENV{grep { /^WING_/ } keys %ENV};
 delete @ENV{qw(PERL5OPT PERL5DB)};
 @ENV{qw(WING_HOME WING_APP WING_OWNER WING_CONFIG)} = ($root, "$root/author.t", "$root/author.t", "$scratch/config.json");
 my @includes = map { "-I$root/$_" } qw(lib author.t/lib author.t author.t/tenant_files/lib);
