@@ -15,18 +15,31 @@ around run => sub {
 
     my $delivered = eval { $self->$run($job, $args); 1 };
     my $error = $@;
-    unless ($delivered) {
-        return { wingman_outcome => 'failed', message =>
-            "Email delivery or fan-out failed: $error Reconcile SMTP acceptance and published child jobs before manually deleting or retrying the buried job; partial delivery is possible." };
-    }
+    return _alert_buried($job,
+        "Email delivery or fan-out failed: $error Reconcile SMTP acceptance and published child jobs before manually deleting or retrying the buried job; partial delivery is possible.")
+        unless $delivered;
     my $deleted = eval { $job->delete };
     $error = $@;
     return { wingman_outcome => 'complete' } if $deleted;
-    return { wingman_outcome => 'failed', message =>
+    return _alert_buried($job,
         'Final email job deletion not acknowledged. '
         . ($error || $job->beanstalk_job->error || 'No deletion response.')
-        . ' Reconcile SMTP acceptance and published child jobs with this job ID before manually deleting it. Do not kick or resend without reconciliation. Burial was acknowledged before delivery; inspect broker state because deletion may have succeeded despite a lost response.' };
+        . ' Reconcile SMTP acceptance and published child jobs with this job ID before manually deleting it. Do not kick or resend without reconciliation. Burial was acknowledged before delivery; inspect broker state because deletion may have succeeded despite a lost response.');
 };
+
+sub _alert_buried {
+    my ($job, $message) = @_;
+    # Sent directly, not queued, so the alert does not wait behind the failing email tube.
+    my $alerted = eval {
+        Wing->send_templated_email('stuck_wingman_job', {
+            email   => Wing->config->get('wing_admin'),
+            subject => 'Wingman email job '.$job->id.' failed and is buried',
+        });
+        1;
+    };
+    $message .= ' Emailing the wing_admin alert also failed: '.$@.' Check the SMTP settings.' unless $alerted;
+    return { wingman_outcome => 'failed', message => $message };
+}
 
 1;
 
@@ -88,5 +101,11 @@ for fan-out, child publications before deleting or selectively resuming work.
 Do not blindly kick a parent: it can republish all children. A missing deletion
 response may mean deletion succeeded. Inspect the broker before any recovery.
 This policy provides neither automatic retry nor exactly-once SMTP delivery.
+
+When delivery, fan-out or the final deletion fails, the job stays buried and the
+plugin emails C<wing_admin> the C<stuck_wingman_job> alert at once, with the job ID
+in its subject. If that alert cannot be sent either, the failure message says so.
+SendTemplatedEmail treats a bad address (Ouch 442) as final: it logs a warning
+and the job is deleted.
 
 =cut

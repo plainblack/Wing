@@ -22,6 +22,7 @@ my $config = Wing->config;
     our ($original, $excluded);
     sub get {
         return $excluded if $_[1] eq 'wingman/autokick_excluded_tubes';
+        return 'email_ack_admin@example.invalid' if $_[1] eq 'wing_admin';
         return { 'Wingman::Plugin::SendTemplatedEmail' => {phase => 'SendTemplatedEmail'} }
             if $_[1] eq 'wingman/plugins';
         return $original->get($_[1]);
@@ -29,12 +30,13 @@ my $config = Wing->config;
 }
 $EmailAckConfig::original = $config;
 $EmailAckConfig::excluded = [$tube];
-my (@info, @errors, $sends);
+my (@info, @errors, @warnings, @alerts, $sends);
 no warnings 'redefine';
 local *Wing::config = sub { bless {}, 'EmailAckConfig' };
-local *Wing::send_templated_email = sub { ++$sends; return 1 };
+local *Wing::send_templated_email = sub { push(@alerts, $_[2]), return 1 if $_[1] eq 'stuck_wingman_job'; ++$sends; return 1 };
 local *Wingman::Job::log_info = sub { push @info, $_[2] };
 local *Wingman::Job::log_error = sub { push @errors, $_[2] };
+local *Wingman::Job::log_warn = sub { push @warnings, $_[2] };
 my $queued = $client->put({}, 'SendTemplatedEmail', { template => 'generic', params => {}, options => {} });
 my $job = Wingman::Job->new(beanstalk_job => $client->reserve(0),
     wingman_plugin => Wingman::Plugin::SendTemplatedEmail->new,
@@ -46,6 +48,7 @@ my $out;
 }
 is ref($out) eq 'HASH' ? $out->{wingman_outcome} : undef, 'failed', 'unacknowledged deletion reports failure';
 is $sends, 1, 'SMTP boundary accepted once';
+is scalar @alerts, 1, 'admin is alerted about the unacknowledged deletion';
 ok !grep($_ eq 'Job complete.', @info), 'unacknowledged deletion never logs completion';
 like join(' ', @errors), qr/@{[$job->id]}.*[Rr]econcile/s, 'error names job and reconciliation action';
 $client->disconnect;
@@ -85,9 +88,9 @@ for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
 my $delete = Beanstalk::Client->can('delete');
 my $bury = Beanstalk::Client->can('bury');
 for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
-    for my $mode ('true', 'false', 'throw', 'lost_response', 'delivery_throw', 'bury_false', 'bury_throw') {
+    for my $mode ('true', 'false', 'throw', 'lost_response', 'delivery_throw', 'bad_address', 'alert_throw', 'bury_false', 'bury_throw') {
         subtest "$plugin / $mode" => sub {
-            @info = (); @errors = (); $sends = 0;
+            @info = (); @errors = (); @warnings = (); @alerts = (); $sends = 0;
             my $worker_client = Beanstalk::Client->new($config->get('wingman/beanstalkd'));
             my $publisher = Beanstalk::Client->new({
                 %{$config->get('wingman/beanstalkd')}, default_tube => 'wingman_test.children' });
@@ -99,19 +102,25 @@ for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
                 job_args => { template => 'generic', params => {}, options => {} });
             my $boundary_state;
             local *Wing::send_templated_email = sub {
+                if ($_[1] eq 'stuck_wingman_job') {
+                    push @alerts, $_[2];
+                    die "Alert SMTP unavailable\n" if $mode eq 'alert_throw';
+                    return 1;
+                }
                 ++$sends;
                 $boundary_state = $publisher->stats_job($job->id)->state;
                 if ($plugin eq 'EmailAllAdmins') {
                     ok $_[3]->{wingman}, 'fan-out publishes background children';
                     push @children, $publisher->put({ data => 'controlled child publication' });
                 }
-                die "Delivery response lost after acceptance\n" if $mode eq 'delivery_throw';
+                die "Delivery response lost after acceptance\n" if $mode eq 'delivery_throw' || $mode eq 'alert_throw';
+                Ouch::ouch(442, 'Illegal email address for this user.', 'email') if $mode eq 'bad_address';
                 return 1;
             };
             my $out;
             {
                 local *Beanstalk::Client::delete = sub {
-                    return $delete->(@_) if $mode eq 'true';
+                    return $delete->(@_) if $mode eq 'true' || $mode eq 'bad_address';
                     $delete->(@_) if $mode eq 'lost_response';
                     die "Deletion response lost\n" if $mode eq 'throw' || $mode eq 'lost_response';
                     $_[0]->error('Deletion response unavailable');
@@ -126,19 +135,38 @@ for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
                 is "$@", '', 'no exception escapes into framework retry or burial';
             }
             my $preflight_failed = $mode =~ /^bury_/;
-            is $sends || 0, $preflight_failed ? 0 : $mode eq 'delivery_throw' ? 1
+            my $failed_delivery = $mode =~ /^(delivery|alert)_throw$/ || ($mode eq 'bad_address' && $plugin eq 'EmailAllAdmins');
+            my $deleted_bad_address = $mode eq 'bad_address' && $plugin eq 'SendTemplatedEmail';
+            my $succeeded = $mode eq 'true' || $deleted_bad_address;
+            is $sends || 0, $preflight_failed ? 0 : $failed_delivery || $deleted_bad_address ? 1
                 : $plugin eq 'EmailAllAdmins' ? $admin_count : 1, 'only intended irreversible effects occur';
             is $boundary_state, 'buried', 'broker retention confirmed before effects' unless $preflight_failed;
-            is $out->{wingman_outcome}, $mode eq 'true' ? 'complete' : 'failed', 'explicit queue outcome';
-            is scalar(grep { $_ eq 'Job complete.' } @info), $mode eq 'true' ? 1 : 0, 'completion requires true deletion';
-            if ($mode ne 'true') {
+            is $out->{wingman_outcome}, $succeeded ? 'complete' : 'failed', 'explicit queue outcome';
+            is scalar(grep { $_ eq 'Job complete.' } @info), $succeeded ? 1 : 0, 'completion requires true deletion';
+            if ($deleted_bad_address) {
+                like join(' ', @warnings), qr/Illegal email address/, 'bad address is logged as a warning';
+            }
+            else {
+                is_deeply \@warnings, [], 'no bad-address warning';
+            }
+            if ($succeeded || $preflight_failed) {
+                is_deeply \@alerts, [], 'no admin alert when nothing is left buried';
+            }
+            else {
+                is scalar @alerts, 1, 'admin is alerted about the buried job';
+                is $alerts[0]{email}, 'email_ack_admin@example.invalid', 'alert goes to wing_admin';
+                like $alerts[0]{subject}, qr/@{[$job->id]}/, 'alert subject names the job';
+            }
+            like join(' ', @errors), qr/alert also failed.*Alert SMTP unavailable/s, 'failed alert is logged'
+                if $mode eq 'alert_throw';
+            if (!$succeeded) {
                 like join(' ', @errors), qr/@{[$job->id]}/, 'failure includes job identity';
                 like join(' ', @errors), $preflight_failed ? qr/before retrying/
                     : qr/Reconcile.*SMTP.*child/s, 'actionable recovery instruction';
             }
             $worker_client->disconnect;
             my $state = $publisher->stats_job($job->id);
-            if ($mode eq 'true' || $mode eq 'lost_response') {
+            if ($succeeded || $mode eq 'lost_response') {
                 ok !defined $state, 'acknowledged or response-lost deletion leaves no broker job';
             }
             else {
@@ -147,7 +175,7 @@ for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
                 $publisher->delete($job->id);
             }
             is scalar @children, $plugin eq 'EmailAllAdmins' && !$preflight_failed
-                ? ($mode eq 'delivery_throw' ? 1 : $admin_count) : 0, 'native child publication count matches fan-out';
+                ? ($failed_delivery ? 1 : $admin_count) : 0, 'native child publication count matches fan-out';
             for my $child (@children) {
                 is $publisher->stats_job($child->id)->state, 'ready', 'published child remains available once';
                 $publisher->delete($child->id);
