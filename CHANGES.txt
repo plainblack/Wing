@@ -5,6 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2026-11-07
+ * Queued email that fails to send, fan out or delete stays buried and emails wing_admin the stuck_wingman_job alert with the job ID at once; SendTemplatedEmail logs a bad address as a warning and deletes the job. Wing->send_templated_email now raises Ouch 442 instead of 504 when the SMTP server permanently refuses the recipients (#90).
  * Send queued email (SendTemplatedEmail, EmailAllAdmins) whether or not its tube is in wingman/autokick_excluded_tubes, so installations without that setting deliver queued email again (#88).
  * Run author tests with the Perl runner author.t/run.pl against the dev MySQL and Beanstalkd in author.t/etc/test.conf; nothing starts its own mysqld, beanstalkd, nginx or browser, and the Node and Playwright checks are gone (#96).
  * Remove the Python test runner bin/agent-tests.py and the Python author tests; author.t/run.pl and Perl tests replace them (#96).

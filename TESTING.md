@@ -161,7 +161,12 @@ database, actual email plugins and `Wingman::Job`, and controlled SMTP/child
 publication boundaries. It covers true, false, throwing and lost-response
 deletion, partial delivery, failed burial, delivery with neither
 `wingman/email_tube` nor `wingman/autokick_excluded_tubes` configured,
-worker disconnection, and actual autokick retention. It sends no outbound mail.
+worker disconnection, actual autokick retention, the immediate `stuck_wingman_job`
+admin alert for every failure that leaves a job buried (and a failed alert), and a
+bad address (Ouch 442) that SendTemplatedEmail logs and deletes. Two cases run the real
+`Wing->send_templated_email` with `Email::Sender::Simple::send` throwing the
+failure Email::Sender's SMTP transport raises for a refused RCPT: a 550 refusal becomes
+442 and the job is deleted, a 450 refusal stays buried and alerts. It sends no outbound mail.
 
 The email plugins confirm burial before irreversible delivery and require manual
 reconciliation after failure or a worker crash. See `Wingman::Role::EmailRecovery` for recovery

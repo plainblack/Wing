@@ -25,6 +25,7 @@ use Wing::Perl;
 use Config::JSON;
 use CHI;
 use Ouch;
+use Scalar::Util qw(blessed);
 use Log::Log4perl;
 use IO::File;
 use Email::Sender::Simple;
@@ -293,7 +294,8 @@ sub from_mysql {
 
 This is a class method for sending out a templated email.  It is a
 light wrapper around L<Email::MIME::Kit>.  If an error
-occurs during the sending of any email it will throw an exception.
+occurs during the sending of any email it will throw an exception: Ouch 442
+when the SMTP server permanently refuses the recipients, otherwise Ouch 504.
 
 If the environment variable C<WING_NO_EMAIL> is set to 1, then this method
 will return without doing anything.
@@ -384,12 +386,16 @@ sub send_templated_email {
             }
         };
         if (hug) {
+            my $failure = $@;
             __PACKAGE__->log->fatal('Email Problem: '.bleep);
             use Data::Dumper;
             __PACKAGE__->log->debug('Parameters: '.Dumper($params));
             __PACKAGE__->log->debug('Defective Email: '.$email->as_string);
             my $error = bleep;
             $error =~ s/(.*?)\s+Trace begun.*/$1/gms;
+            # A 5xx refusal at RCPT names its recipients; it will be refused again.
+            my @rejected = blessed($failure) && $failure->isa('Email::Sender::Failure::Permanent') ? $failure->recipients : ();
+            ouch 442, 'Email address rejected: '.$error, 'email' if @rejected;
             ouch 504, 'Could not send email: '.$error;
         }
     }

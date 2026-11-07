@@ -2,6 +2,7 @@ package Wingman::Plugin::SendTemplatedEmail;
 
 use Wing::Perl;
 use Wing;
+use Ouch;
 
 use Moose;
 with 'Wingman::Role::Plugin', 'Wingman::Role::EmailRecovery';
@@ -26,6 +27,7 @@ B<NOTE:> There is a generic mkit template included with wing called C<generic> t
 
 Confirm manual retention before delivery, then check deletion. See
 L<Wingman::Role::EmailRecovery> for tube configuration and recovery.
+A bad address (Ouch 442) is logged as a warning and the job is deleted.
 
 =over
 
@@ -60,11 +62,19 @@ See L<Wing/send_templated_email> for details.
 
 sub run {
     my ($self, $job, $args) = @_;
-    Wing->send_templated_email(
-        $args->{template},
-        $args->{params},
-        $args->{options},
-    );
+    eval {
+        Wing->send_templated_email(
+            $args->{template},
+            $args->{params},
+            $args->{options},
+        );
+    };
+    if (kiss 442) { # bad address: nothing was sent and a retry cannot succeed
+        $job->log_warn($job, 'Could not send templated email to user, deleting the job: '.$@);
+    }
+    elsif (hug) {
+        die $@;
+    }
 }
 
 1;
