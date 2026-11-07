@@ -34,7 +34,7 @@ sub command {
         '--status-file', $self->service_file('status'),
     );
     # start_server --restart cannot find a server without its PID file, so start one.
-    if ($opt->{start} || ($opt->{restart} && !-e $self->service_file('pid'))) {
+    if ($opt->{start} || ($opt->{restart} && !$opt->{stop} && !-e $self->service_file('pid'))) {
         push @command,
             '--port', 5000,
             '--daemonize',
@@ -64,7 +64,7 @@ sub command {
 sub execute {
     my ($self, $opt, $args) = @_;
     system($self->command($opt)) == 0
-        or die "start_server failed (exit status $?). Read ".$self->service_file('log').", then run wing rest --stop and wing rest --start.\n";
+        or die "wing rest: start_server failed; its error is above. If port 5000 is in use but there is no PID file, stop the process holding the port (lsof -nP -iTCP:5000 -sTCP:LISTEN), then run wing rest --start.\n";
 }
 
 1;
