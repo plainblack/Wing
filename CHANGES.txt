@@ -5,6 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2026-11-07
+ * wing autokick_jobs kicks fresh buried jobs again in tubes not in wingman/autokick_excluded_tubes. A stuck, old or unreadable buried head stays buried, alerts wing_admin and is moved behind the other buried jobs so fresh jobs behind it are still kicked (needs beanstalkd 1.12+). The email tube (wingman/email_tube, or the default tube when unset) and buried email jobs in any tube are never kicked. Adds Wingman->reserve_job and Wingman->email_phases (#89, #60, #99).
  * Queued email that fails to send, fan out or delete stays buried and emails wing_admin the stuck_wingman_job alert with the job ID at once; SendTemplatedEmail logs a bad address as a warning and deletes the job. Wing->send_templated_email now raises Ouch 442 instead of 504 when the SMTP server permanently refuses the recipients (#90).
  * Send queued email (SendTemplatedEmail, EmailAllAdmins) whether or not its tube is in wingman/autokick_excluded_tubes, so installations without that setting deliver queued email again (#88).
  * Run author tests with the Perl runner author.t/run.pl against the dev MySQL and Beanstalkd in author.t/etc/test.conf; nothing starts its own mysqld, beanstalkd, nginx or browser, and the Node and Playwright checks are gone (#96).

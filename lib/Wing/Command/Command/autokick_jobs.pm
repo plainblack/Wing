@@ -5,9 +5,9 @@ use Wing::Perl;
 use Wing::Command -command;
 use Wingman;
 
-sub abstract { 'Monitor buried Wingman jobs without retrying them.' }
+sub abstract { 'Kick fresh buried Wingman jobs and alert about stuck ones.' }
 
-sub usage_desc { 'Monitor buried Wingman jobs without retrying them.' }
+sub usage_desc { 'Kick fresh buried Wingman jobs and alert about stuck ones.' }
 
 sub opt_spec {
     return (
@@ -22,15 +22,18 @@ sub validate_args {
 
 sub execute {
     my ($self, $opt, $args) = @_;
-    Wing->log->info('Monitoring buried Wingman jobs; automatic retries belong to their plugins.');
+    Wing->log->info('Kicking buried Wingman jobs.');
 
     my $excluded = Wing->config->get('wingman/autokick_excluded_tubes');
     die "wingman/autokick_excluded_tubes must be an array of non-empty tube names.\n"
         if defined $excluded && (ref $excluded ne 'ARRAY'
             || grep { !defined $_ || ref $_ || !length $_ } @$excluded);
     my %excluded = map { $_ => 1 } @{defined $excluded ? $excluded : []};
+    # Email plugins bury before sending, so a kick could send the same email twice.
+    $excluded{Wingman->email_tube // Wing->config->get('wingman/beanstalkd/default_tube')} = 1;
 
     my $wingman = Wingman->new();
+    my %email_phase = map { $_ => 1 } $wingman->email_phases;
     my @tubes = $wingman->list_tubes;
 
     my $has_stuck_jobs = 0;
@@ -48,42 +51,76 @@ sub execute {
         }
         my $buried = $stats->current_jobs_buried;
         next unless $buried;
-        Wing->log->info("Buried backlog in $tube: $buried jobs. Inspect job IDs and reconcile effects before selective manual recovery.");
-        $has_stuck_jobs = 1 unless $excluded{$tube};
-        if ($buried > 1) {
+        Wing->log->info("Buried backlog in $tube: $buried jobs.");
+        my $retained = $excluded{$tube};
+        if ($retained && $buried > 1) {
             $has_stuck_jobs = 1;
             Wing->log->info("Retained backlog in $tube: $buried buried jobs; cannot determine ages or retry counts behind the head. Inspect retained jobs for manual recovery.");
         }
-        # Inspect broker metadata without decoding the payload or loading its plugin.
-        my $head;
-        if (defined $wingman->use($tube)) {
-            $head = $wingman->beanstalk->peek_buried;
-        }
-        unless (defined $head) {
-            my $error = $wingman->error;
-            next if defined $error && $error eq 'NOT_FOUND';
-            push @monitoring_errors, "Cannot inspect buried head in $tube"
-                . (defined $error && length $error ? ": $error" : '')
-                . ". Check the broker and rerun autokick_jobs.\n";
-            next;
-        }
-        my $head_stats = $wingman->stats_job($head->id);
-        unless (defined $head_stats) {
-            my $error = $wingman->error;
-            next if defined $error && $error eq 'NOT_FOUND';
-            push @monitoring_errors, "Cannot inspect buried job ".$head->id." in $tube"
-                . (defined $error && length $error ? ": $error" : '')
-                . ". Check the broker and rerun autokick_jobs.\n";
-            next;
-        }
-        Wing->log->info("Buried head ".$head->id." in $tube: age ".$head_stats->age." seconds, ".$head_stats->kicks." kicks.");
-        if ($head_stats->kicks > 1) {
-            $has_stuck_jobs = 1;
-            Wing->log->info("Stuck job ".$head->id." in $tube");
-        }
-        elsif ($head_stats->age > 12*60*60) {
-            $has_stuck_jobs = 1;
-            Wing->log->info("Old job ".$head->id." in $tube");
+        my %seen;
+        my $email_jobs = 0;
+        # Beanstalkd only exposes the buried head, so a job that must stay buried is moved behind the others.
+        JOB: for my $position (1 .. ($retained ? 1 : $buried)) {
+            my $head;
+            if (defined $wingman->use($tube)) {
+                $head = $wingman->beanstalk->peek_buried;
+            }
+            unless (defined $head) {
+                my $error = $wingman->error;
+                last JOB if defined $error && $error eq 'NOT_FOUND';
+                push @monitoring_errors, "Cannot inspect buried head in $tube"
+                    . (defined $error && length $error ? ": $error" : '')
+                    . ". Check the broker and rerun autokick_jobs.\n";
+                last JOB;
+            }
+            my $id = $head->id;
+            last JOB if $seen{$id}++;
+            my $head_stats = $wingman->stats_job($id);
+            unless (defined $head_stats) {
+                my $error = $wingman->error;
+                last JOB if defined $error && $error eq 'NOT_FOUND';
+                push @monitoring_errors, "Cannot inspect buried job $id in $tube"
+                    . (defined $error && length $error ? ": $error" : '')
+                    . ". Check the broker and rerun autokick_jobs.\n";
+                last JOB;
+            }
+            Wing->log->info("Buried head $id in $tube: age ".$head_stats->age." seconds, ".$head_stats->kicks." kicks.");
+            my ($phase) = $retained ? () : eval { $head->args };
+            my $email = defined $phase && $email_phase{$phase};
+            $email_jobs++ if $email;
+            my $problem = $head_stats->kicks > 1 ? 'Stuck job'
+                : $head_stats->age > 12*60*60 ? 'Old job'
+                : $retained ? undef
+                : !defined $phase ? 'Unreadable job'
+                : $email && $email_jobs > 1 ? 'Buried email backlog at job'
+                : undef;
+            if ($problem) {
+                $has_stuck_jobs = 1;
+                Wing->log->info("$problem $id in $tube");
+            }
+            last JOB if $retained;
+            unless ($problem || $email) {
+                unless ($wingman->kick_job($id)) {
+                    push @monitoring_errors, "Cannot kick buried job $id in $tube: ".($wingman->error // 'no broker response')
+                        . ". Check the broker and rerun autokick_jobs.\n";
+                    last JOB;
+                }
+                Wing->log->info("Kicked job $id in $tube");
+                next JOB;
+            }
+            last JOB if $position == $buried;
+            unless ($wingman->reserve_job($id)) {
+                push @monitoring_errors, "Cannot move buried job $id in $tube behind the other buried jobs: "
+                    . ($wingman->error // 'no broker response')
+                    . ". Jobs behind it were not kicked. Check that beanstalkd is 1.12 or later and rerun autokick_jobs.\n";
+                last JOB;
+            }
+            unless ($wingman->bury($id, { priority => $head_stats->pri })) {
+                push @monitoring_errors, "Job $id in $tube was reserved to move it but could not be buried again: "
+                    . ($wingman->error // 'no broker response')
+                    . ". It returns to ready when autokick_jobs exits, so inspect it before a worker runs it.\n";
+                last JOB;
+            }
         }
     }
 
@@ -99,7 +136,7 @@ sub execute {
 
 =head1 NAME
 
-wing autokick_jobs - Monitor buried Wingman jobs
+wing autokick_jobs - Kick buried Wingman jobs
 
 =head1 SYNOPSIS
 
@@ -107,29 +144,36 @@ wing autokick_jobs - Monitor buried Wingman jobs
 
 =head1 DESCRIPTION
 
-This historical command name now performs read-only monitoring. It never kicks,
-reserves, releases, buries or deletes a job. Buried jobs require selective manual
-recovery after their effects and failure cause have been inspected. Existing
-buried backlogs are not automatically migrated or retried.
+Kicks fresh buried jobs so they run again. A job kicked more than once, or buried
+for longer than 12 hours, stays buried and sends an email to C<wing_admin>, as
+does a job whose payload cannot be read. Such a job is moved behind the other
+buried jobs in its tube (beanstalkd C<reserve-job>, then C<bury> with its
+priority) so the fresh jobs behind it are still kicked. This needs beanstalkd 1.12
+or later.
 
-Each visible Wingman tube reports its buried count and available head statistics.
-An ordinary tube with any buried work requests administrator inspection. Tubes
-in C<wingman/autokick_excluded_tubes> retain their quieter monitoring policy:
-more than one buried job, a head kicked more than once, or a head older than
-12 hours triggers the alert. Hidden job ages and retry counts are unknown.
-Foreign Jobber tubes remain outside Wingman's scope. Payloads are not decoded
-and plugins are not loaded by monitoring.
+Email jobs are never kicked, because the email plugins bury a job before sending
+and a kick could send it twice. The tube email is published to
+(C<wingman/email_tube>, or C<wingman/beanstalkd/default_tube> when that is unset)
+is always treated as excluded, and a buried job whose phase belongs to
+SendTemplatedEmail or EmailAllAdmins in any other tube is left buried and
+follows the excluded-tube alert rule below.
 
-Keep C<wingman/autokick_excluded_tubes> configured for email/manual recovery.
-Invalid lists stop monitoring visibly. Broker errors do not suppress other tubes
-or already detected alerts, and the command fails visibly after reporting them.
+To retain buried jobs for manual recovery, list their tubes in
+C<wingman/autokick_excluded_tubes>:
 
-Automatic retries belong to the plugin: classify an identified temporary failure,
-check persistent C<stats-E<gt>reserves> before performing effects, and confirm a
-positive-delay C<release> of the same job while its attempt budget permits.
-The plugin owns exhaustion handling and operator reporting. Unknown exceptions,
-C<failed>/C<retained> outcomes and false legacy returns are not retry requests.
-See L<Wingman::Role::Plugin> and the retry rollout section in C<TESTING.md>.
+ "wingman": {
+     "autokick_excluded_tubes": ["stitcher.orders"]
+ }
+
+Each entry must be a non-empty tube name; invalid configuration stops the command
+before any queue changes. Excluded tubes are never kicked and their payloads are
+not read. They alert when they hold more than one buried job (ages and retry
+counts behind the head are unknown), or when the head was kicked more than once
+or is older than 12 hours. A single fresh retained job does not alert.
+
+Foreign Jobber tubes remain outside Wingman's scope. Broker errors do not suppress
+other tubes or already detected alerts, and the command fails visibly after
+reporting them.
 
 =head1 OPTIONS
 

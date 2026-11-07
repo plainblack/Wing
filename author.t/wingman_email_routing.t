@@ -13,6 +13,12 @@ my $shipped = Config::JSON->new("$FindBin::Bin/../var/init/etc/wing.conf");
 is $shipped->get('wingman/email_tube'), 'wingman.email', 'stock installation dedicates an email tube';
 is_deeply $shipped->get('wingman/autokick_excluded_tubes'), ['wingman.email'], 'stock email jobs keep their manual retention policy';
 
+# The dev broker is shared, so autokick here only sees tubes this test owns.
+my $all_tubes = Wingman->can('list_tubes');
+{
+    no warnings 'redefine';
+    *Wingman::list_tubes = sub { grep { /^wingman_test(\.|$)/ } $all_tubes->(@_) };
+}
 my $settings = Wing->config->get('wingman');
 local $settings->{plugins} = {
     'Wingman::Plugin::SendTemplatedEmail' => {phase => 'SendTemplatedEmail'},
@@ -158,7 +164,7 @@ is $child->stats->tube, 'wingman_test.email', 'actual fan-out child is routed';
     $config->set('mkits', $original_mkits);
     $config->set('smtp', $original_smtp);
 }
-# Monitoring preserves both email and unrelated terminal work.
+# Autokick keeps email buried and kicks unrelated work.
 my $email = $sender->put('SendTemplatedEmail', {});
 $sender->watch_only('wingman_test.email');
 $sender->reserve(0)->bury;
@@ -170,12 +176,12 @@ $sender->reserve(0)->bury;
     no warnings 'redefine';
     local *Wing::send_templated_email = sub { ++$alerts };
     Wing::Command::Command::autokick_jobs->execute({}, []);
-    is $alerts, 1, 'monitor requests an operator alert for ordinary terminal work';
+    is $alerts, 0, 'fresh email and a kicked ordinary job need no inspection';
 }
 is $email->stats->state, 'buried', 'autokick retains dedicated email job';
 is $email->stats->kicks, 0, 'email never automatically retried';
-is $ordinary->stats->state, 'buried', 'monitor leaves unrelated terminal work for selective recovery';
-is $ordinary->stats->kicks, 0, 'monitor does not retry default-tube jobs';
+is $ordinary->stats->state, 'ready', 'default tube is kicked when email has its own tube';
+is $ordinary->stats->kicks, 1, 'ordinary job was kicked once';
 $email->delete;
 $ordinary->delete;
 

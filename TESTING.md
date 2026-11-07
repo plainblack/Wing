@@ -67,62 +67,33 @@ application database or TGC migration is applied.
 
 No production deployment procedure is documented for Wing.
 
-## Plugin-owned retries and monitor-only recovery command
+## Autokick
 
-`wing autokick_jobs` retains its historical command name but now monitors only.
-It reports buried counts and available head metadata without decoding jobs,
-loading plugins or changing their states. Ordinary tubes with buried work request
-inspection; excluded email/manual tubes retain the single-fresh-head quiet period,
-old/stuck head thresholds and hidden-backlog alerts. Jobber remains outside Wing.
+`wing autokick_jobs` kicks fresh buried jobs again. A job kicked more than once,
+older than twelve hours or with an unreadable payload stays buried, alerts
+`wing_admin`, and is moved behind the other buried jobs in its tube with
+beanstalkd 1.12+'s `reserve-job` and `bury` (priority kept), so fresh jobs behind
+it are still kicked (#60). Beanstalk::Client 1.07 has no `reserve_job`, so
+`Wingman->reserve_job` sends the command through the client's private
+`_interact`; https://github.com/gbarr/perl-beanstalk-client/issues/13 asks for a
+public method. If the command dies between `reserve-job` and `bury`, the broker
+returns that job to ready.
 
-Plugins retry only identified temporary failures through a checked positive-delay
-release of the same job. Their persistent reservation count supplies the attempt
-budget, checked before effects; they own exhaustion, terminal acknowledgements
-and operator reporting. PostWebHook retains its durable database failure counter
-and existing rescheduling policy; it is not wrapped in another retry layer.
-Existing plugin releases, legacy returns and explicit
-failed/retained outcomes keep their contracts. Unknown exceptions do not become
-automatic retries. No new outcome, configuration default or job envelope is added.
-The former cron rule of two kicks within twelve hours is retired; twelve hours
-remains an old-head monitoring threshold. Existing plugin-specific limits remain.
-Inspection alerts repeat on each monitoring run until operators resolve the
-buried work; there is no new deduplication or global retry policy.
+Tubes in `wingman/autokick_excluded_tubes`, and the email tube
+(`wingman/email_tube`, or the default tube when that is unset), are never kicked
+and keep the quieter alert rule: more than one buried job, or a stuck or old head.
+A buried SendTemplatedEmail or EmailAllAdmins job in any other tube is not kicked
+and follows that same rule, because the email plugins bury before sending.
+Installations without `email_tube` therefore get no kicks on their default tube.
 
-Adopt this change in this order during an explicitly authorized release:
-
-1. Stop automatic-kick cron execution on every recovery host before depending on
-   terminal burial. Installing new workers alone does not stop old autokickers.
-2. Deliver the monitor-only command to all recovery hosts. Review the relevant
-   plugins' explicit release limits and acknowledgement/partial-progress behavior.
-3. Restart relevant workers with the reviewed code, then resume monitoring cron.
-   Existing `[phase,args]` messages and worker-owned acknowledgements are compatible;
-   exceptions buried by an older worker now need manual inspection.
-4. Inspect existing buried backlogs by known job ID and logged business IDs.
-   Reconcile possible external effects and classify each failure before selective
-   recovery. A previously fresh buried job behind a retained head is not migrated
-   or automatically recovered. Existing job-ID kick/delete controls remain manual
-   overrides; never bulk-kick an excluded/email tube.
-5. A rollback must not restore an automatic-kick binary or cron while relying on
-   terminal/manual burial. Keep monitoring stopped if that guarantee cannot hold.
-
-No queue migration or live service operation is part of these repository checks.
-This change does not provide exactly-once effects or a universal crash retry cap:
-disconnects and TTR expiry can redeliver unacknowledged work, and limits remain at
-their plugin owner. Persistent broker configuration controls durability. Existing
-applications copy email templates and must update their copies through their own
-release if they adopt revised alert instructions.
-
-`wingman_shared_broker.t` checks read-only monitoring, native count/head behavior,
-malformed/uninstalled plugins, manual/email policy and Jobber isolation.
-`wingman_job_outcomes.t` exercises the real job runner with a plugin-owned delayed
-release beside a buried head, same-ID persistence across worker disconnects and
-preflight exhaustion after a lost reservation. The delay is advanced explicitly
-for the next assertion; these tests do not sleep or depend on machine speed.
-`wingman_monitor_cli.t` invokes the actual CLI with a temporary configuration and
-an in-memory SQLite bootstrap (using the installed DBD::SQLite). The CLI monitors
-every tube on the shared dev broker, so it runs with `WING_NO_EMAIL` set and does
-not check that no alert is mailed; `wingman_shared_broker.t` covers alerts. That
-test limits monitoring and bulk kicks to its own tubes.
+`wingman_shared_broker.t` covers kicking, a stuck head with fresh jobs behind it,
+email jobs in an ordinary tube, the email tube rule, malformed and uninstalled
+payloads, excluded tubes, broker errors and Jobber isolation, on tubes it owns.
+`wingman_job_outcomes.t` exercises the real job runner with a plugin's delayed
+release beside a buried head. `wingman_monitor_cli.t` runs the actual CLI with a
+temporary configuration and an in-memory SQLite bootstrap. The CLI sees every
+tube on the shared dev broker, so the test excludes every tube that exists when
+it starts and runs with `WING_NO_EMAIL` set.
 
 ## First-party account access
 
@@ -161,7 +132,7 @@ database, actual email plugins and `Wingman::Job`, and controlled SMTP/child
 publication boundaries. It covers true, false, throwing and lost-response
 deletion, partial delivery, failed burial, delivery with neither
 `wingman/email_tube` nor `wingman/autokick_excluded_tubes` configured,
-worker disconnection, actual autokick retention, the immediate `stuck_wingman_job`
+worker disconnection, actual autokick retention of email, the immediate `stuck_wingman_job`
 admin alert for every failure that leaves a job buried (and a failed alert), and a
 bad address (Ouch 442) that SendTemplatedEmail logs and deletes. Two cases run the real
 `Wing->send_templated_email` with `Email::Sender::Simple::send` throwing the
@@ -264,7 +235,7 @@ retain coverage of same-origin/headerless cookie writers and web login guards.
 fan-out. Only daemon lifecycle and SMTP acceptance are controlled. It checks
 legacy unset/null behavior, configured and explicit destinations, invalid
 configuration before broker effects, shipped defaults, and actual autokick
-retention of email alongside recovery of unrelated default-tube work. No
+retention of email alongside kicking of unrelated default-tube work. No
 outbound email is sent. `wingman_email_ack.t` retains the acknowledgement,
 reconciliation and disconnect regression matrix.
 
