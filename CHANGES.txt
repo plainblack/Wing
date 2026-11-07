@@ -5,7 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2026-11-07
- * Add AGENTS.md, which records that Beanstalk::Client is unmaintained so agents fix its gaps in Wing instead of filing upstream issues, and reword the Wingman reserve_job comment to say why Wing sends reserve-job itself (#102).
+ * Add AGENTS.md, which records that Beanstalk::Client is unmaintained so agents fix its gaps in Wing instead of filing upstream issues, and reword the Wingman reserve_job comment to say why Wing sends reserve-job itself. author.t/wingman.t now tests reserve_job directly (#102).
  * Remove TGC-specific references: mail kit manifests no longer set a TT INCLUDE_PATH of /data/TGC/views (no kit includes other templates), the Jobber tube error no longer names TGC commands, and the author-test runner no longer clears TGC_JOBBER_ variables. author.t/no_tgc_references.t keeps TGC out of Wing (#101).
  * UPGRADE: The is_<field> and verify_is_<field> methods that wing_privilege_fields generates (including is_developer) now use is_site_admin instead of is_admin, so an admin's SSO session no longer passes them, wing_controlled_by_privilege, wing_viewed_by_privilege or check_privilege fields unless the user has that privilege itself (#105).
  * UPGRADE: Generic REST admin bypasses ignore an admin's SSO session: can_edit, verify_posted_params, include_admin, the user search by email, POST /api/user and md5_password now use the new User is_site_admin, which is false for SSO sessions. is_admin is unchanged. Setting a password through verify_posted_params now requires can_edit on an existing user, so a user can no longer set another user's password with PUT /api/user/:id (#103).
