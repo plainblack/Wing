@@ -10,8 +10,8 @@ use App::Cmd::Tester;
 use Wing::Command::Command::autokick_jobs;
 
 my $shipped = Config::JSON->new("$FindBin::Bin/../var/init/etc/wing.conf");
-is $shipped->get('wingman/email_tube'), undef, 'stock installation queues email on the default tube';
-is_deeply $shipped->get('wingman/autokick_excluded_tubes'), [], 'stock installation excludes no tubes from autokick';
+is $shipped->get('wingman/email_tube'), 'wingman.email', 'stock installation dedicates an email tube, so autokick can still kick the default tube';
+is_deeply $shipped->get('wingman/autokick_excluded_tubes'), [], 'stock installation needs no autokick exclusion, since autokick never kicks the email tube';
 
 # The dev broker is shared, so autokick here only sees tubes this test owns.
 my $all_tubes = Wingman->can('list_tubes');

@@ -245,10 +245,10 @@ retention of email alongside kicking of unrelated default-tube work. No
 outbound email is sent. `wingman_email_ack.t` retains the acknowledgement,
 reconciliation and disconnect regression matrix.
 
-New installations set no `wingman/email_tube` and exclude no tubes, so email
-queues on the default tube, which autokick never kicks. An installation that
-sets `email_tube` gets workers watching it by default; explicit watch lists must
-include it. Follow the staged adoption steps in `Wingman::Role::EmailRecovery`
+New installations set `wingman/email_tube` to `wingman.email`, which autokick
+never kicks, and exclude no tubes; without it autokick would skip the default
+tube. Default workers watch the email tube automatically; explicit watch lists
+must include it. Follow the staged adoption steps in `Wingman::Role::EmailRecovery`
 before changing an existing installation or removing its old exclusions. No
 existing jobs are moved. The routing setting is optional for compatibility;
 absent or null retains legacy default-tube routing.

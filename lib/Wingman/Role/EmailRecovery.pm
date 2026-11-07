@@ -55,15 +55,14 @@ C<wingman/email_tube> nor C<wingman/autokick_excluded_tubes> sends queued email
 on its default tube. C<autokick_jobs> never kicks the email tube
 (C<wingman/email_tube>, or the default tube when that is unset) or a buried
 email job in any other tube. A dedicated email tube keeps email's manual
-recovery apart from other work, so the default tube can be kicked again. New
-installations queue email on the default tube; to use a dedicated tube, set:
+recovery apart from other work, so the default tube can be kicked again. For
+new installations the shipped configuration uses:
 
  "wingman": {
-     "email_tube": "wingman.email",
-     "autokick_excluded_tubes": ["wingman.email"]
+     "email_tube": "wingman.email"
  }
 
-Merge these keys into the existing Wing JSON configuration. Keep the existing
+Merge this key into the existing Wing JSON configuration. Keep the existing
 C<beanstalkd/default_tube> for unrelated work. L<Wingman/put> documents routing
 precedence. C<wingman_job_options =E<gt> { tube =E<gt> "custom.mail" }> still
 selects an explicit destination; watch that actual tube too.
@@ -72,7 +71,7 @@ Synchronous email and other plugins retain their existing behavior.
 Default C<wingman.pl> workers now watch both the default and configured email
 tubes. Explicit lists replace the defaults: use
 C<wing wingman --restart --watch=wingman,wingman.email> or
-C<wingman.pl restart --watch-only=wingman,wingman.email> for those names.
+C<wingman.pl restart --watch-only=wingman,wingman.email> for the shipped names.
 Include any host-specific or other required tubes as well. Every email tube
 must have a worker with its email plugins loaded.
 
