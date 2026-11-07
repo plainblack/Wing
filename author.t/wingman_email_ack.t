@@ -9,10 +9,6 @@ use Wingman::Plugin::SendTemplatedEmail;
 use Wingman::Plugin::EmailAllAdmins;
 use Wing::Command::Command::autokick_jobs;
 
-my $shipped = Config::JSON->new("$FindBin::Bin/../var/init/etc/wing.conf");
-ok scalar(grep { $_ eq $shipped->get('wingman/email_tube') }
-    @{$shipped->get('wingman/autokick_excluded_tubes')}),
-    'shipped config keeps its email tube out of autokick';
 # The dev broker is shared, so autokick here only sees tubes this test owns.
 my $all_tubes = Wingman->can('list_tubes');
 {

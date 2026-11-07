@@ -59,11 +59,10 @@ recovery apart from other work, so the default tube can be kicked again. For
 new installations the shipped configuration uses:
 
  "wingman": {
-     "email_tube": "wingman.email",
-     "autokick_excluded_tubes": ["wingman.email"]
+     "email_tube": "wingman.email"
  }
 
-Merge these keys into the existing Wing JSON configuration. Keep the existing
+Merge this key into the existing Wing JSON configuration. Keep the existing
 C<beanstalkd/default_tube> for unrelated work. L<Wingman/put> documents routing
 precedence. C<wingman_job_options =E<gt> { tube =E<gt> "custom.mail" }> still
 selects an explicit destination; watch that actual tube too.
