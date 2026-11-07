@@ -10,7 +10,7 @@ around run => sub {
         $job->bury or die "Burial not acknowledged. Check broker connectivity before retrying.\n";
         1;
     };
-    return { wingman_outcome => 'failed', message => "Email delivery not started: $@ Check configuration and broker state before retrying." }
+    return { wingman_outcome => 'failed', message => "Email delivery not started: $@ Check broker state before retrying." }
         unless $prepared;
 
     my $delivered = eval { $self->$run($job, $args); 1 };

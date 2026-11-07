@@ -119,6 +119,7 @@ my $program;
     die $@ if $@;
 }
 local $settings->{max_workers} = 0;
+local $settings->{autokick_excluded_tubes} = ['wingman_test.email'];
 my $sender = Wingman->new;
 my $admin = Wing->db->resultset('User')->create({username => 'email_route_admin', email => 'route@example.invalid', admin => 1});
 my $parent = $sender->put('EmailAllAdmins', {template => 'generic', params => {}});

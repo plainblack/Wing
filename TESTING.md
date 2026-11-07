@@ -159,13 +159,12 @@ https://github.com/plainblack/TGC/issues/4284.
 `author.t/wingman_email_ack.t` uses the dev broker and the runner's test
 database, actual email plugins and `Wingman::Job`, and controlled SMTP/child
 publication boundaries. It covers true, false, throwing and lost-response
-deletion, partial delivery, failed burial, invalid/missing tube exclusions,
+deletion, partial delivery, failed burial, delivery with neither
+`wingman/email_tube` nor `wingman/autokick_excluded_tubes` configured,
 worker disconnection, and actual autokick retention. It sends no outbound mail.
 
-Before running the email plugins, configure their actual tube names in
-`wingman/autokick_excluded_tubes` on every worker and autokick host. They now
-confirm burial before irreversible delivery and require manual reconciliation
-after failure or a worker crash. See `Wingman::Role::EmailRecovery` for recovery
+The email plugins confirm burial before irreversible delivery and require manual
+reconciliation after failure or a worker crash. See `Wingman::Role::EmailRecovery` for recovery
 instructions and the limits of this policy.
 
 ## Client address propagation

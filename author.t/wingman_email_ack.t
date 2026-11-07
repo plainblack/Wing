@@ -67,7 +67,7 @@ my $admin_count = Wing->db->resultset('User')->search({admin => 1})->count;
 for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
     subtest "$plugin / no email_tube or autokick_excluded_tubes" => sub {
         @info = (); @errors = (); $sends = 0;
-        $EmailAckConfig::excluded = undef;
+        local $EmailAckConfig::excluded = undef;
         ok !defined Wing->config->get('wingman/email_tube'), 'config has no email_tube';
         my $worker_client = Beanstalk::Client->new($config->get('wingman/beanstalkd'));
         my $queued = $worker_client->put({ data => '{}' });
