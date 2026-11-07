@@ -11,11 +11,14 @@ my $db = Wing->db;
 my $dbh = $db->storage->dbh;
 
 my $directory = tempdir(CLEANUP => 1);
+# Extra databases are named after the test database, so the test account may create them and the runner drops them.
+my ($test_database) = Wing->config->get('db')->[0] =~ /database=(\w+)/
+    or die "Run this test with perl author.t/run.pl, which names its database in author.t/etc/test.conf.\n";
+my ($install_database, $legacy_database) = map { "${test_database}_$_" } qw(install_check legacy_check);
 sub install_config {
     my $name = shift;
     my $config = decode_json(encode_json(Wing->config->config));
-    $config->{db}[0] =~ s/database=testwing\b/database=$name/
-        or die "Run this test with perl author.t/run.pl, which uses the testwing database from author.t/etc/test.conf.\n";
+    $config->{db}[0] =~ s/database=\w+/database=$name/;
     return $config;
 }
 sub wing_db {
@@ -44,8 +47,8 @@ sub wing_db {
     }
 }
 
-$dbh->do('CREATE DATABASE testwing_install_check');
-my $fresh_config = install_config('testwing_install_check');
+$dbh->do("CREATE DATABASE $install_database");
+my $fresh_config = install_config($install_database);
 wing_db($fresh_config, '--install', '--force');
 my $installed = TestWing::DB->connect(@{$fresh_config->{db}});
 my $installed_dbh = $installed->storage->dbh;
@@ -74,8 +77,8 @@ is $key->user->id, $user->id, 'the installed schema persists a valid user and re
 }
 
 # Historical installs inherited this database default; the fresh-install test above uses native defaults.
-$dbh->do('CREATE DATABASE testwing_legacy_check CHARACTER SET utf8 COLLATE utf8_unicode_ci');
-my $legacy_config = install_config('testwing_legacy_check');
+$dbh->do("CREATE DATABASE $legacy_database CHARACTER SET utf8 COLLATE utf8_unicode_ci");
+my $legacy_config = install_config($legacy_database);
 wing_db($legacy_config, '--install', '--force', '--version', '5');
 my $legacy = TestWing::DB->connect(@{$legacy_config->{db}});
 my $legacy_dbh = $legacy->storage->dbh;
