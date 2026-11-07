@@ -1,20 +1,11 @@
 package Wingman::Role::EmailRecovery;
 
 use Wing::Perl;
-use Wing;
 use Moose::Role;
 
 around run => sub {
     my ($run, $self, $job, $args) = @_;
     my $prepared = eval {
-        my $stats = $job->stats;
-        die "Cannot inspect job tube. Check broker connectivity.\n" unless $stats;
-        my $tube = $stats->tube;
-        my $excluded = Wing->config->get('wingman/autokick_excluded_tubes');
-        die "Add tube $tube to wingman/autokick_excluded_tubes before running email jobs.\n"
-            unless ref($excluded) eq 'ARRAY'
-                && !(grep { !defined $_ || ref $_ || !length $_ } @$excluded)
-                && (grep { $_ eq $tube } @$excluded);
         # Retain before irreversible effects so disconnect and TTR cannot resend mail.
         $job->bury or die "Burial not acknowledged. Check broker connectivity before retrying.\n";
         1;
@@ -45,11 +36,13 @@ Wingman::Role::EmailRecovery - Manual recovery for irreversible email work.
 
 =head1 DESCRIPTION
 
-SendTemplatedEmail and EmailAllAdmins require their actual job tube to be listed
-in C<wingman/autokick_excluded_tubes>. Configure this on every worker and
-C<autokick_jobs> host before running these plugins. An absent or invalid setting
-prevents delivery. Use a dedicated email tube to distinguish its manual recovery
-and monitoring policy from other work. For new installations the shipped configuration uses:
+SendTemplatedEmail and EmailAllAdmins send queued email whatever their tube and
+whatever the autokick configuration. An installation with neither
+C<wingman/email_tube> nor C<wingman/autokick_excluded_tubes> sends queued email
+on its default tube. A dedicated email tube, also listed in
+C<wingman/autokick_excluded_tubes> so automatic kicks never resend its buried
+jobs, keeps email's manual recovery and monitoring apart from other work. For
+new installations the shipped configuration uses:
 
  "wingman": {
      "email_tube": "wingman.email",
@@ -59,7 +52,7 @@ and monitoring policy from other work. For new installations the shipped configu
 Merge these keys into the existing Wing JSON configuration. Keep the existing
 C<beanstalkd/default_tube> for unrelated work. L<Wingman/put> documents routing
 precedence. C<wingman_job_options =E<gt> { tube =E<gt> "custom.mail" }> still
-selects an explicit destination; exclude and watch that actual tube too.
+selects an explicit destination; watch that actual tube too.
 Synchronous email and other plugins retain their existing behavior.
 
 Default C<wingman.pl> workers now watch both the default and configured email
@@ -70,23 +63,23 @@ Include any host-specific or other required tubes as well. Every email tube
 must have a worker with its email plugins loaded.
 
 For existing installations, first deploy the routing-aware worker code and
-restart workers with both the old and new tubes watched. Configure the new
-tube's exclusion on every worker and autokick host before publishers use
-C<email_tube>. Then set C<email_tube> consistently on all publishers and workers.
-Keep the old email tube excluded until its existing jobs are drained or manually
-reconciled. Inspect ready, delayed, reserved and buried jobs before removing that
-old exclusion. Already queued jobs never move. All automatic-kick hosts must use
+restart workers with both the old and new tubes watched. Exclude the new tube
+from autokick on every autokick host before publishers use C<email_tube>. Then
+set C<email_tube> consistently on all publishers and workers. Keep the old email
+tube excluded until its existing jobs are drained or manually reconciled.
+Inspect ready, delayed, reserved and buried jobs before removing that old
+exclusion. Already queued jobs never move. All automatic-kick hosts must use
 the monitor-only command before relying on burial for terminal/manual retention;
 old binaries can still revive jobs. Automatic retries use plugin-owned delayed
 release, not buried-job recovery. Buried email must never be automatically kicked.
 No running configuration is changed automatically. Leaving the setting absent
-or null preserves legacy routing and its requirement to exclude the actual tube.
+or null preserves legacy routing.
 
 The plugin confirms burial before SMTP or child publication and checks final
 deletion. A failed or throwing deletion returns C<failed>, never acknowledged
 completion. Burial prevents broker redelivery on worker disconnect or TTR expiry,
 but does not prevent explicit kicks, external recovery tools, broker data loss,
-or an operator changing the exclusion configuration. Keep broker persistence
+or an operator changing the autokick exclusion configuration. Keep broker persistence
 configured to meet the application's durability requirements.
 
 A crash at any point after burial can leave an unsent, partially sent, or fully

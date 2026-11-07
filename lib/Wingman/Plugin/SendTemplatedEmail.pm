@@ -25,7 +25,7 @@ B<NOTE:> There is a generic mkit template included with wing called C<generic> t
 =head2 run ( job, args )
 
 Confirm manual retention before delivery, then check deletion. See
-L<Wingman::Role::EmailRecovery> for required tube configuration and recovery.
+L<Wingman::Role::EmailRecovery> for tube configuration and recovery.
 
 =over
 
