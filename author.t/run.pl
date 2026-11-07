@@ -10,7 +10,7 @@ use FindBin;
 use Getopt::Long;
 use JSON;
 use Config::JSON;
-use POSIX qw(setpgid);
+use POSIX qw(setpgid _exit);
 
 # Runs Wing author tests against the running dev MySQL and Beanstalkd named in author.t/etc/test.conf.
 my $root = realpath("$FindBin::Bin/..");
@@ -36,6 +36,12 @@ my $config = Config::JSON->new("$root/author.t/etc/test.conf")->config;
 my ($dsn, $user, $password) = @{$config->{db}};
 my ($database) = $dsn =~ /database=(\w+)/ or die "author.t/etc/test.conf db must name its database, like DBI:mysql:database=testwing.\n";
 my $dbh = DBI->connect($dsn, $user, $password, {RaiseError => 1, PrintError => 0});
+# Runs share one database and broker, so take turns; MySQL releases the lock if a run dies.
+my $lock = "$database author tests";
+unless ($dbh->selectrow_array('SELECT GET_LOCK(?, 0)', undef, $lock)) {
+    print STDERR "Waiting for another author test run using $database to finish.\n";
+    $dbh->selectrow_array('SELECT GET_LOCK(?, -1)', undef, $lock);
+}
 sub drop_extra_databases {
     # Tests may only create databases named ${database}_*, which the test account is granted.
     my $pattern = $database =~ s/_/\\_/gr;
@@ -81,10 +87,14 @@ my @includes = map { "-I$root/$_" } qw(lib author.t/lib author.t author.t/tenant
 
 my $child;
 # Stop the whole running test, including servers it started, before END clears its data.
-$SIG{$_} = sub { if ($child) { kill 'TERM', -$child; waitpid $child, 0 } exit 1 } for qw(INT TERM);
+$SIG{$_} = sub { if ($child) { kill 'TERM', -$child; waitpid $child, 0 } exit 1 } for qw(INT TERM HUP QUIT);
 sub run_test {
     defined($child = fork) or die "Cannot start prove: $!\n";
-    if (!$child) { setpgid(0, 0); exec 'prove', @includes, @_ or die "Cannot run prove: $!\n" }
+    if (!$child) {
+        setpgid(0, 0);
+        exec('prove', @includes, @_) or print STDERR "Cannot run prove: $!\n";
+        _exit(127); # skip END, which would reset the parent's database and queue
+    }
     setpgid($child, $child);
     waitpid $child, 0;
     undef $child;
