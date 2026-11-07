@@ -6,6 +6,9 @@ use Config::JSON;
 use Template;
 use Getopt::Long;
 use File::Path qw(make_path);
+use File::Glob ':bsd_glob';
+use File::Spec;
+use FindBin;
 use YAML;
 
 my $project = '';
@@ -13,7 +16,8 @@ my $root = '/data';
 GetOptions("app=s" => \$project, "root=s" => \$root) or die "usage: $0 --app=AppName [--root=/data]\n";
 
 die "usage: $0 --app=AppName [--root=/data]\n" unless $project;
-my $home = "$root/$project";
+my $home = File::Spec->rel2abs($root).'/'.$project;
+my $init = "$FindBin::RealBin/../var/init";
 
 # make folder
 make_path($home.'/lib/'.$project.'/DB/Result');
@@ -26,7 +30,7 @@ make_path($home.'/views/admin');
 make_path($home.'/views/account');
 
 # set up default configs
-my $config = Config::JSON->new('/data/Wing/var/init/etc/wing.conf');
+my $config = Config::JSON->new($init.'/etc/wing.conf');
 my $new_config = Config::JSON->create($home.'/etc/wing.conf');
 $new_config->config($config->config);
 $new_config->set('mkits', $home.'/var/mkits/');
@@ -36,7 +40,7 @@ $new_config->get( 'db' )->[ 0 ] =~ s|PROJECT|lc( $project )|e;
 $new_config->write;
 
 # set up dancer config
-my $dancer_config = YAML::LoadFile('/data/Wing/var/init/config.yml');
+my $dancer_config = YAML::LoadFile($init.'/config.yml');
 $dancer_config->{appname} = $project;
 $dancer_config->{log4perl}{config_file} = $home.'/etc/log4perl.conf';
 $dancer_config->{engines}{template_toolkit}{INCLUDE_PATH} = $home.'/views';
@@ -66,7 +70,7 @@ template($tt,'bin/setup/install_perl_modules.sh', $vars);
 template($tt,'dbicdh/_common/deploy/1/install_admin.pl', $vars);
 
 # mail kits are runtime templates, so copy them untouched
-system('cp', '-R', '/data/Wing/var/init/var/mkits', $home.'/var/') == 0 or die "Could not copy the mail kits into $home/var/mkits.\n";
+system('cp', '-R', $init.'/var/mkits', $home.'/var/') == 0 or die "Could not copy the mail kits into $home/var/mkits.\n";
 
 # set up views, using alternate template tags since they're templates
 my $t_alt = Template->new({ABSOLUTE => 1, START_TAG => quotemeta('[%['), END_TAG => quotemeta(']%]')});
@@ -115,5 +119,5 @@ say qq|for create database step, run command 'mysql -uroot -p -e "create databas
 sub template {
   my ($tt, $from, $vars, $to) = @_;
   $to ||= $from;
-  $tt->process('/data/Wing/var/init/'.$from, $vars, $home.'/'.$to) || die $tt->error();
+  $tt->process($init.'/'.$from, $vars, $home.'/'.$to) || die $tt->error();
 }
