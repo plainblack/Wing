@@ -162,77 +162,24 @@ need `--with-http_realip_module` for. Behind a load balancer, add one
 then takes the last X-Forwarded-For address those ranges did not add. Requests
 from any other peer keep that peer's address, so clients cannot choose it.
 
-## Web session request security
+## Session cookies and cross-origin requests
 
-`author.t/web_session_security.t` and `author.t/rest_session_cookie.t` send real
-HTTP requests through Wing's Dancer PSGI app using the runner's test database
-and cache. They cover origin refusals before SQL or password-reset cache lookup,
-successful login/create/reset/SSO, admin impersonation, and all Wing session
-cookie writers on HTTP, native HTTPS and forwarded HTTPS.
+`author.t/web_session_security.t`, `author.t/rest_session_cookie.t` and
+`author.t/rest_request_security.t` send real HTTP requests through Wing's Dancer
+PSGI app using the runner's test database and cache.
 
-Session cookies retain their five-year expiry, root or `/api` path, and
-JavaScript access, and now use `SameSite=Lax`. `Secure` follows Dancer 1.3522's
-`request->secure`. Forwarded protocol and host are trusted only when Dancer's
-`behind_proxy` is enabled. Enable it only behind an ingress that overwrites
-forwarded headers and prevents direct application access. No proxy setting is
-enabled by this change. The shipped `var/init/config.yml` already enables
-`behind_proxy`; its generated nginx now overwrites `X-Forwarded-Proto` with
-nginx's observed scheme and `X-Forwarded-Host` with the request authority,
-including its port. If TLS terminates at an earlier load balancer, explicitly
-configure the trusted ingress chain to establish the external scheme and host;
-nginx's own scheme is HTTP in that topology. Existing deployed configs are not
-modified automatically.
+Session cookies keep their five-year expiry, root or `/api` path, and JavaScript
+access, and use `SameSite=Lax`. `Secure` follows Dancer 1.3522's
+`request->secure`, which trusts `X-Forwarded-Proto` only when `behind_proxy` is
+enabled; enable it only behind an ingress that overwrites forwarded headers and
+blocks direct application access. The generated nginx sets `X-Forwarded-Proto`
+and `X-Forwarded-Host` from its own variables. The tests cover every Wing
+session cookie writer on HTTP, native HTTPS and forwarded HTTPS.
 
-`Wing::RequestSecurity::same_origin_error(request)` is the shared validation
-seam for REST callers. It returns undef or an actionable error string, without
-accessing sessions, SQL or cache. Callers must send their own 403 response before
-lookup or mutation and outside authentication eval blocks. This change protects
-web POST `/login`, `/account/create`, `/account/reset-password-code`, and the
-session-renewing `/account`; REST mutation enforcement is described below. External
-Facebook GET callbacks retain their existing flow.
-
-The implementation was checked against installed Dancer 1.3522 Cookie, Request
-and Config POD and Cookie/Request source, installed URI POD, and RFC 6454
-(https://www.rfc-editor.org/rfc/rfc6454), including scheme and effective port
-comparison, null origins and strict serialized-origin syntax.
-
-## REST mutation request security
-
-`author.t/rest_request_security.t` sends real HTTP requests through Dancer's
-PSGI app, using the runner's test database and cache. It exercises
-actual generated User CRUD routes, custom routes and REST credential login.
-SQL tracing and transparent cache observation assert zero lookups or mutations
-on refusal, including login requests with no existing cookie. HTTP reads verify
-successful generated creation, update and deletion.
-
-Wing::Rest checks every unsafe method (all except GET, HEAD and OPTIONS) in its
-before hook, outside generated authentication evals. Cross-site fetch metadata
-and mismatched, null or malformed Origin receive the usual Wing JSON 403 error
-with instructions to reload and submit from this site. Headerless API clients
-continue to work. Explicit session_id parameters have no exemption, including
-JSON null/false/containers, empty form values, and valid session IDs. This also
-protects POST /api/session before credential lookup or a cookie write. No cookie
-is required to trigger enforcement. By default, cross-origin browser integrations must submit from the API origin.
-Installations can opt into `rest/allow_cookieless_cross_origin_writes` in Wing's
-JSON configuration. Requests with any Cookie header remain refused; requests
-without one reach normal authentication, including explicit session parameters.
-Cross-origin credential login returns a usable token without `Set-Cookie`, even
-for a form navigation. Custom routes must also avoid issuing ambient credential
-cookies cross-origin. See `Wing::Rest` for configuration and the installation
-trust requirements. This adds no CORS allowlist or authentication mode.
-The scheme/host and trusted ingress requirements above apply unchanged.
-
-The request boundary uses the installed Dancer 1.3522 Request, hook, Response
-and halt POD/source and URI canonicalization POD. Dancer's before-hook exceptions
-reach Wing's existing Ouch error handler, which preserves the error envelope
-rather than wrapping a refusal as a result.
-
-The same test also exercises the opt-in with real developer login, explicit
-session authentication and logout. It checks null/malformed origins and fetch
-metadata, session/cart/unknown/empty cookies, and zero SQL/cache/route activity
-on cookie-backed refusals. HTTP response assertions prove cross-origin form
-login cannot install a session cookie; existing cookie and web security tests
-retain coverage of same-origin/headerless cookie writers and web login guards.
+Wing does not check `Origin` or `Sec-Fetch-Site`. Cross-origin web logins,
+account creation, password resets, REST login and REST writes with a cookie or
+an explicit `session_id` reach normal authentication. Applications that want an
+origin check add their own.
 
 ## Dedicated email routing
 
