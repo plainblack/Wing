@@ -75,7 +75,7 @@ Whatever field you add using C<wing_privilege_fields>
 
 =item is_C<field_name>
 
-An alias for C<field_name>.
+True if C<field_name> is set or the user is a site admin (see C<is_site_admin> in L<Wing::Role::Result::User>), so an admin's SSO session gets only the privileges the user has.
 
 =item verify_is_C<field_name>.
 
@@ -114,7 +114,7 @@ sub wing_privilege_field {
 
     $class->meta->add_method($is_method_name => sub {
         my $self = shift;
-        return $self->$field || $self->is_admin;
+        return $self->$field || $self->is_site_admin;
     });
 
     $class->meta->add_around_method_modifier( describe => sub {
