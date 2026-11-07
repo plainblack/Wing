@@ -4,7 +4,6 @@ use Test::More import => ['!pass'];
 use Dancer ':syntax';
 use Wing;
 use Wing::Rest;
-use Wing::DB::ResultSet;
 use Plack::Test;
 use Dancer::Handler;
 use HTTP::Request::Common qw(GET);
@@ -16,7 +15,6 @@ set show_errors => 0;
 require Wing::Rest::User;
 require Wing::Rest::APIKey;
 
-Wing->db->source($_)->resultset_class("Wing::DB::ResultSet") for qw(User APIKey APIKeyPermission);
 my $user = Wing->db->resultset('User')->create({username => 'route-owner', email => 'route-owner@example.invalid'});
 my $denied_key = $user->apikeys->create({name => 'route-denied-key'});
 my $allowed_key = $user->apikeys->create({name => 'route-allowed-key'});

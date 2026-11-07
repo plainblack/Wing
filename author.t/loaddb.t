@@ -22,6 +22,8 @@ is scalar(@sources), 13, 'source count is right';
 
 ok 'Employee' ~~ \@sources, 'we have the sources we think we do';
 
+isa_ok $db->resultset($_), 'Wing::DB::ResultSet', "$_ resultset" for @sources;
+
 #say $db->deployment_statements();
 
 $db->deploy({ add_drop_table => 1 });

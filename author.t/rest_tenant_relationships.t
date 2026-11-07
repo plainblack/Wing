@@ -23,7 +23,6 @@ use warnings 'redefine';
 
 require Wing::Rest::User;
 require Wing::Rest::NotFound;
-$_->source('APIKey')->resultset_class('Wing::DB::ResultSet') for Wing->db, 'Acquisitions::DB';
 
 my $owner = Wing->db->resultset('User')->create({username => 'tenant-owner', email => 'tenant-owner@example.invalid'});
 my $site = Wing->db->resultset('Site')->new({});

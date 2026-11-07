@@ -6,7 +6,6 @@ use Dancer::Test;
 use Wing;
 use Wing::Rest;
 use Wing::Rest::Session;
-use Wing::DB::ResultSet;
 use Wing::SSO;
 use Plack::Test;
 use Dancer::Handler;
@@ -27,7 +26,6 @@ my $user = Wing->db->resultset('User')->new({username => 'address-test', email =
 $user->encrypt_and_set_password('address-test-password');
 $user->insert;
 my $key = $user->apikeys->create({name => 'address-test'});
-Wing->db->source('User')->resultset_class('Wing::DB::ResultSet');
 my $users = Wing->db->resultset('User')->search({id => $user->id}, {result_class => 'AddressGatedUser'});
 get '/address/describe' => sub { return describe($users->single) };
 get '/address/list' => sub { return format_list($users, object_options => {}) };
