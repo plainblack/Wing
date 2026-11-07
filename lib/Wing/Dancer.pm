@@ -47,7 +47,7 @@ sub find_tenant_site {
     return undef unless $domain;
     my $hostname = request->env->{HTTP_HOST};
     my $search = {trashed => 0};
-    if ($hostname =~ m/^(.*)\.$domain$/) {
+    if ($hostname =~ m/^(.*)\.\Q$domain\E$/) {
         $search->{-or} = [ { shortname => $1 }, {hostname => $hostname} ];
     }
     else {
