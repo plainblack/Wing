@@ -3,12 +3,14 @@ use warnings;
 use Cwd qw(realpath);
 use Beanstalk::Client;
 use DBI;
+use File::Glob qw(bsd_glob);
 use File::Path qw(remove_tree);
 use File::Temp qw(tempdir);
 use FindBin;
 use Getopt::Long;
 use JSON;
 use Config::JSON;
+use POSIX qw(setpgid);
 
 # Runs Wing author tests against the running dev MySQL and Beanstalkd named in author.t/etc/test.conf.
 my $root = realpath("$FindBin::Bin/..");
@@ -16,7 +18,7 @@ my $usage = "Use: perl author.t/run.pl author.t/<test>.t ... | --slice k/count (
 sub refuse { print STDERR $_[0], $usage; exit 2 }
 
 GetOptions('slice=s' => \my $slice) or refuse('');
-my @available = sort glob "$root/author.t/*.t";
+my @available = sort(bsd_glob("$root/author.t/*.t"));
 my @tests;
 if (defined $slice) {
     my ($index, $count) = $slice =~ m{^(\d+)/(\d+)$};
@@ -56,6 +58,7 @@ sub clear_queue {
             while (my $job = $queue->$peek) { $queue->delete($job->id) }
         }
     }
+    $queue->use($owned);
 }
 
 my $scratch = tempdir('wing-check-XXXXXX', TMPDIR => 1, CLEANUP => 1);
@@ -76,7 +79,17 @@ delete @ENV{qw(PERL5OPT PERL5DB)};
 @ENV{qw(WING_HOME WING_APP WING_OWNER WING_CONFIG)} = ($root, "$root/author.t", "$root/author.t", "$scratch/config.json");
 my @includes = map { "-I$root/$_" } qw(lib author.t/lib author.t author.t/tenant_files/lib);
 
-$SIG{$_} = sub { exit 1 } for qw(INT TERM);
+my $child;
+# Stop the whole running test, including servers it started, before END clears its data.
+$SIG{$_} = sub { if ($child) { kill 'TERM', -$child; waitpid $child, 0 } exit 1 } for qw(INT TERM);
+sub run_test {
+    defined($child = fork) or die "Cannot start prove: $!\n";
+    if (!$child) { setpgid(0, 0); exec 'prove', @includes, @_ or die "Cannot run prove: $!\n" }
+    setpgid($child, $child);
+    waitpid $child, 0;
+    undef $child;
+    return $? == 0;
+}
 END { my $status = $?; if ($dbh) { reset_databases(); clear_queue() } $? = $status }
 reset_databases();
 write_config();
@@ -97,7 +110,7 @@ for my $test (@tests) {
     remove_tree("$scratch/cache");
     clear_queue();
     write_config();
-    system('prove', @includes, $test) == 0 or push @failed, $test =~ s{^\Q$root/\E}{}r;
+    run_test($test) or push @failed, $test =~ s{^\Q$root/\E}{}r;
 }
 print STDERR "Failed: @failed\n" if @failed;
 exit(@failed ? 1 : 0);

@@ -47,6 +47,8 @@ my $job = $raw->put({ data => '{"version":1,"operation":"core.bury-me.v1","paylo
 ok $job, 'created a native Jobber envelope';
 $raw->reserve(0)->bury;
 my $id = $job->id;
+# The runner only clears wingman_test tubes, so remove the Jobber-tube job even if a check dies.
+END { $raw->delete($id) if $raw && $id }
 my $wingman = Wingman->new;
 
 is_deeply [$wingman->list_tubes], ['wingman_test.legacy'], 'Wingman enumeration excludes Jobber tubes';

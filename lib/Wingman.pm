@@ -620,19 +620,15 @@ sub guess_min_peek_range {
         @tubes = $self->list_tubes;
     }
     my $min = 0;
+    my $used = $self->list_tube_used;
     foreach my $tube (@tubes) {
         $self->use($tube);
-        my $job = $self->beanstalk->peek_ready;
-        if (defined $job) {
-            if ($min == 0) {
-                $min = $job->id;
-            }
-            else {
-                $min = min($min, $job->id);    
-            }
+        foreach my $peek (qw(peek_ready peek_delayed peek_buried)) {
+            my $job = $self->beanstalk->$peek;
+            $min = $min ? min($min, $job->id) : $job->id if defined $job;
         }
     }
-    $self->use(Wing->config->get('wingman/beanstalkd/default_tube'));
+    $self->use($used);
     my $jitter_min = ceil($min - ($guess_peek_range * $jitter));
     return max(1, $jitter_min);
 }

@@ -11,7 +11,12 @@ my $server = Config::JSON->new($ENV{WING_CONFIG})->get('wingman/beanstalkd/serve
 my $client = Beanstalk::Client->new({server => $server, default_tube => 'wingman_test.cli'});
 $client->use('0');
 $client->watch_only('0');
+# Tube 0 is not namespaced on the shared dev broker, so only use it while it is empty.
+my $existing = $client->stats_tube('0');
+die "Tube 0 on the dev broker already holds jobs. This test needs it empty; remove them if an earlier Wing test run left them.\n"
+    if grep { $existing->$_ } qw(current_jobs_ready current_jobs_reserved current_jobs_delayed current_jobs_buried);
 my $job = $client->put({data => 'not a Wingman payload'});
+END { $client->delete($job->id) if $job }
 $client->reserve(0)->bury;
 my $directory = tempdir(CLEANUP => 1);
 open my $log, '>', "$directory/log.conf" or die $!;
@@ -43,6 +48,4 @@ is do { local $/; <$unchanged> }, $serialized, 'CLI configuration is unchanged';
 close $unchanged;
 is $client->stats_job($job->id)->state, 'buried', 'actual CLI retains the native job';
 is $client->stats_job($job->id)->kicks, 0, 'actual CLI never kicks the native job';
-$client->delete($job->id);
-$client->disconnect;
 done_testing;
