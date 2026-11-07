@@ -247,6 +247,10 @@ around describe => sub {
 
 Starts a new session for this user. See C<start> in L<Wing::Session> for details.
 
+=item is_site_admin
+
+Returns 1 if the user is an admin and is not acting through an app's single sign-on session, otherwise 0. Use it for admin bypasses, since no API key permission grants admin rights.
+
 =item display_name
 
 Returns the user's preferred display name based upon the L<use_as_display_name> field.
@@ -499,6 +503,12 @@ sub is_admin {
     return $self->admin;
 }
 
+sub is_site_admin {
+    my $self = shift;
+    my $session = $self->has_current_session ? $self->current_session : undef;
+    return $self->is_admin && !(defined $session && $session->sso) ? 1 : 0;
+}
+
 sub verify_is_admin {
     my $self = shift;
     unless ($self->is_admin) {
@@ -566,7 +576,9 @@ before verify_posted_params => sub {
             ouch 450, 'Secondary authentication required. Open your account settings and follow the verification email before saving changes.', 'secondary_authentication';
         }
     }
-    if (defined $current_user && $current_user->is_admin && $params->{md5_password} && $params->{password}) {
+    # password is not a postable field, so the parameter loop never checks who may set it
+    $self->can_edit($current_user) if $params->{password} && $self->in_storage;
+    if (defined $current_user && $current_user->is_site_admin && $params->{md5_password} && $params->{password}) {
         $self->password($params->{password});
         $self->password_type('md5');
     }

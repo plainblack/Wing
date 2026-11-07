@@ -120,7 +120,7 @@ sub format_list {
     }
     my @list;
     my $user = $options{current_user};
-    my $is_admin = defined $user && $user->is_admin ? 1 : 0;
+    my $is_admin = defined $user && $user->is_site_admin ? 1 : 0;
     my $extra = {rows => $items_per_page, page => $page_number };
     my $prefetch = [];
 
