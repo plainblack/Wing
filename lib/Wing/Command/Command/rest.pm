@@ -24,18 +24,21 @@ sub opt_spec {
     );
 }
 
-sub execute {
-    my ($self, $opt, $args) = @_;
+sub service_file { my ($self, $extension) = @_; return "/data/apps/logs/wingrest.$extension" }
+
+sub command {
+    my ($self, $opt) = @_;
     my @command = (
-        'start_server', 
-        '--pid-file', '/data/apps/logs/wingrest.pid',
-        '--status-file', '/data/apps/logs/wingrest.status',
-            );
-    if ($opt->{start}) {
+        'start_server',
+        '--pid-file', $self->service_file('pid'),
+        '--status-file', $self->service_file('status'),
+    );
+    # start_server --restart cannot find a server without its PID file, so start one.
+    if ($opt->{start} || ($opt->{restart} && !$opt->{stop} && !-e $self->service_file('pid'))) {
         push @command,
             '--port', 5000,
             '--daemonize',
-            '--log-file', '/data/apps/logs/wingrest.log',
+            '--log-file', $self->service_file('log'),
             '--','starman',
             '--workers', $opt->{workers},
             '--preload-app', $ENV{WING_APP}.'/bin/rest.psgi' ;
@@ -55,7 +58,13 @@ sub execute {
             '--restart',
         ;
     }
-    system(@command);
+    return @command;
+}
+
+sub execute {
+    my ($self, $opt, $args) = @_;
+    system($self->command($opt)) == 0
+        or die "wing rest: start_server failed; its error is above. If port 5000 is in use but there is no PID file, stop the process holding the port (lsof -nP -iTCP:5000 -sTCP:LISTEN), then run wing rest --start.\n";
 }
 
 1;
