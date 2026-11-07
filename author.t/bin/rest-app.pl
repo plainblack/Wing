@@ -7,10 +7,7 @@ use Wing;
 use Wing::DB::ResultSet;
 # Wing's web and REST routes cannot load in one process, so tests serve REST from this one: rest-app.pl port Module...
 my ($port, @modules) = @ARGV;
-{
-    local Wing->config->config->{tenants};
-    eval "require $_; 1" or die $@ for @modules;
-}
+eval "require $_; 1" or die $@ for @modules;
 use HTTP::Server::PSGI;
 use Dancer::Handler;
 set logger => 'null';

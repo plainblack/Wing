@@ -12,12 +12,9 @@ use JSON qw(decode_json);
 
 set show_errors => 0;
 set logger => 'null';
-my $original_tenants = Wing->config->get('tenants');
-Wing->config->delete('tenants');
 require Wing::Rest::Trends;
 require Wing::Rest::Idea;
 require Wing::Rest::NotFound;
-Wing->config->set('tenants', $original_tenants) if defined $original_tenants;
 Wing->db->source('TrendsReport')->resultset_class('Wing::DB::ResultSet');
 my $admin = Wing->db->resultset('User')->create({username => 'rest-admin', email => 'rest-admin@example.invalid', admin => 1});
 my $key = $admin->apikeys->create({name => 'rest-admin-client'});

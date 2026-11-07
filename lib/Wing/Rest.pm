@@ -259,7 +259,8 @@ register generate_all_relationships => sub {
     my ($wing_object_type, %options) = @_;
     my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
     my $object_parameters = $options{object_parameters} || {};
-    my $wing_object = site_db()->resultset($db_class_name)->new($object_parameters);
+    # Routes are set up once at load, outside any request, so no tenant site applies.
+    my $wing_object = Wing->db->resultset($db_class_name)->new($object_parameters);
     foreach my $name (@{$wing_object->relationship_accessors}) {
         my %rel_options;
         if (exists $options{named_options}) {

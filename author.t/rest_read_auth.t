@@ -11,11 +11,8 @@ use HTTP::Request::Common qw(GET);
 use JSON qw(decode_json);
 
 set show_errors => 0;
-my $original_tenants = Wing->config->get('tenants');
-Wing->config->delete('tenants');
 require Wing::Rest::User;
 require Wing::Rest::Session;
-Wing->config->set('tenants', $original_tenants) if defined $original_tenants;
 my $user = Wing->db->resultset('User')->new({username => 'read-owner', email => 'read-owner@example.invalid'});
 $user->encrypt_and_set_password('read-password');
 $user->insert;
@@ -153,5 +150,4 @@ test_psgi $app, sub {
     }
     unlike $res->content, qr/read-owner\@example\.invalid/, 'private email is absent';
 };
-is_deeply(Wing->config->get('tenants'), $original_tenants, 'test preserves original tenant configuration');
 done_testing;
