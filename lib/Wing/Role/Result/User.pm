@@ -615,25 +615,12 @@ sub generate_password_reset_code {
     return $code;
 }
 
-sub mark_changed {
+# While the marker is set, sessions read the user without caching it or waiting on an open transaction's row lock.
+after qw(update delete) => sub {
     my $self = shift;
-    # A new value per change lets each session notice it once; sessions never trust a change that may be uncommitted.
-    my $uncommitted = $self->result_source->storage->dbh_do(sub { ! $_[1]->{AutoCommit} });
-    # Never expires, because a session may outlive any fixed TTL and an absent marker forces database reads.
-    Wing->cache->set('user-changed-'.$self->id, ($uncommitted ? 'uncommitted-' : '').Data::GUID->new->as_string, 'never');
-}
-
-# A no-op update takes no row lock, so its marker could replace an open transaction's uncommitted one.
-around update => sub {
-    my ($orig, $self, $columns) = @_;
-    $self->set_inflated_columns($columns) if $columns;
-    my $changed = $self->is_changed;
-    my $result = $self->$orig;
-    $self->mark_changed if $changed;
-    return $result;
+    Wing->cache->set('user-changed-'.$self->id, 1, 5 * 60);
+    Wing->cache->remove('user-data-'.$self->id);
 };
-
-after delete => sub { $_[0]->mark_changed };
 
 before delete => sub {
     my $self = shift;
@@ -659,6 +646,33 @@ sub determine_avatar_uri {
     else {
         return '//www.gravatar.com/avatar/'.(eval{md5_hex($self->email)}||'broken').'?s=300';
     }
+}
+
+sub user_to_json {
+    my $self = shift;
+    my $data = {};
+    
+    foreach my $column ($self->result_source->columns) {
+        my $value = $self->$column;
+        if (defined $value && ref($value) eq 'DateTime') {
+            $data->{$column} = Wing->to_mysql($value);
+        }
+        else {
+            $data->{$column} = $value;
+        }
+    }
+    
+    return $data;
+}
+
+sub user_from_json {
+    my ($class, $db, $data) = @_;
+    
+    # Create a new user object with the data
+    my $user = $db->resultset('User')->new($data);
+    $user->in_storage(1);
+    
+    return $user;
 }
 
 1;

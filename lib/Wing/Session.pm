@@ -50,8 +50,6 @@ sub BUILD {
         $self->ip_address($session_data->{ip_address});
         $self->sso($session_data->{sso});
         $self->api_key_id($session_data->{api_key_id});
-        $self->user_change_seen($session_data->{user_change_seen});
-        $self->user_data($session_data->{user_data});
         $self->auth_source($session_data->{auth_source}) if exists $session_data->{auth_source};
         $self->floor_login_id($session_data->{floor_login_id}) if exists $session_data->{floor_login_id};
         $self->absolute_expires_at($session_data->{absolute_expires_at}) if exists $session_data->{absolute_expires_at};
@@ -66,15 +64,6 @@ has extended => (
 
 has api_key_id => (
     predicate   => 'has_api_key_id',
-    is          => 'rw',
-);
-
-has user_change_seen => (
-    is          => 'rw',
-);
-
-# Read with user_change_seen from the same cache entry, so the two always come from one write.
-has user_data => (
     is          => 'rw',
 );
 
@@ -125,16 +114,7 @@ has user => (
     default     => sub {
         my $self = shift;
         return undef unless $self->has_user_id;
-        my $change = Wing->cache->get('user-changed-' . $self->user_id);
-        my $user;
-        if ($self->user_change_is_seen($change) && ref $self->user_data eq 'HASH') {
-            my $source = $self->db->source('User');
-            $user = $source->result_class->inflate_result($source, $self->user_data);
-        }
-        else {
-            $user = $self->db->resultset('User')->find($self->user_id);
-            $self->user_change_seen($change);
-        }
+        my $user = $self->cached_user;
         if (defined $user && ! $user->permanently_deactivated) {
             $user->current_session($self);
         }
@@ -142,10 +122,27 @@ has user => (
     },
 );
 
-# The cached user is current only while the marker is the committed one this session read before its last reload.
-sub user_change_is_seen {
-    my ($self, $change) = @_;
-    return defined $change && $change !~ /^uncommitted-/ && $change eq ($self->user_change_seen // '');
+# While a user's change marker is set its row may be uncommitted or cached stale, so read it from the database.
+sub cached_user {
+    my $self = shift;
+    my $data_key = 'user-data-' . $self->user_id;
+    my $changed_key = 'user-changed-' . $self->user_id;
+    if (Wing->cache->get($changed_key)) {
+        Wing->cache->remove($data_key);
+        return $self->db->resultset('User')->find($self->user_id);
+    }
+    my $data = Wing->cache->get($data_key);
+    if (ref $data eq 'HASH') {
+        my $source = $self->db->source('User');
+        return $source->result_class->inflate_result($source, $data);
+    }
+    # A shared lock waits for any uncommitted change, so only committed rows are cached.
+    my $user = $self->db->resultset('User')->find($self->user_id, { for => 'shared' });
+    return $user unless defined $user;
+    Wing->cache->set($data_key, { $user->get_columns }, 60 * 60 * 24 * 7);
+    # A change that landed during the read may have removed the entry before this write.
+    Wing->cache->remove($data_key) if Wing->cache->get($changed_key);
+    return $user;
 }
 
 sub get_permissions {
@@ -202,9 +199,6 @@ sub is_valid {
         return 0;
     }
 
-    # Each session compares the per-user change marker to the last one it saw, so every session refreshes.
-    $self->clear_user unless $self->user_change_is_seen(Wing->cache->get('user-changed-' . $self->user_id));
-
     if (!defined $self->user) {
         $self->end;
         return 0;
@@ -241,8 +235,6 @@ sub extend {
             api_key_id  => $self->api_key_id,
             ip_address  => $self->ip_address,
             session_id  => $self->id,
-            user_change_seen => $self->user_change_seen,
-            user_data   => { $self->user->get_columns },
     };
     $session_data->{auth_source} = $self->auth_source if $self->has_auth_source;
     $session_data->{floor_login_id} = $self->floor_login_id if $self->has_floor_login_id;
