@@ -417,7 +417,7 @@ Returns true, or undef with C<error> set to the broker response.
 sub reserve_job {
     my ($self, $id) = @_;
     my $beanstalk = $self->beanstalk;
-    # shortcut: Beanstalk::Client 1.07 has no reserve_job, use it once https://github.com/gbarr/perl-beanstalk-client/issues/13 ships.
+    # Beanstalk::Client 1.07 has no reserve_job and is unmaintained (see AGENTS.md), so Wing sends reserve-job itself.
     my @response = Beanstalk::Client::_interact($beanstalk, "reserve-job $id") or return undef;
     if ($response[0] eq 'RESERVED') {
         return defined Beanstalk::Client::_recv_data($beanstalk, $response[2]) ? 1 : undef;
