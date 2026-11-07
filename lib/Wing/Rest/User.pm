@@ -18,7 +18,7 @@ sub session_user_and_viewer {
 sub user_search {
     my $viewer = shift;
     my $like = { like => (params->{query} || '').'%' };
-    return { -or => { username => $like, real_name => $like, (defined $viewer && $viewer->is_admin ? (email => $like) : ()) } };
+    return { -or => { username => $like, real_name => $like, (defined $viewer && $viewer->is_site_admin ? (email => $like) : ()) } };
 }
 
 get '/api/user' => sub {
@@ -40,7 +40,7 @@ get '/api/user-not-me' => sub {
 
 my $extra = sub {
     my ($object, $current_user) = @_;
-    ouch(450, 'You must be an administrator to create a user.') unless $current_user->is_admin;
+    ouch(450, 'You must be an administrator to create a user.') unless $current_user->is_site_admin;
 };
 
 generate_options('User');
