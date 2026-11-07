@@ -96,7 +96,9 @@ The plugin confirmed its terminal queue acknowledgement.
 
 =item retained
 
-The plugin intentionally retained the job under its own recovery policy.
+The plugin intentionally retained the job under its own recovery policy. A buried
+retained job is kicked again by C<autokick_jobs> unless its tube is in
+C<wingman/autokick_excluded_tubes>.
 
 =item failed
 

@@ -82,12 +82,14 @@ returns that job to ready.
 Tubes in `wingman/autokick_excluded_tubes`, and the email tube
 (`wingman/email_tube`, or the default tube when that is unset), are never kicked
 and keep the quieter alert rule: more than one buried job, or a stuck or old head.
-A buried SendTemplatedEmail or EmailAllAdmins job in any other tube is not kicked
-and follows that same rule, because the email plugins bury before sending.
-Installations without `email_tube` therefore get no kicks on their default tube.
+A buried SendTemplatedEmail, EmailAllAdmins or EmailAllUsers job in any other tube
+is neither kicked nor moved, because losing either a kick or a reservation could
+send it again. It alerts when it is stuck or old, or when buried jobs wait behind
+it. Installations without `email_tube` therefore get no kicks on their default tube.
+A `retained` plugin outcome is kicked unless its tube is excluded.
 
 `wingman_shared_broker.t` covers kicking, a stuck head with fresh jobs behind it,
-email jobs in an ordinary tube, the email tube rule, malformed and uninstalled
+a job that vanishes before its kick, email jobs in an ordinary tube, the email tube rule, malformed and uninstalled
 payloads, excluded tubes, broker errors and Jobber isolation, on tubes it owns.
 `wingman_job_outcomes.t` exercises the real job runner with a plugin's delayed
 release beside a buried head. `wingman_monitor_cli.t` runs the actual CLI with a

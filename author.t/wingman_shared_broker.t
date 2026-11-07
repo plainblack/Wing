@@ -20,7 +20,8 @@ BEGIN {
         return { server => $server, default_tube => 'wingman_test.legacy' } if $key eq 'wingman/beanstalkd';
         return 'wingman_test.legacy' if $key eq 'wingman/beanstalkd/default_tube';
         return { 'Wingman::Plugin::TriggerWebHook' => { phase => 'TriggerWebHook' },
-            'Wingman::Plugin::SendTemplatedEmail' => { phase => 'SendTemplatedEmail' } } if $key eq 'wingman/plugins';
+            'Wingman::Plugin::SendTemplatedEmail' => { phase => 'SendTemplatedEmail' },
+            'Wingman::Plugin::EmailAllUsers' => { phase => 'EmailAllUsers' } } if $key eq 'wingman/plugins';
         die "Unexpected configuration read: $key";
     }
     package SharedBrokerLog;
@@ -305,10 +306,12 @@ my $after_email = $wingman->put('TriggerWebHook', {}, {tube => 'wingman_test.aut
 $raw->reserve(0)->bury;
 {
     local @Wing::alerts;
+    my $reserves = $raw->stats_job($email_head->id)->reserves;
     Wing::Command::Command::autokick_jobs->execute({}, []);
-    is $raw->stats_job($after_email->id)->state, 'ready', 'job behind a buried email head is kicked';
+    is $raw->stats_job($email_head->id)->reserves, $reserves, 'email head is never reserved, so it cannot be sent twice';
     is $raw->stats_job($email_head->id)->state, 'buried', 'email head stays buried';
-    is scalar @Wing::alerts, 0, 'one fresh email job plus a kicked job does not alert';
+    is $raw->stats_job($after_email->id)->state, 'buried', 'job behind a buried email head waits for it';
+    is scalar @Wing::alerts, 1, 'an email head holding back other buried jobs alerts';
 }
 $wingman->delete($after_email->id);
 my $second_email = $raw->put({data => '["SendTemplatedEmail",{}]'});
@@ -320,6 +323,28 @@ $raw->reserve(0)->bury;
     is scalar @Wing::alerts, 1, 'more than one buried email job alerts';
 }
 $raw->delete($_->id) for $email_head, $second_email;
+my $all_users = $raw->put({data => '["EmailAllUsers",{}]'});
+$raw->reserve(0)->bury;
+Wing::Command::Command::autokick_jobs->execute({}, []);
+is $raw->stats_job($all_users->id)->kicks, 0, 'a buried EmailAllUsers job is never kicked';
+$raw->delete($all_users->id);
+
+# A job that vanishes between peek and kick does not stop the rest of the tube.
+my @vanishing = map { $wingman->put('TriggerWebHook', {}, {tube => 'wingman_test.auto'}) } 1..2;
+$raw->reserve(0)->bury for @vanishing;
+{
+    my $kick_job = Beanstalk::Client->can('kick_job');
+    no warnings 'redefine';
+    local *Beanstalk::Client::kick_job = sub {
+        my ($client, $job_id) = @_;
+        $raw->delete($job_id) if $job_id == $vanishing[0]->id;
+        return $kick_job->(@_);
+    };
+    my $ok = eval { Wing::Command::Command::autokick_jobs->execute({}, []); 1 };
+    ok $ok, 'a job deleted before its kick is not a broker failure' or diag $@;
+    is $raw->stats_job($vanishing[1]->id)->state, 'ready', 'the next buried job is still kicked';
+}
+$raw->delete($vanishing[1]->id);
 
 # A configured email_tube is excluded, and the default tube then kicks again.
 {

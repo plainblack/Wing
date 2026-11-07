@@ -337,20 +337,23 @@ Return the installation email destination for an email phase, or undef.
 
 sub email_tube_for_phase {
     my ($self, $job_type) = @_;
-    return $self->email_tube if grep { $_ eq $job_type } $self->email_phases;
+    my $plugins = Wing->config->get('wingman/plugins');
+    for my $class ('Wingman::Plugin::SendTemplatedEmail', 'Wingman::Plugin::EmailAllAdmins') {
+        return $self->email_tube if $plugins->{$class} && $plugins->{$class}{phase} eq $job_type;
+    }
     return undef;
 }
 
 =head2 email_phases
 
-Return the configured phases of the email plugins.
+Return the configured phases of the plugins that send email, which C<autokick_jobs> never kicks.
 
 =cut
 
 sub email_phases {
     my $plugins = Wing->config->get('wingman/plugins');
-    return map { $plugins->{$_}{phase} }
-        grep { $plugins->{$_} } 'Wingman::Plugin::SendTemplatedEmail', 'Wingman::Plugin::EmailAllAdmins';
+    return map { $plugins->{$_}{phase} } grep { $plugins->{$_} }
+        'Wingman::Plugin::SendTemplatedEmail', 'Wingman::Plugin::EmailAllAdmins', 'Wingman::Plugin::EmailAllUsers';
 }
 
 sub put {

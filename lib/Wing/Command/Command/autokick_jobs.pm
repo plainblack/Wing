@@ -30,7 +30,7 @@ sub execute {
             || grep { !defined $_ || ref $_ || !length $_ } @$excluded);
     my %excluded = map { $_ => 1 } @{defined $excluded ? $excluded : []};
     # Email plugins bury before sending, so a kick could send the same email twice.
-    $excluded{Wingman->email_tube // Wing->config->get('wingman/beanstalkd/default_tube')} = 1;
+    $excluded{Wingman->email_tube // Wing->config->get('wingman/beanstalkd/default_tube') // 'default'} = 1;
 
     my $wingman = Wingman->new();
     my %email_phase = map { $_ => 1 } $wingman->email_phases;
@@ -58,7 +58,6 @@ sub execute {
             Wing->log->info("Retained backlog in $tube: $buried buried jobs; cannot determine ages or retry counts behind the head. Inspect retained jobs for manual recovery.");
         }
         my %seen;
-        my $email_jobs = 0;
         # Beanstalkd only exposes the buried head, so a job that must stay buried is moved behind the others.
         JOB: for my $position (1 .. ($retained ? 1 : $buried)) {
             my $head;
@@ -87,20 +86,21 @@ sub execute {
             Wing->log->info("Buried head $id in $tube: age ".$head_stats->age." seconds, ".$head_stats->kicks." kicks.");
             my ($phase) = $retained ? () : eval { $head->args };
             my $email = defined $phase && $email_phase{$phase};
-            $email_jobs++ if $email;
-            my $problem = $head_stats->kicks > 1 ? 'Stuck job'
-                : $head_stats->age > 12*60*60 ? 'Old job'
+            my $problem = $head_stats->kicks > 1 ? "Stuck job $id in $tube"
+                : $head_stats->age > 12*60*60 ? "Old job $id in $tube"
                 : $retained ? undef
-                : !defined $phase ? 'Unreadable job'
-                : $email && $email_jobs > 1 ? 'Buried email backlog at job'
+                : !defined $phase ? "Unreadable job $id in $tube"
+                : $email && $position < $buried ? "Buried email job $id in $tube holds back the buried jobs behind it"
                 : undef;
             if ($problem) {
                 $has_stuck_jobs = 1;
-                Wing->log->info("$problem $id in $tube");
+                Wing->log->info($problem);
             }
-            last JOB if $retained;
-            unless ($problem || $email) {
+            # Email is never reserved either: losing the reservation would make it ready and send it again.
+            last JOB if $retained || $email;
+            unless ($problem) {
                 unless ($wingman->kick_job($id)) {
+                    next JOB if ($wingman->error // '') eq 'NOT_FOUND';
                     push @monitoring_errors, "Cannot kick buried job $id in $tube: ".($wingman->error // 'no broker response')
                         . ". Check the broker and rerun autokick_jobs.\n";
                     last JOB;
@@ -110,6 +110,7 @@ sub execute {
             }
             last JOB if $position == $buried;
             unless ($wingman->reserve_job($id)) {
+                next JOB if ($wingman->error // '') eq 'NOT_FOUND';
                 push @monitoring_errors, "Cannot move buried job $id in $tube behind the other buried jobs: "
                     . ($wingman->error // 'no broker response')
                     . ". Jobs behind it were not kicked. Check that beanstalkd is 1.12 or later and rerun autokick_jobs.\n";
@@ -154,9 +155,10 @@ or later.
 Email jobs are never kicked, because the email plugins bury a job before sending
 and a kick could send it twice. The tube email is published to
 (C<wingman/email_tube>, or C<wingman/beanstalkd/default_tube> when that is unset)
-is always treated as excluded, and a buried job whose phase belongs to
-SendTemplatedEmail or EmailAllAdmins in any other tube is left buried and
-follows the excluded-tube alert rule below.
+is always treated as excluded. A buried SendTemplatedEmail, EmailAllAdmins or
+EmailAllUsers job in any other tube is left buried and never reserved; like an
+excluded tube, it alerts when it is stuck or old, or when other buried jobs wait
+behind it, since they cannot be kicked until it is resolved.
 
 To retain buried jobs for manual recovery, list their tubes in
 C<wingman/autokick_excluded_tubes>:
