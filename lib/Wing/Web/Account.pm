@@ -21,6 +21,14 @@ sub add_captcha_to_vars {
     return $vars;
 }
 
+# Approving application grants or linking a login provider needs a native site session.
+sub refuse_sso {
+    my $session = shift;
+    ouch 450, 'Log in with a site session to authorize applications or link a login provider.'
+        if defined $session && $session->sso;
+    return $session;
+}
+
 sub display_login {
     return template 'account/login', add_captcha_to_vars(shift);
 }
@@ -30,7 +38,7 @@ get '/login' => sub {
 };
 
 get '/account/verify/secondary/auth' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id(permissions => ['edit_my_account']);
     if ($user->verify_secondary_auth(param('token'))) {
         return redirect param('redirect') || '/';
     }
@@ -38,7 +46,7 @@ get '/account/verify/secondary/auth' => sub {
 };
 
 post '/account/deactivate' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id(permissions => ['edit_my_account']);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -129,7 +137,7 @@ any '/logout' => sub {
 };
 
 get '/account/apikeys' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id(permissions => ['view_my_account']);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -142,7 +150,7 @@ get '/account/apikeys' => sub {
 };
 
 get '/account/apikeys/:id' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id(permissions => ['view_my_account']);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -157,7 +165,7 @@ get '/account/apikeys/:id' => sub {
 
 ### Kept for Backward Compatibility
 post '/account/apikey' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id(permissions => ['edit_my_account']);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -181,7 +189,7 @@ post '/account/apikey' => sub {
 
 ### Kept for Backward Compatibility
 del '/account/apikey/:id' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id(permissions => ['edit_my_account']);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -194,7 +202,7 @@ del '/account/apikey/:id' => sub {
 
 ### Kept for Backward Compatibility
 post '/account/apikey/:id' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id(permissions => ['edit_my_account']);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -215,7 +223,7 @@ post '/account/apikey/:id' => sub {
 };
 
 get '/account' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id(permissions => ['view_my_account']);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -227,7 +235,7 @@ get '/account' => sub {
 };
 
 post '/account' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id(permissions => ['edit_my_account']);
     unless ($user->has_secondary_auth_token) {
         $user->email_secondary_auth_verification(request->path);
         return redirect '/account/verify/secondary/auth';
@@ -333,7 +341,7 @@ post '/account/reset-password-code' => sub {
 };
 
 get '/sso' => sub {
-    my $session = get_session(site_session => 1);
+    my $session = refuse_sso(get_session());
     my $user = defined $session ? $session->user : undef;
     unless (params->{api_key_id}) {
         ouch 441, 'api_key_id is required.', 'api_key_id';
@@ -373,7 +381,8 @@ get '/sso' => sub {
 };
 
 get '/sso/authorize' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id();
+    refuse_sso($user->current_session);
     if ($user->permanently_deactivated) {
         ouch 442, 'Account permanently deactivated';
     }
@@ -388,7 +397,8 @@ get '/sso/authorize' => sub {
 };
 
 post '/sso/authorize' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id();
+    refuse_sso($user->current_session);
     if ($user->permanently_deactivated) {
         ouch 442, 'Account permanently deactivated';
     }
@@ -398,7 +408,7 @@ post '/sso/authorize' => sub {
 };
 
 get '/sso/success' => sub {
-    my $user = get_user_by_session_id(site_session => 1);
+    my $user = get_user_by_session_id(permissions => ['view_my_account']);
     template 'account/ssosuccess', {
         current_user            => $user,
     };
@@ -431,7 +441,7 @@ get '/account/facebook' => sub {
 };
 
 get '/account/facebook/postback' => sub {
-    my $session = get_session(site_session => 1);
+    my $session = refuse_sso(get_session());
     my $user = defined $session ? $session->user : undef;
     my $fb = facebook();
     my $token_ref = $fb->get_user_token_by_code(param('code'));

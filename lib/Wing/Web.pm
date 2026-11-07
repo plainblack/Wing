@@ -27,8 +27,6 @@ register get_session => sub {
     $session_id = $session_id->id if ref $session_id eq 'Wing::Session';
     my $session = Wing::Session->new(id => $session_id, db => site_db());
     return undef unless $session->user_id && $session->is_valid;
-    ouch(450, 'Log in with a site session to access account settings or authorize applications.')
-        if $options{site_session} && $session->sso;
     # check_permissions throws 450 for an SSO session lacking them, and must precede renewal.
     return $session if $session->check_permissions($options{permissions}) && $session->extend;
     return undef;
@@ -50,18 +48,11 @@ register get_user_by_session_id => sub {
 
 
 register get_admin_by_session_id => sub {
-    my $user = get_user_by_session_id(@_, site_session => 1);
-    if (defined $user) {
-        if ($user->is_admin) {
-            return $user;
-        }
-        else {
-            ouch 450, 'You must be an admin to do that.';
-        }
-    }
-    else {
-        ouch 401, 'You must log in to do that.';
-    }
+    my $user = get_user_by_session_id(@_);
+    # No API key permission grants admin rights, so admin pages need a site session.
+    ouch 450, 'Log in with a site session to use admin pages.' if $user->current_session->sso;
+    ouch 450, 'You must be an admin to do that.' unless $user->is_admin;
+    return $user;
 };
 
 hook before => sub {
