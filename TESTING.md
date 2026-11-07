@@ -100,19 +100,26 @@ it starts and runs with `WING_NO_EMAIL` set.
 ## First-party account access
 
 `author.t/web_account_permissions.t` exercises real Dancer HTTP requests against
-the runner's test database and cache. Account settings, API key management, secondary
-verification and SSO consent require a site session. SSO sessions, including
-admin sessions and sessions with `edit_my_account`, cannot use these pages to
-mint site sessions or grant application permissions. The test covers cookie and
-parameter credentials, invalid-session reauthentication, Facebook linking with
-the external OAuth boundary controlled, anonymous login entry, and site-session key
-management and consent. REST routes retain their existing permission scopes.
+the runner's test database and cache. Account pages check the same permissions as
+their REST equivalents: viewing settings, API keys and SSO success needs
+`view_my_account`; saving settings, managing API keys, deactivating and secondary
+verification need `edit_my_account`. SSO sessions with those grants are allowed,
+SSO sessions without them get 450, and an admin's SSO session needs the same grants
+(`check_permissions` no longer passes every permission for admins). No SSO request,
+allowed or refused, receives a site session cookie, and a user cannot approve another
+user's authorization request. SSO consent
+(`GET /sso`, `/sso/authorize`) and Facebook linking refuse every SSO session, so an
+application cannot grant itself permissions or link a login provider. The test covers
+cookie and parameter credentials, invalid-session reauthentication, Facebook linking
+with the external OAuth boundary controlled, anonymous login entry, and site-session
+key management and consent. `author.t/rest_mutation_auth.t` checks that an admin SSO
+session without `edit_my_account` is refused on REST.
 
 `author.t/web_admin_permissions.t` covers all shipped admin web routes with
 admin SSO cookies/parameters, successful admin site sessions, ordinary users,
 missing/invalid/expired sessions and refused password/impersonation effects.
-`get_admin_by_session_id` always requires a site session, including when callers
-pass other session options. Trends and Wingman pages use this same helper.
+`get_admin_by_session_id` refuses SSO sessions, because no API key permission grants
+admin rights. Trends and Wingman pages use this same helper.
 
 `author.t/account_pages.t` renders the shipped account templates and follows the
 REST endpoints their Vue objects call, served by `author.t/bin/rest-app.pl` because

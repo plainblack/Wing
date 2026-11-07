@@ -32,37 +32,33 @@ for my $name (qw(denied viewer editor admin)) {
     }
     $session{$name} = $owner->start_session({sso => 1, api_key_id => $client->id});
 }
-my $sso_session = $session{denied};
+my $sso_session = $session{editor};
 
 test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
     my $request = shift;
     my $authorization = Wing::SSO->new(db => Wing->db, api_key_id => $key->id,
         user_id => $user->id, postback_uri => 'native', requested_permissions => ['edit_my_account'])->store;
-    for my $http (
-        GET('http://localhost/sso?api_key_id='.$key->id.'&postback_uri=native&permission=edit_my_account'),
-        GET('http://localhost/sso/authorize?sso_id='.$authorization->id),
-        POST('http://localhost/sso/authorize', Content => [sso_id => $authorization->id]),
-        GET('http://localhost/sso/success?sso_id='.$authorization->id),
-    ) {
-        $http->header(Cookie => 'session_id='.$sso_session->id);
-        is $request->($http)->code, 450, $http->method.' '.$http->uri->path.' refuses SSO credentials';
-    }
-    is_deeply $sso_session->get_permissions, [], 'SSO client cannot grant itself edit_my_account';
+    my %needs = (denied => {}, viewer => {view_my_account => 1},
+        editor => {view_my_account => 1, edit_my_account => 1}, admin => {});
     for my $name (sort keys %session) {
         for my $transport (qw(cookie parameter)) {
+            my $doomed = $user->apikeys->create({name => 'doomed-'.$name.'-'.$transport});
             for my $route (
-                ['GET', '/account'], ['POST', '/account'],
-                ['GET', '/account/apikeys'], ['GET', '/account/apikeys/'.$key->id],
-                ['POST', '/account/apikey'], ['POST', '/account/apikey/'.$key->id],
-                ['DELETE', '/account/apikey/'.$key->id], ['POST', '/account/deactivate'],
-                ['GET', '/account/verify/secondary/auth'],
+                ['GET', '/account', 'view_my_account', 200], ['POST', '/account', 'edit_my_account', 302],
+                ['GET', '/account/apikeys', 'view_my_account', 200],
+                ['GET', '/account/apikeys/'.$key->id, 'view_my_account', 200],
+                ['POST', '/account/apikey', 'edit_my_account', 302],
+                ['POST', '/account/apikey/'.$key->id, 'edit_my_account', 302],
+                ['DELETE', '/account/apikey/'.$doomed->id, 'edit_my_account', 302],
+                ['POST', '/account/deactivate', 'edit_my_account', 441],
+                ['GET', '/account/verify/secondary/auth', 'edit_my_account', 428],
+                ['GET', '/sso/success?sso_id='.$authorization->id, 'view_my_account', 200],
                 ['GET', '/account/facebook/postback?code=test-code'],
                 ['GET', '/sso?api_key_id='.$key->id.'&postback_uri=native&permission=edit_my_account'],
                 ['GET', '/sso/authorize?sso_id='.$authorization->id],
                 ['POST', '/sso/authorize?sso_id='.$authorization->id],
-                ['GET', '/sso/success?sso_id='.$authorization->id],
             ) {
-                my ($method, $path) = @$route;
+                my ($method, $path, $permission, $allowed) = @$route;
                 my $http = HTTP::Request->new($method, 'http://localhost'.$path);
                 if ($transport eq 'cookie') {
                     $http->header(Cookie => 'session_id='.$session{$name}->id);
@@ -70,11 +66,22 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
                     $http->uri->query_form($http->uri->query_form, session_id => $session{$name}->id);
                 }
                 my $response = $request->($http);
-                is $response->code, 450, "$name via $transport: $method $path requires a site session";
-                unlike $response->header('Set-Cookie') || '', qr/session_id=/, 'refusal issues no site session';
+                unlike $response->header('Set-Cookie') || '', qr/session_id=/, "$name via $transport: $method $path issues no site session";
+                if (defined $permission && $needs{$name}{$permission}) {
+                    is $response->code, $allowed, "$name via $transport: $method $path is allowed with $permission";
+                } else {
+                    is $response->code, 450, "$name via $transport: $method $path is refused";
+                }
             }
         }
     }
+    is_deeply [sort @{$session{$_}->get_permissions}], [sort keys %{$needs{$_}}],
+        "$_ SSO client cannot grant itself permissions" for sort keys %session;
+    my $stranger = Wing->db->resultset('User')->create({username => 'account-stranger', email => 'account-stranger@example.invalid'});
+    is $request->(POST 'http://localhost/sso/authorize', Cookie => 'session_id='.$stranger->start_session({sso => 0})->id,
+        Content => [sso_id => $authorization->id])->code, 401, 'another user cannot approve an authorization request';
+    is_deeply(Wing::SSO->new(id => $authorization->id, db => Wing->db)->get_permissions, [],
+        'refused approval grants nothing');
     for my $path ('/account', '/account/apikeys', '/sso/authorize?sso_id='.$authorization->id) {
         is $request->(GET 'http://localhost'.$path)->code, 401, "$path requires authentication";
     }

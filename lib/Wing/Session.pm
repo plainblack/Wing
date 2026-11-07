@@ -165,7 +165,6 @@ sub check_permissions {
         ouch(401, 'You must log in to access that.',$permissions);
     }
     ouch(450, 'Account permanently deactivated') if $self->user->permanently_deactivated; # Active users only, admins included
-    return 1 if $self->user->is_admin; # always has permissions if they're an admin
     ouch(450, 'Insufficient permissions.',$permissions) unless $self->has_api_key_id; # can't have permissions if they didn't assign an API key
     my $existing = $self->get_permissions;
     foreach my $permission (@{$permissions}) {
