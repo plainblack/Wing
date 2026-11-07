@@ -91,7 +91,7 @@ get '/api/idea/low-vote' => sub {
 };
 
 put '/api/idea/:id/lock' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin;
+    my $user = get_admin_by_session_id();
     my $status = params->{status} or ouch 424, "You must choose a status when closing an idea";
     my $idea = fetch_object('Idea');
     $idea->lock(params->{status});
@@ -99,7 +99,7 @@ put '/api/idea/:id/lock' => sub {
 };
 
 put '/api/idea/:id/unlock' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin;
+    my $user = get_admin_by_session_id();
     my $idea = fetch_object('Idea');
     $idea->unlock;
     return describe($idea, current_user => $user);
@@ -127,6 +127,7 @@ del '/api/idea/:id/subscription' => sub {
 
 my $is_admin = sub {
     my ($object, $user) = @_;
+    ouch 450, 'Log in with a site session to use admin web services.' if $user->current_session->sso;
     ouch 450, 'Insufficient privileges to delete Idea'
         unless $user->is_admin;
 };

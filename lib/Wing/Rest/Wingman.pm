@@ -8,14 +8,14 @@ use Wing::Rest;
 use Wingman;
 
 get '/api/wingman/stats' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     return Wingman->new->stats_as_hashref;
 };
 
 ### TUBES
 
 get '/api/wingman/tubes' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $wingman = Wingman->new;
     my @tubes = ();
     foreach my $tube ($wingman->list_tubes) {
@@ -35,12 +35,12 @@ get '/api/wingman/tubes' => sub {
 };
 
 get '/api/wingman/tubes/:tube/stats' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     return Wingman->new->stats_tube_as_hashref(params->{tube});
 };
 
 get '/api/wingman/tubes/:tube/jobs' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $tube_name = params->{tube};
     my $wingman = Wingman->new;
     my $min = $wingman->guess_min_peek_range({ tubes => [$tube_name]});
@@ -67,7 +67,7 @@ get '/api/wingman/tubes/:tube/jobs' => sub {
 };
 
 post '/api/wingman/tubes/:tube/pause' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $wingman = Wingman->new;
     if ($wingman->pause_tube(params->{tube}, params->{seconds} + 0)) {
         return { success => 1 };
@@ -78,7 +78,7 @@ post '/api/wingman/tubes/:tube/pause' => sub {
 };
 
 get '/api/wingman/tubes/:tube/jobs/buried' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $job = Wingman->new->peek_buried(params->{tube});
     if (defined $job) {
         return $job->describe;
@@ -87,7 +87,7 @@ get '/api/wingman/tubes/:tube/jobs/buried' => sub {
 };
 
 get '/api/wingman/tubes/:tube/jobs/ready' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $job = Wingman->new->peek_ready(params->{tube});
     if (defined $job) {
         return $job->describe;
@@ -96,7 +96,7 @@ get '/api/wingman/tubes/:tube/jobs/ready' => sub {
 };
 
 get '/api/wingman/tubes/:tube/jobs/delayed' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $job = Wingman->new->peek_delayed(params->{tube});
     if (defined $job) {
         return $job->describe;
@@ -108,7 +108,7 @@ get '/api/wingman/tubes/:tube/jobs/delayed' => sub {
 ### JOBS
 
 get '/api/wingman/jobs' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $wingman = Wingman->new;
     my $min = $wingman->guess_min_peek_range();
     my $max = $wingman->guess_max_peek_range($min);
@@ -133,7 +133,7 @@ get '/api/wingman/jobs' => sub {
 };
 
 get '/api/wingman/jobs/buried' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $job = Wingman->new->peek_buried;
     if (defined $job) {
         return $job->describe;
@@ -142,7 +142,7 @@ get '/api/wingman/jobs/buried' => sub {
 };
 
 get '/api/wingman/jobs/ready' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $job = Wingman->new->peek_ready;
     if (defined $job) {
         return $job->describe;
@@ -151,7 +151,7 @@ get '/api/wingman/jobs/ready' => sub {
 };
 
 get '/api/wingman/jobs/delayed' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $job = Wingman->new->peek_delayed;
     if (defined $job) {
         return $job->describe;
@@ -161,12 +161,12 @@ get '/api/wingman/jobs/delayed' => sub {
 
 
 get '/api/wingman/jobs/:id' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     return Wingman->new->peek(params->{id})->describe;
 };
 
 post '/api/wingman/jobs/:id/kick' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $wingman = Wingman->new;
     if ($wingman->kick_job(params->{id})) {
         return $wingman->peek(params->{id})->describe;
@@ -177,7 +177,7 @@ post '/api/wingman/jobs/:id/kick' => sub {
 };
 
 del '/api/wingman/jobs/:id' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $wingman = Wingman->new;
     if ($wingman->delete(params->{id})) {
         return { success => 1 };
@@ -188,7 +188,7 @@ del '/api/wingman/jobs/:id' => sub {
 };
 
 post '/api/wingman/jobs' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $args = from_json(params->{arguments}) if params->{arguments};
     my %options = ();
     foreach my $option (qw(priority delay ttr tube)) {

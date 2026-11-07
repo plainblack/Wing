@@ -18,7 +18,7 @@ my @sources = $db->sources;
 
 diag explain \@sources;
 
-is scalar(@sources), 7, 'source count is right';
+is scalar(@sources), 13, 'source count is right';
 
 ok 'Employee' ~~ \@sources, 'we have the sources we think we do';
 
