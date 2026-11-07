@@ -105,7 +105,8 @@ This policy provides neither automatic retry nor exactly-once SMTP delivery.
 When delivery, fan-out or the final deletion fails, the job stays buried and the
 plugin emails C<wing_admin> the C<stuck_wingman_job> alert at once, with the job ID
 in its subject. If that alert cannot be sent either, the failure message says so.
-SendTemplatedEmail treats a bad address (Ouch 442) as final: it logs a warning
+SendTemplatedEmail treats a bad address (Ouch 442, including a permanent SMTP
+recipient refusal) as final: it logs a warning
 and the job is deleted.
 
 =cut

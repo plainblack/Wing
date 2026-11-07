@@ -33,6 +33,7 @@ $EmailAckConfig::excluded = [$tube];
 my (@info, @errors, @warnings, @alerts, $sends);
 no warnings 'redefine';
 local *Wing::config = sub { bless {}, 'EmailAckConfig' };
+my $real_send_templated_email = Wing->can('send_templated_email');
 local *Wing::send_templated_email = sub { push(@alerts, $_[2]), return 1 if $_[1] eq 'stuck_wingman_job'; ++$sends; return 1 };
 local *Wingman::Job::log_info = sub { push @info, $_[2] };
 local *Wingman::Job::log_error = sub { push @errors, $_[2] };
@@ -183,6 +184,51 @@ for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
             $publisher->disconnect;
         };
     }
+}
+for my $smtp (['Permanent', 550], ['Temporary', 450]) {
+    my ($kind, $code) = @$smtp;
+    subtest "SendTemplatedEmail / SMTP $code recipient rejection" => sub {
+        @info = (); @errors = (); @warnings = ();
+        my @sent;
+        my $original_mkits = $config->get('mkits');
+        $config->set('mkits', "$FindBin::Bin/../var/init/var/mkits/");
+        my $original_smtp = $config->get('smtp');
+        $config->set('smtp', {host => 'smtp.example.invalid'});
+        local *Wing::send_templated_email = $real_send_templated_email;
+        local *Email::Sender::Simple::send = sub {
+            my $to = $_[1]->header('To');
+            push @sent, $to;
+            # The failure Email::Sender::Transport::SMTP throws when RCPT is refused.
+            "Email::Sender::Failure::$kind"->throw(message => "$code mailbox unavailable",
+                code => $code, recipients => ['rejected@example.invalid'])
+                if $to =~ /rejected\@example\.invalid/;
+            return 1;
+        };
+        my $worker_client = Beanstalk::Client->new($config->get('wingman/beanstalkd'));
+        my $queued = $worker_client->put({ data => '{}' });
+        my $job = Wingman::Job->new(beanstalk_job => $worker_client->reserve(0),
+            wingman_plugin => Wingman::Plugin::SendTemplatedEmail->new,
+            job_args => { template => 'generic', options => {},
+                params => { subject => 'Rejected', message => 'Rejected', me => { email => 'rejected@example.invalid' } } });
+        my $out = eval { $job->run };
+        is "$@", '', 'no exception escapes';
+        $config->set('mkits', $original_mkits);
+        $config->set('smtp', $original_smtp);
+        if ($kind eq 'Permanent') {
+            is $out->{wingman_outcome}, 'complete', 'rejected address completes';
+            like join(' ', @warnings), qr/rejected/i, 'rejected address is logged as a warning';
+            ok !defined $worker_client->stats_job($queued->id), 'rejected address job is deleted';
+            is_deeply \@sent, ['rejected@example.invalid'], 'no admin alert';
+        }
+        else {
+            is $out->{wingman_outcome}, 'failed', 'temporary rejection fails';
+            is_deeply \@warnings, [], 'temporary rejection is not a bad address';
+            is $worker_client->stats_job($queued->id)->state, 'buried', 'temporary rejection stays buried';
+            is_deeply \@sent, ['rejected@example.invalid', 'email_ack_admin@example.invalid'], 'admin is alerted';
+            $worker_client->delete($queued->id);
+        }
+        $worker_client->disconnect;
+    };
 }
 $_->delete for @admins;
 done_testing;
