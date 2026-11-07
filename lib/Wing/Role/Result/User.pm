@@ -615,8 +615,7 @@ sub generate_password_reset_code {
     return $code;
 }
 
-# Sessions read the user from the database while the marker is set, so a change still uncommitted is never cached.
-# shortcut: assumes transactions that change a user commit within five minutes; lengthen the marker if one may run longer.
+# While the marker is set, sessions read the user without caching it or waiting on an open transaction's row lock.
 after qw(update delete) => sub {
     my $self = shift;
     Wing->cache->set('user-changed-'.$self->id, 1, 5 * 60);

@@ -136,7 +136,8 @@ sub cached_user {
         my $source = $self->db->source('User');
         return $source->result_class->inflate_result($source, $data);
     }
-    my $user = $self->db->resultset('User')->find($self->user_id);
+    # A shared lock waits for any uncommitted change, so only committed rows are cached.
+    my $user = $self->db->resultset('User')->find($self->user_id, { for => 'shared' });
     return $user unless defined $user;
     Wing->cache->set($data_key, { $user->get_columns }, 60 * 60 * 24 * 7);
     # A change that landed during the read may have removed the entry before this write.

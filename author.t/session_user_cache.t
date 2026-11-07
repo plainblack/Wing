@@ -118,6 +118,18 @@ test_psgi $app, sub {
     $writer->txn_commit;
     $refused->($sessions, 'committed transactional password change');
 
+    # The marker can expire or be evicted while the change is still uncommitted.
+    $user = make_user('cache-long-transaction');
+    $sessions = $warm->($user);
+    $writer->txn_begin;
+    $writer->resultset('User')->find($user->id)->encrypt_and_set_password('changed-password')->update;
+    $expire_marker->($user);
+    Wing->db->storage->dbh->do('SET SESSION innodb_lock_wait_timeout = 1'); # stops the blocked read quickly
+    $probe->($sessions->[0]);
+    ok !defined Wing->cache->get('user-data-'.$user->id), 'a row with an uncommitted change is not cached';
+    $writer->txn_commit;
+    $refused->($sessions, 'password change committed after its marker expired');
+
     $user = make_user('cache-rollback');
     $sessions = $warm->($user);
     $writer->txn_begin;

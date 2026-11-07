@@ -371,9 +371,11 @@ with the runner's test database and cache, and counts `users` queries through
 DBIx::Class's debug callback. Sessions read their user from the per-user cache
 entry `user-data-<id>`. User `update` and `delete` remove that entry and set
 `user-changed-<id>` for five minutes; while any truthy marker is set, sessions
-read the user from the database and cache nothing, so a change held in an open
-transaction, or rolled back, is never cached. The test removes the marker to
-stand in for its expiry, because logins update the user too. User changes made
+read the user from the database and cache nothing. Otherwise a session fills the
+cache with a shared-lock read, which waits for an open transaction that changed
+the user, so an uncommitted or rolled back change is never cached even after the
+marker expires. The test removes the marker to stand in for its expiry, because
+logins update the user too, and lowers its lock wait so the blocked read ends. User changes made
 outside DBIx::Class row `update` or `delete` (resultset `update`, raw SQL,
 another application) must remove `user-data-<id>`, or set `user-changed-<id>` for
 at least seven days, the entry's lifetime, and not remove it.
