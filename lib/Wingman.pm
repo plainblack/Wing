@@ -126,7 +126,7 @@ has beanstalk => (
 # decoding jobs or issuing mutations, including ID-based administrative calls.
 sub _assert_wingman_tube {
     my ($tube) = @_;
-    ouch 403, 'This tube belongs to Jobber. Use tgc core jobber to manage its jobs.'
+    ouch 403, 'This tube belongs to Jobber. Manage its jobs with Jobber, not Wingman.'
         if defined $tube && $tube =~ /^jobber\./;
 }
 
@@ -170,7 +170,7 @@ around kick => sub {
 
 The following methods delegate to L<Beanstalk::Client>. Tube enumeration excludes
 C<jobber.*>, and tube/job operations reject Jobber-owned work before any mutation
-or decoding. Use Core's Jobber commands to manage those jobs.
+or decoding. Manage those jobs with Jobber.
 
 =over
 

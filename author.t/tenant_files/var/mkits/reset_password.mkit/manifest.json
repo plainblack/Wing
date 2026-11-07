@@ -1,5 +1,5 @@
 {
-    "renderer" : ["TT", {"template_parameters" : {"INCLUDE_PATH" : "/data/TGC/views"}, "strict" : 0 }],
+    "renderer" : ["TT", { "strict" : 0 }],
     "header" : [
         { "To" : "[% me.real_name || me.display_name %] <[% me.email %]>" },
         { "From" : "Wing <noreply@wingapi.com>" },
