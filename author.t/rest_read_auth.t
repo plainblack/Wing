@@ -4,7 +4,6 @@ use Test::More import => ['!pass'];
 use Dancer ':syntax';
 use Wing;
 use Wing::Rest;
-use Wing::DB::ResultSet;
 use Plack::Test;
 use Dancer::Handler;
 use HTTP::Request::Common qw(GET);
@@ -22,7 +21,6 @@ generate_relationship('ProtectedUser', 'apikeys', db_class_name => 'User', permi
 generate_relationship('GuardedUser', 'apikeys', db_class_name => 'User', permissions => ['view_my_account'], verify_user => 'verify_is_admin');
 generate_crud('ProtectedUser', db_class_name => 'User', permissions => ['view_my_account']);
 get '/anonymous-description' => sub { return describe($user, current_user => undef) };
-Wing->db->source($_)->resultset_class('Wing::DB::ResultSet') for qw(User APIKey);
 get '/anonymous-list' => sub {
     my $users = Wing->db->resultset('User')->search({id => $user->id});
     return format_list($users, current_user => undef, object_options => {});

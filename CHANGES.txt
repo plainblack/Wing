@@ -5,6 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2026-11-07
+ * The TestWing and Acquisitions test schemas use Wing::DB::ResultSet as their default resultset class, like generated applications, so author tests no longer set it on each source by hand (#106).
  * find_tenant_site matches tenants/domain literally, so its dots no longer match any character and a host such as foo.exampleXcom no longer resolves to tenant foo when tenants/domain is example.com (#108).
  * REST modules that set up relationship routes at load, such as Wing::Rest::User, Wing::Rest::Idea and Wing::Rest::Trends, load again when tenants/domain is set. generate_all_relationships no longer calls site_db, which needs a request; it registers routes for the relationships of the main schema and, when tenants/domain is set, the tenant schema. A relationship route returns 404 when the object on that host has no such relationship (#104).
  * Remove TGC-specific references: mail kit manifests no longer set a TT INCLUDE_PATH of /data/TGC/views (no kit includes other templates), the Jobber tube error no longer names TGC commands, and the author-test runner no longer clears TGC_JOBBER_ variables. author.t/no_tgc_references.t keeps TGC out of Wing (#101).
