@@ -29,7 +29,7 @@ This plugin uses the SendTemplatedEmail plugin to send a message to all admins. 
 =head2 run ( job, args )
 
 Confirm manual retention before delivery, then check deletion. See
-L<Wingman::Role::EmailRecovery> for required tube configuration and recovery.
+L<Wingman::Role::EmailRecovery> for tube configuration and recovery.
 
 =over
 

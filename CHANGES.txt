@@ -5,6 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2026-11-07
+ * Send queued email (SendTemplatedEmail, EmailAllAdmins) whether or not its tube is in wingman/autokick_excluded_tubes, so installations without that setting deliver queued email again (#88).
  * Run author tests with the Perl runner author.t/run.pl against the dev MySQL and Beanstalkd in author.t/etc/test.conf; nothing starts its own mysqld, beanstalkd, nginx or browser, and the Node and Playwright checks are gone (#96).
  * Remove the Python test runner bin/agent-tests.py and the Python author tests; author.t/run.pl and Perl tests replace them (#96).
  * List the author-test Perl modules in bin/setup/03_install_perl_modules.sh (#96).

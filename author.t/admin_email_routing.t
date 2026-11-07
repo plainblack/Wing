@@ -17,7 +17,6 @@ set engines => {template_toolkit => {start_tag => '[%', end_tag => '%]'}};
 set template => 'template_toolkit';
 set show_errors => 1;
 my $settings = Wing->config->get('wingman');
-$settings->{autokick_excluded_tubes} = ['wingman_test.email'];
 $settings->{plugins} = {
     'Wingman::Plugin::EmailAllAdmins' => {phase => 'EmailAllAdmins'},
     'Wingman::Plugin::SendTemplatedEmail' => {phase => 'SendTemplatedEmail'},

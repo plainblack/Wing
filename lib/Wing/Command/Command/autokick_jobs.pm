@@ -120,8 +120,7 @@ more than one buried job, a head kicked more than once, or a head older than
 Foreign Jobber tubes remain outside Wingman's scope. Payloads are not decoded
 and plugins are not loaded by monitoring.
 
-Keep C<wingman/autokick_excluded_tubes> configured for email/manual recovery;
-email plugins still require their actual tube in this array before sending.
+Keep C<wingman/autokick_excluded_tubes> configured for email/manual recovery.
 Invalid lists stop monitoring visibly. Broker errors do not suppress other tubes
 or already detected alerts, and the command fails visibly after reporting them.
 
