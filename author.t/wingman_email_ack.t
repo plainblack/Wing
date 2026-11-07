@@ -64,6 +64,24 @@ push @admins, map {
     Wing->db->resultset('User')->create({ username => "email_ack_$_", email => "email_ack_$_\@example.invalid", admin => 1 })
 } 1..2;
 my $admin_count = Wing->db->resultset('User')->search({admin => 1})->count;
+for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
+    subtest "$plugin / no email_tube or autokick_excluded_tubes" => sub {
+        @info = (); @errors = (); $sends = 0;
+        $EmailAckConfig::excluded = undef;
+        ok !defined Wing->config->get('wingman/email_tube'), 'config has no email_tube';
+        my $worker_client = Beanstalk::Client->new($config->get('wingman/beanstalkd'));
+        my $queued = $worker_client->put({ data => '{}' });
+        my $class = 'Wingman::Plugin::'.$plugin;
+        my $job = Wingman::Job->new(beanstalk_job => $worker_client->reserve(0),
+            wingman_plugin => $class->new,
+            job_args => { template => 'generic', params => {}, options => {} });
+        is $job->run->{wingman_outcome}, 'complete', 'queued email completes';
+        is $sends, $plugin eq 'EmailAllAdmins' ? $admin_count : 1, 'queued email is delivered';
+        is_deeply \@errors, [], 'no configuration error is logged';
+        ok !defined $worker_client->stats_job($queued->id), 'delivered job is deleted';
+        $worker_client->disconnect;
+    };
+}
 my $delete = Beanstalk::Client->can('delete');
 my $bury = Beanstalk::Client->can('bury');
 for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
