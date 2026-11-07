@@ -52,44 +52,40 @@ sub response {
 
 for my $case (
     ['198.51.100.7', '198.51.100.7'],
-    ['203.0.113.4, 198.51.100.7', '198.51.100.7'],
-    [" 203.0.113.4 ,\t198.51.100.7  ", '198.51.100.7'],
+    ['203.0.113.4, 198.51.100.7', '203.0.113.4, 198.51.100.7'],
     ['', '192.0.2.9'],
-    [" \t ", '192.0.2.9'],
     [undef, '192.0.2.9'],
-    ['203.0.113.4, 198.51.100.7, , ', '198.51.100.7'],
-    [', , ', '192.0.2.9'],
 ) {
     is response('GET', '/address/params', $case->[0])->{ipaddress}, $case->[1],
-        'expanded parameters contain one trimmed address or the direct peer';
+        'expanded parameters contain the X-Real-IP value or the direct peer';
 }
 
-my $chain = '203.0.113.4, 198.51.100.7';
-is response('GET', '/address/describe', $chain)->{facility_access}, 1,
+my $address = '198.51.100.7';
+is response('GET', '/address/describe', $address)->{facility_access}, 1,
     'describe receives the facility address for its field gate';
-is response('GET', '/address/list', $chain)->{items}[0]{facility_access}, 1,
+is response('GET', '/address/list', $address)->{items}[0]{facility_access}, 1,
     'real result set propagates the facility address into object descriptions';
 
-ok !response('GET', '/address/describe', '198.51.100.7, 203.0.113.4')->{facility_access},
-    'a client supplied leading facility address cannot open the gate';
+ok !response('GET', '/address/describe', '203.0.113.4, 198.51.100.7')->{facility_access},
+    'a forwarding chain is not one address and cannot open the gate';
 
 my $app = Dancer::Handler->get_handler->psgi_app;
 test_psgi $app, sub {
     my $request = shift;
-    my $res = $request->(GET 'http://localhost/address/login', 'X-Real-IP' => $chain);
+    my $res = $request->(GET 'http://localhost/address/login', 'X-Real-IP' => $address);
     is $res->code, 302, 'real PSGI login request redirects';
     my ($id) = $res->header('Set-Cookie') =~ /session_id=([^;]+)/;
     ok $id, 'login sets a session cookie';
     is(Wing::Session->new(id => $id, db => Wing->db)->ip_address, '198.51.100.7',
         'login persists one address in the real session cache');
 };
-my $session = response('POST', '/api/session', $chain, {
+my $session = response('POST', '/api/session', $address, {
     username => $user->username, password => 'address-test-password', api_key_id => $key->id,
 });
 is(Wing::Session->new(id => $session->{id}, db => Wing->db)->ip_address, '198.51.100.7',
     'REST password login persists one address');
 my $sso = Wing::SSO->new(db => Wing->db, api_key_id => $key->id, user_id => $user->id)->store;
-my $sso_session = response('POST', '/api/session/sso/'.$sso->id, $chain,
+my $sso_session = response('POST', '/api/session/sso/'.$sso->id, $address,
     {private_key => $key->private_key});
 is(Wing::Session->new(id => $sso_session->{id}, db => Wing->db)->ip_address, '198.51.100.7',
     'REST SSO exchange persists one address');

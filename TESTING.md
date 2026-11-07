@@ -150,13 +150,17 @@ instructions and the limits of this policy.
 `author.t/client_ip.t` and `author.t/web_client_ip.t` exercise real Dancer
 requests, an IP-gated description with a real result set, expanded parameters,
 and login/SSO persistence in the runner's test database and cache.
-`author.t/nginx_client_ip.t` checks that the generated template sets each
-forwarded header from the nginx variable for the observed peer, scheme and host.
+`author.t/nginx_client_ip.t` checks that the generated template sends nginx's
+resolved `$remote_addr` as a single X-Real-IP, sets the scheme and host headers
+from nginx variables, and trusts no proxy by default. `client_ip` returns
+X-Real-IP as one value, or the direct peer when it is empty.
 
-The generated template appends nginx's observed peer. Behind a load balancer
-this is the balancer address. Existing deployments must configure their trusted
-ingress chain explicitly if they need the client beyond it; never copy an
-unrestricted client-supplied forwarding header into X-Real-IP.
+The template uses nginx's realip module
+(https://nginx.org/en/docs/http/ngx_http_realip_module.html), which source builds
+need `--with-http_realip_module` for. Behind a load balancer, add one
+`set_real_ip_from <CIDR>;` line per balancer range in the server block; nginx
+then takes the last X-Forwarded-For address those ranges did not add. Requests
+from any other peer keep that peer's address, so clients cannot choose it.
 
 ## Web session request security
 
@@ -241,8 +245,9 @@ retention of email alongside kicking of unrelated default-tube work. No
 outbound email is sent. `wingman_email_ack.t` retains the acknowledgement,
 reconciliation and disconnect regression matrix.
 
-New installations set `wingman/email_tube` to `wingman.email` and exclude only
-that tube. Default workers watch it automatically; explicit watch lists must
+New installations set no `wingman/email_tube` and exclude no tubes, so email
+queues on the default tube, which autokick never kicks. An installation that
+sets `email_tube` gets workers watching it by default; explicit watch lists must
 include it. Follow the staged adoption steps in `Wingman::Role::EmailRecovery`
 before changing an existing installation or removing its old exclusions. No
 existing jobs are moved. The routing setting is optional for compatibility;

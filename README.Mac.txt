@@ -22,7 +22,7 @@ Next compile nginx:
  curl -O http://nginx.org/download/nginx-1.15.0.tar.gz
  tar xfz nginx-1.15.0.tar.gz
  cd nginx-1.15.0
- ./configure --prefix=/data/apps --with-pcre=../pcre-8.42
+ ./configure --prefix=/data/apps --with-pcre=../pcre-8.42 --with-http_realip_module
  make
  make install
  cd ..

@@ -95,11 +95,7 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
     for my $case (
         ['direct peer', undef, '127.0.0.1'],
         ['empty header', '', '127.0.0.1'],
-        ['all empty entries', " , \t, ", '127.0.0.1'],
         ['single address', '198.51.100.7', '198.51.100.7'],
-        ['multiple hops', '203.0.113.4, 198.51.100.7', '198.51.100.7'],
-        ['whitespace and trailing empty entries', " \t203.0.113.4 , 198.51.100.7\t, , ", '198.51.100.7'],
-        ['spoofed first address before trusted final address', '192.0.2.9, 203.0.113.33', '203.0.113.33'],
     ) {
         my ($name, $header, $expected) = @$case;
         my $admin_session = $admin->start_session({sso => 0});
@@ -113,7 +109,7 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
             401, "$name: successful impersonation ends the previous administrator session";
         my $impersonation = Wing::Session->new(id => $session_id, db => Wing->db);
         is $impersonation->user_id, $target->id, "$name: new session belongs to the target user";
-        is $impersonation->ip_address, $expected, "$name: session records one normalized client address";
+        is $impersonation->ip_address, $expected, "$name: session records the X-Real-IP address";
         is(Wing->db->resultset('User')->find($target->id)->last_ip, $expected,
             "$name: target's stored last_ip uses that same address");
     }

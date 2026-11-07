@@ -20,28 +20,19 @@ set server_tokens   => 0;
 
 =head2 client_ip()
 
-Returns the final nonempty, trimmed C<X-Real-IP> entry, or C<remote_address>
-when the header contains no address. Registered as a Dancer keyword in both
-L<Wing::Rest> and L<Wing::Web>.
+Returns the C<X-Real-IP> header, or C<remote_address> when it is missing or
+empty. Registered as a Dancer keyword in both L<Wing::Rest> and L<Wing::Web>.
 
-This assumes a trusted ingress overwrites C<X-Real-IP> with a forwarding chain
-whose final address was appended by the trusted proxy from its observed peer.
-Earlier entries may be client supplied. Applications must restrict direct access
-and configure that proxy chain; this helper does not authenticate headers.
-The generated nginx template appends its observed peer, so an upstream load
-balancer becomes that final address. Deployments needing the client beyond that
-balancer must configure their trusted ingress to establish that address safely;
-copying an unrestricted incoming forwarding header is unsafe.
+The header must hold one address set by a trusted proxy. The generated nginx
+template sends its C<$remote_addr>, which the realip module resolves through the
+load balancers listed with C<set_real_ip_from>. This helper does not
+authenticate the header, so applications must block direct access.
 
 =cut
 
 register client_ip => sub {
     my $header = request->env->{HTTP_X_REAL_IP};
-    for my $address (reverse split /,/, defined $header ? $header : '') {
-        $address =~ s/^\s+|\s+$//g;
-        return $address if length $address;
-    }
-    return request->remote_address;
+    return length $header ? $header : request->remote_address;
 };
 
 =head2 find_tenant_site()
