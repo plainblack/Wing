@@ -28,8 +28,9 @@ my $serialized = encode_json({
     app_namespace => 'TestWing', api_key_permissions => [], db => ['dbi:SQLite:dbname=:memory:', '', ''],
     log4perl_config => "$directory/log.conf",
     cache => {driver => 'Memory', global => 1},
+    # The CLI sees every tube on the shared dev broker, so exclude them all to keep it from kicking other apps' jobs.
     wingman => {beanstalkd => {server => $server, default_tube => 'wingman_test.cli'},
-        autokick_excluded_tubes => ['0']},
+        autokick_excluded_tubes => [$client->list_tubes]},
 });
 print $config $serialized;
 close $config;

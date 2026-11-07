@@ -52,9 +52,10 @@ Wingman::Role::EmailRecovery - Manual recovery for irreversible email work.
 SendTemplatedEmail and EmailAllAdmins send queued email whatever their tube and
 whatever the autokick configuration. An installation with neither
 C<wingman/email_tube> nor C<wingman/autokick_excluded_tubes> sends queued email
-on its default tube. A dedicated email tube, also listed in
-C<wingman/autokick_excluded_tubes> so automatic kicks never resend its buried
-jobs, keeps email's manual recovery and monitoring apart from other work. For
+on its default tube. C<autokick_jobs> never kicks the email tube
+(C<wingman/email_tube>, or the default tube when that is unset) or a buried
+email job in any other tube. A dedicated email tube keeps email's manual
+recovery apart from other work, so the default tube can be kicked again. For
 new installations the shipped configuration uses:
 
  "wingman": {
@@ -81,11 +82,8 @@ from autokick on every autokick host before publishers use C<email_tube>. Then
 set C<email_tube> consistently on all publishers and workers. Keep the old email
 tube excluded until its existing jobs are drained or manually reconciled.
 Inspect ready, delayed, reserved and buried jobs before removing that old
-exclusion. Already queued jobs never move. All automatic-kick hosts must use
-the monitor-only command before relying on burial for terminal/manual retention;
-old binaries can still revive jobs. Automatic retries use plugin-owned delayed
-release, not buried-job recovery. Buried email must never be automatically kicked.
-No running configuration is changed automatically. Leaving the setting absent
+exclusion. Already queued jobs never move. Buried email must never be
+automatically kicked. No running configuration is changed automatically. Leaving the setting absent
 or null preserves legacy routing.
 
 The plugin confirms burial before SMTP or child publication and checks final

@@ -154,7 +154,7 @@ around stats_job => sub {
     return $stats;
 };
 
-around [qw(peek kick_job delete release bury touch)] => sub {
+around [qw(peek kick_job reserve_job delete release bury touch)] => sub {
     my ($original, $self, $id, @args) = @_;
     return undef unless defined $self->stats_job($id);
     return $self->$original($id, @args);
@@ -344,6 +344,18 @@ sub email_tube_for_phase {
     return undef;
 }
 
+=head2 email_phases
+
+Return the configured phases of the plugins that send email, which C<autokick_jobs> never kicks.
+
+=cut
+
+sub email_phases {
+    my $plugins = Wing->config->get('wingman/plugins');
+    return map { $plugins->{$_}{phase} } grep { $plugins->{$_} }
+        'Wingman::Plugin::SendTemplatedEmail', 'Wingman::Plugin::EmailAllAdmins', 'Wingman::Plugin::EmailAllUsers';
+}
+
 sub put {
     my ($self, $job_type, $args, $options) = @_;
     $args = {} unless defined $args; # must be a hashref
@@ -393,6 +405,25 @@ sub reserve {
     }
     $self->log_info($beanstalk_job, 'Fetched a job.');
     return $self->_instantiate_job($beanstalk_job);
+}
+
+=head2 reserve_job ( id )
+
+Reserve a specific ready, delayed or buried job by id (beanstalkd 1.12 or later).
+Returns true, or undef with C<error> set to the broker response.
+
+=cut
+
+sub reserve_job {
+    my ($self, $id) = @_;
+    my $beanstalk = $self->beanstalk;
+    # shortcut: Beanstalk::Client 1.07 has no reserve_job, use it once https://github.com/gbarr/perl-beanstalk-client/issues/13 ships.
+    my @response = Beanstalk::Client::_interact($beanstalk, "reserve-job $id") or return undef;
+    if ($response[0] eq 'RESERVED') {
+        return defined Beanstalk::Client::_recv_data($beanstalk, $response[2]) ? 1 : undef;
+    }
+    $beanstalk->error(join ' ', @response);
+    return undef;
 }
 
 =head2 peek ( id )
