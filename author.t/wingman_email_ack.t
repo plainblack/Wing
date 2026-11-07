@@ -74,7 +74,7 @@ for my $plugin ('SendTemplatedEmail', 'EmailAllAdmins') {
                 : $mode eq 'invalid_exclusion' ? [$tube, undef] : [$tube];
             my $worker_client = Beanstalk::Client->new($config->get('wingman/beanstalkd'));
             my $publisher = Beanstalk::Client->new({
-                %{$config->get('wingman/beanstalkd')}, default_tube => 'email.children' });
+                %{$config->get('wingman/beanstalkd')}, default_tube => 'wingman_test.children' });
             my @children;
             my $parent = $worker_client->put({ data => '{}' });
             my $class = 'Wingman::Plugin::'.$plugin;

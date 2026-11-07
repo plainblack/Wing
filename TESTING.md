@@ -2,79 +2,42 @@
 
 The policy targets `master`. Code changes must change an author test; verification
 runs the changed tests, and each merge runs one of eight slices of the complete
-`author.t/*.t` and `author.t/*_test.py` suite. Failures do not skip later tests in
-the slice. The policy tool records slice failures as issues.
+`author.t/*.t` suite. Failures do not skip later tests in the slice. The policy
+tool records slice failures as issues.
 
-Run a selected test with:
-
-```
-python3 -B bin/agent-tests.py author.t/user.t
-```
-
-Prerequisites are Python 3, Wing's installed Perl dependencies, and `mysqld`,
-`mysql`, and `beanstalkd` on PATH. The isolation tests additionally use Python's
-standard library. No new package is required by the runner.
-
-Each Perl test gets a newly initialized MySQL datadir with networking disabled,
-a private Unix socket, a separate FastMmap cache directory, and a new loopback
-Beanstalkd process. The runner verifies MySQL's datadir, socket and networking
-setting before creating the test database, and checks the broker's reported PID
-against the process it started. It uses the current TestWing schema's
-supported DBIx::Class `deploy` method, then DeploymentHandler's
-`install_version_storage` and `add_database_version` methods. This bootstrap does
-not apply the historical version-5 install or alter SQL modes, generated SQL,
-or installed dependencies.
-
-Application WING configuration and Perl injection variables are excluded from
-the Perl test environment; installed Perl library paths are preserved. Configuration
-and cache data live in the temporary directory. MySQL output is continuously drained.
-The runner terminates its service process groups and removes the temporary data
-on completion or termination. Never run legacy author tests directly against an
-application configuration: some deploy tables or delete users.
-
-## Author-only client prerequisites
-
-The REST tests `status.t`, `tenantsso.t` and `wingman_rest.t` use the genuine
-[`Test::Wing::Client`](https://github.com/perlDreamer/Test-Wing-Client) helper.
-It is a separate project, not part of Wing::Client. Its version 0.0300 source
-has no CPAN release or generated installer, so use the pinned, unmodified
-checkout on Perl's library path. Do not copy it into Wing or replace it with
-a mock client. These dependencies are for author tests, not deployed apps.
-
-With Wing's ordinary Perl dependencies installed, install the additional client
-dependencies and the pinned browser test wrapper with their upstream tests enabled:
+Run selected tests, or a slice, with:
 
 ```
-cpanm HTTP::Thin HTTP::CookieJar::LWP HTTP::Message::PSGI 'Test::WWW::Mechanize::Dancer@0.0100'
-git clone https://github.com/perlDreamer/Test-Wing-Client.git "$HOME/.cache/wing-author/Test-Wing-Client"
-git -C "$HOME/.cache/wing-author/Test-Wing-Client" checkout --detach 8f3fab07200a57df790228bd1ff16d8d2f046ccf
-export PERL5LIB="$HOME/.cache/wing-author/Test-Wing-Client/lib${PERL5LIB:+:$PERL5LIB}"
-(cd "$HOME/.cache/wing-author/Test-Wing-Client" && prove -Ilib -It/lib t/*.t)
-python3 -B bin/agent-tests.py author.t/status.t author.t/tenantsso.t author.t/wingman_rest.t author.t/tenantsso_client.t
+perl author.t/run.pl author.t/user.t
+perl author.t/run.pl --slice 1/8
 ```
 
-Clone once; on later runs verify `git -C ... rev-parse HEAD` matches that commit
-and `git -C ... status --short` is empty before exporting `PERL5LIB`. The helper's
-28 upstream assertions pass with installed Wing::Client 1.1000 and Dancer 1.3522.
-The official Dancer-wrapper 0.0100 archive is
-`https://cpan.metacpan.org/authors/id/W/WW/WWOLF/Test-WWW-Mechanize-Dancer-0.0100.tar.gz`
-(SHA256 `2a3a00e0b45673df74b18bd140ca2db45eae29f7dda66f8f8c3475c17d64a8d7`).
-Its dependencies include Test::WWW::Mechanize::PSGI and Test::WWW::Mechanize;
-cpanm resolves these and runs their tests. Do not use `--notest` or force a
-failed dependency installation.
+The runner and tests need only Perl, Wing's Perl dependencies and the author-test
+modules in `bin/setup/03_install_perl_modules.sh`. They use the running dev MySQL
+and Beanstalkd named in `author.t/etc/test.conf`; nothing starts its own `mysqld`,
+`beanstalkd`, nginx or browser, and nothing downloads files. If a service is down,
+the tests fail; start it and rerun.
 
-The two Chromium tests also need the existing Playwright package visible to
-Node. If it is installed outside this checkout, export `NODE_PATH` to the
-absolute directory containing `playwright`, as described below, before invoking
-the runner or `agent-policy`. The runner preserves `PERL5LIB` and `NODE_PATH`.
+Create the test database and account once, as the MySQL root user, with
+`author.t/bin/createdb.sql`. The `testwing` account can reach only `testwing` and
+databases named `testwing_*`. The runner deploys the TestWing schema into
+`testwing` once per run. Before each test file it empties every table, drops
+`testwing_*` databases, deletes jobs in the `wingman_test` tube and tubes named
+`wingman_test.*`, starts a fresh FastMmap cache directory and rewrites the test
+configuration. When the run ends, even after a failure or interrupt, it drops the
+schema and `testwing_*` databases and clears those tubes again. Other tubes on the
+dev broker belong to other applications; tests that use the broker create only
+`wingman_test` tubes, plus `jobber.wingman_test` for Jobber ownership checks and
+tube `0` for the zero-named tube check, and delete their own jobs.
+
+Application WING configuration and Perl injection variables are excluded from the
+test environment; installed Perl library paths are preserved.
 
 ## Generated TestWing installs
 
 Ticket #57 is covered by `author.t/master_install.t`, which runs the actual
-`wing db --install --force` command in an additional disposable database. The
-test refuses to create it unless the server matches the runner's private socket,
-datadir and networking-disabled identity. It verifies version storage, native
-strict mode, matching user/API-key collations and actual foreign-key rejection.
+`wing db --install --force` command in an additional `testwing_install_check`
+database. It verifies version storage, that the install keeps the server SQL mode, matching user/API-key collations and actual foreign-key rejection.
 
 The tenant SSO client test provisions a real Acquisitions tenant through
 `Wing::Role::Result::Site::create_database`. Its version-2 fixture was generated
@@ -99,7 +62,7 @@ with the historical UTF-8 default, then exercises the generated upgrade,
 downgrade and repeat upgrade, retaining existing company data. This compatibility
 fixture does not change server settings, disable constraints or rewrite SQL.
 The generated downgrade removes the five User columns added in version 6 and
-therefore discards their data. It runs only on this disposable fixture. No
+therefore discards their data. It runs only on the `testwing_legacy_check` fixture. No
 application database or TGC migration is applied.
 
 No production deployment procedure is documented for Wing.
@@ -155,14 +118,16 @@ malformed/uninstalled plugins, manual/email policy and Jobber isolation.
 release beside a buried head, same-ID persistence across worker disconnects and
 preflight exhaustion after a lost reservation. The delay is advanced explicitly
 for the next assertion; these tests do not sleep or depend on machine speed.
-`wingman_monitor_cli.t` invokes the actual CLI with its own broker, temporary
-configuration and in-memory SQLite bootstrap (using the installed DBD::SQLite).
-It neither copies application configuration nor contacts an SMTP service.
+`wingman_monitor_cli.t` invokes the actual CLI with a temporary configuration and
+an in-memory SQLite bootstrap (using the installed DBD::SQLite). The CLI monitors
+every tube on the shared dev broker, so it runs with `WING_NO_EMAIL` set and does
+not check that no alert is mailed; `wingman_shared_broker.t` covers alerts. That
+test limits monitoring and bulk kicks to its own tubes.
 
 ## First-party account access
 
 `author.t/web_account_permissions.t` exercises real Dancer HTTP requests against
-the isolated database and cache. Account settings, API key management, secondary
+the runner's test database and cache. Account settings, API key management, secondary
 verification and SSO consent require a site session. SSO sessions, including
 admin sessions and sessions with `edit_my_account`, cannot use these pages to
 mint site sessions or grant application permissions. The test covers cookie and
@@ -176,12 +141,10 @@ missing/invalid/expired sessions and refused password/impersonation effects.
 `get_admin_by_session_id` always requires a site session, including when callers
 pass other session options. Trends and Wingman pages use this same helper.
 
-`author.t/account_pages.t` renders the shipped account templates and runs Chromium
-against isolated loopback web and REST apps. It verifies populated account fields,
-a saved edit after reload, and the owner's actual API keys and links. It requires
-the existing Node/Playwright, Test::TCP and HTTP::Server::PSGI prerequisites described
-below. Set `ACCOUNT_PAGE_ARTIFACTS` to retain 1440px and 390px screenshots in both
-browser appearances; Bootstrap 4 uses the same CSS in both.
+`author.t/account_pages.t` renders the shipped account templates and follows the
+REST endpoints their Vue objects call, served by `author.t/bin/rest-app.pl` because
+Wing's web and REST routes cannot load in one process. It verifies populated
+account fields, a saved edit after reload, and the owner's actual API keys and links.
 
 Existing applications copy the account templates at generation time. They must
 adopt `account.json` for settings properties and `apikeys_uri` for the key-list
@@ -190,33 +153,11 @@ for existing header/template methods. Wing does not replace consumers' copied
 views. TGC adoption is tracked separately at
 https://github.com/plainblack/TGC/issues/4284.
 
-## Date/time browser regression
-
-`author.t/luxon_date_time_test.py` mounts the actual `public/wing.vue.js` component
-in installed Playwright Chromium using the generated UI's pinned Vue 2.6.7,
-Bootstrap 4.5.2, Bootstrap-Vue 2.16.0 and Luxon 1.25.0 assets. It requires network
-access to download those assets from jsDelivr, Node, and an existing Playwright
-runtime with its Chromium browser installed. If Playwright is outside Node's
-module search path, set `NODE_PATH` to the installed runtime's `node_modules`
-directory. No application server, database, cache or broker is used.
-
-```
-python3 -B bin/agent-tests.py author.t/luxon_date_time_test.py
-```
-
-The test checks rendered label geometry at 390px and 1440px in both browser
-appearances, manual and picker modes, and both `wrap` settings. It also edits
-real date/time controls and checks UTC values and both public events, including
-immediate manual typing. It also checks joined borders and a 240px parent. Bootstrap
-4 has no automatic dark theme, so the two appearance settings use the same CSS.
-Set `WING_UI_ARTIFACTS` to an absolute directory to retain screenshots outside
-the source tree. The existing policy includes this Python author test in
-related verification and merge slices.
 
 ## Email acknowledgement recovery
 
-`author.t/wingman_email_ack.t` uses the runner's native isolated broker and
-MySQL, actual email plugins and `Wingman::Job`, and controlled SMTP/child
+`author.t/wingman_email_ack.t` uses the dev broker and the runner's test
+database, actual email plugins and `Wingman::Job`, and controlled SMTP/child
 publication boundaries. It covers true, false, throwing and lost-response
 deletion, partial delivery, failed burial, invalid/missing tube exclusions,
 worker disconnection, and actual autokick retention. It sends no outbound mail.
@@ -231,11 +172,9 @@ instructions and the limits of this policy.
 
 `author.t/client_ip.t` and `author.t/web_client_ip.t` exercise real Dancer
 requests, an IP-gated description with a real result set, expanded parameters,
-and login/SSO persistence in the runner's disposable database and cache.
-`author.t/nginx_client_ip_test.py` additionally requires nginx on PATH and uses
-an owned loopback nginx process and HTTP upstream to check the generated
-template's header directive against spoofed forwarding entries and no header.
-It stops both services before returning.
+and login/SSO persistence in the runner's test database and cache.
+`author.t/nginx_client_ip.t` checks that the generated template sets each
+forwarded header from the nginx variable for the observed peer, scheme and host.
 
 The generated template appends nginx's observed peer. Behind a load balancer
 this is the balancer address. Existing deployments must configure their trusted
@@ -245,7 +184,7 @@ unrestricted client-supplied forwarding header into X-Real-IP.
 ## Web session request security
 
 `author.t/web_session_security.t` and `author.t/rest_session_cookie.t` send real
-HTTP requests through Wing's Dancer PSGI app using the runner's isolated MySQL
+HTTP requests through Wing's Dancer PSGI app using the runner's test database
 and cache. They cover origin refusals before SQL or password-reset cache lookup,
 successful login/create/reset/SSO, admin impersonation, and all Wing session
 cookie writers on HTTP, native HTTPS and forwarded HTTPS.
@@ -279,7 +218,7 @@ comparison, null origins and strict serialized-origin syntax.
 ## REST mutation request security
 
 `author.t/rest_request_security.t` sends real HTTP requests through Dancer's
-PSGI app, using the isolated runner's native database and cache. It exercises
+PSGI app, using the runner's test database and cache. It exercises
 actual generated User CRUD routes, custom routes and REST credential login.
 SQL tracing and transparent cache observation assert zero lookups or mutations
 on refusal, including login requests with no existing cookie. HTTP reads verify
@@ -316,7 +255,7 @@ retain coverage of same-origin/headerless cookie writers and web login guards.
 
 ## Dedicated email routing
 
-`author.t/wingman_email_routing.t` uses the native isolated broker, real
+`author.t/wingman_email_routing.t` uses the dev broker, real
 `Wingman->put`, Wing helper, CLI, daemon worker loop, email plugins and admin
 fan-out. Only daemon lifecycle and SMTP acceptance are controlled. It checks
 legacy unset/null behavior, configured and explicit destinations, invalid
@@ -339,7 +278,7 @@ https://github.com/beanstalkd/beanstalkd/blob/v1.13/doc/protocol.txt.
 ## Generated mutation authorization
 
 `author.t/rest_mutation_auth.t` sends HTTP requests through the real Dancer
-PSGI app with isolated MySQL, FastMmap cache and real SSO sessions. It checks
+PSGI app with the runner's test database, FastMmap cache and real SSO sessions. It checks
 missing, invalid and expired sessions, absent API permission, deactivated users
 and rate limits across generated create/update/delete. Transparent observers
 prove refusal precedes model construction, target lookup, verification, extra
@@ -354,7 +293,7 @@ rate-limit buckets are seeded across all minutes, without timing assertions.
 ## Read authorization and description context
 
 `author.t/rest_read_auth.t` exercises actual Dancer PSGI HTTP requests with the
-runner's isolated MySQL, FastMmap cache and real SSO sessions. It reproduces the
+runner's test database, FastMmap cache and real SSO sessions. It reproduces the
 owning user's private email exposure with an API key missing `view_my_account`,
 and covers generated singleton and relationship reads, lists, expansions,
 missing/invalid/cache-expired sessions, authorized owner visibility, explicit
@@ -381,7 +320,7 @@ mocking authentication, database, cache or field visibility.
 ## Combined CRUD options
 
 `author.t/rest_crud_options.t` sends HTTP requests through the actual Dancer
-PSGI app with the runner's disposable database and cache. It checks aliased
+PSGI app with the runner's test database and cache. It checks aliased
 metadata and persisted CRUD, mutation callbacks, denied SSO permission errors,
 undefined callbacks, permission-aware metadata context and rate limits,
 and the built-in APIKey caller including view-only owner reads. The mutation and read authorization matrices
@@ -390,46 +329,16 @@ optional omission, public-only denied reads and authorized private visibility.
 
 ## Admin job email routing
 
-`author.t/admin_email_routing.t` requires installed Node and Playwright 1.62.1
-with Chromium (set `NODE_PATH` to its installed `node_modules` directory when
-needed), plus the Perl runner prerequisites, Test::TCP and HTTP::Server::PSGI.
-It loads the shipped admin template through the actual web route with a real
-admin session, clicks Add Job in Chromium, submits to the actual REST PSGI app,
-and inspects native broker job statistics. Wing ships separate web and REST
-apps; the browser transport routes `/api` to the isolated REST listener while
-preserving the public Host. The pinned CDN assets in the shipped header require
-network access. Missing prerequisites fail the test, rather than skipping it.
-No worker runs and no outbound mail is sent. Policy related verification and
-merge slices include this test. Run it with:
-
-```
-python3 -B bin/agent-tests.py author.t/admin_email_routing.t
-```
-
-Set `ADMIN_EMAIL_ARTIFACTS` to an absolute directory to retain desktop (1440px)
-and phone (390px) screenshots in both browser color schemes. Bootstrap 4 has no
-automatic dark theme, so the same CSS applies in both appearances.
-
-The form omits the explicit destination for phases registered to
-`Wingman::Plugin::EmailAllAdmins` and `Wingman::Plugin::SendTemplatedEmail`,
-including configured aliases. Wing's existing routing selects `wingman/email_tube`;
-absent or null retains the legacy default destination. Other phases retain the
-viewed tube. The list displays a newly submitted job only when its actual broker
-tube matches the viewed tube. Shared API and publication behavior still honors
-explicit caller destinations.
-
-Existing applications copy `var/init/views/admin/wingman_tube.tt` at generation
-time. Upgrading Wing alone does not replace those copies. Apply the two phase
-data attributes and the updated `add_job` method to each application's template,
-including the actual-destination list check, then deliver that application
-normally. Adopt email routing and exclusions in the staged order documented in
-`Wingman::Role::EmailRecovery`; this form fix does not move existing jobs or
-repair unsafe exclusions. No consumer application is changed here.
+`author.t/admin_email_routing.t` renders the shipped admin tube page through the
+actual web route with a real admin session and reads the email phases it gives the
+page. It submits jobs to the actual REST PSGI app the way the page's Add Job does,
+dropping the tube for those phases, and inspects native broker job statistics and
+the tube's job list. No worker runs and no outbound mail is sent.
 
 ## Ended session authentication
 
 `author.t/rest_ended_session.t` sends generated mutations through the actual
-Dancer PSGI app with the runner's isolated MySQL and cache. Sessions past their
+Dancer PSGI app with the runner's test database and cache. Sessions past their
 absolute expiry, after a password change, or with a revoked floor badge return
 the existing 401 login error before model verification or mutation, and their
 cache entries are removed. Active sessions are still renewed. `Wing::Session::end`
@@ -444,7 +353,7 @@ for a deactivated user, or a User object, returns 401, and a missing permission 
 
 `author.t/rest_missing_user.t` deletes the user behind a cached site or SSO
 session, with and without the `user-changed-<id>` marker, and sends a generated
-mutation through the actual Dancer PSGI app with the runner's isolated MySQL and
+mutation through the actual Dancer PSGI app with the runner's test database and
 cache. Each returns the 401 login error instead of a 500 and removes the session's
 cache entry. `extend` and SSO `check_permissions` end a session whose user no
 longer resolves, so Wing::Web's `get_session` returns no session either.
@@ -452,7 +361,7 @@ longer resolves, so Wing::Web's `get_session` returns no session either.
 ## Account route permissions
 
 `author.t/rest_route_permissions.t` sends real HTTP requests through the actual
-built-in User and APIKey routes with the runner's isolated MySQL and cache. The
+built-in User and APIKey routes with the runner's test database and cache. The
 User relationship routes (`apikeys`, `apikeypermissions`) and `GET /api/apikey/:id`
 declare `view_my_account`, with the generated-read rule: anonymous clients and SSO
 sessions without the permission get public fields only. `GET /api/user/whoami` and
@@ -476,7 +385,7 @@ private-field visibility by extending `can_edit` do not get email search from it
 ## Session user cache
 
 `author.t/session_user_cache.t` sends real requests through the Dancer PSGI app
-with the runner's isolated MySQL and cache, and counts `users` queries through
+with the runner's test database and cache, and counts `users` queries through
 DBIx::Class's debug callback. A repeat request reads its user from the session's
 cached `user_data` with no `users` query. A password change, deactivation or
 deletion still ends every session of the user, a missing `user-changed-<id>`

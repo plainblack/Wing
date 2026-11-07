@@ -85,3 +85,15 @@ Data::Structure::Util \
 Text::Demoroniser \
 Crypt::Mac::HMAC \
 AWS::SNS::Verify
+
+# Needed only by the author tests in author.t.
+cpanm Test::Deep \
+Test::TCP \
+Plack \
+HTTP::Message \
+HTTP::CookieJar \
+HTTP::Server::Simple::PSGI \
+'Test::WWW::Mechanize::Dancer@0.0100' \
+DBD::SQLite \
+JSON \
+CryptX

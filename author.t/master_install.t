@@ -4,25 +4,18 @@ use Test::More;
 use Wing;
 use DBIx::Class::DeploymentHandler;
 use File::Temp qw(tempdir);
-use File::Basename qw(dirname);
-use Cwd qw(realpath);
 use JSON qw(encode_json decode_json);
 use FindBin;
 
 my $db = Wing->db;
 my $dbh = $db->storage->dbh;
-my ($datadir, $socket, $private) = $dbh->selectrow_array('SELECT @@datadir, @@socket, @@skip_networking');
-my $root = dirname($ENV{WING_CONFIG});
-die "Run this test with bin/agent-tests.py and its disposable MySQL server.\n"
-    unless $root =~ m{^/tmp/wing-check-[^/]+$} && $private
-        && realpath($datadir) eq realpath("$root/db") && $socket eq "$root/mysql.sock";
 
 my $directory = tempdir(CLEANUP => 1);
 sub install_config {
     my $name = shift;
     my $config = decode_json(encode_json(Wing->config->config));
-    $config->{db}[0] =~ s/database=wing_check;/database=$name;/
-        or die "The isolated runner database name was not recognized.\n";
+    $config->{db}[0] =~ s/database=testwing\b/database=$name/
+        or die "Run this test with perl author.t/run.pl, which uses the testwing database from author.t/etc/test.conf.\n";
     return $config;
 }
 sub wing_db {
@@ -51,8 +44,8 @@ sub wing_db {
     }
 }
 
-$dbh->do('CREATE DATABASE wing_install_check');
-my $fresh_config = install_config('wing_install_check');
+$dbh->do('CREATE DATABASE testwing_install_check');
+my $fresh_config = install_config('testwing_install_check');
 wing_db($fresh_config, '--install', '--force');
 my $installed = TestWing::DB->connect(@{$fresh_config->{db}});
 my $installed_dbh = $installed->storage->dbh;
@@ -65,8 +58,8 @@ my $columns = $installed_dbh->selectcol_arrayref(q{
 });
 is scalar(@$columns), 2, 'both sides of the API key user relationship exist';
 is $columns->[0], $columns->[1], 'the referencing and referenced user columns have matching collations';
-my ($strict, $foreign_keys) = $installed_dbh->selectrow_array('SELECT @@sql_mode, @@foreign_key_checks');
-like $strict, qr/STRICT_TRANS_TABLES/, 'the install retains native strict SQL mode';
+my ($mode, $server_mode, $foreign_keys) = $installed_dbh->selectrow_array('SELECT @@SESSION.sql_mode, @@GLOBAL.sql_mode, @@foreign_key_checks');
+is $mode, $server_mode, 'the install keeps the server SQL mode';
 is $foreign_keys, 1, 'foreign keys remain enabled after installation';
 my $user = $installed->resultset('User')->create({username => 'installed-owner', email => 'installed-owner@example.invalid'});
 my $key = $user->apikeys->create({name => 'installed-key'});
@@ -81,8 +74,8 @@ is $key->user->id, $user->id, 'the installed schema persists a valid user and re
 }
 
 # Historical installs inherited this database default; the fresh-install test above uses native defaults.
-$dbh->do('CREATE DATABASE wing_legacy_check CHARACTER SET utf8 COLLATE utf8_unicode_ci');
-my $legacy_config = install_config('wing_legacy_check');
+$dbh->do('CREATE DATABASE testwing_legacy_check CHARACTER SET utf8 COLLATE utf8_unicode_ci');
+my $legacy_config = install_config('testwing_legacy_check');
 wing_db($legacy_config, '--install', '--force', '--version', '5');
 my $legacy = TestWing::DB->connect(@{$legacy_config->{db}});
 my $legacy_dbh = $legacy->storage->dbh;

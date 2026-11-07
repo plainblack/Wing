@@ -4,6 +4,11 @@ This file tracks the changes to Wing over time. Especially
 with respect to new features and compatibility changes.
 ==========================================================
 
+2026-11-07
+ * Run author tests with the Perl runner author.t/run.pl against the dev MySQL and Beanstalkd in author.t/etc/test.conf; nothing starts its own mysqld, beanstalkd, nginx or browser, and the Python, Node and Playwright checks are gone (#96).
+ * List the author-test Perl modules in bin/setup/03_install_perl_modules.sh (#96).
+ * Fix the Wingman admin tube job list, which missed jobs once broker job IDs passed about 100 and peeked the default tube instead of the requested one (#96).
+
 2026-11-05
  * Reject TGC Floor badge sessions whose originating login has a floor-revoked-login tombstone, leaving newer Floor logins and password sessions active (#87).
 

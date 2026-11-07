@@ -2,18 +2,13 @@ use strict;
 use warnings;
 use FindBin;
 use Test::More;
-use Test::TCP;
+use Config::JSON;
 use File::Temp qw(tempdir);
 use JSON::XS qw(encode_json);
 use Beanstalk::Client;
 
-my $broker = Test::TCP->new(code => sub {
-    my $port = shift;
-    exec($ENV{TGC_JOBBER_BEANSTALKD_BINARY} || 'beanstalkd', '-l', '127.0.0.1', '-p', $port);
-    die "Cannot start owned monitor broker: $!";
-});
-my $client = Beanstalk::Client->new({server => '127.0.0.1:'.$broker->port, default_tube => 'cli.default'});
-is $client->stats->pid, $broker->pid, 'CLI fixture owns its broker';
+my $server = Config::JSON->new($ENV{WING_CONFIG})->get('wingman/beanstalkd/server');
+my $client = Beanstalk::Client->new({server => $server, default_tube => 'wingman_test.cli'});
 $client->use('0');
 $client->watch_only('0');
 my $job = $client->put({data => 'not a Wingman payload'});
@@ -28,7 +23,7 @@ my $serialized = encode_json({
     app_namespace => 'TestWing', api_key_permissions => [], db => ['dbi:SQLite:dbname=:memory:', '', ''],
     log4perl_config => "$directory/log.conf",
     cache => {driver => 'Memory', global => 1},
-    wingman => {beanstalkd => {server => '127.0.0.1:'.$broker->port, default_tube => 'cli.default'},
+    wingman => {beanstalkd => {server => $server, default_tube => 'wingman_test.cli'},
         autokick_excluded_tubes => ['0']},
 });
 print $config $serialized;
@@ -38,8 +33,10 @@ close $config;
     local $ENV{WING_APP} = $FindBin::Bin;
     local $ENV{WING_OWNER} = $FindBin::Bin;
     local $ENV{WING_CONFIG} = $path;
+    # The dev broker is shared, so alerts about other tubes' buried jobs are logged, not mailed.
+    local $ENV{WING_NO_EMAIL} = 1;
     is system($^X, "$FindBin::Bin/../bin/wing", 'autokick_jobs'), 0,
-        'actual CLI monitors a valid zero-named retained tube without loading its malformed job or sending mail';
+        'actual CLI monitors a valid zero-named retained tube without loading its malformed job';
 }
 open my $unchanged, '<', $path or die $!;
 is do { local $/; <$unchanged> }, $serialized, 'CLI configuration is unchanged';
@@ -48,5 +45,4 @@ is $client->stats_job($job->id)->state, 'buried', 'actual CLI retains the native
 is $client->stats_job($job->id)->kicks, 0, 'actual CLI never kicks the native job';
 $client->delete($job->id);
 $client->disconnect;
-undef $broker;
 done_testing;

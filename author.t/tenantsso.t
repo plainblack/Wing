@@ -1,13 +1,19 @@
-use lib '/data/Wing/author.t/lib', '/data/Wing/lib';
-use Wing::Perl;
-use Data::GUID;
-use Test::More;
+use strict;
+use warnings;
+use Test::More import => ['!pass'];
 use Test::Deep;
-use Test::Wing::Client;
-use TestHelper;
-
+use Dancer ':syntax';
+use Wing;
+use Data::GUID;
 use Wing::Rest::Session;
 use Wing::Rest::NotFound;
+use Plack::Test;
+use Dancer::Handler;
+use HTTP::Request::Common qw(POST);
+use JSON qw(decode_json);
+
+set show_errors => 0;
+set logger => 'null';
 
 my $andy = Wing->db->resultset('User')->new({
     username    => 'andy',
@@ -27,43 +33,40 @@ my $andrew = Wing->db->resultset('User')->new({
 $andrew->encrypt_and_set_password('Detroit');
 $andrew->insert;
 
-my $wing = Test::Wing::Client->new();
+my $app = Dancer::Handler->get_handler->psgi_app;
+sub tenantsso {
+    my ($params) = @_;
+    my $response;
+    test_psgi $app, sub { $response = decode_json($_[0]->(POST 'http://localhost/api/session/tenantsso', [%$params])->content) };
+    return $response;
+}
 
 my $result;
 
 ##Failure testing
 
-eval { $wing->post('session/tenantsso', {}); };
-is $@->message, 'Tenant SSO not configured.', 'tenant SSO not configured';
+is tenantsso({})->{error}{message}, 'Tenant SSO not configured.', 'tenant SSO not configured';
 
 my $guid = Data::GUID->guid_string;
 Wing->config->set('tenants/sso_key', $guid);
 
-eval { $wing->post('session/tenantsso', {}); };
-is $@->message, 'You need a tenant sso key.', 'request with missing tenant sso key';
+is tenantsso({})->{error}{message}, 'You need a tenant sso key.', 'request with missing tenant sso key';
 
-eval { $wing->post('session/tenantsso', {api_key => Data::GUID->guid_string, }); };
-is $@->message, 'Wrong tenant sso key', 'request with the wrong sso key';
+is tenantsso({api_key => Data::GUID->guid_string, })->{error}{message}, 'Wrong tenant sso key', 'request with the wrong sso key';
 
-eval { $wing->post('session/tenantsso', {api_key => $guid, }); };
-is $@->message, 'You must specify a password.', 'request with no password';
+is tenantsso({api_key => $guid, })->{error}{message}, 'You must specify a password.', 'request with no password';
 
-eval { $wing->post('session/tenantsso', {api_key => $guid, password => 'foo-baz-bar', }); };
-is $@->message, 'You must specify a username or user_id.', 'request with no user identifier of any type';
+is tenantsso({api_key => $guid, password => 'foo-baz-bar', })->{error}{message}, 'You must specify a username or user_id.', 'request with no user identifier of any type';
 
-eval { $wing->post('session/tenantsso', {api_key => $guid, password => 'foo-baz-bar', username => 'warden'}); };
-is $@->message, 'User not found.', 'user not found due to no username match';
+is tenantsso({api_key => $guid, password => 'foo-baz-bar', username => 'warden'})->{error}{message}, 'User not found.', 'user not found due to no username match';
 
-eval { $wing->post('session/tenantsso', {api_key => $guid, password => 'foo-baz-bar', user_id => Data::GUID->guid_string, }); };
-is $@->message, 'User not found.', 'user not found due to no user_id match';
+is tenantsso({api_key => $guid, password => 'foo-baz-bar', user_id => Data::GUID->guid_string, })->{error}{message}, 'User not found.', 'user not found due to no user_id match';
 
-eval { $wing->post('session/tenantsso', {api_key => $guid, password => 'foo-baz-bar', username => 'andy', }); };
-is $@->message, 'Password incorrect.', 'user not found due to username/password mismatch';
+is tenantsso({api_key => $guid, password => 'foo-baz-bar', username => 'andy', })->{error}{message}, 'Password incorrect.', 'user not found due to username/password mismatch';
 
-eval { $wing->post('session/tenantsso', {api_key => $guid, password => 'foo-baz-bar', user_id => $andy->id, }); };
-is $@->message, 'Password incorrect.', 'user not found due to user_id/password mismatch';
+is tenantsso({api_key => $guid, password => 'foo-baz-bar', user_id => $andy->id, })->{error}{message}, 'Password incorrect.', 'user not found due to user_id/password mismatch';
 
-$result = $wing->post('session/tenantsso', {api_key => $guid, password => 'Saywatanayo', user_id => $andy->id, });
+$result = tenantsso({api_key => $guid, password => 'Saywatanayo', user_id => $andy->id, })->{result};
 cmp_deeply(
     $result,
     superhashof({
@@ -72,7 +75,7 @@ cmp_deeply(
     'Got back the right user properties for andy and not andrew via user_id'
 );
 
-$result = $wing->post('session/tenantsso', {api_key => $guid, password => 'Saywatanayo', username => 'andy', });
+$result = tenantsso({api_key => $guid, password => 'Saywatanayo', username => 'andy', })->{result};
 cmp_deeply(
     $result,
     superhashof({
@@ -85,5 +88,4 @@ done_testing();
 
 END {
     Wing->config->delete('tenants/sso_key');
-    TestHelper::cleanup();
 }

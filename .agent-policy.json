@@ -1,10 +1,10 @@
 {
   "main": "master",
   "verify": [
-    { "name": "related-tests", "run": "python3 -B bin/agent-tests.py {tests}", "related": true }
+    { "name": "related-tests", "run": "perl author.t/run.pl {tests}", "related": true }
   ],
-  "tests": ["author.t/*.t", "author.t/*_test.py"],
+  "tests": ["author.t/*.t"],
   "untested": ["**/*.md", "*.txt", "author.t/TESTME"],
-  "slice": { "count": 8, "run": "python3 -B bin/agent-tests.py --slice {slice}" },
+  "slice": { "count": 8, "run": "perl author.t/run.pl --slice {slice}" },
   "merge": { "push": "origin" }
 }

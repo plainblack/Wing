@@ -19,18 +19,18 @@ local $settings->{plugins} = {
     'Wingman::Plugin::EmailAllAdmins' => {phase => 'EmailAllAdmins'},
     'TestWing::Wingman::HelloWorld' => {phase => 'howdy'},
 };
-local $settings->{email_tube} = 'wingman.email';
+local $settings->{email_tube} = 'wingman_test.email';
 my $worker = Wingman->new;
 my $job = $worker->put('SendTemplatedEmail', {template => 'generic', params => {}, options => {}});
-is $job->stats->tube, 'wingman.email', 'direct email publication uses installation email tube';
+is $job->stats->tube, 'wingman_test.email', 'direct email publication uses installation email tube';
 $job->delete;
 $worker->disconnect;
 
 # The helper and both plugin phases share routing, while explicit destinations win.
-for my $tube (undef, 'mail.installation') {
+for my $tube (undef, 'wingman_test.mail') {
     local $settings->{email_tube} = $tube;
     my $publisher = Wingman->new;
-    my $expected = defined $tube ? 'mail.installation' : 'wingman_test';
+    my $expected = defined $tube ? 'wingman_test.mail' : 'wingman_test';
     for my $phase ('SendTemplatedEmail', 'EmailAllAdmins', 'howdy') {
         my $options = {priority => 123, ttr => 80};
         my $queued = $publisher->put($phase, {}, $options);
@@ -38,8 +38,8 @@ for my $tube (undef, 'mail.installation') {
         is $queued->stats->pri, 123, 'priority preserved';
         is_deeply $options, {priority => 123, ttr => 80}, 'caller queue options unchanged';
         $queued->delete;
-        $queued = $publisher->put($phase, {}, {tube => 'caller.explicit'});
-        is $queued->stats->tube, 'caller.explicit', 'explicit tube wins';
+        $queued = $publisher->put($phase, {}, {tube => 'wingman_test.caller'});
+        is $queued->stats->tube, 'wingman_test.caller', 'explicit tube wins';
         $queued->delete;
     }
     Wing->send_templated_email('generic', {}, {wingman => 1});
@@ -47,8 +47,8 @@ for my $tube (undef, 'mail.installation') {
     ok $queued, 'Wing helper publishes email';
     is $queued->stats->tube, $expected, 'helper uses intended email default';
     $queued->delete;
-    Wing->send_templated_email('generic', {}, {wingman => 1, wingman_job_options => {tube => 'caller.explicit'}});
-    $queued = $publisher->peek_ready('caller.explicit');
+    Wing->send_templated_email('generic', {}, {wingman => 1, wingman_job_options => {tube => 'wingman_test.caller'}});
+    $queued = $publisher->peek_ready('wingman_test.caller');
     ok $queued, 'helper preserves explicit caller tube';
     $queued->delete;
     $publisher->disconnect;
@@ -57,7 +57,7 @@ for my $tube (undef, 'mail.installation') {
     local $settings->{plugins}{'Wingman::Plugin::SendTemplatedEmail'} = {phase => 'MailAlias'};
     my $publisher = Wingman->new;
     my $queued = $publisher->put('MailAlias', {});
-    is $queued->stats->tube, 'wingman.email', 'routing follows registered plugin phase';
+    is $queued->stats->tube, 'wingman_test.email', 'routing follows registered plugin phase';
     $queued->delete;
     $publisher->disconnect;
 }
@@ -66,7 +66,7 @@ for my $invalid ('', [], {}, 'bad tube', '-mail', 'x' x 201, 'jobber.mail', "mai
     my $publisher = Wingman->new;
     my $before = $publisher->stats->{ 'total-jobs' };
     my @tubes = sort $publisher->list_tubes;
-    for my $options ({}, {tube => 'caller.explicit'}) {
+    for my $options ({}, {tube => 'wingman_test.caller'}) {
         eval { $publisher->put('SendTemplatedEmail', {}, $options) };
         like "$@", qr{wingman/email_tube must be}, 'invalid installation setting fails even with explicit override';
     }
@@ -76,11 +76,11 @@ for my $invalid ('', [], {}, 'bad tube', '-mail', 'x' x 201, 'jobber.mail', "mai
 }
 
 for my $explicit (0, 1) {
-    my @args = ('do', $explicit ? ('--tube=cli.explicit') : (), 'SendTemplatedEmail', '{}');
+    my @args = ('do', $explicit ? ('--tube=wingman_test.cli') : (), 'SendTemplatedEmail', '{}');
     my $result = test_app('Wing::Command' => \@args);
     is $result->error, undef, 'CLI publication succeeds';
     my $publisher = Wingman->new;
-    my $queued = $publisher->peek_ready($explicit ? 'cli.explicit' : 'wingman.email');
+    my $queued = $publisher->peek_ready($explicit ? 'wingman_test.cli' : 'wingman_test.email');
     ok $queued, 'CLI honors email default and explicit override';
     $queued->delete;
     $publisher->disconnect;
@@ -119,7 +119,7 @@ my $program;
     die $@ if $@;
 }
 local $settings->{max_workers} = 0;
-local $settings->{autokick_excluded_tubes} = ['wingman.email'];
+local $settings->{autokick_excluded_tubes} = ['wingman_test.email'];
 my $sender = Wingman->new;
 my $admin = Wing->db->resultset('User')->create({username => 'email_route_admin', email => 'route@example.invalid', admin => 1});
 my $parent = $sender->put('EmailAllAdmins', {template => 'generic', params => {}});
@@ -134,9 +134,9 @@ my $parent = $sender->put('EmailAllAdmins', {template => 'generic', params => {}
 }
 ok !defined $parent->stats, 'admin parent confirms deletion after actual fan-out';
 $admin->delete;
-my $child = $sender->peek_ready('wingman.email');
+my $child = $sender->peek_ready('wingman_test.email');
 ok $child, 'admin child publication uses email tube';
-is $child->stats->tube, 'wingman.email', 'actual fan-out child is routed';
+is $child->stats->tube, 'wingman_test.email', 'actual fan-out child is routed';
 {
     my $config = Wing->config;
     my $original_mkits = $config->get('mkits');
@@ -150,7 +150,7 @@ is $child->stats->tube, 'wingman.email', 'actual fan-out child is routed';
         is $child->stats->state, 'buried', 'actual email plugin confirms burial before SMTP boundary';
         return 1;
     };
-    $sender->watch_only('wingman.email');
+    $sender->watch_only('wingman_test.email');
     my $outcome = $sender->reserve(0)->run;
     is $outcome->{wingman_outcome}, 'complete', 'actual SMTP path completes with acknowledged deletion';
     is $accepted, 1, 'one SMTP acceptance for fan-out child';
@@ -160,7 +160,7 @@ is $child->stats->tube, 'wingman.email', 'actual fan-out child is routed';
 }
 # Monitoring preserves both email and unrelated terminal work.
 my $email = $sender->put('SendTemplatedEmail', {});
-$sender->watch_only('wingman.email');
+$sender->watch_only('wingman_test.email');
 $sender->reserve(0)->bury;
 my $ordinary = $sender->put('howdy', {});
 $sender->watch_only('wingman_test');
