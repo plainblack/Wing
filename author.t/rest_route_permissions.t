@@ -13,11 +13,8 @@ use Crypt::PK::RSA;
 use Crypt::JWT qw(decode_jwt);
 
 set show_errors => 0;
-my $original_tenants = Wing->config->get('tenants');
-Wing->config->delete('tenants');
 require Wing::Rest::User;
 require Wing::Rest::APIKey;
-Wing->config->set('tenants', $original_tenants) if defined $original_tenants;
 
 Wing->db->source($_)->resultset_class("Wing::DB::ResultSet") for qw(User APIKey APIKeyPermission);
 my $user = Wing->db->resultset('User')->create({username => 'route-owner', email => 'route-owner@example.invalid'});

@@ -12,10 +12,7 @@ use JSON qw(decode_json);
 
 set show_errors => 0;
 set logger => 'null';
-my $original_tenants = Wing->config->get('tenants');
-Wing->config->delete('tenants');
 require Wing::Rest::User;
-Wing->config->set('tenants', $original_tenants) if defined $original_tenants;
 Wing->db->source('User')->resultset_class('Wing::DB::ResultSet');
 my $admin = Wing->db->resultset('User')->create({username => 'sso-admin', email => 'sso-admin@example.invalid', admin => 1});
 my $victim = Wing->db->resultset('User')->create({username => 'victim', email => 'victim-mail@example.invalid'});

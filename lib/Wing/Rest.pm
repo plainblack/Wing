@@ -167,6 +167,8 @@ register generate_relationship => sub {
 	}
         my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
         my $object = fetch_object($db_class_name);
+        # Relationship routes serve every host, but the main and tenant schemas can have different relationships.
+        ouch 404, $db_class_name.' has no '.$relationship_name.' on this site.' unless $object->can($relationship_name);
         my $data = $object->$relationship_name();
         if (exists $options{queryable} || exists $options{fulltextquery} || exists $options{trigramquery}) {
             my @query;
@@ -259,8 +261,12 @@ register generate_all_relationships => sub {
     my ($wing_object_type, %options) = @_;
     my $db_class_name = %options && exists $options{db_class_name} ? $options{db_class_name} : $wing_object_type; # creates alias for migrating from old APIs to new
     my $object_parameters = $options{object_parameters} || {};
-    my $wing_object = site_db()->resultset($db_class_name)->new($object_parameters);
-    foreach my $name (@{$wing_object->relationship_accessors}) {
+    # Routes are set up once at load for every host, so they cover the main schema and, in multi-tenant mode, the tenant schema.
+    my $tenant_schema = Wing->config->get('tenants/domain') ? Wing->config->get('tenants/namespace').'::DB' : undef;
+    my @schemas = grep { $_->source_registrations->{$db_class_name} } Wing->db, $tenant_schema ? $tenant_schema->connect : ();
+    die "generate_all_relationships cannot find a $db_class_name class in the main or tenant schema. Check the class name.\n" unless @schemas;
+    my %seen;
+    foreach my $name (grep { !$seen{$_}++ } map { @{$_->resultset($db_class_name)->new($object_parameters)->relationship_accessors} } @schemas) {
         my %rel_options;
         if (exists $options{named_options}) {
             if (exists $options{named_options}{$name}) {
