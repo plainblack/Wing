@@ -113,11 +113,13 @@ test_psgi $app, sub {
         is(Wing->cache->get($session->key)->{extended}, 1, "deactivated admin=$admin session is not renewed");
     }
 
-    my $badge_user = make_user('ended-badge');
-    Wing->cache->set('floor-active-login-'.$badge_user->id, {floorLoginId => 'floor-1'});
-    my $badge = make_session($badge_user, auth_source => 'floor_badge', floor_login_id => 'floor-1');
-    Wing->cache->remove('floor-active-login-'.$badge_user->id);
-    $refused->($badge_user, $badge, 'revoked floor badge');
+    Wing::Session->add_validator(sub { ($_[0]->auth_source // '') ne 'revoked-by-app' });
+    my $revoked_user = make_user('ended-app-revoked');
+    my $revoked = make_session($revoked_user);
+    my $revoked_data = Wing->cache->get($revoked->key);
+    $revoked_data->{auth_source} = 'revoked-by-app';
+    Wing->cache->set($revoked->key, $revoked_data);
+    $refused->($revoked_user, $revoked, 'app-rejected');
 
     $user = make_user('ended-renewed');
     $session = make_session($user);
