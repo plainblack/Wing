@@ -9,40 +9,38 @@ use File::Path qw(make_path);
 use YAML;
 
 my $project = '';
-GetOptions("app=s" => \$project);
+my $root = '/data';
+GetOptions("app=s" => \$project, "root=s" => \$root) or die "usage: $0 --app=AppName [--root=/data]\n";
 
-die "usage: $0 --app=AppName" unless $project;
+die "usage: $0 --app=AppName [--root=/data]\n" unless $project;
+my $home = "$root/$project";
 
 # make folder
-make_path('/data/'.$project.'/lib/'.$project.'/DB/Result');
-make_path('/data/'.$project.'/etc');
-make_path('/data/'.$project.'/bin/setup');
-make_path('/data/'.$project.'/var');
-make_path('/data/'.$project.'/var/mkits');
-make_path('/data/'.$project.'/var/mkits/generic.mkit');
-make_path('/data/'.$project.'/var/mkits/reset_password.mkit');
-make_path('/data/'.$project.'/var/mkits/secondary_auth.mkit');
-make_path('/data/'.$project.'/dbicdh/_common/deploy/1');
-make_path('/data/'.$project.'/views');
-make_path('/data/'.$project.'/views/admin');
-make_path('/data/'.$project.'/views/account');
+make_path($home.'/lib/'.$project.'/DB/Result');
+make_path($home.'/etc');
+make_path($home.'/bin/setup');
+make_path($home.'/var');
+make_path($home.'/dbicdh/_common/deploy/1');
+make_path($home.'/views');
+make_path($home.'/views/admin');
+make_path($home.'/views/account');
 
 # set up default configs
 my $config = Config::JSON->new('/data/Wing/var/init/etc/wing.conf');
-my $new_config = Config::JSON->create('/data/'.$project.'/etc/wing.conf');
+my $new_config = Config::JSON->create($home.'/etc/wing.conf');
 $new_config->config($config->config);
-$new_config->set('mkits', '/data/'.$project.'/var/mkits/');
+$new_config->set('mkits', $home.'/var/mkits/');
 $new_config->set('app_namespace', $project);
-$new_config->set("log4perl_config", "/data/".$project."/etc/log4perl.conf",);
+$new_config->set("log4perl_config", $home."/etc/log4perl.conf",);
 $new_config->get( 'db' )->[ 0 ] =~ s|PROJECT|lc( $project )|e;
 $new_config->write;
 
 # set up dancer config
 my $dancer_config = YAML::LoadFile('/data/Wing/var/init/config.yml');
 $dancer_config->{appname} = $project;
-$dancer_config->{log4perl}{config_file} = '/data/'.$project.'/etc/log4perl.conf';
-$dancer_config->{engines}{template_toolkit}{INCLUDE_PATH} = '/data/'.$project.'/views';
-YAML::DumpFile('/data/'.$project.'/config.yml', $dancer_config);
+$dancer_config->{log4perl}{config_file} = $home.'/etc/log4perl.conf';
+$dancer_config->{engines}{template_toolkit}{INCLUDE_PATH} = $home.'/views';
+YAML::DumpFile($home.'/config.yml', $dancer_config);
 
 # set up needed files
 my $tt = Template->new({ABSOLUTE => 1});
@@ -66,18 +64,9 @@ template($tt,'bin/web.psgi', $vars);
 template($tt,'bin/rest.psgi', $vars);
 template($tt,'bin/setup/install_perl_modules.sh', $vars);
 template($tt,'dbicdh/_common/deploy/1/install_admin.pl', $vars);
-template($tt,'var/mkits/generic.mkit/documentation.txt', $vars);
-template($tt,'var/mkits/generic.mkit/manifest.json', $vars);
-template($tt,'var/mkits/generic.mkit/body.html', $vars);
-template($tt,'var/mkits/generic.mkit/body.txt', $vars);
-template($tt,'var/mkits/reset_password.mkit/documentation.txt', $vars);
-template($tt,'var/mkits/reset_password.mkit/manifest.json', $vars);
-template($tt,'var/mkits/reset_password.mkit/body.txt', $vars);
-template($tt,'var/mkits/reset_password.mkit/body.html', $vars);
-template($tt,'var/mkits/secondary_auth.mkit/documentation.txt', $vars);
-template($tt,'var/mkits/secondary_auth.mkit/manifest.json', $vars);
-template($tt,'var/mkits/secondary_auth.mkit/body.txt', $vars);
-template($tt,'var/mkits/secondary_auth.mkit/body.html', $vars);
+
+# mail kits are runtime templates, so copy them untouched
+system('cp', '-R', '/data/Wing/var/init/var/mkits', $home.'/var/') == 0 or die "Could not copy the mail kits into $home/var/mkits.\n";
 
 # set up views, using alternate template tags since they're templates
 my $t_alt = Template->new({ABSOLUTE => 1, START_TAG => quotemeta('[%['), END_TAG => quotemeta(']%]')});
@@ -114,17 +103,17 @@ template($t_alt,'views/account/reset-password.tt', $vars);
 template($t_alt,'views/account/ssosuccess.tt', $vars);
 
 # set privs
-system('cd /data/'.$project.'/bin;chmod 755 *');
+system('chmod', '755', glob("$home/bin/*")) == 0 or die "Could not make $home/bin scripts executable.\n";
 
 # tell them what to do next
 say "Be sure to export the environment variables you need for your app:\n";
-say "export WING_APP=/data/".$project;
-say "export WING_CONFIG=/data/".$project."/etc/wing.conf";
+say "export WING_APP=".$home;
+say "export WING_CONFIG=".$home."/etc/wing.conf";
 say 'database name set to ' . lc( $project );
 say qq|for create database step, run command 'mysql -uroot -p -e "create database @{[ lc( $project ) ]}"'|;
 
 sub template {
   my ($tt, $from, $vars, $to) = @_;
   $to ||= $from;
-  $tt->process('/data/Wing/var/init/'.$from, $vars, '/data/'.$project.'/'.$to) || die $tt->error();
+  $tt->process('/data/Wing/var/init/'.$from, $vars, $home.'/'.$to) || die $tt->error();
 }
