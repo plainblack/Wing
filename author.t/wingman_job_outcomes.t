@@ -3,8 +3,8 @@ use warnings;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Test::More;
-use IO::Socket::INET;
 use Beanstalk::Client;
+use Wing;
 use Wingman::Job;
 
 {
@@ -13,23 +13,8 @@ use Wingman::Job;
     sub run { $_[0]->{run}->($_[1]) }
 }
 
-my $listener = IO::Socket::INET->new(LocalAddr => '127.0.0.1', LocalPort => 0, Listen => 1) or die $!;
-my $port = $listener->sockport;
-close $listener;
-my $pid = fork();
-die "Cannot fork broker: $!" unless defined $pid;
-if (!$pid) {
-    exec 'beanstalkd', '-l', '127.0.0.1', '-p', $port;
-    die "Cannot start Beanstalkd: $!";
-}
-END { my $status = $?; if ($pid) { kill 'TERM', $pid; waitpid $pid, 0; } $? = $status; }
-{
-    local $SIG{ALRM} = sub { die 'Test broker did not become ready' };
-    alarm 15;
-    until (my $socket = IO::Socket::INET->new(PeerAddr => '127.0.0.1', PeerPort => $port)) { }
-    alarm 0;
-}
-my $client = Beanstalk::Client->new({ server => "127.0.0.1:$port", default_tube => 'wing.outcomes' });
+my $server = Wing->config->get('wingman/beanstalkd/server');
+my $client = Beanstalk::Client->new({ server => $server, default_tube => 'wingman_test.outcomes' });
 my (@info, @errors);
 no warnings 'redefine';
 local *Wingman::Job::log_info = sub { push @info, $_[2] };
@@ -69,7 +54,7 @@ like join(' ', @errors), qr/Broker connection lost.*Reconcile delivery/s, 'depen
 like join(' ', @errors), qr/confirm.*retention.*broker may redeliver/i,
     'uncertain acknowledgement warns that plugin must confirm its retention policy';
 $client->disconnect;
-$client = Beanstalk::Client->new({ server => "127.0.0.1:$port", default_tube => 'wing.outcomes' });
+$client = Beanstalk::Client->new({ server => $server, default_tube => 'wingman_test.outcomes' });
 is $client->reserve(5)->id, $id, 'broker redelivers unretained failure after worker disconnect';
 $client->delete($id);
 
@@ -81,7 +66,7 @@ $client->delete($id);
     return { wingman_outcome => 'failed', message => 'Delete uncertain; reconcile buried job before retrying.' };
 });
 $client->disconnect;
-$client = Beanstalk::Client->new({ server => "127.0.0.1:$port", default_tube => 'wing.outcomes' });
+$client = Beanstalk::Client->new({ server => $server, default_tube => 'wingman_test.outcomes' });
 is $client->stats_job($id)->state, 'buried', 'plugin-confirmed failure retention survives worker disconnect';
 ok !grep($_ eq 'Job complete.', @info), 'retained failed acknowledgement is not completion';
 $client->delete($id);
@@ -142,13 +127,13 @@ subtest 'plugin-owned delayed retries are independent of buried heads' => sub {
     is $client->stats_job($retry->id)->delay, 3600, 'broker records the explicit positive retry delay';
     is $client->stats_job($head->id)->state, 'buried', 'terminal head is not moved to schedule the retry';
     $client->disconnect;
-    $client = Beanstalk::Client->new({server => "127.0.0.1:$port", default_tube => 'wing.outcomes'});
+    $client = Beanstalk::Client->new({server => $server, default_tube => 'wingman_test.outcomes'});
     is $client->stats_job($retry->id)->state, 'delayed', 'confirmed delay survives worker disconnect';
     $client->kick_job($retry->id) or die 'Cannot explicitly advance the test retry';
     my $crashed = $client->reserve(0);
     is $crashed->id, $retry->id, 'second reservation belongs to the same job';
     $client->disconnect;
-    $client = Beanstalk::Client->new({server => "127.0.0.1:$port", default_tube => 'wing.outcomes'});
+    $client = Beanstalk::Client->new({server => $server, default_tube => 'wingman_test.outcomes'});
     $run->();
     is $effects, 1, 'persistent preflight limit prevents effects after a crashed reservation consumes the budget';
     ok !defined $client->stats_job($retry->id), 'plugin confirms terminal deletion after exhaustion';

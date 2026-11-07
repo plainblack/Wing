@@ -30,11 +30,11 @@ $red->insert;
 my $prison = Wing->db->resultset('Site')->new({});
 $prison->name('Shawshank Prison');
 $prison->hostname('localhost.localdomain');
-$prison->shortname('localhost');
+$prison->shortname('testwing_localhost');
 $prison->user($andy);
 $prison->insert;  ##also builds the tenant db for us
 
-my $site_db = Wing->tenant_db('localhost');
+my $site_db = Wing->tenant_db('testwing_localhost');
 is $site_db->resultset('User')->search({master_user_id => $andy->id})->single->username,
     $andy->username, 'fresh tenant provisioning copies its owner using the current User fields';
 

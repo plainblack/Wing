@@ -8,12 +8,11 @@ use Wing::DB::ResultSet;
 use Wing::Web::Account;
 use Plack::Test;
 use Dancer::Handler;
-use HTTP::Request::Common;
-use FindBin;
-use File::Temp qw(tempdir);
-use JSON qw(encode_json);
+use HTTP::Request::Common qw(GET);
+use HTTP::Tiny;
 use Test::TCP;
-use HTTP::Server::PSGI;
+use FindBin;
+use JSON qw(decode_json);
 set show_errors => 0;
 set logger => 'null';
 set public => $ENV{WING_HOME}.'/public';
@@ -34,21 +33,31 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
     is $keys->code, 200, 'shipped API key list renders for a verified site session';
     like $keys->content, qr{list_api : '/api/user/} , 'key list uses the current user relationship endpoint';
 });
-my $directory = tempdir(CLEANUP => 1);
-open my $input, '>', "$directory/input.json" or die $!;
-print $input encode_json({session => $session->id, user_id => $user->id, key_id => $key->id});
-close $input;
 my $api = Test::TCP->new(code => sub {
-    my $port = shift;
-    exec $^X, "$FindBin::Bin/browser/account-api.pl", $port;
-    die "Could not start isolated REST app: $!";
+    exec $^X, "$FindBin::Bin/bin/rest-app.pl", shift, 'Wing::Rest::User', 'Wing::Rest::APIKey';
+    die "Could not start the REST app: $!";
 });
-my $web = Test::TCP->new(code => sub {
-    my $port = shift;
-    HTTP::Server::PSGI->new(host => '127.0.0.1', port => $port)->run(Dancer::Handler->get_handler->psgi_app);
+my $rest = HTTP::Tiny->new(default_headers => {Cookie => 'session_id='.$session->id});
+my $rest_uri = 'http://127.0.0.1:'.$api->port;
+# Follow the endpoints the page's Vue objects call, the way the browser would.
+test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
+    my $request = shift;
+    my @cookie = (Cookie => 'session_id='.$session->id);
+    my $account = sub {
+        my ($json) = $request->(GET 'http://localhost/account', @cookie)->content =~ /properties : (\{.*\}),\s*params :/s;
+        return decode_json($json);
+    };
+    my $properties = $account->();
+    is $properties->{username}, 'account-render', 'account page embeds the username';
+    is $properties->{email}, 'account-render@example.invalid', 'account page embeds the email';
+    is $properties->{_relationships}{self}, '/api/user/'.$user->id, 'account page saves to the user endpoint';
+    my $saved = $rest->request(PUT => $rest_uri.$properties->{_relationships}{self}, {headers => {'Content-Type' => 'application/x-www-form-urlencoded'}, content => $rest->www_form_urlencode({real_name => 'Browser Updated Owner'})});
+    is $saved->{status}, 200, 'saving the account page succeeds';
+    is $account->()->{real_name}, 'Browser Updated Owner', 'saved real name shows after reload';
+    my ($list) = $request->(GET 'http://localhost/account/apikeys', @cookie)->content =~ /list_api : '([^']+)'/;
+    my $keys = decode_json($rest->get($rest_uri.$list)->{content})->{result}{items};
+    is_deeply [map { [$_->{name}, $_->{edit_uri}] } @$keys],
+        [['rendered-key', '/account/apikeys/'.$key->id]], 'key list shows the owner key and links to it';
 });
-is system('node', "$FindBin::Bin/browser/account-pages.cjs", $web->port, $api->port, $directory), 0,
-    'real account pages mount, edit and list keys in Chromium';
-undef $web;
 undef $api;
 done_testing;
