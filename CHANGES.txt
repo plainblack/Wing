@@ -5,6 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2026-11-07
+ * author.t/rest_mutation_auth.t creates users through generic CRUD with the admin's site session, since #103 stopped an admin's SSO session from bypassing the model's edit check (#109).
  * Add AGENTS.md, which records that Beanstalk::Client is unmaintained so agents fix its gaps in Wing instead of filing upstream issues, and reword the Wingman reserve_job comment to say why Wing sends reserve-job itself. author.t/wingman.t now tests reserve_job directly (#102).
  * wing_init_app.pl copies the mail kits unchanged instead of rendering them, so new apps keep their [% %] runtime tags (such as the To and Subject headers) and get stuck_wingman_job.mkit. Adds --root (default /data) to create the app somewhere else, and stops on an unknown option (#107).
  * The TestWing and Acquisitions test schemas use Wing::DB::ResultSet as their default resultset class, like generated applications, so author tests no longer set it on each source by hand (#106).

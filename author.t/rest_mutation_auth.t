@@ -104,9 +104,10 @@ test_psgi $app, sub {
     my $ungranted = $request->(POST 'http://localhost/api/protecteduser', Cookie => 'session_id='.$admin_session->id,
         Content => [username => 'ungranted-created', email => 'ungranted@example.invalid', password => 'created-password']);
     is $ungranted->code, 450, 'admin SSO session without edit_my_account is refused';
-    Wing->db->resultset('APIKeyPermission')->create({user_id => $admin->id, api_key_id => $key->id, permission => 'edit_my_account'});
+    # An admin's SSO session gets no admin bypass (#103), so creating another user needs a site session.
+    my $admin_site_session = $admin->start_session({sso => 0});
     for my $type (qw(protecteduser emptyuser undefineduser anonymoususer)) {
-        my $created = $request->(POST 'http://localhost/api/'.$type, Cookie => 'session_id='.$admin_session->id,
+        my $created = $request->(POST 'http://localhost/api/'.$type, Cookie => 'session_id='.$admin_site_session->id,
             Content => [username => $type.'-created', email => $type.'@example.invalid', password => 'created-password']);
         is $created->code, 200, "$type authorized create succeeds" or diag $created->content;
         my $id = decode_json($created->content)->{result}{id};
