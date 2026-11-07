@@ -257,7 +257,7 @@ post '/account' => sub {
     }
     else {
         $user->update;
-        login($user); # in case they changed their password
+        login($user) unless $user->current_session->sso; # in case they changed their password; an app must not get a site session
         redirect '/account?success_message=Updated successfully.';
     }
 };
@@ -403,6 +403,7 @@ post '/sso/authorize' => sub {
         ouch 442, 'Account permanently deactivated';
     }
     my $sso = Wing::SSO->new(id => params->{sso_id}, db => site_db());
+    ouch(401, 'User does not match SSO token.') unless $user->id eq $sso->user_id;
     $sso->grant_requested_permissions;
     return redirect $sso->redirect;
 };

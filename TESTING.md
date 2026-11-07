@@ -105,7 +105,9 @@ their REST equivalents: viewing settings, API keys and SSO success needs
 `view_my_account`; saving settings, managing API keys, deactivating and secondary
 verification need `edit_my_account`. SSO sessions with those grants are allowed,
 SSO sessions without them get 450, and an admin's SSO session needs the same grants
-(`check_permissions` no longer passes every permission for admins). SSO consent
+(`check_permissions` no longer passes every permission for admins). No SSO request,
+allowed or refused, receives a site session cookie, and a user cannot approve another
+user's authorization request. SSO consent
 (`GET /sso`, `/sso/authorize`) and Facebook linking refuse every SSO session, so an
 application cannot grant itself permissions or link a login provider. The test covers
 cookie and parameter credentials, invalid-session reauthentication, Facebook linking

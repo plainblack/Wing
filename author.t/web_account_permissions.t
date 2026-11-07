@@ -66,17 +66,22 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
                     $http->uri->query_form($http->uri->query_form, session_id => $session{$name}->id);
                 }
                 my $response = $request->($http);
+                unlike $response->header('Set-Cookie') || '', qr/session_id=/, "$name via $transport: $method $path issues no site session";
                 if (defined $permission && $needs{$name}{$permission}) {
                     is $response->code, $allowed, "$name via $transport: $method $path is allowed with $permission";
-                    next;
+                } else {
+                    is $response->code, 450, "$name via $transport: $method $path is refused";
                 }
-                is $response->code, 450, "$name via $transport: $method $path is refused";
-                unlike $response->header('Set-Cookie') || '', qr/session_id=/, 'refusal issues no site session';
             }
         }
     }
     is_deeply [sort @{$session{$_}->get_permissions}], [sort keys %{$needs{$_}}],
         "$_ SSO client cannot grant itself permissions" for sort keys %session;
+    my $stranger = Wing->db->resultset('User')->create({username => 'account-stranger', email => 'account-stranger@example.invalid'});
+    is $request->(POST 'http://localhost/sso/authorize', Cookie => 'session_id='.$stranger->start_session({sso => 0})->id,
+        Content => [sso_id => $authorization->id])->code, 401, 'another user cannot approve an authorization request';
+    is_deeply(Wing::SSO->new(id => $authorization->id, db => Wing->db)->get_permissions, [],
+        'refused approval grants nothing');
     for my $path ('/account', '/account/apikeys', '/sso/authorize?sso_id='.$authorization->id) {
         is $request->(GET 'http://localhost'.$path)->code, 401, "$path requires authentication";
     }
