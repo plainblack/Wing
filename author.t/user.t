@@ -42,6 +42,13 @@ my $user_api_perms = Wing->db->resultset('APIKey')->search({user_id => $user->id
 is $user_api_keys->count, 1, 'User has 1 API key';
 is $user_api_perms->count, 1, 'User has 1 API key permission';
 
+my $json = $user->user_to_json;
+is $json->{username}, $user->username, 'user_to_json includes the columns';
+ok !ref $json->{date_created}, 'user_to_json formats dates as MySQL strings';
+my $copy = ref($user)->user_from_json(Wing->db, $json);
+is $copy->id, $user->id, 'user_from_json rebuilds the user';
+ok $copy->in_storage, 'user_from_json marks the user as stored';
+
 $user->delete;
 is $user_api_keys->count, 0, 'API Key cleaned up for user';
 is $user_api_perms->count, 0, 'API Key permission cleaned up for user';
