@@ -53,7 +53,7 @@ sub BUILD {
         $self->auth_source($session_data->{auth_source}) if exists $session_data->{auth_source};
         $self->floor_login_id($session_data->{floor_login_id}) if exists $session_data->{floor_login_id};
         $self->absolute_expires_at($session_data->{absolute_expires_at}) if exists $session_data->{absolute_expires_at};
-        $self->end unless $self->floor_login_is_active;
+        $self->end unless $self->passes_validators;
     }
 }
 
@@ -175,24 +175,28 @@ sub check_permissions {
     return 1;
 }
 
-sub floor_login_is_active {
-    my $self = shift;
-    return 1 unless $self->has_auth_source && $self->auth_source eq 'floor_badge';
-    return 0 unless $self->has_user_id && $self->has_floor_login_id;
-    return 0 if $self->has_absolute_expires_at && $self->absolute_expires_at <= time;
+my @validators;
 
-    my $active = Wing->cache->get('floor-active-login-' . $self->user_id);
-    return defined $active
-        && ref $active eq 'HASH'
-        && defined $active->{floorLoginId}
-        && $active->{floorLoginId} eq $self->floor_login_id
-        && !defined Wing->cache->get('floor-revoked-login-' . $self->floor_login_id);
+# Registers a code reference that receives the session and returns false when the application wants it ended.
+sub add_validator {
+    my ($class, $validator) = @_;
+    ouch 500, 'Wing::Session->add_validator needs a code reference, such as \&My::App::session_is_active.' unless ref $validator eq 'CODE';
+    push @validators, $validator;
+    return;
 }
 
-# Ends the session and returns false when it has expired, its user is gone or its password changed.
+sub passes_validators {
+    my $self = shift;
+    for my $validator (@validators) {
+        return 0 unless $validator->($self);
+    }
+    return 1;
+}
+
+# Ends the session and returns false when it has expired, an application validator rejects it, its user is gone or its password changed.
 sub is_valid {
     my $self = shift;
-    if (!$self->floor_login_is_active
+    if (!$self->passes_validators
         || ($self->has_absolute_expires_at && int($self->absolute_expires_at - time) <= 0)) {
         $self->end;
         return 0;

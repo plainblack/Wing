@@ -5,6 +5,7 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2026-11-07
+ * UPGRADE: Wing::Session no longer checks application logins itself. An application registers a check with Wing::Session->add_validator(\&check); each check receives the session when it loads from the cache and when is_valid runs, and a false return ends the session. Sessions validate as before when no check is registered. Applications that relied on Wing's built-in login revocation must register their own check in every process before upgrading, or revoked logins stay signed in. Sessions still store auth_source, floor_login_id and absolute_expires_at (#95).
  * UPGRADE: Web account pages check permissions per route instead of refusing every SSO session: viewing settings, API keys and SSO success needs view_my_account; changing settings or API keys, deactivating and secondary verification need edit_my_account. SSO consent, Facebook linking and get_admin_by_session_id still refuse SSO sessions. Wing::Session check_permissions no longer passes every permission for admins, so an admin's SSO session needs the same grants as anyone else's on routes that ask for permissions. POST /account no longer starts a site session for an SSO session, and POST /sso/authorize refuses another user's authorization request. Removes the site_session option of get_session; applications that passed it must check $session->sso themselves (#92).
  * UPGRADE: Wing no longer refuses requests whose Origin or Sec-Fetch-Site does not match the site, so front ends on another host can call REST with an explicit session_id again. Removes Wing::RequestSecurity::same_origin_error and the rest/allow_cookieless_cross_origin_writes setting; delete that setting from wing.conf. Session cookies keep SameSite=Lax. Applications that want an origin check own it (#91).
  * Sessions cache their user per user in user-data-<id> instead of in each session, so users with no recent change are read from the cache again. User update and delete remove that entry and set user-changed-<id> to 1 for five minutes, during which sessions read the user from the database; other applications that change users must remove user-data-<id>, or set any truthy user-changed-<id> for at least seven days and not remove it. Filling the cache reads the user with a shared lock, so it waits for an open transaction that changed the user. Restores User user_to_json and user_from_json (#93).
@@ -20,7 +21,7 @@ with respect to new features and compatibility changes.
  * Fix the Wingman admin tube job list, which missed jobs once broker job IDs passed about 100, ignored buried and delayed jobs, and peeked the default tube instead of the requested one (#96).
 
 2026-11-05
- * Reject TGC Floor badge sessions whose originating login has a floor-revoked-login tombstone, leaving newer Floor logins and password sessions active (#87).
+ * Reject sessions whose originating application login was revoked, leaving other sessions active (#87).
 
 2026-10-21
  * Require secondary verification before browser sessions change their own account through REST, preserving independent API-key and SSO clients (#49).
@@ -35,7 +36,7 @@ with respect to new features and compatibility changes.
  * Remove the unused "public_key" object parameter, and rename admin_key to write_key to be clear what field we're taking from the config file.
 
 2026-08-17
- * Preserve absolute session expirations and authentication metadata when legacy requests extend a session, and reject revoked TGC Floor badge logins.
+ * Preserve absolute session expirations and authentication metadata when legacy requests extend a session, and reject sessions whose application login was revoked.
 
 2026-08-14
  * Fix a bug with host rotation when doing Algolia writes.

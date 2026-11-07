@@ -275,7 +275,8 @@ the tube's job list. No worker runs and no outbound mail is sent.
 
 `author.t/rest_ended_session.t` sends generated mutations through the actual
 Dancer PSGI app with the runner's test database and cache. Sessions past their
-absolute expiry, after a password change, or with a revoked floor badge return
+absolute expiry, after a password change, or rejected by an application's
+`Wing::Session->add_validator` check return
 the existing 401 login error before model verification or mutation, and their
 cache entries are removed. Active sessions are still renewed. `Wing::Session::end`
 clears the in-memory user, so no caller can use an ended session for the rest of

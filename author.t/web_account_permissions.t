@@ -104,7 +104,8 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
         is $site_callback->code, 302, 'site session can link a Facebook account';
         like $site_callback->header('Set-Cookie') || '', qr/session_id=/, 'site Facebook callback retains login';
     }
-    for my $reason (qw(expired password floor)) {
+    Wing::Session->add_validator(sub { ($_[0]->auth_source // '') ne 'revoked-by-app' });
+    for my $reason (qw(expired password app-rejected)) {
         my $invalid_user = Wing->db->resultset('User')->new({username => 'invalid-'.$reason, email => 'invalid-'.$reason.'@example.invalid'});
         $invalid_user->encrypt_and_set_password('initial-password');
         $invalid_user->insert;
@@ -114,8 +115,7 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
             if ($reason eq 'expired') {
                 $data->{absolute_expires_at} = 1;
             } else {
-                $data->{auth_source} = 'floor_badge';
-                $data->{floor_login_id} = 'inactive-floor-login';
+                $data->{auth_source} = 'revoked-by-app';
             }
             Wing->cache->set($invalid->key, $data);
         }
