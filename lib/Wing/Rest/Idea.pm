@@ -127,6 +127,7 @@ del '/api/idea/:id/subscription' => sub {
 
 my $is_admin = sub {
     my ($object, $user) = @_;
+    ouch 450, 'Log in with a site session to use admin web services.' if $user->current_session->sso;
     ouch 450, 'Insufficient privileges to delete Idea'
         unless $user->is_admin;
 };

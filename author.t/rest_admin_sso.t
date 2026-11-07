@@ -55,6 +55,12 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
             like $response->content, qr/site session/, "@$route tells the app to use a site session";
         }
     }
+    my $idea = Wing->db->resultset('Idea')->create({name => 'Keep me', description => 'An idea', user_id => $admin->id});
+    my $delete = $call->('DELETE', '/api/idea/'.$idea->id, $sso);
+    is $delete->code, 450, 'DELETE /api/idea refuses admin SSO';
+    like $delete->content, qr/site session/, 'DELETE /api/idea tells the app to use a site session';
+    ok(Wing->db->resultset('Idea')->find($idea->id), 'refused SSO delete keeps the idea');
+    is $call->('DELETE', '/api/idea/'.$idea->id, $site)->code, 200, 'DELETE /api/idea accepts an admin site session';
     for my $route (['GET', '/api/wingman/stats'], ['GET', '/api/wingman/tubes'], ['GET', '/api/trendsreport']) {
         is $call->(@$route, $site)->code, 200, "@$route accepts an admin site session";
     }
