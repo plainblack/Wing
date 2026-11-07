@@ -47,6 +47,13 @@ register get_user_by_session_id => sub {
     ouch 401, 'You must log in to do that.', $session->id;
 };
 
+register get_admin_by_session_id => sub {
+    my $user = get_user_by_session_id(@_);
+    # No API key permission grants admin rights, so admin web services need a site session.
+    ouch 450, 'Log in with a site session to use admin web services.' if $user->current_session->sso;
+    return $user->verify_is_admin;
+};
+
 register generate_delete => sub {
     my ($wing_object_type, %options) = @_;
     my $object_url = lc($wing_object_type);
@@ -368,6 +375,10 @@ If specified, it will check to see that the API Key using this session has this 
 =head2 get_user_by_session_id ( options )
 
 Does the same thing as C<get_session> except that it returns the User object associated with the session.  See C<get_session> for more information.
+
+=head2 get_admin_by_session_id ( options )
+
+Does the same thing as C<get_user_by_session_id> except that it refuses single sign-on sessions, since no API key permission grants admin rights, and requires the user to be an admin. Both refusals are C<450> errors.
 
 
 

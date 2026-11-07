@@ -91,7 +91,7 @@ get '/api/idea/low-vote' => sub {
 };
 
 put '/api/idea/:id/lock' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin;
+    my $user = get_admin_by_session_id();
     my $status = params->{status} or ouch 424, "You must choose a status when closing an idea";
     my $idea = fetch_object('Idea');
     $idea->lock(params->{status});
@@ -99,7 +99,7 @@ put '/api/idea/:id/lock' => sub {
 };
 
 put '/api/idea/:id/unlock' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin;
+    my $user = get_admin_by_session_id();
     my $idea = fetch_object('Idea');
     $idea->unlock;
     return describe($idea, current_user => $user);

@@ -29,7 +29,7 @@ sub parse_start_date {
 }
 
 get '/api/trends/hourly/:id' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $report = fetch_object('TrendsReport');
     my %labels;
     my @trends;
@@ -79,7 +79,7 @@ get '/api/trends/hourly/:id' => sub {
 
 
 get '/api/trends/daily/:id' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $report = fetch_object('TrendsReport');
     my %labels;
     my @trends;
@@ -130,7 +130,7 @@ get '/api/trends/daily/:id' => sub {
 
 
 get '/api/trends/monthly/:id' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $report = fetch_object('TrendsReport');
     my %labels;
     my @trends;
@@ -182,7 +182,7 @@ get '/api/trends/monthly/:id' => sub {
 
 
 get '/api/trends/yearly/:id' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $report = fetch_object('TrendsReport');
     my %labels;
     my @trends;
@@ -231,7 +231,7 @@ get '/api/trends/yearly/:id' => sub {
 };
 
 get '/api/trendsreport' => sub {
-    my $user = get_user_by_session_id()->verify_is_admin();
+    my $user = get_admin_by_session_id();
     my $data = site_db()->resultset('TrendsReport')->search(undef,{order_by => 'name'});
     return format_list($data, current_user => $user);
 };
