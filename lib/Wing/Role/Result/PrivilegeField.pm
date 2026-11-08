@@ -75,11 +75,11 @@ Whatever field you add using C<wing_privilege_fields>
 
 =item is_C<field_name>
 
-True if C<field_name> is set or the user is a site admin (see C<is_site_admin> in L<Wing::Role::Result::User>), so an admin's SSO session gets only the privileges the user has.
+An alias for C<field_name>, also true for admins.
 
 =item verify_is_C<field_name>.
 
-Same is_C<field_name> but L<Ouch>es a 450 error if false.
+Same is_C<field_name> but L<Ouch>es a 450 error if false. When the field is defined with C<< refuse_app_tokens => 1 >>, it also L<Ouch>es a 450 error for an app's single sign-on session, even for holders and admins; C<is_C<field_name>> still returns true for them.
 
 =back
 
@@ -114,7 +114,7 @@ sub wing_privilege_field {
 
     $class->meta->add_method($is_method_name => sub {
         my $self = shift;
-        return $self->$field || $self->is_site_admin;
+        return $self->$field || $self->is_admin;
     });
 
     $class->meta->add_around_method_modifier( describe => sub {
@@ -128,6 +128,9 @@ sub wing_privilege_field {
 
     $class->meta->add_method('verify_is_'. $field => sub {
         my $self = shift;
+        if ($options->{refuse_app_tokens} && $self->has_current_session && $self->current_session->sso) {
+            ouch 450, 'Log in to the site with a site session to do that; app sessions cannot use this privilege.';
+        }
         unless ($self->$is_method_name) {
             ouch 450, 'You do not have the privileges necessary to do that.';
         }

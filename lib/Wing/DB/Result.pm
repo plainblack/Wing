@@ -394,7 +394,7 @@ sub relationship_accessors {
 
 =head2 can_edit(user)
 
-Can this user edit this object? By default C<is_site_admin> in L<Wing::Role::Result::User> can edit the object. All other privileges must be added. L<Ouch>es C<450> if the privileges are not sufficient.
+Can this user edit this object? By default C<is_admin> in L<Wing::Role::Result::User> can edit the object. All other privileges must be added. L<Ouch>es C<450> if the privileges are not sufficient.
 
 =over
 
@@ -408,7 +408,7 @@ A reference to a user object.
 
 sub can_edit {
     my ($self, $user) = @_;
-    return 1 if defined $user && $user->is_site_admin;
+    return 1 if defined $user && $user->is_admin;
     my $message;
     if (defined $user) {
         $message = $user->display_name.' has i';
@@ -530,7 +530,7 @@ See L<Wing::Rest> C<get_tracer()>
 
 sub verify_posted_params {
     my ($self, $params, $current_user, $tracer) = @_;
-    my $is_admin = defined $current_user && $current_user->is_site_admin;
+    my $is_admin = defined $current_user && $current_user->is_admin;
     my $can_edit = eval { $is_admin || $self->can_edit($current_user, $tracer) };
     my $cant_edit = '';
     if (hug) {
