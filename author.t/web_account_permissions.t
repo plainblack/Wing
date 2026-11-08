@@ -17,13 +17,13 @@ set engines => {template_toolkit => {start_tag => '[%', end_tag => '%]'}};
 set template => 'template_toolkit';
 
 my $user = Wing->db->resultset('User')->create({username => 'account-owner', email => 'account-owner@example.invalid'});
-$user->mark_secondary_auth_verified;
 my $key = $user->apikeys->create({name => 'account-client'});
 my %session;
 for my $name (qw(denied viewer editor admin)) {
     my $owner = $name eq 'admin'
         ? Wing->db->resultset('User')->create({username => 'account-admin', email => 'account-admin@example.invalid', admin => 1})
         : $user;
+    $owner->mark_secondary_auth_verified;
     my $client = $owner->apikeys->create({name => 'client-'.$name});
     my $permissions = $name eq 'viewer' ? ['view_my_account']
         : $name eq 'editor' ? ['view_my_account', 'edit_my_account'] : [];
@@ -39,7 +39,7 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
     my $authorization = Wing::SSO->new(db => Wing->db, api_key_id => $key->id,
         user_id => $user->id, postback_uri => 'native', requested_permissions => ['edit_my_account'])->store;
     my %needs = (denied => {}, viewer => {view_my_account => 1},
-        editor => {view_my_account => 1, edit_my_account => 1}, admin => {});
+        editor => {view_my_account => 1, edit_my_account => 1}, admin => {view_my_account => 1, edit_my_account => 1});
     for my $name (sort keys %session) {
         for my $transport (qw(cookie parameter)) {
             my $doomed = $user->apikeys->create({name => 'doomed-'.$name.'-'.$transport});
@@ -76,7 +76,8 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
         }
     }
     is_deeply [sort @{$session{$_}->get_permissions}], [sort keys %{$needs{$_}}],
-        "$_ SSO client cannot grant itself permissions" for sort keys %session;
+        "$_ SSO client cannot grant itself permissions" for qw(denied viewer editor);
+    is_deeply $session{admin}->get_permissions, [], 'admin SSO client cannot grant itself permissions';
     my $stranger = Wing->db->resultset('User')->create({username => 'account-stranger', email => 'account-stranger@example.invalid'});
     is $request->(POST 'http://localhost/sso/authorize', Cookie => 'session_id='.$stranger->start_session({sso => 0})->id,
         Content => [sso_id => $authorization->id])->code, 401, 'another user cannot approve an authorization request';

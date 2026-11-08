@@ -324,7 +324,7 @@ register describe => sub {
     return $object->describe(
         %{ (exists $options{object_options} ? $options{object_options} : {}) },
         include_private         => $options{include_private} || (eval { $object->can_view($current_user) }) ? 1 : 0,
-        include_admin           => $options{include_admin} || (eval { defined $current_user && $current_user->is_site_admin }) ? 1 : 0,
+        include_admin           => $options{include_admin} || (eval { defined $current_user && $current_user->is_admin }) ? 1 : 0,
         include_relationships   => $options{include_relationships} || param('_include_relationships'),
         include                 => $options{include} || $include,
         include_options         => $options{include_options} || param('_include_options'),
