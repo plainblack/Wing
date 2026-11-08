@@ -23,7 +23,8 @@ is $code->('verify_is_admin', $app{holder}), 450, 'verify_is_admin still refuses
 for my $who (qw(admin holder)) {
     ok $app{$who}->is_developer, "is_developer is true for the $who app session";
     is $code->('verify_is_developer', $app{$who}), 200, "verify_is_developer without the opt-in accepts the $who app session";
-    ok $app{$who}->is_auditor, "is_auditor with the opt-in is still true for the $who app session";
+    ok !$app{$who}->is_auditor, "is_auditor with the opt-in is false for the $who app session";
+    ok $site{$who}->is_auditor, "is_auditor with the opt-in is true for the $who site session";
     is $code->('verify_is_auditor', $app{$who}), 450, "verify_is_auditor with the opt-in refuses the $who app session";
     is $code->('verify_is_auditor', $site{$who}), 200, "verify_is_auditor with the opt-in accepts the $who site session";
 }

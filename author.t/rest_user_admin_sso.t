@@ -17,6 +17,7 @@ Wing->config->delete('tenants');
 require Wing::Rest::User;
 Wing->config->set('tenants', $original_tenants) if defined $original_tenants;
 generate_read('Company');
+generate_read('Employee');
 Wing->db->source('User')->resultset_class('Wing::DB::ResultSet');
 my $admin = Wing->db->resultset('User')->create({username => 'sso-admin', email => 'sso-admin@example.invalid', admin => 1});
 my $victim = Wing->db->resultset('User')->create({username => 'victim', email => 'victim-mail@example.invalid'});
@@ -65,7 +66,20 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
     $call->('PUT', '/api/user/'.$victim->id, $member->start_session({sso => 1, api_key_id => $member_key->id}), password => 'taken-over');
     is $victim->get_from_storage->password, 'planted-hash', 'a member cannot set another user\'s password';
 
-    is $call->('POST', '/api/user', $sso, username => 'made-by-app', email => 'made-by-app@example.invalid')->code, 200, 'an admin app token can create users';
+    is $call->('POST', '/api/user', $sso, username => 'made-by-app', email => 'made-by-app@example.invalid')->code, 450, 'an admin app token cannot create users';
+    ok !Wing->db->resultset('User')->search({username => 'made-by-app'})->count, 'the refused create made no user';
+    is $call->('POST', '/api/user', $admin->start_session({sso => 0}), username => 'made-by-site', email => 'made-by-site@example.invalid')->code, 200,
+        'an admin site session can create users';
+
+    my $auditor = Wing->db->resultset('User')->create({username => 'auditor', email => 'auditor@example.invalid', auditor => 1});
+    my $auditor_key = $auditor->apikeys->create({name => 'auditor-client'});
+    my $employee = Wing->db->resultset('Employee')->create({name => 'Red', salary => 1000});
+    my $read = $call->('GET', '/api/employee/'.$employee->id, $auditor->start_session({sso => 1, api_key_id => $auditor_key->id}));
+    is $read->code, 200, 'an auditor app token can read an auditor-viewed object';
+    my $description = decode_json($read->content)->{result};
+    ok exists $description->{name} && !exists $description->{salary}, 'the auditor app token gets only the public description';
+    is decode_json($call->('GET', '/api/employee/'.$employee->id, $auditor->start_session({sso => 0}))->content)->{result}{salary}, 1000,
+        'an auditor site session gets the private description';
 
     is $call->('DELETE', '/api/user/'.$victim->id, $sso)->code, 200, 'an admin app token can delete another user';
     ok !Wing->db->resultset('User')->find($victim->id), 'the delete removed the user';

@@ -40,7 +40,7 @@ get '/api/user-not-me' => sub {
 
 my $extra = sub {
     my ($object, $current_user) = @_;
-    ouch(450, 'You must be an administrator to create a user.') unless $current_user->is_admin;
+    $current_user->verify_is_admin;
 };
 
 generate_options('User');
