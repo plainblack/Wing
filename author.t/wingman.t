@@ -39,13 +39,11 @@ is $job->run, '{"foo":"bar"}', 'echo args as json';
 ok $wingman->stats_as_hashref->{total_jobs} > 0, 'stats_as_hashref';
 ok $wingman->stats_tube_as_hashref('wingman_test')->{total_jobs} > 0, 'stats_tube_as_hashref';
 
+eval { $wingman->put('howdy', {invalid => bless({}, 'Unencodable')}, {tube => 'wingman_test.other'}) };
+like "$@", qr/encountered object/, 'a put that fails to encode raises the encoder error';
 $job = $wingman->put('howdy');
-$wingman->reserve->bury;
-ok $wingman->reserve_job($job->id), 'reserve_job reserves a buried job by id';
-is $wingman->stats_job($job->id)->state, 'reserved', 'reserve_job leaves the job reserved';
-$wingman->delete($job->id);
-is $wingman->reserve_job($job->id), undef, 'reserve_job returns undef for a missing job';
-is $wingman->error, 'NOT_FOUND', 'reserve_job sets error to the broker response';
+is $job->stats->tube, 'wingman_test', 'a failed put to another tube does not divert later jobs';
+$job->delete;
 
 done_testing;
 

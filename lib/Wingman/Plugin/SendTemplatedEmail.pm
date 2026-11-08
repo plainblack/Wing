@@ -5,7 +5,7 @@ use Wing;
 use Ouch;
 
 use Moose;
-with 'Wingman::Role::Plugin', 'Wingman::Role::EmailRecovery';
+with 'Wingman::Role::Plugin';
 
 =head1 NAME
 
@@ -25,9 +25,9 @@ B<NOTE:> There is a generic mkit template included with wing called C<generic> t
 
 =head2 run ( job, args )
 
-Confirm manual retention before delivery, then check deletion. See
-L<Wingman::Role::EmailRecovery> for tube configuration and recovery.
-A bad address (Ouch 442) is logged as a warning and the job is deleted.
+Send the email, then delete the job. A bad address (Ouch 442) is logged as a
+warning and the job is deleted. Any other failure is thrown, so Wingman buries
+the job and C<wing autokick_jobs> retries it or alerts C<wing_admin>.
 
 =over
 
@@ -75,6 +75,7 @@ sub run {
     elsif (hug) {
         die $@;
     }
+    $job->delete;
 }
 
 1;

@@ -29,11 +29,8 @@ sub execute {
         if defined $excluded && (ref $excluded ne 'ARRAY'
             || grep { !defined $_ || ref $_ || !length $_ } @$excluded);
     my %excluded = map { $_ => 1 } @{defined $excluded ? $excluded : []};
-    # Email plugins bury before sending, so a kick could send the same email twice.
-    $excluded{Wingman->email_tube // Wing->config->get('wingman/beanstalkd/default_tube') // 'default'} = 1;
 
     my $wingman = Wingman->new();
-    my %email_phase = map { $_ => 1 } $wingman->email_phases;
     my @tubes = $wingman->list_tubes;
 
     my $has_stuck_jobs = 0;
@@ -58,8 +55,8 @@ sub execute {
             Wing->log->info("Retained backlog in $tube: $buried buried jobs; cannot determine ages or retry counts behind the head. Inspect retained jobs for manual recovery.");
         }
         my %seen;
-        # Beanstalkd only exposes the buried head, so a job that must stay buried is moved behind the others.
-        JOB: for my $position (1 .. ($retained ? 1 : $buried)) {
+        # Beanstalkd only exposes the buried head, so a head that stays buried holds back the jobs behind it.
+        JOB: for (1 .. ($retained ? 1 : $buried)) {
             my $head;
             if (defined $wingman->use($tube)) {
                 $head = $wingman->beanstalk->peek_buried;
@@ -84,44 +81,23 @@ sub execute {
                 last JOB;
             }
             Wing->log->info("Buried head $id in $tube: age ".$head_stats->age." seconds, ".$head_stats->kicks." kicks.");
-            my ($phase) = $retained ? () : eval { $head->args };
-            my $email = defined $phase && $email_phase{$phase};
             my $problem = $head_stats->kicks > 1 ? "Stuck job $id in $tube"
                 : $head_stats->age > 12*60*60 ? "Old job $id in $tube"
                 : $retained ? undef
-                : !defined $phase ? "Unreadable job $id in $tube"
-                : $email && $position < $buried ? "Buried email job $id in $tube holds back the buried jobs behind it"
+                : !eval { $head->args; 1 } ? "Unreadable job $id in $tube"
                 : undef;
             if ($problem) {
                 $has_stuck_jobs = 1;
                 Wing->log->info($problem);
             }
-            # Email is never reserved either: losing the reservation would make it ready and send it again.
-            last JOB if $retained || $email;
-            unless ($problem) {
-                unless ($wingman->kick_job($id)) {
-                    next JOB if ($wingman->error // '') eq 'NOT_FOUND';
-                    push @monitoring_errors, "Cannot kick buried job $id in $tube: ".($wingman->error // 'no broker response')
-                        . ". Check the broker and rerun autokick_jobs.\n";
-                    last JOB;
-                }
-                Wing->log->info("Kicked job $id in $tube");
-                next JOB;
-            }
-            last JOB if $position == $buried;
-            unless ($wingman->reserve_job($id)) {
+            last JOB if $retained || $problem;
+            unless ($wingman->kick_job($id)) {
                 next JOB if ($wingman->error // '') eq 'NOT_FOUND';
-                push @monitoring_errors, "Cannot move buried job $id in $tube behind the other buried jobs: "
-                    . ($wingman->error // 'no broker response')
-                    . ". Jobs behind it were not kicked. Check that beanstalkd is 1.12 or later and rerun autokick_jobs.\n";
+                push @monitoring_errors, "Cannot kick buried job $id in $tube: ".($wingman->error // 'no broker response')
+                    . ". Check the broker and rerun autokick_jobs.\n";
                 last JOB;
             }
-            unless ($wingman->bury($id, { priority => $head_stats->pri })) {
-                push @monitoring_errors, "Job $id in $tube was reserved to move it but could not be buried again: "
-                    . ($wingman->error // 'no broker response')
-                    . ". It returns to ready when autokick_jobs exits, so inspect it before a worker runs it.\n";
-                last JOB;
-            }
+            Wing->log->info("Kicked job $id in $tube");
         }
     }
 
@@ -145,20 +121,11 @@ wing autokick_jobs - Kick buried Wingman jobs
 
 =head1 DESCRIPTION
 
-Kicks fresh buried jobs so they run again. A job kicked more than once, or buried
-for longer than 12 hours, stays buried and sends an email to C<wing_admin>, as
-does a job whose payload cannot be read. Such a job is moved behind the other
-buried jobs in its tube (beanstalkd C<reserve-job>, then C<bury> with its
-priority) so the fresh jobs behind it are still kicked. This needs beanstalkd 1.12
-or later.
-
-Email jobs are never kicked, because the email plugins bury a job before sending
-and a kick could send it twice. The tube email is published to
-(C<wingman/email_tube>, or C<wingman/beanstalkd/default_tube> when that is unset)
-is always treated as excluded. A buried SendTemplatedEmail, EmailAllAdmins or
-EmailAllUsers job in any other tube is left buried and never reserved; like an
-excluded tube, it alerts when it is stuck or old, or when other buried jobs wait
-behind it, since they cannot be kicked until it is resolved.
+Kicks fresh buried jobs so they run again, email jobs included. A job kicked more
+than once, or buried for longer than 12 hours, stays buried and sends an email to
+C<wing_admin>, as does a job whose payload cannot be read. Beanstalkd only shows
+the buried head of a tube, so the jobs behind such a head stay buried until it is
+deleted or kicked by hand.
 
 To retain buried jobs for manual recovery, list their tubes in
 C<wingman/autokick_excluded_tubes>:

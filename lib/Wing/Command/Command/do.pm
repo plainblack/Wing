@@ -26,7 +26,7 @@ sub opt_spec {
       [ 'delay=i', 'number of seconds to wait before adding the job to the waiting queue, default: '.($config->{delay} || 0 ), { default => $config->{delay} || 0 } ],
       [ 'priority=i', 'the relative importance of this job, lower is more important, default: '.($config->{priority} || 2000), { default => $config->{priority} || 2000 } ],
       [ 'ttr=i', 'number of seconds this job has to run, default: '.($config->{ttr} || 60), { default => $config->{ttr} || 60 } ],
-      [ 'tube=s', 'explicit destination tube; otherwise use the phase default' ],
+      [ 'tube=s', 'tube to put this job in, default: '.($config->{default_tube} || 'wingman'), { default => $config->{default_tube} || 'wingman' } ],
     );
 }
 
@@ -46,13 +46,7 @@ sub execute {
     else {
         undef $job_args;
     }
-    my $wingman = Wingman->new;
-    unless (defined $opt->{tube}) {
-        my $email_tube = $wingman->email_tube_for_phase($phase);
-        $opt->{tube} = defined $email_tube ? $email_tube
-            : (Wing->config->get('wingman/beanstalkd/default_tube') || 'wingman');
-    }
-    $wingman->put($phase, $job_args, $opt);
+    Wingman->new->put($phase, $job_args, $opt);
     say "OK";
 }
 
