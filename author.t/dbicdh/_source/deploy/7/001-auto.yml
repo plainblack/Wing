@@ -1443,6 +1443,9 @@ schema:
           reference_fields: []
           reference_table: ''
           type: PRIMARY KEY
+      extra:
+        mysql_charset: utf8
+        mysql_collate: utf8_unicode_ci
       fields:
         date_created:
           data_type: datetime
@@ -1506,6 +1509,16 @@ schema:
             - 15
             - 2
       indices:
+        - fields:
+            - date_created
+          name: idx_date_created
+          options: []
+          type: NORMAL
+        - fields:
+            - date_updated
+          name: idx_date_updated
+          options: []
+          type: NORMAL
         - fields:
             - date_created
             - name

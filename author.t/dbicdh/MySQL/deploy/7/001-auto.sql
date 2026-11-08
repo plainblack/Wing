@@ -29,10 +29,12 @@ CREATE TABLE `trends_logs` (
   `name` varchar(60) NOT NULL,
   `value` float(15, 2) NOT NULL,
   `note` text NULL,
+  INDEX `idx_date_created` (`date_created`),
+  INDEX `idx_date_updated` (`date_updated`),
   INDEX `idx_date_name_value` (`date_created`, `name`, `value`),
   INDEX `idx_name` (`name`),
   PRIMARY KEY (`id`)
-);
+) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 --
 -- Table: `trendsreports`
 --

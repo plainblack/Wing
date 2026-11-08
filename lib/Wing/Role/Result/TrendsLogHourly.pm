@@ -28,10 +28,11 @@ before wing_finalize_class => sub {
     );
 };
 
-sub sqlt_deploy_hook {
-    my ($self, $sqlt_table) = @_;
+around sqlt_deploy_hook => sub {
+    my ($orig, $self, $sqlt_table) = @_;
+    $orig->($self, $sqlt_table);
     $sqlt_table->add_index(name => 'idx_date_name_value', fields => ['hour','name','value']);
     $sqlt_table->add_index(name => 'idx_name_date', fields => ['name','hour']);
-}
+};
 
 1;
