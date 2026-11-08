@@ -39,7 +39,7 @@ sub wing_db {
     }
     open my $output, '<', "$directory/install.log" or die $!;
     my $command_output = do { local $/; <$output> };
-    like $command_output, qr/Current code version 6/, "wing db @options output is captured for diagnostics";
+    like $command_output, qr/Current code version 7/, "wing db @options output is captured for diagnostics";
     is $status, 0, "documented wing db @options succeeds";
     if ($status) {
         diag $command_output;
@@ -53,7 +53,7 @@ wing_db($fresh_config, '--install', '--force');
 my $installed = TestWing::DB->connect(@{$fresh_config->{db}});
 my $installed_dbh = $installed->storage->dbh;
 my $dh = DBIx::Class::DeploymentHandler->new({schema => $installed, script_directory => "$ENV{WING_APP}/dbicdh"});
-is $dh->database_version, 6, 'fresh install records version 6';
+is $dh->database_version, 7, 'fresh install records version 7';
 my $columns = $installed_dbh->selectcol_arrayref(q{
     SELECT COLLATION_NAME FROM information_schema.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE() AND (TABLE_NAME = 'users' AND COLUMN_NAME = 'id'
@@ -86,7 +86,7 @@ $legacy_dbh->do(q{INSERT INTO companies (id, date_created, date_updated, name, p
     VALUES ('retained-company', NOW(), NOW(), 'Retained Company', 'Retained note')});
 wing_db($legacy_config, '--upgrade');
 my $legacy_dh = DBIx::Class::DeploymentHandler->new({schema => $legacy, script_directory => "$ENV{WING_APP}/dbicdh"});
-is $legacy_dh->database_version, 6, 'the generated upgrade advances a historical version-5 database';
+is $legacy_dh->database_version, 7, 'the generated upgrade advances a historical version-5 database';
 my $upgraded_user = $legacy->resultset('User')->create({username => 'upgraded-owner', email => 'upgraded-owner@example.invalid'});
 is $upgraded_user->no_email, 0, 'the upgraded schema supports current User columns';
 is $legacy->resultset('Company')->find('retained-company')->private_info, 'Retained note', 'upgrade preserves existing company data';
@@ -95,6 +95,6 @@ is $legacy_dh->database_version, 5, 'the generated downgrade returns the fixture
 is $legacy_dbh->selectrow_array(q{SELECT private_info FROM companies WHERE id = 'retained-company'}),
     'Retained note', 'downgrade preserves data in historical columns';
 wing_db($legacy_config, '--upgrade');
-is $legacy_dh->database_version, 6, 'the historical fixture can be upgraded again';
+is $legacy_dh->database_version, 7, 'the historical fixture can be upgraded again';
 
 done_testing;

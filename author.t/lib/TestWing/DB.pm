@@ -5,7 +5,7 @@ use utf8;
 no warnings qw(uninitialized);
 extends qw/DBIx::Class::Schema/;
 
-our $VERSION = 6;
+our $VERSION = 7;
 
 __PACKAGE__->load_namespaces(
     default_resultset_class => '+Wing::DB::ResultSet',
