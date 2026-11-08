@@ -6,6 +6,7 @@ extends 'Wing::DB::Result';
 with 'Wing::Role::Result::Field';
 with 'Wing::Role::Result::Parent';
 with 'Wing::Role::Result::Child';
+with 'Wing::Role::Result::PrivilegeControlled';
 
 __PACKAGE__->wing_fields(
     name                          => {
@@ -40,6 +41,8 @@ __PACKAGE__->wing_child(
         related_id      => 'employee_id',
     }
 );
+
+__PACKAGE__->wing_viewed_by_privilege('auditor');
 
 __PACKAGE__->wing_finalize_class( table_name => 'employees');
 

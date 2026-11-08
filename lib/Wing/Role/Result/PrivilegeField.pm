@@ -75,11 +75,11 @@ Whatever field you add using C<wing_privilege_fields>
 
 =item is_C<field_name>
 
-An alias for C<field_name>, also true for admins.
+An alias for C<field_name>, also true for admins. When the field is defined with C<< refuse_app_tokens => 1 >>, it is false for an app's single sign-on session, even for holders and admins, without dying. Admins still pass C<can_edit> and C<can_view> through C<is_admin>.
 
 =item verify_is_C<field_name>.
 
-Same is_C<field_name> but L<Ouch>es a 450 error if false. When the field is defined with C<< refuse_app_tokens => 1 >>, it also L<Ouch>es a 450 error for an app's single sign-on session, even for holders and admins; C<is_C<field_name>> still returns true for them.
+Same is_C<field_name> but L<Ouch>es a 450 error if false. When the field is defined with C<< refuse_app_tokens => 1 >>, it also L<Ouch>es a 450 error for an app's single sign-on session, even for holders and admins, with a message asking for a site session.
 
 =back
 
@@ -114,6 +114,7 @@ sub wing_privilege_field {
 
     $class->meta->add_method($is_method_name => sub {
         my $self = shift;
+        return 0 if $options->{refuse_app_tokens} && $self->has_current_session && $self->current_session->sso;
         return $self->$field || $self->is_admin;
     });
 
