@@ -13,13 +13,6 @@ DROP TABLE trends_logs;
 DROP TABLE trendsreports;
 
 ;
-ALTER TABLE ideas DROP FOREIGN KEY ideas_fk_merged_into_id,
-                  DROP FOREIGN KEY ideas_fk_user_id;
-
-;
-DROP TABLE ideas;
-
-;
 ALTER TABLE ideacomments DROP FOREIGN KEY ideacomments_fk_idea_id,
                          DROP FOREIGN KEY ideacomments_fk_user_id;
 
@@ -39,6 +32,14 @@ ALTER TABLE ideasubscriptions DROP FOREIGN KEY ideasubscriptions_fk_idea_id,
 
 ;
 DROP TABLE ideasubscriptions;
+
+-- Hand-ordered: ideas is dropped after the tables that reference it, since sql-translator drops in schema order (dbsrgits/sql-translator#205).
+;
+ALTER TABLE ideas DROP FOREIGN KEY ideas_fk_merged_into_id,
+                  DROP FOREIGN KEY ideas_fk_user_id;
+
+;
+DROP TABLE ideas;
 
 ;
 
