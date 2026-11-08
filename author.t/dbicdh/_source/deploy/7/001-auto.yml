@@ -790,9 +790,6 @@ schema:
             - id
           reference_table: users
           type: FOREIGN KEY
-      extra:
-        mysql_charset: utf8
-        mysql_collate: utf8_unicode_ci
       fields:
         date_created:
           data_type: datetime
@@ -863,16 +860,6 @@ schema:
         - fields:
             - user_id
           name: ideaopinions_idx_user_id
-          options: []
-          type: NORMAL
-        - fields:
-            - date_created
-          name: idx_date_created
-          options: []
-          type: NORMAL
-        - fields:
-            - date_updated
-          name: idx_date_updated
           options: []
           type: NORMAL
         - fields:

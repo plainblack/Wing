@@ -40,7 +40,6 @@ before wing_finalize_class => sub {
 
 around sqlt_deploy_hook => sub {
     my ($orig, $self, $sqlt_table) = @_;
-    $orig->($self, $sqlt_table);
     $sqlt_table->add_index(name => 'idx_hasvoted', fields => ['idea_id','user_id',]);
 };
 
