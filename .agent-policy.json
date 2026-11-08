@@ -6,5 +6,91 @@
   "tests": ["author.t/*.t"],
   "untested": ["**/*.md", "*.txt", "author.t/TESTME"],
   "slice": { "count": 8, "run": "perl author.t/run.pl --slice {slice}" },
-  "merge": { "push": "origin" }
+  "merge": { "push": "origin" },
+  "approval": {
+    "auth": [
+      "**/auth/**",
+      "**/oauth/**",
+      "**/login/**",
+      "**/permissions/**",
+      "*.rules",
+      "lib/Wing/Session.pm",
+      "lib/Wing/Rest.pm",
+      "lib/Wing/Web.pm",
+      "lib/Wing/Dancer.pm",
+      "lib/Wing/RequestSecurity.pm",
+      "lib/Wing/SSO.pm",
+      "lib/Wing/Role/Result/User.pm",
+      "lib/Wing/Role/Result/PrivilegeField.pm",
+      "lib/Wing/Role/Result/*Controlled.pm",
+      "lib/Wing/Role/Result/APIKey*.pm",
+      "lib/Wing/Role/Result/FacebookAuthUser.pm",
+      "lib/Wing/Role/Result/UserTenantSSO.pm",
+      "lib/Wing/Web/Account.pm",
+      "lib/Wing/Web/Admin/User.pm",
+      "lib/Wing/Rest/User.pm",
+      "lib/Wing/Rest/APIKey.pm",
+      "lib/Wing/Rest/Session.pm",
+      "lib/Wing/Command/Command/user.pm",
+      "var/init/lib/DB/Result/User.pm",
+      "var/init/lib/DB/Result/APIKey*.pm",
+      "var/init/dbicdh/_common/deploy/1/install_admin.pl",
+      "var/init/views/**/*login*.tt",
+      "var/init/views/**/*password*.tt",
+      "var/init/views/**/*authorize*.tt",
+      "var/init/views/**/*authenticate*.tt",
+      "var/init/views/**/*apikey*.tt",
+      "var/init/var/mkits/secondary_auth.mkit/**",
+      "var/init/var/mkits/reset_password.mkit/**",
+      "var/firebase_rules.json"
+    ],
+    "deploy": [
+      "appspec.yml",
+      "appspec.yaml",
+      "[Dd]ockerfile",
+      "[Dd]ockerfile.*",
+      "docker-compose*.yml",
+      "docker-compose*.yaml",
+      "compose.yml",
+      "compose.yaml",
+      "deploy*.sh",
+      "var/init/etc/nginx.conf",
+      "var/systemd/**"
+    ],
+    "database": {
+      "paths": [
+        "**/migrations/**",
+        "**/db/migrate/**",
+        "*.sql",
+        "prisma/schema.prisma",
+        "schema.rb",
+        "drizzle/**",
+        "**/dbicdh/**"
+      ],
+      "patterns": [
+        "\\b(CREATE|ALTER)\\s+TABLE\\b",
+        "\\bDROP\\s+(TABLE|COLUMN|SCHEMA|DATABASE)\\b",
+        "\\bALTER\\s+TABLE\\b.*\\b(DROP|RENAME)\\b",
+        "\\bRENAME\\s+(TABLE|COLUMN)\\b",
+        "\\bTRUNCATE\\b",
+        "\\bDELETE\\s+FROM\\b",
+        "\\bUPDATE\\b.*\\bSET\\b",
+        "\\bdropTable\\b",
+        "\\bdropColumn\\b",
+        "\\brename(Column|Table)\\b",
+        "\\bremove_column\\b",
+        "\\bdrop_table\\b",
+        "\\bRemoveField\\b",
+        "\\bDeleteModel\\b",
+        "\\brename_(column|table)\\b",
+        "\\bRename(Field|Model)\\b"
+      ],
+      "migrations": [
+        "**/migrations/**",
+        "**/db/migrate/**",
+        "drizzle/*.sql",
+        "**/dbicdh/**"
+      ]
+    }
+  }
 }
