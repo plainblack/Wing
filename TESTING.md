@@ -12,7 +12,7 @@ perl author.t/run.pl --slice 1/8
 
 - Perl with Wing's Perl dependencies and the author-test modules, both installed by
   `bin/setup/03_install_perl_modules.sh`.
-- A running MySQL server and a running beanstalkd (1.12 or later), at the
+- A running MySQL server and a running beanstalkd, at the
   addresses in `author.t/etc/test.conf`. If either is down, the tests fail; start
   it and rerun.
 - The test database and account, created once as the MySQL root user:

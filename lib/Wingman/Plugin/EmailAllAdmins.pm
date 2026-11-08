@@ -4,7 +4,7 @@ use Wing::Perl;
 use Wing;
 
 use Moose;
-with 'Wingman::Role::Plugin', 'Wingman::Role::EmailRecovery';
+with 'Wingman::Role::Plugin';
 
 =head1 NAME
 
@@ -28,8 +28,7 @@ This plugin uses the SendTemplatedEmail plugin to send a message to all admins. 
 
 =head2 run ( job, args )
 
-Confirm manual retention before delivery, then check deletion. See
-L<Wingman::Role::EmailRecovery> for tube configuration and recovery.
+Run this plugin then delete the job.
 
 =over
 
@@ -70,6 +69,7 @@ sub run {
             { wingman => 1 },
         );
     }
+    $job->delete;
 }
 
 1;
