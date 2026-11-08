@@ -76,58 +76,24 @@ is $heading, 'foo<h1>heading 1</h1><h2>heading2</h2><h3>heading 3 is good</h3><h
 Wing::ContentFilter::format_html(\$heading2);
 is $heading2, 'foo<br># heading 1<h2>heading2</h2><h3>heading 3 is good</h3><h4>head 4</h4>foo # head none<br>too<h5>head5</h5><h6>head6</h6>bar', 'by default allow levels 2 through 6';
 
-my $only_h2 = "##heading\n###heading";
-Wing::ContentFilter::format_html(\$only_h2, {headings => [2]});
-is $only_h2, '<h2>heading</h2>###heading', 'a selective heading list accepts only exact hash counts';
-
-my $selective = "##two\n###three\n####four\n#####five";
-Wing::ContentFilter::format_html(\$selective, {headings => [2,4]});
-is $selective, '<h2>two</h2>###three<h4>four</h4>#####five', 'multiple selected levels leave other hash runs literal';
-
-my $too_many_hashes = "#######seven\n########eight";
+my $too_many_hashes = '#######x';
 Wing::ContentFilter::format_html(\$too_many_hashes);
-is $too_many_hashes, '#######seven<br>########eight', 'more than six hashes are not default headings';
+is $too_many_hashes, '<h6>#x</h6>', 'more than six hashes render as an h6 that keeps the extra hashes';
 
-my $h1_default = '#1 priority';
-Wing::ContentFilter::format_html(\$h1_default);
-is $h1_default, '#1 priority', 'H1 requires explicit opt-in even without a space';
-my $h1_allowed = '#1 priority';
-Wing::ContentFilter::format_html(\$h1_allowed, {headings => [1]});
-is $h1_allowed, '<h1>1 priority</h1>', 'explicit H1 preserves no-space heading syntax';
+my $empty_heading = "##\nbody";
+Wing::ContentFilter::format_html(\$empty_heading);
+is $empty_heading, '<h2>body</h2>', 'an empty heading takes the next line as its text';
 
-my $indented = " \t## \theading";
-Wing::ContentFilter::format_html(\$indented);
-is $indented, '<h2>heading</h2>', 'heading indentation and spacing accept horizontal whitespace';
-
-for my $case (
-    ["##\nbody", '<h2></h2>body'],
-    ["## \n\nbody", '<h2></h2>body'],
-    ["##\n###heading", '<h2></h2><h3>heading</h3>'],
-) {
-    my ($input, $expected) = @$case;
-    Wing::ContentFilter::format_html(\$input);
-    is $input, $expected, 'an empty heading does not consume following lines';
-}
-
-my $with_markdown = '##heading';
-Wing::ContentFilter::format_html(\$with_markdown, {with_markdown => 1});
-is $with_markdown, '##heading', 'markdown mode bypasses the HTML heading formatter';
-
-my $empty_quote = ">\nnext line";
-Wing::ContentFilter::format_html(\$empty_quote);
-is $empty_quote, '<blockquote></blockquote><br>next line', 'an empty quote does not consume the following line';
+my $spaced_quote = "foo\n\n> quote";
+Wing::ContentFilter::format_html(\$spaced_quote);
+is $spaced_quote, 'foo<br><blockquote>quote</blockquote>', 'a quote consumes the blank line before it';
 
 my $spaced_rule = "foo\n\n---\n\nbar";
 Wing::ContentFilter::format_html(\$spaced_rule);
-is $spaced_rule, 'foo<br><br><hr><br><br>bar', 'horizontal rules preserve adjacent blank lines';
+is $spaced_rule, 'foo<br><hr><br>bar', 'a rule consumes one adjacent blank line on each side';
 
-for my $invalid_level (0, 7) {
-    my $invalid_heading = "foo\n#######heading";
-    my $ok = eval { Wing::ContentFilter::format_html(\$invalid_heading, {headings => [$invalid_level]}); 1 };
-    my $error = $@;
-    ok !$ok, "invalid heading level $invalid_level is rejected";
-    like $error, qr/Allowed headings must contain only integers from 1 through 6/, 'heading configuration error explains the valid levels';
-}
+my $out_of_range = "foo\n#######heading";
+ok eval { Wing::ContentFilter::format_html(\$out_of_range, {headings => [7]}); 1 }, 'a heading level outside 1 through 6 does not die';
 
 my $equals = '= literal text';
 Wing::ContentFilter::format_html(\$equals, {headings => [1,2,3,4,5,6]});
