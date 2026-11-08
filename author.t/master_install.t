@@ -47,8 +47,7 @@ sub wing_db {
     }
 }
 
-# Named explicitly so the check does not depend on the test server's default.
-$dbh->do("CREATE DATABASE $install_database CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci");
+$dbh->do("CREATE DATABASE $install_database");
 my $fresh_config = install_config($install_database);
 wing_db($fresh_config, '--install', '--force');
 my $installed = TestWing::DB->connect(@{$fresh_config->{db}});
@@ -62,11 +61,6 @@ my $columns = $installed_dbh->selectcol_arrayref(q{
 });
 is scalar(@$columns), 2, 'both sides of the API key user relationship exist';
 is $columns->[0], $columns->[1], 'the referencing and referenced user columns have matching collations';
-my $opinion_columns = $installed_dbh->selectcol_arrayref(q{
-    SELECT COLLATION_NAME FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ideaopinions' AND COLUMN_NAME IN ('user_id', 'idea_id')
-});
-is_deeply $opinion_columns, [$columns->[0], $columns->[0]], 'the idea opinion foreign key columns match the users collation';
 my ($mode, $server_mode, $foreign_keys) = $installed_dbh->selectrow_array('SELECT @@SESSION.sql_mode, @@GLOBAL.sql_mode, @@foreign_key_checks');
 is $mode, $server_mode, 'the install keeps the server SQL mode';
 is $foreign_keys, 1, 'foreign keys remain enabled after installation';

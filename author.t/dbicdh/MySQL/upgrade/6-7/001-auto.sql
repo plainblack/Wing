@@ -35,14 +35,12 @@ CREATE TABLE `ideaopinions` (
   `user_id` char(36) NOT NULL,
   INDEX `ideaopinions_idx_idea_id` (`idea_id`),
   INDEX `ideaopinions_idx_user_id` (`user_id`),
-  INDEX `idx_date_created` (`date_created`),
-  INDEX `idx_date_updated` (`date_updated`),
   INDEX `idx_hasvoted` (`idea_id`, `user_id`),
   INDEX `idx_opinion` (`opinion`),
   PRIMARY KEY (`id`),
   CONSTRAINT `ideaopinions_fk_idea_id` FOREIGN KEY (`idea_id`) REFERENCES `ideas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `ideaopinions_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+) ENGINE=InnoDB;
 
 ;
 CREATE TABLE `ideas` (
