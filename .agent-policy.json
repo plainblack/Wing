@@ -6,5 +6,62 @@
   "tests": ["author.t/*.t"],
   "untested": ["**/*.md", "*.txt", "author.t/TESTME"],
   "slice": { "count": 8, "run": "perl author.t/run.pl --slice {slice}" },
-  "merge": { "push": "origin" }
+  "merge": { "push": "origin" },
+  "approval": {
+    "auth": [
+      "**/auth/**",
+      "**/oauth/**",
+      "**/login/**",
+      "**/permissions/**",
+      "*.rules",
+      "lib/Wing/Session.pm",
+      "lib/Wing/Rest.pm",
+      "lib/Wing/Web.pm",
+      "lib/Wing/Dancer.pm",
+      "lib/Wing/RequestSecurity.pm",
+      "lib/Wing/SSO.pm",
+      "lib/Wing/DB/Result.pm",
+      "lib/Wing/DB/ResultSet.pm",
+      "lib/Wing/Rest/*.pm",
+      "lib/Wing/Web/**",
+      "lib/Wing/Role/Result/User.pm",
+      "lib/Wing/Role/Result/Field.pm",
+      "lib/Wing/Role/Result/PrivilegeField.pm",
+      "lib/Wing/Role/Result/*Controlled.pm",
+      "lib/Wing/Role/Result/APIKey*.pm",
+      "lib/Wing/Role/Result/FacebookAuthUser.pm",
+      "lib/Wing/Role/Result/UserTenantSSO.pm",
+      "lib/Wing/Command/Command/user.pm",
+      "var/add_class/**",
+      "var/init/lib/DB/Result/User.pm",
+      "var/init/lib/DB/Result/APIKey*.pm",
+      "var/init/dbicdh/_common/deploy/1/install_admin.pl",
+      "var/init/views/account/**",
+      "var/init/views/admin/user*.tt",
+      "var/init/var/mkits/secondary_auth.mkit/**",
+      "var/init/var/mkits/reset_password.mkit/**",
+      "var/firebase_rules.json"
+    ],
+    "deploy": [
+      "appspec.yml",
+      "appspec.yaml",
+      "[Dd]ockerfile",
+      "[Dd]ockerfile.*",
+      "docker-compose*.yml",
+      "docker-compose*.yaml",
+      "compose.yml",
+      "compose.yaml",
+      "deploy*.sh",
+      "var/init/etc/nginx.conf",
+      "var/systemd/**"
+    ],
+    "database": {
+      "migrations": [
+        "**/migrations/**",
+        "**/db/migrate/**",
+        "drizzle/*.sql",
+        "var/init/dbicdh/**"
+      ]
+    }
+  }
 }
