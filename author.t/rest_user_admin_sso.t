@@ -22,7 +22,6 @@ my $admin = Wing->db->resultset('User')->create({username => 'sso-admin', email 
 my $victim = Wing->db->resultset('User')->create({username => 'victim', email => 'victim-mail@example.invalid'});
 $victim->encrypt_and_set_password('original')->update;
 my $key = $admin->apikeys->create({name => 'sso-admin-client'});
-# No grants: an admin's app token passes check_permissions without them.
 my $sso = $admin->start_session({sso => 1, api_key_id => $key->id});
 my $company = Wing->db->resultset('Company')->create({name => 'Admin Corp', private_info => 'staff only'});
 
@@ -38,6 +37,18 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
     is decode_json($call->('GET', '/api/company/'.$company->id, $sso)->content)->{result}{private_info}, 'staff only',
         'describe includes admin fields for an admin app token';
 
+    my $original_hash = $victim->password;
+    is scalar @{decode_json($call->('GET', '/api/user', $sso, query => 'victim-mail')->content)->{result}{items}}, 0,
+        'an admin app token without view_my_account cannot search users by email';
+    is $call->('PUT', '/api/user/'.$victim->id, $sso, admin => 1, username => 'renamed')->code, 450,
+        'an admin app token without edit_my_account cannot edit another user';
+    is $call->('PUT', '/api/user/'.$victim->id, $sso, md5_password => 1, password => 'planted-hash')->code, 450,
+        'an admin app token without edit_my_account cannot set an md5 password';
+    is $call->('DELETE', '/api/user/'.$victim->id, $sso)->code, 450, 'an admin app token without edit_my_account cannot delete a user';
+    my $unchanged = $victim->get_from_storage;
+    ok !$unchanged->admin && $unchanged->username eq 'victim' && $unchanged->password eq $original_hash, 'the refused calls changed nothing';
+
+    Wing->db->resultset('APIKeyPermission')->create({user_id => $admin->id, api_key_id => $key->id, permission => $_}) for qw(view_my_account edit_my_account);
     my $search = decode_json($call->('GET', '/api/user', $sso, query => 'victim-mail')->content);
     is scalar @{$search->{result}{items}}, 1, 'an admin app token can search users by email';
 

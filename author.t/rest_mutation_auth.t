@@ -101,7 +101,10 @@ test_psgi $app, sub {
             is_deeply \%calls, {}, 'empty permission refusal precedes model activity';
         }
     }
-    # The admin's app token has no grants: admins pass check_permissions and can_edit without them.
+    my $ungranted = $request->(POST 'http://localhost/api/protecteduser', Cookie => 'session_id='.$admin_session->id,
+        Content => [username => 'ungranted-created', email => 'ungranted@example.invalid', password => 'created-password']);
+    is $ungranted->code, 450, 'admin app token without edit_my_account is refused';
+    Wing->db->resultset('APIKeyPermission')->create({user_id => $admin->id, api_key_id => $key->id, permission => 'edit_my_account'});
     for my $type (qw(protecteduser emptyuser undefineduser anonymoususer)) {
         my $created = $request->(POST 'http://localhost/api/'.$type, Cookie => 'session_id='.$admin_session->id,
             Content => [username => $type.'-created', email => $type.'@example.invalid', password => 'created-password']);
