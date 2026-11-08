@@ -75,7 +75,7 @@ Whatever field you add using C<wing_privilege_fields>
 
 =item is_C<field_name>
 
-An alias for C<field_name>, also true for admins. When the field is defined with C<< refuse_app_tokens => 1 >>, it is false for an app's single sign-on session, even for holders and admins, so checks such as C<can_view> give the public result instead of dying.
+An alias for C<field_name>, also true for admins. When the field is defined with C<< refuse_app_tokens => 1 >>, it is false for an app's single sign-on session, even for holders and admins, without dying. Admins still pass C<can_edit> and C<can_view> through C<is_admin>.
 
 =item verify_is_C<field_name>.
 
