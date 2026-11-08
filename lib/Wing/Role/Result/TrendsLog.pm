@@ -27,11 +27,10 @@ before wing_finalize_class => sub {
     );
 };
 
-around sqlt_deploy_hook => sub {
-    my ($orig, $self, $sqlt_table) = @_;
-    $orig->($self, $sqlt_table);
+sub sqlt_deploy_hook {
+    my ($self, $sqlt_table) = @_;
     $sqlt_table->add_index(name => 'idx_date_name_value', fields => ['date_created','name','value']);
-};
+}
 
 sub trend_deltas {
     return {

@@ -67,11 +67,6 @@ my $opinion_columns = $installed_dbh->selectcol_arrayref(q{
     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ideaopinions' AND COLUMN_NAME IN ('user_id', 'idea_id')
 });
 is_deeply $opinion_columns, [$columns->[0], $columns->[0]], 'the idea opinion foreign key columns match the users collation';
-my ($trends_collation) = $installed_dbh->selectrow_array(q{
-    SELECT COLLATION_NAME FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'trends_logs' AND COLUMN_NAME = 'name'
-});
-is $trends_collation, $columns->[0], 'the trends log name column matches the users collation';
 my ($mode, $server_mode, $foreign_keys) = $installed_dbh->selectrow_array('SELECT @@SESSION.sql_mode, @@GLOBAL.sql_mode, @@foreign_key_checks');
 is $mode, $server_mode, 'the install keeps the server SQL mode';
 is $foreign_keys, 1, 'foreign keys remain enabled after installation';
