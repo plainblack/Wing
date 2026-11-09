@@ -402,7 +402,7 @@ register login => sub {
         $sso->user_id($user->id);
         $sso->store;
         if ($sso->has_requested_permissions) {
-            return redirect $sso->redirect;
+            return redirect $sso->consent->redirect;
         }
         else {
             return redirect '/sso/authorize?sso_id='.$sso->id;

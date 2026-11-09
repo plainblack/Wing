@@ -29,10 +29,15 @@ sub BUILD {
         $self->api_key_id($data->{api_key_id});
         $self->postback_uri($data->{postback_uri});
         $self->requested_permissions($data->{requested_permissions});
+        $self->consented($data->{consented});
     }
 }
 
 has postback_uri => (
+    is          => 'rw',
+);
+
+has consented => (
     is          => 'rw',
 );
 
@@ -142,12 +147,18 @@ sub store {
             api_key_id              => $self->api_key_id,
             postback_uri            => $self->postback_uri,
             ip_address              => $self->ip_address,
-            ip_address              => $self->ip_address,
+            consented               => $self->consented,
             requested_permissions   => $self->requested_permissions,
         },
         { expires_in => 60 * 60 },
     );
     return $self;
+}
+
+sub consent {
+    my $self = shift;
+    $self->consented(1);
+    return $self->store;
 }
 
 sub redirect {

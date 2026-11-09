@@ -73,6 +73,8 @@ to make two REST requests back to the authenticating site.
 
 The results of that call need to be checked for a successful call.  If so, then the C<id> parameter
 will be the session ID that's returned, and C<user_id> is the remote user_id.
+The call fails with 450 if the user has not approved the request, so an C<sso_id> is only useful after the user
+has been redirected to the C<postback_uri>.
 
 =item Fetch the user's remote account
 

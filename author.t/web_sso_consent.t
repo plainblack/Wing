@@ -24,6 +24,7 @@ $visitor->encrypt_and_set_password('visitor-password');
 $visitor->insert;
 my $postback = 'https://client.example.invalid/back';
 
+sub approved { Wing::SSO->new(id => $_[0], db => Wing->db)->consented }
 sub grants { [sort @{Wing::SSO->new(db => Wing->db, api_key_id => $key->id, user_id => $visitor->id)->get_permissions}] }
 
 test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
@@ -45,15 +46,21 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
     is $approval->header('Location'), $postback.'?sso_id='.$sso_id, 'approval redirects to the postback';
     is_deeply grants(), [], 'approval grants no unsupported permission';
 
-    my $login = $request->(POST 'http://localhost/login', Content => [login => 'sso-visitor', password => 'visitor-password',
-        sso_id => Wing::SSO->new(db => Wing->db, api_key_id => $key->id, postback_uri => $postback)->store->id]);
+    my $known = Wing::SSO->new(db => Wing->db, api_key_id => $key->id, postback_uri => $postback)->store->id;
+    my $login = $request->(POST 'http://localhost/login', Content => [login => 'sso-visitor', password => 'visitor-password', sso_id => $known]);
     like $login->header('Location'), qr{/sso/authorize\?sso_id=}, 'login for an unapproved key shows the consent form';
+    ok !approved($known), 'login does not approve a token for a key the visitor never approved';
+    my ($unapproved) = $sso->('')->header('Location') =~ /sso_id=([^&]+)/;
+    ok !approved($unapproved), 'GET /sso does not approve a token for a key the visitor never approved';
+    ok approved($sso_id), 'approving on the consent form approves the token';
 
     my ($granted) = $sso->('&permission=view_my_account')->header('Location') =~ /sso_id=([^&]+)/;
     $request->(POST 'http://localhost/sso/authorize', Cookie => $cookie, Content => [sso_id => $granted]);
     is_deeply grants(), ['view_my_account'], 'approval grants the requested permission';
     for my $query ('', '&permission=view_my_account', '&permission=bogus') {
-        like $sso->($query)->header('Location'), qr{^\Q$postback\E\?sso_id=}, "approved key with '$query' goes straight to the postback";
+        my ($id) = $sso->($query)->header('Location') =~ m{^\Q$postback\E\?sso_id=([^&]+)};
+        ok $id, "approved key with '$query' goes straight to the postback";
+        ok approved($id), "approved key with '$query' gets an approved token";
     }
     like $sso->('&permission=edit_my_account')->header('Location'), qr{/sso/authorize\?sso_id=}, 'a new permission still needs consent';
 });
