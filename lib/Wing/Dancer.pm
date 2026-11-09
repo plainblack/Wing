@@ -389,16 +389,44 @@ register track_user => sub {
     return ($tracer, eval{get_user_by_session_id()});
 };
 
+=head2 bind_sso_to_browser(sso)
+
+Ties a L<Wing::SSO> token to this browser with a secret C<sso_browser> cookie, so only a login in this browser can claim it.
+
+=cut
+
+register bind_sso_to_browser => sub {
+    my ($sso) = @_;
+    my $cookie = cookies->{sso_browser};
+    $sso->browser(defined $cookie && $cookie->value ? $cookie->value : Data::GUID->new->as_string);
+    $sso->store;
+    set_cookie sso_browser => $sso->browser, http_only => 1, path => '/',
+        same_site => 'Lax', secure => request->secure;
+};
+
+=head2 refuse_foreign_sso()
+
+Throws 401 when the request carries an C<sso_id> that was not bound to this browser by C<bind_sso_to_browser>.
+
+=cut
+
+register refuse_foreign_sso => sub {
+    return unless params->{sso_id};
+    my $cookie = cookies->{sso_browser};
+    my $sso = Wing::SSO->new(id => params->{sso_id}, db => site_db());
+    unless (defined $cookie && defined $sso->browser && $sso->browser eq $cookie->value) {
+        ouch 401, 'This sign in request was not started in this browser. Go back to the app and sign in again.';
+    }
+};
+
 register login => sub {
     my ($user) = @_;
+    refuse_foreign_sso();
     my $session = $user->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => client_ip() });
     set_cookie session_id   => $session->id,
                 Wing::RequestSecurity::session_cookie_options(request, '/');
     if (params->{sso_id}) {
-        my $cookie = cookies->{sso_id};
-        my $sso_id = $cookie->value if defined $cookie;
-        $sso_id ||= params->{sso_id};
-        my $sso = Wing::SSO->new(id => $sso_id, db => site_db());
+        my $sso = Wing::SSO->new(id => params->{sso_id}, db => site_db());
         $sso->user_id($user->id);
         $sso->store;
         if ($sso->has_requested_permissions) {

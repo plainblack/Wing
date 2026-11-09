@@ -30,6 +30,7 @@ sub BUILD {
         $self->postback_uri($data->{postback_uri});
         $self->requested_permissions($data->{requested_permissions});
         $self->consented($data->{consented});
+        $self->browser($data->{browser});
     }
 }
 
@@ -38,6 +39,10 @@ has postback_uri => (
 );
 
 has consented => (
+    is          => 'rw',
+);
+
+has browser => (
     is          => 'rw',
 );
 
@@ -148,6 +153,7 @@ sub store {
             postback_uri            => $self->postback_uri,
             ip_address              => $self->ip_address,
             consented               => $self->consented,
+            browser                 => $self->browser,
             requested_permissions   => $self->requested_permissions,
         },
         { expires_in => 60 * 60 },

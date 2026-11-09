@@ -58,6 +58,8 @@ they will immediately be redirected to the C<postback_uri>.
 Requests that name no supported permission still show the permission step until the user has granted the developer's
 site at least one permission.
 
+The C<sso_id> is bound to the browser that opened the GET /sso URL, so the user must log in in that same browser.
+
 Note, an SSO token, C<sso_id>, will be appended to the C<postback_uri> before redirection.
 
 =head3 Back on the developer's site
