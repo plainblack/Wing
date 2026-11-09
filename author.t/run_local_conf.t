@@ -18,10 +18,19 @@ isnt $status, 0, 'runner fails without etc/local.conf';
 like $output, qr/\Q$root\E\/etc\/local\.conf.*TESTING\.md/s, 'runner names the missing file and where it is documented';
 unlike $output, qr/^ok /m, 'runner runs no tests without etc/local.conf';
 
+sub write_local { open my $file, '>', "$root/etc/local.conf" or die "Cannot write $root/etc/local.conf: $!\n"; print $file encode_json({db => [shift, 'testwing', 'testwing']}) }
 my $socket = "$root/no-mysql-here.sock";
-open my $file, '>', "$root/etc/local.conf" or die "Cannot write $root/etc/local.conf: $!\n";
-print $file encode_json({db => ["DBI:mysql:database=testwing;mysql_socket=$socket", 'testwing', 'testwing']});
-close $file;
+
+# The runner drops and recreates the database it names, so it must be the test database and nothing else.
+for my $dsn ("DBI:mysql:database=wing;mysql_socket=$socket", "DBI:mysql:database=testwing-dev;mysql_socket=$socket") {
+    write_local($dsn);
+    ($status, $output) = run_runner();
+    isnt $status, 0, "runner refuses $dsn";
+    like $output, qr/\Q$root\E\/etc\/local\.conf must start DBI:mysql:database=testwing/, "runner explains why it refuses $dsn";
+    unlike $output, qr/\Q$socket\E/, "runner does not connect to $dsn";
+}
+
+write_local("DBI:mysql:database=testwing;mysql_socket=$socket");
 ($status, $output) = run_runner();
 isnt $status, 0, 'runner fails when the dev MySQL is unreachable';
 like $output, qr/\Q$socket\E/, 'runner connects where etc/local.conf says';

@@ -37,8 +37,9 @@ my $local = "$root/etc/local.conf";
 -f $local or die "Cannot find $local. Create it with a db entry for your running dev MySQL; see TESTING.md.\n";
 $config->{db} = Config::JSON->new($local)->get('db') or die "$local needs a db entry for your running dev MySQL; see TESTING.md.\n";
 my ($dsn, $user, $password) = @{$config->{db}};
-my ($prefix, $database, $suffix) = $dsn =~ /^(.*database=)(\w+)(.*)$/
-    or die "The db entry in $local must name its database, like DBI:mysql:database=testwing; see TESTING.md.\n";
+# The runner drops and recreates this database and every ${database}_* one, so only the test database will do.
+my ($prefix, $database, $suffix) = $dsn =~ /^(DBI:mysql:database=)(testwing)((?:;.*)?)$/
+    or die "The db entry in $local must start DBI:mysql:database=testwing, the test database author.t/bin/createdb.sql creates, because the runner drops and recreates it; see TESTING.md.\n";
 # Tenant databases live on the same dev MySQL.
 @{$config->{tenants}{db_driver}}{qw(prefix suffix)} = ($prefix, $suffix);
 my $dbh = DBI->connect($dsn, $user, $password, {RaiseError => 0, PrintError => 0})

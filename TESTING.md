@@ -16,8 +16,9 @@ perl author.t/run.pl --slice 1/8
   fail; start it and rerun. Beanstalkd is at the address in
   `author.t/etc/test.conf`.
 - `etc/local.conf`, this machine's untracked, gitignored settings. Its `db` entry
-  says how to reach the dev MySQL: the DSN, which must name the `testwing`
-  database and gives `mysql_socket`, or `host` and `port`, then the user, the
+  says how to reach the dev MySQL: the DSN, which must start
+  `DBI:mysql:database=testwing` because the runner drops and recreates that
+  database, and gives `mysql_socket`, or `host` and `port`; then the user, the
   password and the connection options. The test database lives there, and tenant
   databases are created on the same server. For example:
 
