@@ -371,7 +371,7 @@ get '/sso' => sub {
         $sso->user_id($user->id);
         $sso->store;
         if ($sso->has_requested_permissions) {
-            return redirect $sso->redirect;
+            return redirect $sso->consent->redirect;
         }
         else {
             return redirect '/sso/authorize?sso_id='.$sso->id;
@@ -391,7 +391,7 @@ get '/sso/authorize' => sub {
     template 'account/authorize', {
         current_user            => $user,
         sso_id                  => $sso->id,
-        requested_permissions   => $sso->requested_permissions,
+        requested_permissions   => $sso->supported_requested_permissions,
         api_key                 => $sso->api_key->describe,
     };
 };
@@ -405,7 +405,7 @@ post '/sso/authorize' => sub {
     my $sso = Wing::SSO->new(id => params->{sso_id}, db => site_db());
     ouch(401, 'User does not match SSO token.') unless $user->id eq $sso->user_id;
     $sso->grant_requested_permissions;
-    return redirect $sso->redirect;
+    return redirect $sso->consent->redirect;
 };
 
 get '/sso/success' => sub {

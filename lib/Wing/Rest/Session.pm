@@ -26,6 +26,7 @@ post '/api/session/sso/:id' => sub {
     }
     $sso->delete;
     ouch(440, 'No user associated with SSO token.') unless $sso->user_id;
+    ouch(450, 'The user has not approved this SSO request. Send them back to /sso to approve it.') unless $sso->consented;
     return describe($sso->user->start_session({ip_address => client_ip(), api_key_id => $sso->api_key_id, sso => 1}));
 };
 

@@ -29,10 +29,15 @@ sub BUILD {
         $self->api_key_id($data->{api_key_id});
         $self->postback_uri($data->{postback_uri});
         $self->requested_permissions($data->{requested_permissions});
+        $self->consented($data->{consented});
     }
 }
 
 has postback_uri => (
+    is          => 'rw',
+);
+
+has consented => (
     is          => 'rw',
 );
 
@@ -53,18 +58,18 @@ sub get_permissions {
     return \@permissions;
 }
 
+sub supported_requested_permissions {
+    my $self = shift;
+    my $available = Wing->config->get('api_key_permissions');
+    return [grep { defined $_ && is_in($_, $available) } @{$self->requested_permissions}];
+}
+
 sub has_requested_permissions {
     my $self = shift;
-    my @requested = @{$self->requested_permissions};
-    return 1 unless scalar @requested;
     my $existing = $self->get_permissions;
-    my $available = Wing->config->get('api_key_permissions');
-    foreach my $permission (@requested) {
-        next if $permission eq ''; # just in case they request null permissions
-        next if !(is_in($permission, $available)); # just in case they request something we don't support
-        unless (is_in($permission, $existing)) {
-            return 0;
-        }
+    return 0 unless scalar @{$existing}; # a key the user never approved always gets the consent form
+    foreach my $permission (@{$self->supported_requested_permissions}) {
+        return 0 unless is_in($permission, $existing);
     }
     return 1;
 }
@@ -72,7 +77,7 @@ sub has_requested_permissions {
 sub grant_requested_permissions {
     my $self = shift;        
     my $permissions = $self->db->resultset('APIKeyPermission');
-    foreach my $request (@{$self->requested_permissions}) {
+    foreach my $request (@{$self->supported_requested_permissions}) {
         my $permission = $permissions->new({});
         $permission->user_id($self->user_id);
         $permission->api_key_id($self->api_key_id);
@@ -142,12 +147,18 @@ sub store {
             api_key_id              => $self->api_key_id,
             postback_uri            => $self->postback_uri,
             ip_address              => $self->ip_address,
-            ip_address              => $self->ip_address,
+            consented               => $self->consented,
             requested_permissions   => $self->requested_permissions,
         },
         { expires_in => 60 * 60 },
     );
     return $self;
+}
+
+sub consent {
+    my $self = shift;
+    $self->consented(1);
+    return $self->store;
 }
 
 sub redirect {

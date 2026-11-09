@@ -55,6 +55,8 @@ the requested permissions.  All SSO users are required to go through the permiss
 step once.  After granting permissions, they will be redirected to the C<postback_uri>.
 If the user is already logged in on the authenticating site, and have granted permissions to the developer's site,
 they will immediately be redirected to the C<postback_uri>.
+Requests that name no supported permission still show the permission step until the user has granted the developer's
+site at least one permission.
 
 Note, an SSO token, C<sso_id>, will be appended to the C<postback_uri> before redirection.
 
@@ -71,6 +73,8 @@ to make two REST requests back to the authenticating site.
 
 The results of that call need to be checked for a successful call.  If so, then the C<id> parameter
 will be the session ID that's returned, and C<user_id> is the remote user_id.
+The call fails with 450 if the user has not approved the request, so an C<sso_id> is only useful after the user
+has been redirected to the C<postback_uri>.
 
 =item Fetch the user's remote account
 

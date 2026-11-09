@@ -82,7 +82,7 @@ my $session = response('POST', '/api/session', $address, {
 });
 is(Wing::Session->new(id => $session->{id}, db => Wing->db)->ip_address, '198.51.100.7',
     'REST password login persists one address');
-my $sso = Wing::SSO->new(db => Wing->db, api_key_id => $key->id, user_id => $user->id)->store;
+my $sso = Wing::SSO->new(db => Wing->db, api_key_id => $key->id, user_id => $user->id)->consent;
 my $sso_session = response('POST', '/api/session/sso/'.$sso->id, $address,
     {private_key => $key->private_key});
 is(Wing::Session->new(id => $sso_session->{id}, db => Wing->db)->ip_address, '198.51.100.7',
