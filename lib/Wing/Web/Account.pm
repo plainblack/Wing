@@ -63,6 +63,7 @@ post '/account/deactivate' => sub {
 };
 
 post '/login' => sub {
+    refuse_foreign_sso();
     return display_login({ error_message => 'You must specify a username or email address.'}) unless params->{login};
     return display_login({ error_message => 'You must specify a password.'}) unless params->{password};
     my $username = params->{login};
@@ -263,6 +264,7 @@ post '/account' => sub {
 };
 
 post '/account/create' => sub {
+    refuse_foreign_sso();
     my %params = params;
     my $user = site_db()->resultset('User')->new({});
     eval {
@@ -377,8 +379,7 @@ get '/sso' => sub {
             return redirect '/sso/authorize?sso_id='.$sso->id;
         }
     }
-    set_cookie sso_id => $sso->id, http_only => 1, path => '/',
-        same_site => 'Lax', secure => request->secure;
+    bind_sso_to_browser($sso);
     return display_login({sso_id => $sso->id});
 };
 
