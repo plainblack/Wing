@@ -13,7 +13,7 @@ my $dbh = $db->storage->dbh;
 my $directory = tempdir(CLEANUP => 1);
 # Extra databases are named after the test database, so the test account may create them and the runner drops them.
 my ($test_database) = Wing->config->get('db')->[0] =~ /database=(\w+)/
-    or die "Run this test with perl author.t/run.pl, which names its database in author.t/etc/test.conf.\n";
+    or die "Run this test with perl author.t/run.pl, which names its database in etc/local.conf.\n";
 my ($install_database, $legacy_database) = map { "${test_database}_$_" } qw(install_check legacy_check);
 sub install_config {
     my $name = shift;
