@@ -391,14 +391,15 @@ register track_user => sub {
 
 register login => sub {
     my ($user) = @_;
+    my $sso_cookie = cookies->{sso_id};
+    if (params->{sso_id} && !(defined $sso_cookie && $sso_cookie->value eq params->{sso_id})) {
+        ouch 401, 'This sign in request was not started in this browser. Go back to the app and sign in again.';
+    }
     my $session = $user->start_session({ api_key_id => Wing->config->get('default_api_key'), ip_address => client_ip() });
     set_cookie session_id   => $session->id,
                 Wing::RequestSecurity::session_cookie_options(request, '/');
     if (params->{sso_id}) {
-        my $cookie = cookies->{sso_id};
-        my $sso_id = $cookie->value if defined $cookie;
-        $sso_id ||= params->{sso_id};
-        my $sso = Wing::SSO->new(id => $sso_id, db => site_db());
+        my $sso = Wing::SSO->new(id => params->{sso_id}, db => site_db());
         $sso->user_id($user->id);
         $sso->store;
         if ($sso->has_requested_permissions) {

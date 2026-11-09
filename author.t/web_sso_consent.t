@@ -47,7 +47,7 @@ test_psgi(Dancer::Handler->get_handler->psgi_app, sub {
     is_deeply grants(), [], 'approval grants no unsupported permission';
 
     my $known = Wing::SSO->new(db => Wing->db, api_key_id => $key->id, postback_uri => $postback)->store->id;
-    my $login = $request->(POST 'http://localhost/login', Content => [login => 'sso-visitor', password => 'visitor-password', sso_id => $known]);
+    my $login = $request->(POST 'http://localhost/login', Cookie => 'sso_id='.$known, Content => [login => 'sso-visitor', password => 'visitor-password', sso_id => $known]);
     like $login->header('Location'), qr{/sso/authorize\?sso_id=}, 'login for an unapproved key shows the consent form';
     ok !approved($known), 'login does not approve a token for a key the visitor never approved';
     my ($unapproved) = $sso->('')->header('Location') =~ /sso_id=([^&]+)/;

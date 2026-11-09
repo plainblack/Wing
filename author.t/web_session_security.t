@@ -46,7 +46,7 @@ test_psgi $app, sub {
     my $key = $user->apikeys->create({name => 'origin-sso'});
     my $sso = Wing::SSO->new(db => Wing->db, api_key_id => $key->id,
         postback_uri => 'native', requested_permissions => [''])->store;
-    my $sso_login = $request->(POST 'http://localhost/login', Origin => 'https://app.example',
+    my $sso_login = $request->(POST 'http://localhost/login', Origin => 'https://app.example', Cookie => 'sso_id='.$sso->id,
         Content => [login => $user->username, password => 'origin-password', sso_id => $sso->id]);
     is $sso_login->code, 302, 'SSO login still redirects';
     is(Wing::SSO->new(db => Wing->db, id => $sso->id)->user_id, $user->id,

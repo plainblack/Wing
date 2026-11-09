@@ -377,6 +377,8 @@ get '/sso' => sub {
             return redirect '/sso/authorize?sso_id='.$sso->id;
         }
     }
+    set_cookie sso_id => $sso->id, http_only => 1, path => '/',
+        same_site => 'Lax', secure => request->secure;
     return display_login({sso_id => $sso->id});
 };
 
@@ -428,9 +430,6 @@ post '/account/facebook/delete' => sub {
 };
 
 get '/account/facebook' => sub {
-    if (params->{sso_id}) {
-        set_cookie sso_id  => params->{sso_id};
-    }
     if (params->{redirect_after}) {
         set_cookie redirect_after  => params->{redirect_after};
     }

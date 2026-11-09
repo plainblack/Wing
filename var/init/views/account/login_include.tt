@@ -27,4 +27,4 @@
 
 </form>
 <hr>
-<p><a href="/account/facebook?sso_id=[% sso_id || params.sso_id %]&redirect_after=[% redirect_after || params.redirect_after %]" class="btn btn-secondary"><i class="fab fa-facebook"></i> Connect Using Facebook</a></p>
+<p><a href="/account/facebook?redirect_after=[% redirect_after || params.redirect_after %]" class="btn btn-secondary"><i class="fab fa-facebook"></i> Connect Using Facebook</a></p>
