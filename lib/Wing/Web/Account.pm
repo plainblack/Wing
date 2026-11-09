@@ -391,7 +391,7 @@ get '/sso/authorize' => sub {
     template 'account/authorize', {
         current_user            => $user,
         sso_id                  => $sso->id,
-        requested_permissions   => $sso->requested_permissions,
+        requested_permissions   => $sso->supported_requested_permissions,
         api_key                 => $sso->api_key->describe,
     };
 };

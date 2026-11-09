@@ -5,6 +5,9 @@ with respect to new features and compatibility changes.
 ==========================================================
 
 2026-11-09
+ * UPGRADE: GET /sso and login with an sso_id show the /sso/authorize consent form whenever the user has never granted the API key a permission, even when the request names no permission, an empty one or only unsupported ones, which used to redirect to the postback_uri without consent and let any API key owner get a session for a signed-in visitor. Unsupported and empty requested permissions are left off the consent form and are no longer stored on approval. Keys the user has already granted a permission behave as before (#122).
+
+2026-11-09
  * author.t/run.pl reads the test MySQL connection from the db entry of Wing's untracked, gitignored etc/local.conf instead of author.t/etc/test.conf, which assumed the default socket /tmp/mysql.sock. Its DSN must start DBI:mysql:database=testwing, since the runner drops and recreates that database, and tenant test databases use the same server. The runner fails and names the file when it is missing or MySQL is unreachable; TESTING.md documents the file and author.t/run_local_conf.t checks these failures (#123).
 
 2026-11-08

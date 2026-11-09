@@ -19,7 +19,7 @@ set template => 'template_toolkit';
 
 my $owner = Wing->db->resultset('User')->create({username => 'sso-key-owner', email => 'sso-key-owner@example.invalid'});
 my $key = $owner->apikeys->create({name => 'sso-consent-client'});
-my $visitor = Wing->db->new_result('User', {username => 'sso-visitor', email => 'sso-visitor@example.invalid'});
+my $visitor = Wing->db->resultset('User')->new({username => 'sso-visitor', email => 'sso-visitor@example.invalid'});
 $visitor->encrypt_and_set_password('visitor-password');
 $visitor->insert;
 my $postback = 'https://client.example.invalid/back';
