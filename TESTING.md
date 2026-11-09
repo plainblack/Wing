@@ -12,9 +12,29 @@ perl author.t/run.pl --slice 1/8
 
 - Perl with Wing's Perl dependencies and the author-test modules, both installed by
   `bin/setup/03_install_perl_modules.sh`.
-- A running MySQL server and a running beanstalkd, at the
-  addresses in `author.t/etc/test.conf`. If either is down, the tests fail; start
-  it and rerun.
+- A running MySQL server and a running beanstalkd. If either is down, the tests
+  fail; start it and rerun. Beanstalkd is at the address in
+  `author.t/etc/test.conf`.
+- `etc/local.conf`, this machine's untracked, gitignored settings. Its `db` entry
+  says how to reach the dev MySQL: the DSN, which must name the `testwing`
+  database and gives `mysql_socket`, or `host` and `port`, then the user, the
+  password and the connection options. The test database lives there, and tenant
+  databases are created on the same server. For example:
+
+  ```
+  {
+     "db" : [
+        "DBI:mysql:database=testwing;mysql_socket=/path/to/mysql.sock",
+        "testwing",
+        "testwing",
+        { "mysql_enable_utf8" : 1 },
+        { "quote_names" : 1 }
+     ]
+  }
+  ```
+
+  The runner fails and names the file when it is missing or MySQL cannot be
+  reached through it.
 - The test database and account, created once as the MySQL root user:
 
   ```
