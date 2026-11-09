@@ -295,7 +295,8 @@ sub from_mysql {
 This is a class method for sending out a templated email.  It is a
 light wrapper around L<Email::MIME::Kit>.  If an error
 occurs during the sending of any email it will throw an exception: Ouch 442
-when the SMTP server permanently refuses the recipients, otherwise Ouch 504.
+when the SMTP server permanently refuses the recipients or the To header holds
+no parseable address, otherwise Ouch 504.
 
 If the environment variable C<WING_NO_EMAIL> is set to 1, then this method
 will return without doing anything.
@@ -391,9 +392,10 @@ sub send_templated_email {
             __PACKAGE__->log->debug('Defective Email: '.$email->as_string);
             my $error = bleep;
             $error =~ s/(.*?)\s+Trace begun.*/$1/gms;
-            # A 5xx refusal at RCPT names its recipients; it will be refused again.
-            my @rejected = blessed($failure) && $failure->isa('Email::Sender::Failure::Permanent') ? $failure->recipients : ();
-            ouch 442, 'Email address rejected: '.$error, 'email' if @rejected;
+            # A 5xx refusal at RCPT names its recipients, and "no recipients" means no To address could be parsed; both will be refused again.
+            my $permanent = blessed($failure) && $failure->isa('Email::Sender::Failure::Permanent');
+            my @rejected = $permanent ? $failure->recipients : ();
+            ouch 442, 'Email address rejected: '.$error, 'email' if @rejected || ($permanent && $failure->message eq 'no recipients');
             ouch 504, 'Could not send email: '.$error;
         }
     }

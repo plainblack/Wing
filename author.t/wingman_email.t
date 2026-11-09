@@ -24,10 +24,13 @@ local $config->{wingman}{plugins} = {
 
 # SMTP outcome per recipient: undef accepts, otherwise the Email::Sender failure and code to throw.
 my (%refuse, @sent, @warnings);
+my $real_send = \&Email::Sender::Simple::send;
 no warnings 'redefine';
 local *Email::Sender::Simple::send = sub {
     my $to = $_[1]->header('To');
     push @sent, $to;
+    # Email::Sender itself refuses a To with no parseable address, before any SMTP.
+    return $real_send->(@_) unless $to =~ /\@/;
     my ($kind, $code) = @{$refuse{$to} || []};
     # The failure Email::Sender::Transport::SMTP throws when RCPT is refused.
     "Email::Sender::Failure::$kind"->throw(message => "$code mailbox unavailable",
@@ -60,6 +63,14 @@ subtest 'a permanent SMTP refusal (Ouch 442) deletes the job' => sub {
     $job->run;
     ok !defined $wingman->stats_job($job->id), 'refused address job deleted';
     like join(' ', @warnings), qr/rejected/i, 'refusal logged as a warning';
+};
+
+subtest 'an unparseable recipient address (Ouch 442) deletes the job' => sub {
+    @warnings = ();
+    my $job = $queue->('nobodyexample.com');
+    $job->run;
+    ok !defined $wingman->stats_job($job->id), 'unparseable address job deleted';
+    like join(' ', @warnings), qr/no recipients/, 'refusal logged as a warning';
 };
 
 subtest 'another send failure buries the job, autokick retries it, then alerts wing_admin' => sub {
