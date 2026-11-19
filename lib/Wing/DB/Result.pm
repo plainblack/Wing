@@ -4,6 +4,7 @@ use Wing::Perl;
 use DateTime;
 use Ouch;
 use List::MoreUtils qw(any);
+use JSON ();
 use Moose;
 use MooseX::NonMoose;
 extends 'DBIx::Class::Core';
@@ -542,6 +543,10 @@ sub verify_posted_params {
     my @postable_params = $self->get_postable_params_by_priority;
     PARAM: foreach my $param (@postable_params) {
         if (exists $params->{$param}) {
+            # A ref can reach a lookup in a setter, where SQL::Abstract reads it as SQL.
+            if (ref $params->{$param} && !JSON::is_bool($params->{$param})) {
+                ouch 442, $param.' must be a single value, not a list or an object.', $param;
+            }
             my $saveit = sub {
                 $self->$param($params->{$param});
             };

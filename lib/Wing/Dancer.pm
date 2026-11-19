@@ -35,6 +35,74 @@ register client_ip => sub {
     return length $header ? $header : request->remote_address;
 };
 
+=head2 string_param(name)
+
+Returns the named request param. Throws 442 when it is a list or an object, so
+the value is safe to use as one value in a query.
+
+Registered as a Dancer keyword.
+
+=cut
+
+sub is_nested { my $type = ref shift; return $type eq 'HASH' || $type eq 'ARRAY' }
+
+register string_param => sub {
+    my ($name) = @_;
+    my $value = params->{$name};
+    ouch 442, "The $name parameter must be a single value, not a list or an object.", $name if is_nested($value);
+    return $value;
+};
+
+=head2 string_list_param(name)
+
+Returns the named request param. Throws 442 unless it is one value or a list of
+plain values.
+
+Registered as a Dancer keyword.
+
+=cut
+
+sub refuse_nested {
+    my ($name, $value) = @_;
+    if (grep { is_nested($_) } ref $value eq 'ARRAY' ? @$value : $value) {
+        ouch 442, "The $name parameter must be a value or a list of plain values, not an object or a nested list.", $name;
+    }
+    return $value;
+}
+
+register string_list_param => sub {
+    my ($name) = @_;
+    return refuse_nested($name, params->{$name});
+};
+
+=head2 allow_nested_params(method, pattern)
+
+Lets one route take objects and nested lists in its params, which the before
+hook below otherwise refuses with 442. Name the route's method and its full
+path pattern as declared, such as C<< allow_nested_params(post => '/stripe/webhook') >>.
+Use it only for routes that read C<request-E<gt>body> themselves and never put
+a param in a query.
+
+Registered as a Dancer keyword.
+
+=cut
+
+my %nested_params_routes;
+
+register allow_nested_params => sub {
+    my ($method, $pattern) = @_;
+    $nested_params_routes{lc($method).' '.$pattern} = 1;
+};
+
+# SQL::Abstract writes a hash key in a query value into the SQL as an operator, so no request may carry one.
+hook before => sub {
+    my ($route) = @_;
+    return if $route && $nested_params_routes{$route->method.' '.$route->pattern};
+    # Route params come from the path, and a megasplat is a list of lists by design.
+    my %params = (params('query'), params('body'));
+    refuse_nested($_, $params{$_}) for keys %params;
+};
+
 =head2 find_tenant_site()
 
 When Wing is running in multi-tenant mode, this subroutine can be used to look up a site record. See L<Wing::Role::Result::Site> for details.  If a site record is found, it will set the Dancer variable C<is_tenant>.
@@ -129,7 +197,7 @@ Optional. The id of the object you wish to fetch. Defaults to pulling the id fro
 
 register fetch_object => sub {
     my ($type, $id) = @_;
-    $id ||= params->{id};
+    $id ||= string_param('id');
     ouch(404, 'No id specified for '.$type) unless $id;
     my $object = site_db()->resultset($type)->find($id);
     ouch(404, $type.' '.$id.' not found.') unless defined $object;
@@ -217,25 +285,25 @@ If you need to pass additional object-specific options to the object, pass them 
 
 register format_list => sub {
     my ($result_set, %options) = @_;
-    my $order_by = $options{order_by} || param('_order_by');
-    my $sort_order = $options{sort_order} || param('_sort_order');
-    my $include = param('_include');
+    my $order_by = $options{order_by} || string_list_param('_order_by');
+    my $sort_order = $options{sort_order} || string_param('_sort_order');
+    my $include = string_list_param('_include');
     if (defined $include) {
         if (ref $include ne 'ARRAY') {
             $include = [$include];
         }
     }
-    my $include_related_objects = param('_include_related_objects');
+    my $include_related_objects = string_list_param('_include_related_objects');
     return $result_set->format_list(
         order_by                => $order_by,
         sort_order              => $sort_order,
-        page_number             => $options{page_number} || param('_page_number'),
-        items_per_page          => $options{items_per_page} || param('_items_per_page'),
-        max_items               => $options{max_items} || param('_max_items'),
-        include_relationships   => $options{include_relationships} || param('_include_relationships'),
+        page_number             => $options{page_number} || string_param('_page_number'),
+        items_per_page          => $options{items_per_page} || string_param('_items_per_page'),
+        max_items               => $options{max_items} || string_param('_max_items'),
+        include_relationships   => $options{include_relationships} || string_param('_include_relationships'),
         include_related_objects => $options{include_related_objects} || $include_related_objects,
         include                 => $options{include} || $include,
-        include_options         => $options{include_options} || param('_include_options'),
+        include_options         => $options{include_options} || string_param('_include_options'),
         include_admin           => $options{include_admin},
         include_private         => $options{include_private},
         object_options          => $options{object_options},

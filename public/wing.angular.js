@@ -497,7 +497,7 @@ angular.module('wing',[])
 
         this.partial_update =  function(properties, options) {
             var self = this;
-            var params = wing.merge(behavior.fetch_options||{}, properties);
+            var params = wing.json_params(wing.merge(behavior.fetch_options||{}, properties));
             $http.put(self.properties._relationships.self, params, { withCredentials : behavior.with_credentials != null ? behavior.with_credentials : true })
             .then(function (response) {
                 var data = response.data;

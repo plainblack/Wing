@@ -20,7 +20,7 @@ sub get_next_unvoted_idea {
 
 get '/api/idea' => sub {
     my $user = eval { get_user_by_session_id(); };
-    my $ideas = Wing->db->resultset('Idea')->new({})->search_ideas({ params(), }, $user );
+    my $ideas = Wing->db->resultset('Idea')->new({})->search_ideas({ map { $_ => string_param($_) } qw(keyword _sort_by _sort_whose _sort_status) }, $user);
     return format_list($ideas)
 };
 

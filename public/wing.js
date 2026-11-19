@@ -22,6 +22,18 @@ wing.merge = function (obj2,obj1) {  // reverse obj1 and 2 because people expect
     return result;
 };
 
+// The server refuses object params, so objects and lists of objects travel as JSON text, as wing.vue.js sends them.
+wing.json_params = function (params) {
+    var result = {};
+    for (var key in params) {
+        var value = params[key];
+        var nested = value !== null && typeof value === 'object'
+            && !(Array.isArray(value) && value.every(function (item) { return item === null || typeof item !== 'object'; }));
+        result[key] = nested ? JSON.stringify(value) : value;
+    }
+    return result;
+};
+
 wing.angular_datetime_filter = function($filter) {
 	return function(datetime, format) {
         if (datetime == null){ return ""; }
