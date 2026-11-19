@@ -39,10 +39,10 @@ post '/api/session' => sub {
     ouch(441, 'You need an API key.', 'api_key_id') unless params->{api_key_id};
     ouch(441, 'You must specify a username.', 'username') unless params->{username};
     ouch(441, 'You must specify a password.', 'password') unless params->{password};
-    my $user = site_db()->resultset('User')->search({username => params->{username}},{rows=>1})->single;
+    my $user = site_db()->resultset('User')->search({username => string_param('username')},{rows=>1})->single;
     ouch(440, 'User not found.') unless defined $user;
 
-    ouch(441, 'API Key does not belong to this user.') unless site_db()->resultset('APIKey')->search({user_id => $user->id, id => params->{api_key_id}})->count;
+    ouch(441, 'API Key does not belong to this user.') unless site_db()->resultset('APIKey')->search({user_id => $user->id, id => string_param('api_key_id')})->count;
 
     # rate limiter
     my $max = Wing->config->get('rpc_limit') || 30;
@@ -77,10 +77,10 @@ post '/api/session/tenantsso' => sub {
         unless params->{username} || params->{user_id};
     my $identifiers = [];
     if (params->{username}) {
-        push @{ $identifiers }, (username => params->{username});
+        push @{ $identifiers }, (username => string_param('username'));
     }
     elsif (params->{user_id}) {
-        push @{ $identifiers }, (id => params->{user_id});
+        push @{ $identifiers }, (id => string_param('user_id'));
     }
     my $user = site_db()->resultset('User')->search({ -or => $identifiers },{rows=>1})->single;
     ouch(440, 'User not found.') unless defined $user;

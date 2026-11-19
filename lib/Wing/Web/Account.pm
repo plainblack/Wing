@@ -66,7 +66,7 @@ post '/login' => sub {
     refuse_foreign_sso();
     return display_login({ error_message => 'You must specify a username or email address.'}) unless params->{login};
     return display_login({ error_message => 'You must specify a password.'}) unless params->{password};
-    my $username = params->{login};
+    my $username = string_param('login');
     my $password = params->{password};
     my $user = site_db()->resultset('User')->search({email => $username },{rows=>1})->single;
     my @syncable_fields = qw/username email real_name use_as_display_name/;
@@ -293,9 +293,9 @@ get '/account/reset-password' => sub {
 
 post '/account/reset-password' => sub {
     return template 'account/reset-password', {error_message => 'You must supply an email address or username.'} unless params->{login};
-    my $user = site_db()->resultset('User')->search({username => params->{login}},{rows=>1})->single;
+    my $user = site_db()->resultset('User')->search({username => string_param('login')},{rows=>1})->single;
     unless (defined $user) {
-        $user = site_db()->resultset('User')->search({email => params->{login}},{rows=>1})->single;
+        $user = site_db()->resultset('User')->search({email => string_param('login')},{rows=>1})->single;
         return template 'account/reset-password', {error_message => 'User not found.'} unless defined $user;
     }
     if ($user->permanently_deactivated) {
@@ -351,7 +351,7 @@ get '/sso' => sub {
     unless (params->{postback_uri}) {
         ouch 441, 'postback_uri is required.', 'postback_uri';
     }
-    my $api_key = site_db()->resultset('APIKey')->find(params->{api_key_id});
+    my $api_key = site_db()->resultset('APIKey')->find(string_param('api_key_id'));
     unless (defined $api_key) {
         ouch 440, 'API Key not found.', 'api_key_id';
     }

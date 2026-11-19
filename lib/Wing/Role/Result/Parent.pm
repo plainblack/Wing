@@ -27,6 +27,7 @@ sub wing_parent_field {
             $class->meta->add_before_method_modifier($id => sub {
                 my ($self, $value) = @_;
                 if (defined $value) {
+                    ouch(442, $id.' must be a single id, not a list or an object.', $id) if ref $value;
                     my $object = $self->result_source->schema->resultset($options->{related_class})->find($value);
                     ouch(440, $id.' specified does not exist.', $id) unless defined $object;
                     $self->$field($object);
@@ -40,6 +41,7 @@ sub wing_parent_field {
                     $self->$id(undef);
                 }
                 else {
+                    ouch(442, $id.' must be a single id, not a list or an object.', $id) if ref $params->{$id};
                     ouch(441, $id.' is required.', $id) unless $params->{$id};
                     my $object = $self->result_source->schema->resultset($options->{related_class})->find($params->{$id});
                     ouch(440, $id.' not found.') unless defined $object;
