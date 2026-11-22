@@ -77,6 +77,7 @@ sub find_and_format_uris {
     my ($content, $allowed) = @_;
     my $finder = URI::Find::Delimited->new(
         delimiter_re  => [ '\(', '\)' ], # ignore markdown urls
+        ignore_quoted => 1,
         callback => sub {
             my ($opening_delim, $closing_delim, $uri_string, $title, $whitespace) = @_;
 
@@ -129,7 +130,14 @@ sub find_and_format_uris {
             }
         },
     );
-    $finder->find($content);
+    my @segments = split m{(<a\b[^>]*>.*?</a>)}is, ${$content};
+    my $urls_found = 0;
+    foreach my $segment (@segments) {
+        next if $segment =~ m{\A<a\b[^>]*>.*?</a>\z}is;
+        $urls_found += $finder->find(\$segment);
+    }
+    ${$content} = join '', @segments;
+    return $urls_found;
 }
 
 sub format_link {
